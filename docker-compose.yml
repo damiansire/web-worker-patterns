@@ -1,0 +1,19 @@
+services:
+  web-worker-patterns:
+    build: .
+    container_name: web-worker-patterns
+    ports:
+      - "9000:80"
+    volumes:
+      # Montar el directorio actual para desarrollo en vivo
+      # Los cambios se reflejan inmediatamente sin rebuild
+      - ./:/usr/share/nginx/html/:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+

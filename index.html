@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Worker Patterns - Índice</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 50px;
+        }
+
+        header h1 {
+            font-size: 48px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        header p {
+            font-size: 20px;
+            opacity: 0.95;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .examples-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .example-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .example-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .example-card .number {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            line-height: 50px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .example-card h2 {
+            font-size: 22px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .example-card p {
+            color: #666;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        .example-card .tags {
+            margin-top: 15px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            background: #f0f0f0;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .info-box {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .info-box h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+
+        .info-box ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .info-box li {
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            color: #666;
+            font-size: 15px;
+        }
+
+        .info-box li:last-child {
+            border-bottom: none;
+        }
+
+        .info-box li::before {
+            content: "✓ ";
+            color: #4caf50;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 50px;
+            opacity: 0.9;
+        }
+
+        footer a {
+            color: white;
+            text-decoration: none;
+            border-bottom: 1px solid white;
+        }
+
+        footer a:hover {
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 36px;
+            }
+
+            .examples-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Patrones de Web Workers</h1>
+            <p>Aprende a usar Web Workers con ejemplos prácticos e interactivos</p>
+        </header>
+
+        <div class="info-box">
+            <h3>💡 ¿Qué aprenderás?</h3>
+            <ul>
+                <li>Cómo ejecutar código JavaScript en hilos de fondo</li>
+                <li>Evitar que la interfaz de usuario se congele con tareas pesadas</li>
+                <li>Optimizar el rendimiento con transferencia de datos</li>
+                <li>Manejar errores correctamente en workers</li>
+                <li>Compartir workers entre múltiples pestañas</li>
+                <li>Gestionar el ciclo de vida de workers</li>
+            </ul>
+        </div>
+
+        <div class="info-box" style="background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%); border: 2px solid #667eea;">
+            <h3>🐳 Ejecutando con Docker</h3>
+            <p style="color: #555; line-height: 1.6;">
+                Si estás viendo esta página, ¡significa que el servidor está corriendo correctamente! 🎉<br><br>
+                <strong>Comandos útiles:</strong>
+            </p>
+            <ul style="list-style: none; padding: 15px 0 0 0; color: #555;">
+                <li style="padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                    <code style="background: #f4f4f4; padding: 4px 8px; border-radius: 4px; font-family: monospace;">docker-compose logs -f</code> → Ver logs en tiempo real
+                </li>
+                <li style="padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                    <code style="background: #f4f4f4; padding: 4px 8px; border-radius: 4px; font-family: monospace;">docker-compose down</code> → Detener el servidor
+                </li>
+                <li style="padding: 8px 0; border-bottom: none;">
+                    <a href="DOCKER.md" style="color: #667eea; text-decoration: none; font-weight: 600;">📖 Guía completa de Docker →</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="examples-grid">
+            <a href="01-basic-communication/" class="example-card">
+                <div class="number">01</div>
+                <h2>Comunicación Básica</h2>
+                <p>
+                    El "Hola Mundo" de los Web Workers. Aprende cómo el hilo principal y el worker 
+                    se comunican mediante mensajes usando postMessage y onmessage.
+                </p>
+                <div class="tags">
+                    <span class="tag">Básico</span>
+                    <span class="tag">Fundamentos</span>
+                </div>
+            </a>
+
+            <a href="02-offloading-computation/" class="example-card">
+                <div class="number">02</div>
+                <h2>Descarga de Cómputo</h2>
+                <p>
+                    Descubre cómo evitar que la UI se congele ejecutando cálculos pesados 
+                    (como números primos) en un worker separado del hilo principal.
+                </p>
+                <div class="tags">
+                    <span class="tag">Performance</span>
+                    <span class="tag">Cálculos</span>
+                </div>
+            </a>
+
+            <a href="03-transferable-objects/" class="example-card">
+                <div class="number">03</div>
+                <h2>Objetos Transferibles</h2>
+                <p>
+                    Optimiza el rendimiento transfiriendo la propiedad de objetos grandes 
+                    como ArrayBuffer en lugar de clonarlos. Perfecto para imágenes y datos binarios.
+                </p>
+                <div class="tags">
+                    <span class="tag">Optimización</span>
+                    <span class="tag">ArrayBuffer</span>
+                </div>
+            </a>
+
+            <a href="04-error-handling/" class="example-card">
+                <div class="number">04</div>
+                <h2>Manejo de Errores</h2>
+                <p>
+                    Aprende a capturar y manejar errores que ocurren dentro de un worker 
+                    usando el evento onerror. Incluye ejemplos de diferentes tipos de errores.
+                </p>
+                <div class="tags">
+                    <span class="tag">Debugging</span>
+                    <span class="tag">Errores</span>
+                </div>
+            </a>
+
+            <a href="05-shared-worker/" class="example-card">
+                <div class="number">05</div>
+                <h2>Shared Worker</h2>
+                <p>
+                    Explora cómo un Shared Worker puede ser compartido entre múltiples pestañas 
+                    del navegador. Ideal para sincronizar estado o gestionar conexiones WebSocket.
+                </p>
+                <div class="tags">
+                    <span class="tag">Avanzado</span>
+                    <span class="tag">Multi-tab</span>
+                </div>
+            </a>
+
+            <a href="06-lifecycle-and-termination/" class="example-card">
+                <div class="number">06</div>
+                <h2>Ciclo de Vida</h2>
+                <p>
+                    Gestiona correctamente el ciclo de vida de los workers: creación, uso y 
+                    terminación. Aprende a liberar recursos y memoria de forma apropiada.
+                </p>
+                <div class="tags">
+                    <span class="tag">Gestión</span>
+                    <span class="tag">Recursos</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="info-box">
+            <h3>📖 Orden Recomendado</h3>
+            <ul>
+                <li>Empieza con <strong>Comunicación Básica</strong> para entender los fundamentos</li>
+                <li>Continúa con <strong>Descarga de Cómputo</strong> para ver el caso de uso principal</li>
+                <li>Aprende sobre <strong>Manejo de Errores</strong> para hacer tu código más robusto</li>
+                <li>Explora <strong>Objetos Transferibles</strong> para optimizaciones de rendimiento</li>
+                <li>Experimenta con <strong>Ciclo de Vida</strong> para gestión de recursos</li>
+                <li>Finalmente, prueba <strong>Shared Worker</strong> para casos avanzados</li>
+            </ul>
+        </div>
+
+        <footer>
+            <p>Hecho con ❤️ para la comunidad de desarrolladores</p>
+            <p style="margin-top: 10px;">
+                <a href="https://developer.mozilla.org/es/docs/Web/API/Web_Workers_API" target="_blank">
+                    Documentación de MDN
+                </a>
+            </p>
+        </footer>
+    </div>
+</body>
+</html>
+

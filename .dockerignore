@@ -1,0 +1,39 @@
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Scripts de inicio (no necesarios dentro del contenedor)
+start.sh
+start.bat
+
+# Documentación (ya se copia con todo)
+# README.md
+
+# IDEs
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Node (si en el futuro se agrega)
+node_modules
+package-lock.json
+yarn.lock
+
