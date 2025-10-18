@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>06 - Ciclo de Vida y Terminación</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .info-box {
+            background: #e8f5e9;
+            border: 1px solid #4caf50;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #1b5e20;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .control-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .control-panel h3 {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .status-indicator.inactive {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .status-indicator.active {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-indicator.working {
+            background: #fff3cd;
+            color: #f57c00;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .status-indicator.inactive .status-dot {
+            background: #c62828;
+            animation: none;
+        }
+
+        .status-indicator.active .status-dot {
+            background: #2e7d32;
+        }
+
+        .status-indicator.working .status-dot {
+            background: #f57c00;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        button:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:not(:disabled):active {
+            transform: translateY(0);
+        }
+
+        .btn-create {
+            background: linear-gradient(135deg, #4caf50 0%, #8bc34a 100%);
+            color: white;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #2196f3 0%, #64b5f6 100%);
+            color: white;
+        }
+
+        .btn-terminate {
+            background: linear-gradient(135deg, #f44336 0%, #e91e63 100%);
+            color: white;
+        }
+
+        .btn-restart {
+            background: linear-gradient(135deg, #ff9800 0%, #ffc107 100%);
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .log-container {
+            background: #1e1e1e;
+            border-radius: 10px;
+            padding: 20px;
+            color: #d4d4d4;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #444;
+        }
+
+        .log-header .title {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .log-header button {
+            padding: 6px 12px;
+            font-size: 12px;
+            background: #333;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 6px;
+            border-radius: 4px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .log-entry.info {
+            color: #64b5f6;
+        }
+
+        .log-entry.success {
+            color: #4caf50;
+        }
+
+        .log-entry.error {
+            color: #f44336;
+        }
+
+        .log-entry.warning {
+            color: #ff9800;
+        }
+
+        .log-entry .timestamp {
+            opacity: 0.5;
+            margin-right: 8px;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 15px;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>♻️ Ciclo de Vida y Terminación</h1>
+        <p class="subtitle">Ejemplo 06: Gestión del ciclo de vida de Workers</p>
+
+        <div class="info-box">
+            <strong>💡 ¿Qué demuestra este ejemplo?</strong>
+            Es importante gestionar correctamente el ciclo de vida de los Workers para liberar recursos y memoria.
+            Este ejemplo muestra cómo crear, usar y terminar Workers de forma apropiada.
+        </div>
+
+        <div class="control-panel">
+            <h3>🎮 Control del Worker</h3>
+            
+            <div class="status-indicator inactive" id="statusIndicator">
+                <div class="status-dot"></div>
+                <span id="statusText">Worker no creado</span>
+            </div>
+
+            <div class="button-grid">
+                <button class="btn-create" id="createBtn">
+                    ➕ Crear Worker
+                </button>
+                <button class="btn-start" id="startBtn" disabled>
+                    ▶️ Iniciar Tarea Larga
+                </button>
+                <button class="btn-terminate" id="terminateBtn" disabled>
+                    🛑 Terminar Worker
+                </button>
+                <button class="btn-restart" id="restartBtn" disabled>
+                    🔄 Reiniciar Worker
+                </button>
+            </div>
+
+            <div class="progress-bar" id="progressBarContainer" style="display: none;">
+                <div class="progress-fill" id="progressFill" style="width: 0%;">
+                    0%
+                </div>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <h3>📊 Estadísticas</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="label">Workers Creados</div>
+                    <div class="value" id="createdCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Tareas Completadas</div>
+                    <div class="value" id="completedCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Terminaciones</div>
+                    <div class="value" id="terminatedCount">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="log-container">
+            <div class="log-header">
+                <span class="title">📋 Log de Eventos</span>
+                <button onclick="clearLog()">Limpiar</button>
+            </div>
+            <div id="logContainer">
+                <div class="log-entry info">
+                    <span class="timestamp">[00:00:00]</span>
+                    Sistema iniciado. Esperando acciones...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
+
