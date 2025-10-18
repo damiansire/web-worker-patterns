@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>04 - Manejo de Errores</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .info-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #856404;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .error-types {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .error-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .error-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .error-card h3 {
+            color: #555;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .error-card p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .console {
+            margin-top: 30px;
+            background: #1e1e1e;
+            border-radius: 10px;
+            padding: 20px;
+            color: #d4d4d4;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .console-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #444;
+        }
+
+        .console-header .title {
+            flex: 1;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .console-header button {
+            width: auto;
+            padding: 6px 12px;
+            font-size: 12px;
+            background: #333;
+        }
+
+        .console-header button:hover {
+            background: #444;
+        }
+
+        .log-entry {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .log-entry.error {
+            background: #ff000020;
+            border-left: 3px solid #ff0000;
+            color: #ff6b6b;
+        }
+
+        .log-entry.success {
+            background: #00ff0020;
+            border-left: 3px solid #00ff00;
+            color: #4caf50;
+        }
+
+        .log-entry.info {
+            background: #0080ff20;
+            border-left: 3px solid #0080ff;
+            color: #64b5f6;
+        }
+
+        .log-entry .timestamp {
+            opacity: 0.5;
+            font-size: 11px;
+            margin-right: 10px;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #e74c3c;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚠️ Manejo de Errores en Workers</h1>
+        <p class="subtitle">Ejemplo 04: Capturando y manejando errores</p>
+
+        <div class="info-box">
+            <strong>💡 ¿Qué demuestra este ejemplo?</strong>
+            Los errores que ocurren dentro de un Web Worker deben ser manejados adecuadamente.
+            Este ejemplo muestra diferentes tipos de errores y cómo capturarlos usando el evento <code>onerror</code>.
+        </div>
+
+        <div class="error-types">
+            <div class="error-card">
+                <h3>❌ 1. Error de Referencia</h3>
+                <p>Intentar usar una función o variable que no existe.</p>
+                <button onclick="triggerError('reference')">
+                    Provocar ReferenceError
+                </button>
+            </div>
+
+            <div class="error-card">
+                <h3>🔢 2. Error de Tipo</h3>
+                <p>Intentar realizar una operación con un tipo de dato incorrecto.</p>
+                <button onclick="triggerError('type')">
+                    Provocar TypeError
+                </button>
+            </div>
+
+            <div class="error-card">
+                <h3>➗ 3. Error de División</h3>
+                <p>Operaciones matemáticas inválidas o problemas aritméticos.</p>
+                <button onclick="triggerError('math')">
+                    Provocar Error Matemático
+                </button>
+            </div>
+
+            <div class="error-card">
+                <h3>🎯 4. Error Personalizado</h3>
+                <p>Lanzar un error custom con un mensaje específico.</p>
+                <button onclick="triggerError('custom')">
+                    Lanzar Error Personalizado
+                </button>
+            </div>
+
+            <div class="error-card">
+                <h3>✅ 5. Operación Exitosa</h3>
+                <p>Enviar una operación que se completa sin errores.</p>
+                <button onclick="triggerError('success')">
+                    Ejecutar sin Errores
+                </button>
+            </div>
+        </div>
+
+        <div class="console">
+            <div class="console-header">
+                <span class="title">📋 Consola de Eventos</span>
+                <button onclick="clearConsole()">Limpiar</button>
+            </div>
+            <div id="logContainer">
+                <div class="log-entry info">
+                    <span class="timestamp">[00:00:00]</span>
+                    Sistema iniciado. Esperando acciones...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
+
