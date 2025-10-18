@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>07 - Límites de Workers</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>⚠️ Límites de Workers</h1>
+        <p class="subtitle">Ejemplo 07: Cantidad máxima y gestión de recursos</p>
+
+        <div class="info-box">
+            <strong>💡 ¿Qué demuestra este ejemplo?</strong>
+            Los navegadores tienen límites en la cantidad de workers que pueden ejecutarse simultáneamente.
+            Este ejemplo te permite crear múltiples workers y ver qué sucede cuando alcanzas esos límites.
+        </div>
+
+        <div class="warning-box">
+            <strong>⚠️ Límites típicos por navegador:</strong>
+            <ul>
+                <li><strong>Chrome/Edge:</strong> ~20-50 workers (depende de núcleos CPU)</li>
+                <li><strong>Firefox:</strong> ~20-30 workers</li>
+                <li><strong>Safari:</strong> ~10-20 workers</li>
+            </ul>
+            <p style="margin-top: 10px;">
+                El límite real depende de: memoria disponible, núcleos CPU, y configuración del navegador.
+            </p>
+        </div>
+
+        <div class="stats-panel">
+            <h3>📊 Estado Actual</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Workers Activos</div>
+                    <div class="stat-value active" id="activeCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Creados</div>
+                    <div class="stat-value" id="totalCreated">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Errores</div>
+                    <div class="stat-value error" id="errorCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Memoria Usada</div>
+                    <div class="stat-value" id="memoryUsed">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <h3>🎮 Controles</h3>
+            
+            <div class="input-row">
+                <label for="workerCount">Cantidad de workers a crear:</label>
+                <input type="number" id="workerCount" value="10" min="1" max="100">
+            </div>
+
+            <div class="button-grid">
+                <button class="btn-primary" id="createBtn">
+                    ➕ Crear Workers
+                </button>
+                <button class="btn-stress" id="stressBtn">
+                    🔥 Test de Estrés (50 workers)
+                </button>
+                <button class="btn-danger" id="terminateAllBtn">
+                    🛑 Terminar Todos
+                </button>
+                <button class="btn-secondary" id="clearLogsBtn">
+                    🗑️ Limpiar Logs
+                </button>
+            </div>
+
+            <div class="checkbox-group">
+                <label>
+                    <input type="checkbox" id="autoCleanup" checked>
+                    Auto-limpieza de workers inactivos (después de 10s)
+                </label>
+            </div>
+        </div>
+
+        <div class="workers-panel">
+            <h3>👷 Workers Activos</h3>
+            <div class="workers-list" id="workersList">
+                <p style="color: #999; text-align: center; padding: 20px;">
+                    No hay workers activos. Crea algunos usando los botones de arriba.
+                </p>
+            </div>
+        </div>
+
+        <div class="log-panel">
+            <h3>📋 Log de Eventos</h3>
+            <div class="log-container" id="logContainer">
+                <div class="log-entry info">
+                    <span class="timestamp">[00:00:00]</span>
+                    Sistema iniciado. Listo para crear workers.
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h3>💡 Información Importante</h3>
+            <div class="info-content">
+                <h4>¿Qué sucede cuando se excede el límite?</h4>
+                <ul>
+                    <li>El navegador puede rechazar la creación de nuevos workers</li>
+                    <li>Puede haber excepciones o errores silenciosos</li>
+                    <li>El rendimiento general de la página puede degradarse</li>
+                    <li>Otros procesos del navegador pueden verse afectados</li>
+                </ul>
+
+                <h4>Mejores Prácticas:</h4>
+                <ul>
+                    <li><strong>Pool de Workers:</strong> Reutiliza workers en lugar de crear nuevos</li>
+                    <li><strong>Límite Razonable:</strong> Usa 4-8 workers para la mayoría de aplicaciones</li>
+                    <li><strong>Monitoreo:</strong> Implementa contadores y limpieza automática</li>
+                    <li><strong>Terminación:</strong> Siempre termina workers cuando no los necesites</li>
+                </ul>
+
+                <h4>Detectar límites programáticamente:</h4>
+                <pre>const cpuCores = navigator.hardwareConcurrency || 4;
+const maxWorkers = cpuCores * 2; // Regla general</pre>
+            </div>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
+

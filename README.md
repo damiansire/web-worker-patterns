@@ -31,6 +31,7 @@ start.bat           # Windows
 4. **04-error-handling**: Cómo capturar y manejar errores que ocurren dentro de un worker.
 5. **05-shared-worker**: Cómo compartir un worker entre múltiples pestañas o iframes.
 6. **06-lifecycle-and-termination**: Cómo gestionar el ciclo de vida de un worker y terminarlo explícitamente.
+7. **07-worker-limits**: Límites de workers por navegador y qué sucede cuando se exceden.
 
 ## 🎯 ¿Qué son los Web Workers?
 
@@ -237,7 +238,8 @@ Si eres nuevo en Web Workers, te recomiendo seguir los ejemplos en orden:
 3. Aprende sobre **04-error-handling** para hacer tu código más robusto
 4. Explora **03-transferable-objects** para optimizaciones de rendimiento
 5. Experimenta con **06-lifecycle-and-termination** para gestión de recursos
-6. Finalmente, prueba **05-shared-worker** para casos de uso avanzados
+6. Entiende los límites con **07-worker-limits** para aplicaciones escalables
+7. Finalmente, prueba **05-shared-worker** para casos de uso avanzados
 
 ## 🔍 Recursos Adicionales
 
