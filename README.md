@@ -32,6 +32,7 @@ start.bat           # Windows
 5. **05-shared-worker**: Cómo compartir un worker entre múltiples pestañas o iframes.
 6. **06-lifecycle-and-termination**: Cómo gestionar el ciclo de vida de un worker y terminarlo explícitamente.
 7. **07-worker-limits**: Límites de workers por navegador y qué sucede cuando se exceden.
+8. **08-worker-pool**: Patrón Worker Pool para procesar muchas tareas con pocos workers.
 
 ## 🎯 ¿Qué son los Web Workers?
 
@@ -239,7 +240,8 @@ Si eres nuevo en Web Workers, te recomiendo seguir los ejemplos en orden:
 4. Explora **03-transferable-objects** para optimizaciones de rendimiento
 5. Experimenta con **06-lifecycle-and-termination** para gestión de recursos
 6. Entiende los límites con **07-worker-limits** para aplicaciones escalables
-7. Finalmente, prueba **05-shared-worker** para casos de uso avanzados
+7. Aprende el patrón **08-worker-pool** para escalar a muchas tareas
+8. Finalmente, prueba **05-shared-worker** para casos de uso avanzados
 
 ## 🔍 Recursos Adicionales
 

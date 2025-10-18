@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>08 - Worker Pool</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>♻️ Worker Pool Pattern</h1>
+        <p class="subtitle">Ejemplo 08: Procesar muchas tareas con pocos workers</p>
+
+        <div class="info-box">
+            <strong>💡 ¿Qué demuestra este ejemplo?</strong>
+            En lugar de crear un worker por tarea (lo cual tiene límites), un Worker Pool reutiliza 
+            un número fijo de workers para procesar múltiples tareas en cola. Esto es el patrón usado 
+            en aplicaciones de producción.
+        </div>
+
+        <div class="comparison-box">
+            <div class="comparison-column bad">
+                <h4>❌ Enfoque Malo</h4>
+                <ul>
+                    <li>Crear 1 worker por tarea</li>
+                    <li>100 tareas = 100 workers</li>
+                    <li>Alcanza límites del navegador</li>
+                    <li>Alto consumo de memoria</li>
+                </ul>
+            </div>
+            <div class="comparison-column good">
+                <h4>✅ Worker Pool</h4>
+                <ul>
+                    <li>Pool fijo de 4-8 workers</li>
+                    <li>100 tareas = 4-8 workers reutilizados</li>
+                    <li>Sin límites de tareas</li>
+                    <li>Uso eficiente de recursos</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="stats-dashboard">
+            <h3>📊 Dashboard del Pool</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">👷</div>
+                    <div class="stat-value" id="poolSize">0</div>
+                    <div class="stat-label">Workers en el Pool</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⏳</div>
+                    <div class="stat-value" id="queueSize">0</div>
+                    <div class="stat-label">Tareas en Cola</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🔄</div>
+                    <div class="stat-value" id="processing">0</div>
+                    <div class="stat-label">Procesando Ahora</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-value" id="completed">0</div>
+                    <div class="stat-label">Completadas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⚡</div>
+                    <div class="stat-value" id="throughput">0</div>
+                    <div class="stat-label">Tareas/seg</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⏱️</div>
+                    <div class="stat-value" id="avgTime">-</div>
+                    <div class="stat-label">Tiempo Promedio</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <h3>🎮 Controles</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="poolSizeInput">Tamaño del Pool:</label>
+                    <input type="number" id="poolSizeInput" value="4" min="1" max="16">
+                    <small>Recomendado: 4-8 workers</small>
+                </div>
+                <div class="form-group">
+                    <button class="btn-primary" id="initPoolBtn">
+                        🚀 Inicializar Pool
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="taskCount">Cantidad de Tareas:</label>
+                    <input type="number" id="taskCount" value="20" min="1" max="1000">
+                    <small>Puedes agregar más tareas que workers</small>
+                </div>
+                <div class="form-group">
+                    <label for="taskDuration">Duración de cada tarea (ms):</label>
+                    <input type="number" id="taskDuration" value="1000" min="100" max="5000" step="100">
+                </div>
+            </div>
+
+            <div class="button-grid">
+                <button class="btn-success" id="addTasksBtn" disabled>
+                    ➕ Agregar Tareas
+                </button>
+                <button class="btn-stress" id="stress100Btn" disabled>
+                    🔥 Stress Test (100 tareas)
+                </button>
+                <button class="btn-danger" id="clearQueueBtn" disabled>
+                    🗑️ Limpiar Cola
+                </button>
+                <button class="btn-secondary" id="shutdownBtn" disabled>
+                    🛑 Apagar Pool
+                </button>
+            </div>
+        </div>
+
+        <div class="visualization-panel">
+            <h3>👁️ Visualización del Pool</h3>
+            <div class="workers-container" id="workersContainer">
+                <p style="color: #999; text-align: center; padding: 40px;">
+                    Inicializa el pool para ver los workers en acción
+                </p>
+            </div>
+        </div>
+
+        <div class="queue-panel">
+            <h3>📋 Cola de Tareas</h3>
+            <div class="queue-visualization" id="queueVisualization">
+                <p style="color: #999; text-align: center; padding: 20px;">
+                    Las tareas en cola aparecerán aquí
+                </p>
+            </div>
+        </div>
+
+        <div class="log-panel">
+            <div class="log-header">
+                <h3>📝 Log de Actividad</h3>
+                <button class="btn-small" id="clearLogsBtn">Limpiar</button>
+            </div>
+            <div class="log-container" id="logContainer">
+                <div class="log-entry info">
+                    <span class="timestamp">[00:00:00]</span>
+                    Sistema listo. Inicializa el pool para comenzar.
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h3>💡 ¿Cómo funciona un Worker Pool?</h3>
+            <div class="info-content">
+                <div class="algorithm-steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4>Inicialización</h4>
+                            <p>Se crea un número fijo de workers (ej: 4)</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4>Encolado</h4>
+                            <p>Las tareas se agregan a una cola (FIFO)</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4>Asignación</h4>
+                            <p>Cuando un worker está libre, toma la siguiente tarea</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h4>Ejecución</h4>
+                            <p>El worker procesa la tarea y devuelve el resultado</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">5</div>
+                        <div class="step-content">
+                            <h4>Reutilización</h4>
+                            <p>El worker vuelve a estar disponible y toma otra tarea</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h4>Ventajas del Worker Pool:</h4>
+                <ul>
+                    <li>✅ Procesa infinitas tareas con recursos limitados</li>
+                    <li>✅ No alcanza límites del navegador</li>
+                    <li>✅ Uso eficiente de memoria y CPU</li>
+                    <li>✅ Rendimiento predecible y controlable</li>
+                    <li>✅ Fácil de implementar y mantener</li>
+                </ul>
+
+                <h4>Casos de Uso Reales:</h4>
+                <ul>
+                    <li>Procesamiento de imágenes por lotes</li>
+                    <li>Validación de formularios complejos</li>
+                    <li>Análisis de datos en el cliente</li>
+                    <li>Compresión/descompresión de archivos</li>
+                    <li>Cálculos científicos o matemáticos</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
+
