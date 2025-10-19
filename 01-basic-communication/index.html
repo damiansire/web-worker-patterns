@@ -11,32 +11,33 @@
         <h1>🚀 Comunicación Básica con Web Workers</h1>
         <p class="subtitle">Ejemplo 01: Enviando y recibiendo mensajes</p>
 
-        <div class="info-box">
-            <strong>💡 ¿Qué hace este ejemplo?</strong>
-            Este es el "Hola Mundo" de los Web Workers. Escribe un mensaje y envíalo al worker. 
-            El worker lo recibirá, lo procesará y te responderá de vuelta.
-        </div>
+        <div class="main-grid">
+            <div class="content-column">
+                <div class="info-box">
+                    <strong>💡 ¿Qué hace este ejemplo?</strong>
+                    Este es el "Hola Mundo" de los Web Workers. Escribe un mensaje y envíalo al worker. 
+                    El worker lo recibirá, lo procesará y te responderá de vuelta.
+                </div>
 
-        <details class="code-explanation">
+                <details class="code-explanation">
             <summary>📖 Ver Código - ¿Cómo funciona?</summary>
             
-            <div class="code-explanation-grid">
-                <div class="code-sections-column">
-                    <div class="code-section">
-                        <h3>1️⃣ Crear el Worker (main.js)</h3>
-                        <pre><code><span class="comment">// Crear una nueva instancia del worker</span>
+            <div class="code-sections-list">
+                <div class="code-section">
+                    <h3>1️⃣ Crear el Worker (main.js)</h3>
+                    <pre><code><span class="comment">// Crear una nueva instancia del worker</span>
 <span class="keyword">const</span> <span class="variable">myWorker</span> = <span class="keyword">new</span> <span class="function">Worker</span>(<span class="string">'worker.js'</span>);</code></pre>
-                    </div>
+                </div>
 
-                    <div class="code-section">
-                        <h3>2️⃣ Enviar mensaje al Worker (main.js)</h3>
-                        <pre><code><span class="comment">// Enviar datos al worker usando postMessage</span>
+                <div class="code-section">
+                    <h3>2️⃣ Enviar mensaje al Worker (main.js)</h3>
+                    <pre><code><span class="comment">// Enviar datos al worker usando postMessage</span>
 <span class="variable">myWorker</span>.<span class="function">postMessage</span>(<span class="string">'¡Hola Worker!'</span>);</code></pre>
-                    </div>
+                </div>
 
-                    <div class="code-section">
-                        <h3>3️⃣ Recibir mensaje en el Worker (worker.js)</h3>
-                        <pre><code><span class="comment">// Escuchar mensajes del hilo principal</span>
+                <div class="code-section">
+                    <h3>3️⃣ Recibir mensaje en el Worker (worker.js)</h3>
+                    <pre><code><span class="comment">// Escuchar mensajes del hilo principal</span>
 <span class="variable">self</span>.<span class="property">onmessage</span> = <span class="keyword">function</span>(<span class="variable">e</span>) {
     <span class="keyword">const</span> <span class="variable">mensaje</span> = <span class="variable">e</span>.<span class="property">data</span>;
     <span class="variable">console</span>.<span class="function">log</span>(<span class="string">'Worker recibió:'</span>, <span class="variable">mensaje</span>);
@@ -45,49 +46,50 @@
     <span class="keyword">const</span> <span class="variable">respuesta</span> = <span class="string">`Procesé tu mensaje: "</span><span class="variable">${mensaje}</span><span class="string">"`</span>;
     <span class="variable">self</span>.<span class="function">postMessage</span>(<span class="variable">respuesta</span>);
 };</code></pre>
-                    </div>
+                </div>
 
-                    <div class="code-section">
-                        <h3>4️⃣ Recibir respuesta del Worker (main.js)</h3>
-                        <pre><code><span class="comment">// Escuchar respuestas del worker</span>
+                <div class="code-section">
+                    <h3>4️⃣ Recibir respuesta del Worker (main.js)</h3>
+                    <pre><code><span class="comment">// Escuchar respuestas del worker</span>
 <span class="variable">myWorker</span>.<span class="property">onmessage</span> = <span class="keyword">function</span>(<span class="variable">e</span>) {
     <span class="keyword">const</span> <span class="variable">respuesta</span> = <span class="variable">e</span>.<span class="property">data</span>;
     <span class="variable">console</span>.<span class="function">log</span>(<span class="string">'Hilo principal recibió:'</span>, <span class="variable">respuesta</span>);
 };</code></pre>
-                    </div>
+                </div>
+            </div>
+                </details>
+
+                <div class="input-group">
+                    <label for="messageInput">Mensaje para el Worker:</label>
+                    <input 
+                        type="text" 
+                        id="messageInput" 
+                        placeholder="Escribe tu mensaje aquí..." 
+                        value="¡Hola Worker!"
+                    >
                 </div>
 
-                <div class="code-flow-column">
-                    <div class="code-flow">
-                        <h3>🔄 Flujo de Comunicación</h3>
-                        <div class="flow-diagram">
-                            <div class="flow-step">Hilo Principal</div>
-                            <div class="flow-arrow">postMessage() ↓</div>
-                            <div class="flow-step">Worker</div>
-                            <div class="flow-arrow">↑ postMessage()</div>
-                            <div class="flow-step">Hilo Principal</div>
-                        </div>
+                <button id="sendButton">Enviar Mensaje al Worker</button>
+
+                <div class="messages" id="messagesContainer">
+                    <p style="color: #999; text-align: center; font-style: italic;">
+                        Los mensajes aparecerán aquí...
+                    </p>
+                </div>
+            </div>
+
+            <div class="sidebar-column">
+                <div class="code-flow-standalone">
+                    <h3>🔄 Flujo de Comunicación</h3>
+                    <div class="flow-diagram">
+                        <div class="flow-step">Hilo Principal</div>
+                        <div class="flow-arrow">postMessage() ↓</div>
+                        <div class="flow-step">Worker</div>
+                        <div class="flow-arrow">↑ postMessage()</div>
+                        <div class="flow-step">Hilo Principal</div>
                     </div>
                 </div>
             </div>
-        </details>
-
-        <div class="input-group">
-            <label for="messageInput">Mensaje para el Worker:</label>
-            <input 
-                type="text" 
-                id="messageInput" 
-                placeholder="Escribe tu mensaje aquí..." 
-                value="¡Hola Worker!"
-            >
-        </div>
-
-        <button id="sendButton">Enviar Mensaje al Worker</button>
-
-        <div class="messages" id="messagesContainer">
-            <p style="color: #999; text-align: center; font-style: italic;">
-                Los mensajes aparecerán aquí...
-            </p>
         </div>
     </div>
 

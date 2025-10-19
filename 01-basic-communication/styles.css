@@ -18,7 +18,7 @@ body {
     background: white;
     border-radius: 20px;
     padding: 40px;
-    max-width: 800px;
+    max-width: 1200px;
     width: 100%;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
@@ -34,6 +34,22 @@ h1 {
     color: #666;
     margin-bottom: 30px;
     font-size: 14px;
+}
+
+.main-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 30px;
+}
+
+.content-column {
+    min-width: 0;
+}
+
+.sidebar-column {
+    position: sticky;
+    top: 20px;
+    align-self: start;
 }
 
 .input-group {
@@ -194,11 +210,34 @@ button:active {
     padding-bottom: 15px;
 }
 
+.code-sections-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Flujo de comunicación standalone (siempre visible en sidebar) */
+.code-flow-standalone {
+    background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+    border-radius: 12px;
+    padding: 25px;
+    border: 2px solid #667eea40;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+    height: fit-content;
+}
+
+.code-flow-standalone h3 {
+    color: #495057;
+    font-size: 18px;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 600;
+}
+
 .code-section {
     background: white;
     border-radius: 8px;
     padding: 15px;
-    margin-bottom: 20px;
     border-left: 4px solid #667eea;
 }
 
@@ -270,50 +309,83 @@ button:active {
     color: #d4d4d4;
 }
 
-.code-flow {
-    background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
-    border-radius: 8px;
-    padding: 20px;
-    margin-top: 10px;
-}
-
-.code-flow h3 {
-    color: #495057;
-    font-size: 16px;
-    margin-bottom: 15px;
-    text-align: center;
-}
-
 .flow-diagram {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
 }
 
 .flow-step {
     background: white;
-    padding: 12px 20px;
-    border-radius: 8px;
+    padding: 16px 20px;
+    border-radius: 10px;
     font-weight: 600;
     color: #667eea;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    flex: 1;
-    min-width: 120px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
     text-align: center;
+    border: 2px solid #667eea;
+    transition: all 0.3s ease;
+}
+
+.flow-step:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .flow-arrow {
     color: #667eea;
     font-weight: bold;
     font-size: 18px;
-    padding: 0 10px;
+    text-align: center;
+    padding: 5px 0;
+}
+
+@media (max-width: 1024px) {
+    .main-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .sidebar-column {
+        position: relative;
+        top: 0;
+        order: -1;
+    }
+    
+    .code-flow-standalone {
+        margin-bottom: 25px;
+    }
+    
+    .flow-diagram {
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    
+    .flow-step {
+        min-width: 140px;
+        flex: 0 1 auto;
+    }
+    
+    .flow-step:hover {
+        transform: translateY(-3px);
+    }
+    
+    .flow-arrow {
+        padding: 0 10px;
+    }
 }
 
 @media (max-width: 600px) {
     .flow-diagram {
         flex-direction: column;
+        gap: 10px;
+    }
+    
+    .flow-step {
+        width: 100%;
     }
     
     .flow-arrow {
