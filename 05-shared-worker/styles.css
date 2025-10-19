@@ -308,21 +308,32 @@
         }
 
         .code-section pre {
-            background: #282c34;
+            background: #1e1e1e;
             border-radius: 6px;
-            padding: 15px;
+            padding: 18px;
             overflow-x: auto;
             margin: 0;
+            border: 1px solid #3e3e3e;
         }
 
         .code-section code {
-            color: #abb2bf;
-            font-family: 'Courier New', Courier, monospace;
+            color: #d4d4d4;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
             font-size: 14px;
-            line-height: 1.6;
+            line-height: 1.8;
             background: transparent;
             padding: 0;
         }
+
+        /* Resaltado de sintaxis */
+        .code-section code .keyword { color: #c586c0; font-weight: 600; }
+        .code-section code .function { color: #dcdcaa; }
+        .code-section code .string { color: #ce9178; }
+        .code-section code .number { color: #b5cea8; }
+        .code-section code .variable { color: #9cdcfe; }
+        .code-section code .comment { color: #6a9955; font-style: italic; }
+        .code-section code .property { color: #9cdcfe; }
+        .code-section code .operator { color: #d4d4d4; }
 
         .code-flow {
             background: linear-gradient(135deg, #4a90e220 0%, #667eea20 100%);

@@ -20,48 +20,54 @@
         <details class="code-explanation">
             <summary>📖 Ver Código - ¿Cómo funciona?</summary>
             
-            <div class="code-section">
-                <h3>1️⃣ Crear el Worker (main.js)</h3>
-                <pre><code>// Crear una nueva instancia del worker
-const myWorker = new Worker('worker.js');</code></pre>
-            </div>
+            <div class="code-explanation-grid">
+                <div class="code-sections-column">
+                    <div class="code-section">
+                        <h3>1️⃣ Crear el Worker (main.js)</h3>
+                        <pre><code><span class="comment">// Crear una nueva instancia del worker</span>
+<span class="keyword">const</span> <span class="variable">myWorker</span> = <span class="keyword">new</span> <span class="function">Worker</span>(<span class="string">'worker.js'</span>);</code></pre>
+                    </div>
 
-            <div class="code-section">
-                <h3>2️⃣ Enviar mensaje al Worker (main.js)</h3>
-                <pre><code>// Enviar datos al worker usando postMessage
-myWorker.postMessage('¡Hola Worker!');</code></pre>
-            </div>
+                    <div class="code-section">
+                        <h3>2️⃣ Enviar mensaje al Worker (main.js)</h3>
+                        <pre><code><span class="comment">// Enviar datos al worker usando postMessage</span>
+<span class="variable">myWorker</span>.<span class="function">postMessage</span>(<span class="string">'¡Hola Worker!'</span>);</code></pre>
+                    </div>
 
-            <div class="code-section">
-                <h3>3️⃣ Recibir mensaje en el Worker (worker.js)</h3>
-                <pre><code>// Escuchar mensajes del hilo principal
-self.onmessage = function(e) {
-    const mensaje = e.data;
-    console.log('Worker recibió:', mensaje);
+                    <div class="code-section">
+                        <h3>3️⃣ Recibir mensaje en el Worker (worker.js)</h3>
+                        <pre><code><span class="comment">// Escuchar mensajes del hilo principal</span>
+<span class="variable">self</span>.<span class="property">onmessage</span> = <span class="keyword">function</span>(<span class="variable">e</span>) {
+    <span class="keyword">const</span> <span class="variable">mensaje</span> = <span class="variable">e</span>.<span class="property">data</span>;
+    <span class="variable">console</span>.<span class="function">log</span>(<span class="string">'Worker recibió:'</span>, <span class="variable">mensaje</span>);
     
-    // Procesar y responder
-    const respuesta = `Procesé tu mensaje: "${mensaje}"`;
-    self.postMessage(respuesta);
+    <span class="comment">// Procesar y responder</span>
+    <span class="keyword">const</span> <span class="variable">respuesta</span> = <span class="string">`Procesé tu mensaje: "</span><span class="variable">${mensaje}</span><span class="string">"`</span>;
+    <span class="variable">self</span>.<span class="function">postMessage</span>(<span class="variable">respuesta</span>);
 };</code></pre>
-            </div>
+                    </div>
 
-            <div class="code-section">
-                <h3>4️⃣ Recibir respuesta del Worker (main.js)</h3>
-                <pre><code>// Escuchar respuestas del worker
-myWorker.onmessage = function(e) {
-    const respuesta = e.data;
-    console.log('Hilo principal recibió:', respuesta);
+                    <div class="code-section">
+                        <h3>4️⃣ Recibir respuesta del Worker (main.js)</h3>
+                        <pre><code><span class="comment">// Escuchar respuestas del worker</span>
+<span class="variable">myWorker</span>.<span class="property">onmessage</span> = <span class="keyword">function</span>(<span class="variable">e</span>) {
+    <span class="keyword">const</span> <span class="variable">respuesta</span> = <span class="variable">e</span>.<span class="property">data</span>;
+    <span class="variable">console</span>.<span class="function">log</span>(<span class="string">'Hilo principal recibió:'</span>, <span class="variable">respuesta</span>);
 };</code></pre>
-            </div>
+                    </div>
+                </div>
 
-            <div class="code-flow">
-                <h3>🔄 Flujo de Comunicación</h3>
-                <div class="flow-diagram">
-                    <div class="flow-step">Hilo Principal</div>
-                    <div class="flow-arrow">postMessage() →</div>
-                    <div class="flow-step">Worker</div>
-                    <div class="flow-arrow">← postMessage()</div>
-                    <div class="flow-step">Hilo Principal</div>
+                <div class="code-flow-column">
+                    <div class="code-flow">
+                        <h3>🔄 Flujo de Comunicación</h3>
+                        <div class="flow-diagram">
+                            <div class="flow-step">Hilo Principal</div>
+                            <div class="flow-arrow">postMessage() ↓</div>
+                            <div class="flow-step">Worker</div>
+                            <div class="flow-arrow">↑ postMessage()</div>
+                            <div class="flow-step">Hilo Principal</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </details>
