@@ -22,37 +22,37 @@
             
             <div class="code-section">
                 <h3>1️⃣ Crear Worker para Cómputo (main.js)</h3>
-                <pre><code>// Crear worker para tareas pesadas
-const worker = new Worker('worker.js');</code></pre>
+                <pre><code><span class="comment">// Crear worker para tareas pesadas</span>
+<span class="keyword">const</span> <span class="variable">worker</span> = <span class="keyword">new</span> <span class="function">Worker</span>(<span class="string">'worker.js'</span>);</code></pre>
             </div>
 
             <div class="code-section">
                 <h3>2️⃣ Enviar Tarea al Worker (main.js)</h3>
-                <pre><code>// Enviar cantidad de primos a calcular
-const count = 50000;
-worker.postMessage({ count: count });</code></pre>
+                <pre><code><span class="comment">// Enviar cantidad de primos a calcular</span>
+<span class="keyword">const</span> <span class="variable">count</span> = <span class="number">50000</span>;
+<span class="variable">worker</span>.<span class="function">postMessage</span>({ <span class="property">count</span>: <span class="variable">count</span> });</code></pre>
             </div>
 
             <div class="code-section">
                 <h3>3️⃣ Procesar en Worker (worker.js)</h3>
-                <pre><code>// El worker ejecuta el cálculo pesado
-self.onmessage = function(e) {
-    const { count } = e.data;
+                <pre><code><span class="comment">// El worker ejecuta el cálculo pesado</span>
+<span class="variable">self</span>.<span class="property">onmessage</span> = <span class="keyword">function</span>(<span class="variable">e</span>) {
+    <span class="keyword">const</span> { <span class="variable">count</span> } = <span class="variable">e</span>.<span class="property">data</span>;
     
-    // Cálculo intensivo (esto NO bloquea la UI)
-    const primes = calculatePrimes(count);
+    <span class="comment">// Cálculo intensivo (esto NO bloquea la UI)</span>
+    <span class="keyword">const</span> <span class="variable">primes</span> = <span class="function">calculatePrimes</span>(<span class="variable">count</span>);
     
-    // Enviar resultado
-    self.postMessage({ primes: primes });
+    <span class="comment">// Enviar resultado</span>
+    <span class="variable">self</span>.<span class="function">postMessage</span>({ <span class="property">primes</span>: <span class="variable">primes</span> });
 };</code></pre>
             </div>
 
             <div class="code-section">
                 <h3>4️⃣ Recibir Resultado (main.js)</h3>
-                <pre><code>// Recibir el resultado calculado
-worker.onmessage = function(e) {
-    const primes = e.data.primes;
-    console.log('Cálculo completo:', primes);
+                <pre><code><span class="comment">// Recibir el resultado calculado</span>
+<span class="variable">worker</span>.<span class="property">onmessage</span> = <span class="keyword">function</span>(<span class="variable">e</span>) {
+    <span class="keyword">const</span> <span class="variable">primes</span> = <span class="variable">e</span>.<span class="property">data</span>.<span class="property">primes</span>;
+    <span class="variable">console</span>.<span class="function">log</span>(<span class="string">'Cálculo completo:'</span>, <span class="variable">primes</span>);
 };</code></pre>
             </div>
 

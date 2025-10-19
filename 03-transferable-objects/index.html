@@ -23,44 +23,44 @@
             
             <div class="code-section">
                 <h3>1️⃣ Crear ArrayBuffer (main.js)</h3>
-                <pre><code>// Crear datos binarios grandes (ej: imagen)
-const imageData = new ImageData(1024, 1024);
-const buffer = imageData.data.buffer;</code></pre>
+                <pre><code><span class="comment">// Crear datos binarios grandes (ej: imagen)</span>
+<span class="keyword">const</span> <span class="variable">imageData</span> = <span class="keyword">new</span> <span class="function">ImageData</span>(<span class="number">1024</span>, <span class="number">1024</span>);
+<span class="keyword">const</span> <span class="variable">buffer</span> = <span class="variable">imageData</span>.<span class="property">data</span>.<span class="property">buffer</span>;</code></pre>
             </div>
 
             <div class="code-section">
                 <h3>2️⃣ Método 1: Clonación (Lento)</h3>
-                <pre><code>// Los datos se COPIAN (duplican en memoria)
-worker.postMessage({ 
-    imageData: imageData 
+                <pre><code><span class="comment">// Los datos se COPIAN (duplican en memoria)</span>
+<span class="variable">worker</span>.<span class="function">postMessage</span>({ 
+    <span class="property">imageData</span>: <span class="variable">imageData</span> 
 });
-// El buffer original sigue siendo accesible aquí</code></pre>
+<span class="comment">// El buffer original sigue siendo accesible aquí</span></code></pre>
             </div>
 
             <div class="code-section">
                 <h3>3️⃣ Método 2: Transferencia (Rápido)</h3>
-                <pre><code>// Los datos se TRANSFIEREN (sin copiar)
-worker.postMessage({ 
-    imageData: imageData 
-}, [imageData.data.buffer]);
-//  ↑ Segundo parámetro: array de objetos a transferir
+                <pre><code><span class="comment">// Los datos se TRANSFIEREN (sin copiar)</span>
+<span class="variable">worker</span>.<span class="function">postMessage</span>({ 
+    <span class="property">imageData</span>: <span class="variable">imageData</span> 
+}, [<span class="variable">imageData</span>.<span class="property">data</span>.<span class="property">buffer</span>]);
+<span class="comment">//  ↑ Segundo parámetro: array de objetos a transferir</span>
 
-// ⚠️ El buffer original queda INACCESIBLE aquí
-console.log(buffer.byteLength); // 0 (vacío)</code></pre>
+<span class="comment">// ⚠️ El buffer original queda INACCESIBLE aquí</span>
+<span class="variable">console</span>.<span class="function">log</span>(<span class="variable">buffer</span>.<span class="property">byteLength</span>); <span class="comment">// 0 (vacío)</span></code></pre>
             </div>
 
             <div class="code-section">
                 <h3>4️⃣ Procesar en Worker (worker.js)</h3>
-                <pre><code>self.onmessage = function(e) {
-    const { imageData } = e.data;
+                <pre><code><span class="variable">self</span>.<span class="property">onmessage</span> = <span class="keyword">function</span>(<span class="variable">e</span>) {
+    <span class="keyword">const</span> { <span class="variable">imageData</span> } = <span class="variable">e</span>.<span class="property">data</span>;
     
-    // Procesar los datos
-    const processed = processImage(imageData);
+    <span class="comment">// Procesar los datos</span>
+    <span class="keyword">const</span> <span class="variable">processed</span> = <span class="function">processImage</span>(<span class="variable">imageData</span>);
     
-    // Devolver con transferencia
-    self.postMessage({ 
-        result: processed 
-    }, [processed.data.buffer]);
+    <span class="comment">// Devolver con transferencia</span>
+    <span class="variable">self</span>.<span class="function">postMessage</span>({ 
+        <span class="property">result</span>: <span class="variable">processed</span> 
+    }, [<span class="variable">processed</span>.<span class="property">data</span>.<span class="property">buffer</span>]);
 };</code></pre>
             </div>
 

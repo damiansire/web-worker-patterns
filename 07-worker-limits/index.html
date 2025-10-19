@@ -22,24 +22,24 @@
             
             <div class="code-section">
                 <h3>1️⃣ Obtener Info del Sistema (main.js)</h3>
-                <pre><code>// Detectar número de núcleos disponibles
-const cpuCores = navigator.hardwareConcurrency || 4;
-console.log(`Núcleos CPU: ${cpuCores}`);</code></pre>
+                <pre><code><span class="comment">// Detectar número de núcleos disponibles</span>
+<span class="keyword">const</span> <span class="variable">cpuCores</span> = <span class="variable">navigator</span>.<span class="property">hardwareConcurrency</span> || <span class="number">4</span>;
+<span class="variable">console</span>.<span class="function">log</span>(<span class="string">`Núcleos CPU: </span><span class="variable">${cpuCores}</span><span class="string">`</span>);</code></pre>
             </div>
 
             <div class="code-section">
                 <h3>2️⃣ Crear Múltiples Workers (main.js)</h3>
-                <pre><code>const workers = [];
+                <pre><code><span class="keyword">const</span> <span class="variable">workers</span> = [];
 
-function createWorkers(count) {
-    for (let i = 0; i < count; i++) {
-        try {
-            const worker = new Worker('worker.js');
-            workers.push(worker);
-            console.log(`Worker ${i + 1} creado`);
-        } catch (error) {
-            console.error('Error creando worker:', error);
-            break;
+<span class="keyword">function</span> <span class="function">createWorkers</span>(<span class="variable">count</span>) {
+    <span class="keyword">for</span> (<span class="keyword">let</span> <span class="variable">i</span> = <span class="number">0</span>; <span class="variable">i</span> < <span class="variable">count</span>; <span class="variable">i</span>++) {
+        <span class="keyword">try</span> {
+            <span class="keyword">const</span> <span class="variable">worker</span> = <span class="keyword">new</span> <span class="function">Worker</span>(<span class="string">'worker.js'</span>);
+            <span class="variable">workers</span>.<span class="function">push</span>(<span class="variable">worker</span>);
+            <span class="variable">console</span>.<span class="function">log</span>(<span class="string">`Worker </span><span class="variable">${i + 1}</span><span class="string"> creado`</span>);
+        } <span class="keyword">catch</span> (<span class="variable">error</span>) {
+            <span class="variable">console</span>.<span class="function">error</span>(<span class="string">'Error creando worker:'</span>, <span class="variable">error</span>);
+            <span class="keyword">break</span>;
         }
     }
 }</code></pre>
@@ -47,29 +47,29 @@ function createWorkers(count) {
 
             <div class="code-section">
                 <h3>3️⃣ Detectar Límites (main.js)</h3>
-                <pre><code>// Intentar crear workers hasta encontrar el límite
-let maxWorkers = 0;
-while (maxWorkers < 1000) {
-    try {
-        const w = new Worker('worker.js');
-        workers.push(w);
-        maxWorkers++;
-    } catch (e) {
-        console.log(`Límite alcanzado: ${maxWorkers}`);
-        break;
+                <pre><code><span class="comment">// Intentar crear workers hasta encontrar el límite</span>
+<span class="keyword">let</span> <span class="variable">maxWorkers</span> = <span class="number">0</span>;
+<span class="keyword">while</span> (<span class="variable">maxWorkers</span> < <span class="number">1000</span>) {
+    <span class="keyword">try</span> {
+        <span class="keyword">const</span> <span class="variable">w</span> = <span class="keyword">new</span> <span class="function">Worker</span>(<span class="string">'worker.js'</span>);
+        <span class="variable">workers</span>.<span class="function">push</span>(<span class="variable">w</span>);
+        <span class="variable">maxWorkers</span>++;
+    } <span class="keyword">catch</span> (<span class="variable">e</span>) {
+        <span class="variable">console</span>.<span class="function">log</span>(<span class="string">`Límite alcanzado: </span><span class="variable">${maxWorkers}</span><span class="string">`</span>);
+        <span class="keyword">break</span>;
     }
 }</code></pre>
             </div>
 
             <div class="code-section">
                 <h3>4️⃣ Gestionar Recursos (main.js)</h3>
-                <pre><code>// Terminar workers para liberar recursos
-function cleanupWorkers() {
-    workers.forEach(worker => {
-        worker.terminate();
+                <pre><code><span class="comment">// Terminar workers para liberar recursos</span>
+<span class="keyword">function</span> <span class="function">cleanupWorkers</span>() {
+    <span class="variable">workers</span>.<span class="function">forEach</span>(<span class="variable">worker</span> => {
+        <span class="variable">worker</span>.<span class="function">terminate</span>();
     });
-    workers.length = 0;
-    console.log('Todos los workers terminados');
+    <span class="variable">workers</span>.<span class="property">length</span> = <span class="number">0</span>;
+    <span class="variable">console</span>.<span class="function">log</span>(<span class="string">'Todos los workers terminados'</span>);
 }</code></pre>
             </div>
 

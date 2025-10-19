@@ -22,44 +22,44 @@
             
             <div class="code-section">
                 <h3>1️⃣ Crear Worker y Configurar Error Handler (main.js)</h3>
-                <pre><code>const worker = new Worker('worker.js');
+                <pre><code><span class="keyword">const</span> <span class="variable">worker</span> = <span class="keyword">new</span> <span class="function">Worker</span>(<span class="string">'worker.js'</span>);
 
-// Capturar errores del worker
-worker.onerror = function(error) {
-    console.error('Error en worker:', error.message);
-    console.error('Archivo:', error.filename);
-    console.error('Línea:', error.lineno);
+<span class="comment">// Capturar errores del worker</span>
+<span class="variable">worker</span>.<span class="property">onerror</span> = <span class="keyword">function</span>(<span class="variable">error</span>) {
+    <span class="variable">console</span>.<span class="function">error</span>(<span class="string">'Error en worker:'</span>, <span class="variable">error</span>.<span class="property">message</span>);
+    <span class="variable">console</span>.<span class="function">error</span>(<span class="string">'Archivo:'</span>, <span class="variable">error</span>.<span class="property">filename</span>);
+    <span class="variable">console</span>.<span class="function">error</span>(<span class="string">'Línea:'</span>, <span class="variable">error</span>.<span class="property">lineno</span>);
     
-    // Prevenir que el error se propague
-    error.preventDefault();
+    <span class="comment">// Prevenir que el error se propague</span>
+    <span class="variable">error</span>.<span class="function">preventDefault</span>();
 };</code></pre>
             </div>
 
             <div class="code-section">
                 <h3>2️⃣ Provocar Error en Worker (worker.js)</h3>
-                <pre><code>self.onmessage = function(e) {
-    // Esto causará un ReferenceError
-    funcionQueNoExiste();
+                <pre><code><span class="variable">self</span>.<span class="property">onmessage</span> = <span class="keyword">function</span>(<span class="variable">e</span>) {
+    <span class="comment">// Esto causará un ReferenceError</span>
+    <span class="function">funcionQueNoExiste</span>();
     
-    // O lanzar un error personalizado
-    throw new Error('Error personalizado');
+    <span class="comment">// O lanzar un error personalizado</span>
+    <span class="keyword">throw new</span> <span class="function">Error</span>(<span class="string">'Error personalizado'</span>);
 };</code></pre>
             </div>
 
             <div class="code-section">
                 <h3>3️⃣ Manejo de Errores con Try-Catch (worker.js)</h3>
-                <pre><code>self.onmessage = function(e) {
-    try {
-        // Código que puede fallar
-        const result = operacionPeligrosa();
+                <pre><code><span class="variable">self</span>.<span class="property">onmessage</span> = <span class="keyword">function</span>(<span class="variable">e</span>) {
+    <span class="keyword">try</span> {
+        <span class="comment">// Código que puede fallar</span>
+        <span class="keyword">const</span> <span class="variable">result</span> = <span class="function">operacionPeligrosa</span>();
         
-        // Enviar resultado si todo va bien
-        self.postMessage({ success: true, result });
-    } catch (error) {
-        // Enviar error como mensaje
-        self.postMessage({ 
-            success: false, 
-            error: error.message 
+        <span class="comment">// Enviar resultado si todo va bien</span>
+        <span class="variable">self</span>.<span class="function">postMessage</span>({ <span class="property">success</span>: <span class="keyword">true</span>, <span class="variable">result</span> });
+    } <span class="keyword">catch</span> (<span class="variable">error</span>) {
+        <span class="comment">// Enviar error como mensaje</span>
+        <span class="variable">self</span>.<span class="function">postMessage</span>({ 
+            <span class="property">success</span>: <span class="keyword">false</span>, 
+            <span class="property">error</span>: <span class="variable">error</span>.<span class="property">message</span> 
         });
     }
 };</code></pre>
@@ -67,12 +67,12 @@ worker.onerror = function(error) {
 
             <div class="code-section">
                 <h3>4️⃣ Recibir Mensajes de Error (main.js)</h3>
-                <pre><code>worker.onmessage = function(e) {
-    if (e.data.success) {
-        console.log('Éxito:', e.data.result);
-    } else {
-        console.error('Error:', e.data.error);
-        // Manejar el error en la UI
+                <pre><code><span class="variable">worker</span>.<span class="property">onmessage</span> = <span class="keyword">function</span>(<span class="variable">e</span>) {
+    <span class="keyword">if</span> (<span class="variable">e</span>.<span class="property">data</span>.<span class="property">success</span>) {
+        <span class="variable">console</span>.<span class="function">log</span>(<span class="string">'Éxito:'</span>, <span class="variable">e</span>.<span class="property">data</span>.<span class="property">result</span>);
+    } <span class="keyword">else</span> {
+        <span class="variable">console</span>.<span class="function">error</span>(<span class="string">'Error:'</span>, <span class="variable">e</span>.<span class="property">data</span>.<span class="property">error</span>);
+        <span class="comment">// Manejar el error en la UI</span>
     }
 };</code></pre>
             </div>

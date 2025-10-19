@@ -22,26 +22,26 @@
             
             <div class="code-section">
                 <h3>1️⃣ Crear Worker (main.js)</h3>
-                <pre><code>let worker = null;
+                <pre><code><span class="keyword">let</span> <span class="variable">worker</span> = <span class="keyword">null</span>;
 
-function createWorker() {
-    // Crear nueva instancia del worker
-    worker = new Worker('worker.js');
+<span class="keyword">function</span> <span class="function">createWorker</span>() {
+    <span class="comment">// Crear nueva instancia del worker</span>
+    <span class="variable">worker</span> = <span class="keyword">new</span> <span class="function">Worker</span>(<span class="string">'worker.js'</span>);
     
-    // Configurar listeners
-    worker.onmessage = handleMessage;
-    worker.onerror = handleError;
+    <span class="comment">// Configurar listeners</span>
+    <span class="variable">worker</span>.<span class="property">onmessage</span> = <span class="variable">handleMessage</span>;
+    <span class="variable">worker</span>.<span class="property">onerror</span> = <span class="variable">handleError</span>;
 }</code></pre>
             </div>
 
             <div class="code-section">
                 <h3>2️⃣ Usar Worker (main.js)</h3>
-                <pre><code>// Enviar tarea al worker
-function startTask() {
-    if (worker) {
-        worker.postMessage({
-            action: 'startTask',
-            duration: 5000
+                <pre><code><span class="comment">// Enviar tarea al worker</span>
+<span class="keyword">function</span> <span class="function">startTask</span>() {
+    <span class="keyword">if</span> (<span class="variable">worker</span>) {
+        <span class="variable">worker</span>.<span class="function">postMessage</span>({
+            <span class="property">action</span>: <span class="string">'startTask'</span>,
+            <span class="property">duration</span>: <span class="number">5000</span>
         });
     }
 }</code></pre>
@@ -49,27 +49,27 @@ function startTask() {
 
             <div class="code-section">
                 <h3>3️⃣ Terminar Worker (main.js)</h3>
-                <pre><code>function terminateWorker() {
-    if (worker) {
-        // Terminar inmediatamente el worker
-        worker.terminate();
-        worker = null;
+                <pre><code><span class="keyword">function</span> <span class="function">terminateWorker</span>() {
+    <span class="keyword">if</span> (<span class="variable">worker</span>) {
+        <span class="comment">// Terminar inmediatamente el worker</span>
+        <span class="variable">worker</span>.<span class="function">terminate</span>();
+        <span class="variable">worker</span> = <span class="keyword">null</span>;
         
-        console.log('Worker terminado');
+        <span class="variable">console</span>.<span class="function">log</span>(<span class="string">'Worker terminado'</span>);
     }
 }</code></pre>
             </div>
 
             <div class="code-section">
                 <h3>4️⃣ Auto-terminación desde Worker (worker.js)</h3>
-                <pre><code>// El worker puede terminarse a sí mismo
-self.onmessage = function(e) {
-    if (e.data.action === 'finish') {
-        // Hacer limpieza
-        cleanup();
+                <pre><code><span class="comment">// El worker puede terminarse a sí mismo</span>
+<span class="variable">self</span>.<span class="property">onmessage</span> = <span class="keyword">function</span>(<span class="variable">e</span>) {
+    <span class="keyword">if</span> (<span class="variable">e</span>.<span class="property">data</span>.<span class="property">action</span> === <span class="string">'finish'</span>) {
+        <span class="comment">// Hacer limpieza</span>
+        <span class="function">cleanup</span>();
         
-        // Auto-terminar
-        self.close();
+        <span class="comment">// Auto-terminar</span>
+        <span class="variable">self</span>.<span class="function">close</span>();
     }
 };</code></pre>
             </div>

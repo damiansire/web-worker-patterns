@@ -27,55 +27,55 @@
             
             <div class="code-section">
                 <h3>1️⃣ Crear Shared Worker (main.js)</h3>
-                <pre><code>// Crear el Shared Worker (compartido entre pestañas)
-const sharedWorker = new SharedWorker('shared_worker.js');
+                <pre><code><span class="comment">// Crear el Shared Worker (compartido entre pestañas)</span>
+<span class="keyword">const</span> <span class="variable">sharedWorker</span> = <span class="keyword">new</span> <span class="function">SharedWorker</span>(<span class="string">'shared_worker.js'</span>);
 
-// Obtener el puerto de comunicación
-const port = sharedWorker.port;</code></pre>
+<span class="comment">// Obtener el puerto de comunicación</span>
+<span class="keyword">const</span> <span class="variable">port</span> = <span class="variable">sharedWorker</span>.<span class="property">port</span>;</code></pre>
             </div>
 
             <div class="code-section">
                 <h3>2️⃣ Conectar y Enviar (main.js)</h3>
-                <pre><code>// Iniciar la conexión
-port.start();
+                <pre><code><span class="comment">// Iniciar la conexión</span>
+<span class="variable">port</span>.<span class="function">start</span>();
 
-// Enviar mensaje al Shared Worker
-port.postMessage({
-    type: 'message',
-    tabId: 'tab-123',
-    message: 'Hola desde pestaña 1'
+<span class="comment">// Enviar mensaje al Shared Worker</span>
+<span class="variable">port</span>.<span class="function">postMessage</span>({
+    <span class="property">type</span>: <span class="string">'message'</span>,
+    <span class="property">tabId</span>: <span class="string">'tab-123'</span>,
+    <span class="property">message</span>: <span class="string">'Hola desde pestaña 1'</span>
 });</code></pre>
             </div>
 
             <div class="code-section">
                 <h3>3️⃣ Manejar Conexiones (shared_worker.js)</h3>
-                <pre><code>const connections = [];
+                <pre><code><span class="keyword">const</span> <span class="variable">connections</span> = [];
 
-// Evento cuando una pestaña se conecta
-self.onconnect = function(e) {
-    const port = e.ports[0];
-    connections.push(port);
+<span class="comment">// Evento cuando una pestaña se conecta</span>
+<span class="variable">self</span>.<span class="property">onconnect</span> = <span class="keyword">function</span>(<span class="variable">e</span>) {
+    <span class="keyword">const</span> <span class="variable">port</span> = <span class="variable">e</span>.<span class="property">ports</span>[<span class="number">0</span>];
+    <span class="variable">connections</span>.<span class="function">push</span>(<span class="variable">port</span>);
     
-    // Escuchar mensajes de esta pestaña
-    port.onmessage = function(event) {
-        const { type, message } = event.data;
+    <span class="comment">// Escuchar mensajes de esta pestaña</span>
+    <span class="variable">port</span>.<span class="property">onmessage</span> = <span class="keyword">function</span>(<span class="variable">event</span>) {
+        <span class="keyword">const</span> { <span class="variable">type</span>, <span class="variable">message</span> } = <span class="variable">event</span>.<span class="property">data</span>;
         
-        // Reenviar a TODAS las pestañas
-        connections.forEach(conn => {
-            conn.postMessage(message);
+        <span class="comment">// Reenviar a TODAS las pestañas</span>
+        <span class="variable">connections</span>.<span class="function">forEach</span>(<span class="variable">conn</span> => {
+            <span class="variable">conn</span>.<span class="function">postMessage</span>(<span class="variable">message</span>);
         });
     };
     
-    port.start();
+    <span class="variable">port</span>.<span class="function">start</span>();
 };</code></pre>
             </div>
 
             <div class="code-section">
                 <h3>4️⃣ Recibir Mensajes (main.js)</h3>
-                <pre><code>// Escuchar mensajes del Shared Worker
-port.onmessage = function(e) {
-    console.log('Mensaje recibido:', e.data);
-    // Este mensaje puede venir de cualquier pestaña
+                <pre><code><span class="comment">// Escuchar mensajes del Shared Worker</span>
+<span class="variable">port</span>.<span class="property">onmessage</span> = <span class="keyword">function</span>(<span class="variable">e</span>) {
+    <span class="variable">console</span>.<span class="function">log</span>(<span class="string">'Mensaje recibido:'</span>, <span class="variable">e</span>.<span class="property">data</span>);
+    <span class="comment">// Este mensaje puede venir de cualquier pestaña</span>
 };</code></pre>
             </div>
 

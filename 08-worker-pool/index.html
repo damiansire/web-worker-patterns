@@ -44,19 +44,19 @@
             
             <div class="code-section">
                 <h3>1️⃣ Crear Worker Pool (main.js)</h3>
-                <pre><code>class WorkerPool {
-    constructor(poolSize, workerScript) {
-        this.poolSize = poolSize;
-        this.workers = [];
-        this.taskQueue = [];
+                <pre><code><span class="keyword">class</span> <span class="function">WorkerPool</span> {
+    <span class="function">constructor</span>(<span class="variable">poolSize</span>, <span class="variable">workerScript</span>) {
+        <span class="keyword">this</span>.<span class="property">poolSize</span> = <span class="variable">poolSize</span>;
+        <span class="keyword">this</span>.<span class="property">workers</span> = [];
+        <span class="keyword">this</span>.<span class="property">taskQueue</span> = [];
         
-        // Crear workers fijos
-        for (let i = 0; i < poolSize; i++) {
-            const worker = new Worker(workerScript);
-            this.workers.push({
-                id: i,
-                instance: worker,
-                busy: false
+        <span class="comment">// Crear workers fijos</span>
+        <span class="keyword">for</span> (<span class="keyword">let</span> <span class="variable">i</span> = <span class="number">0</span>; <span class="variable">i</span> < <span class="variable">poolSize</span>; <span class="variable">i</span>++) {
+            <span class="keyword">const</span> <span class="variable">worker</span> = <span class="keyword">new</span> <span class="function">Worker</span>(<span class="variable">workerScript</span>);
+            <span class="keyword">this</span>.<span class="property">workers</span>.<span class="function">push</span>({
+                <span class="property">id</span>: <span class="variable">i</span>,
+                <span class="property">instance</span>: <span class="variable">worker</span>,
+                <span class="property">busy</span>: <span class="keyword">false</span>
             });
         }
     }
@@ -65,26 +65,26 @@
 
             <div class="code-section">
                 <h3>2️⃣ Agregar Tareas a la Cola (main.js)</h3>
-                <pre><code>addTask(task) {
-    // Agregar a la cola
-    this.taskQueue.push(task);
+                <pre><code><span class="function">addTask</span>(<span class="variable">task</span>) {
+    <span class="comment">// Agregar a la cola</span>
+    <span class="keyword">this</span>.<span class="property">taskQueue</span>.<span class="function">push</span>(<span class="variable">task</span>);
     
-    // Procesar inmediatamente si hay workers libres
-    this.processQueue();
+    <span class="comment">// Procesar inmediatamente si hay workers libres</span>
+    <span class="keyword">this</span>.<span class="function">processQueue</span>();
 }</code></pre>
             </div>
 
             <div class="code-section">
                 <h3>3️⃣ Asignar Tareas a Workers (main.js)</h3>
-                <pre><code>processQueue() {
-    // Buscar workers disponibles
-    const available = this.workers.filter(w => !w.busy);
+                <pre><code><span class="function">processQueue</span>() {
+    <span class="comment">// Buscar workers disponibles</span>
+    <span class="keyword">const</span> <span class="variable">available</span> = <span class="keyword">this</span>.<span class="property">workers</span>.<span class="function">filter</span>(<span class="variable">w</span> => !<span class="variable">w</span>.<span class="property">busy</span>);
     
-    available.forEach(worker => {
-        if (this.taskQueue.length > 0) {
-            const task = this.taskQueue.shift();
-            worker.busy = true;
-            worker.instance.postMessage(task);
+    <span class="variable">available</span>.<span class="function">forEach</span>(<span class="variable">worker</span> => {
+        <span class="keyword">if</span> (<span class="keyword">this</span>.<span class="property">taskQueue</span>.<span class="property">length</span> > <span class="number">0</span>) {
+            <span class="keyword">const</span> <span class="variable">task</span> = <span class="keyword">this</span>.<span class="property">taskQueue</span>.<span class="function">shift</span>();
+            <span class="variable">worker</span>.<span class="property">busy</span> = <span class="keyword">true</span>;
+            <span class="variable">worker</span>.<span class="property">instance</span>.<span class="function">postMessage</span>(<span class="variable">task</span>);
         }
     });
 }</code></pre>
@@ -92,15 +92,15 @@
 
             <div class="code-section">
                 <h3>4️⃣ Recibir Resultados (main.js)</h3>
-                <pre><code>worker.instance.onmessage = (e) => {
-    // Marcar worker como disponible
-    worker.busy = false;
+                <pre><code><span class="variable">worker</span>.<span class="property">instance</span>.<span class="property">onmessage</span> = (<span class="variable">e</span>) => {
+    <span class="comment">// Marcar worker como disponible</span>
+    <span class="variable">worker</span>.<span class="property">busy</span> = <span class="keyword">false</span>;
     
-    // Procesar siguiente tarea
-    this.processQueue();
+    <span class="comment">// Procesar siguiente tarea</span>
+    <span class="keyword">this</span>.<span class="function">processQueue</span>();
     
-    // Manejar resultado
-    handleResult(e.data);
+    <span class="comment">// Manejar resultado</span>
+    <span class="function">handleResult</span>(<span class="variable">e</span>.<span class="property">data</span>);
 };</code></pre>
             </div>
 
