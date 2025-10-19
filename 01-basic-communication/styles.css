@@ -18,7 +18,7 @@ body {
     background: white;
     border-radius: 20px;
     padding: 40px;
-    max-width: 600px;
+    max-width: 800px;
     width: 100%;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
@@ -26,7 +26,8 @@ body {
 h1 {
     color: #333;
     margin-bottom: 10px;
-    font-size: 28px;
+    font-size: 32px;
+    font-weight: 700;
 }
 
 .subtitle {
@@ -37,13 +38,17 @@ h1 {
 
 .input-group {
     margin-bottom: 20px;
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
 }
 
 label {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     color: #555;
-    font-weight: 500;
+    font-weight: 600;
+    font-size: 14px;
 }
 
 input {
@@ -64,13 +69,14 @@ button {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
-    padding: 14px 30px;
-    border-radius: 8px;
+    padding: 16px 32px;
+    border-radius: 10px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: all 0.3s ease;
     width: 100%;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 button:hover {
@@ -83,28 +89,32 @@ button:active {
 }
 
 .messages {
-    margin-top: 30px;
-    padding: 20px;
+    margin-top: 25px;
+    padding: 25px;
     background: #f8f9fa;
-    border-radius: 10px;
-    min-height: 100px;
+    border-radius: 12px;
+    min-height: 200px;
+    max-height: 400px;
+    overflow-y: auto;
+    border: 2px solid #e9ecef;
 }
 
 .message {
     margin-bottom: 15px;
-    padding: 12px;
-    border-radius: 8px;
+    padding: 15px;
+    border-radius: 10px;
     animation: slideIn 0.3s ease-out;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .message.from-main {
     background: #e3f2fd;
-    border-left: 4px solid #2196f3;
+    border-left: 5px solid #2196f3;
 }
 
 .message.from-worker {
     background: #f3e5f5;
-    border-left: 4px solid #9c27b0;
+    border-left: 5px solid #9c27b0;
 }
 
 .message strong {
@@ -135,17 +145,132 @@ button:active {
 }
 
 .info-box {
-    background: #fff3cd;
-    border: 1px solid #ffc107;
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 20px;
+    background: #e8f5e9;
+    border: 2px solid #4caf50;
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 25px;
     font-size: 14px;
-    color: #856404;
+    color: #1b5e20;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.1);
 }
 
 .info-box strong {
     display: block;
     margin-bottom: 5px;
+}
+
+/* Estilos para la sección de explicación de código */
+.code-explanation {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.code-explanation summary {
+    font-size: 16px;
+    font-weight: 600;
+    color: #495057;
+    cursor: pointer;
+    list-style: none;
+    padding: 10px;
+    border-radius: 8px;
+    transition: background-color 0.3s;
+}
+
+.code-explanation summary:hover {
+    background-color: #e9ecef;
+}
+
+.code-explanation summary::-webkit-details-marker {
+    display: none;
+}
+
+.code-explanation[open] summary {
+    margin-bottom: 20px;
+    border-bottom: 2px solid #dee2e6;
+    padding-bottom: 15px;
+}
+
+.code-section {
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-left: 4px solid #667eea;
+}
+
+.code-section h3 {
+    color: #495057;
+    font-size: 16px;
+    margin-bottom: 12px;
+}
+
+.code-section pre {
+    background: #282c34;
+    border-radius: 6px;
+    padding: 15px;
+    overflow-x: auto;
+    margin: 0;
+}
+
+.code-section code {
+    color: #abb2bf;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.code-flow {
+    background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 10px;
+}
+
+.code-flow h3 {
+    color: #495057;
+    font-size: 16px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.flow-diagram {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.flow-step {
+    background: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    color: #667eea;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+}
+
+.flow-arrow {
+    color: #667eea;
+    font-weight: bold;
+    font-size: 18px;
+    padding: 0 10px;
+}
+
+@media (max-width: 600px) {
+    .flow-diagram {
+        flex-direction: column;
+    }
+    
+    .flow-arrow {
+        transform: rotate(90deg);
+    }
 }
 

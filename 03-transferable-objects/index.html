@@ -18,6 +18,72 @@
             pero el objeto original queda inaccesible en el hilo principal.
         </div>
 
+        <details class="code-explanation">
+            <summary>📖 Ver Código - ¿Cómo funciona?</summary>
+            
+            <div class="code-section">
+                <h3>1️⃣ Crear ArrayBuffer (main.js)</h3>
+                <pre><code>// Crear datos binarios grandes (ej: imagen)
+const imageData = new ImageData(1024, 1024);
+const buffer = imageData.data.buffer;</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>2️⃣ Método 1: Clonación (Lento)</h3>
+                <pre><code>// Los datos se COPIAN (duplican en memoria)
+worker.postMessage({ 
+    imageData: imageData 
+});
+// El buffer original sigue siendo accesible aquí</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>3️⃣ Método 2: Transferencia (Rápido)</h3>
+                <pre><code>// Los datos se TRANSFIEREN (sin copiar)
+worker.postMessage({ 
+    imageData: imageData 
+}, [imageData.data.buffer]);
+//  ↑ Segundo parámetro: array de objetos a transferir
+
+// ⚠️ El buffer original queda INACCESIBLE aquí
+console.log(buffer.byteLength); // 0 (vacío)</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>4️⃣ Procesar en Worker (worker.js)</h3>
+                <pre><code>self.onmessage = function(e) {
+    const { imageData } = e.data;
+    
+    // Procesar los datos
+    const processed = processImage(imageData);
+    
+    // Devolver con transferencia
+    self.postMessage({ 
+        result: processed 
+    }, [processed.data.buffer]);
+};</code></pre>
+            </div>
+
+            <div class="code-flow">
+                <h3>⚡ Comparación de Performance</h3>
+                <div class="comparison-table">
+                    <div class="comparison-row">
+                        <div class="method">📋 Clonación</div>
+                        <div class="desc">Copia los datos</div>
+                        <div class="speed slow">~100-500ms para 16MB</div>
+                    </div>
+                    <div class="comparison-row">
+                        <div class="method">⚡ Transferencia</div>
+                        <div class="desc">Mueve el puntero</div>
+                        <div class="speed fast">~1-5ms para 16MB</div>
+                    </div>
+                </div>
+                <p style="font-size: 12px; margin-top: 10px; text-align: center; color: #666;">
+                    💡 Usa transferencia para datos grandes (imágenes, audio, video)
+                </p>
+            </div>
+        </details>
+
         <div class="demo-section">
             <h3>🖼️ Procesamiento de Imagen</h3>
             

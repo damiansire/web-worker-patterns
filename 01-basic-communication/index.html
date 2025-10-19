@@ -17,6 +17,55 @@
             El worker lo recibirá, lo procesará y te responderá de vuelta.
         </div>
 
+        <details class="code-explanation">
+            <summary>📖 Ver Código - ¿Cómo funciona?</summary>
+            
+            <div class="code-section">
+                <h3>1️⃣ Crear el Worker (main.js)</h3>
+                <pre><code>// Crear una nueva instancia del worker
+const myWorker = new Worker('worker.js');</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>2️⃣ Enviar mensaje al Worker (main.js)</h3>
+                <pre><code>// Enviar datos al worker usando postMessage
+myWorker.postMessage('¡Hola Worker!');</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>3️⃣ Recibir mensaje en el Worker (worker.js)</h3>
+                <pre><code>// Escuchar mensajes del hilo principal
+self.onmessage = function(e) {
+    const mensaje = e.data;
+    console.log('Worker recibió:', mensaje);
+    
+    // Procesar y responder
+    const respuesta = `Procesé tu mensaje: "${mensaje}"`;
+    self.postMessage(respuesta);
+};</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>4️⃣ Recibir respuesta del Worker (main.js)</h3>
+                <pre><code>// Escuchar respuestas del worker
+myWorker.onmessage = function(e) {
+    const respuesta = e.data;
+    console.log('Hilo principal recibió:', respuesta);
+};</code></pre>
+            </div>
+
+            <div class="code-flow">
+                <h3>🔄 Flujo de Comunicación</h3>
+                <div class="flow-diagram">
+                    <div class="flow-step">Hilo Principal</div>
+                    <div class="flow-arrow">postMessage() →</div>
+                    <div class="flow-step">Worker</div>
+                    <div class="flow-arrow">← postMessage()</div>
+                    <div class="flow-step">Hilo Principal</div>
+                </div>
+            </div>
+        </details>
+
         <div class="input-group">
             <label for="messageInput">Mensaje para el Worker:</label>
             <input 

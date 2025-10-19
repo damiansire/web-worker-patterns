@@ -18,7 +18,7 @@
             background: white;
             border-radius: 20px;
             padding: 40px;
-            max-width: 700px;
+            max-width: 900px;
             width: 100%;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
@@ -26,7 +26,8 @@
         h1 {
             color: #333;
             margin-bottom: 10px;
-            font-size: 28px;
+            font-size: 32px;
+            font-weight: 700;
         }
 
         .subtitle {
@@ -36,18 +37,20 @@
         }
 
         .info-box {
-            background: #e3f2fd;
-            border: 1px solid #2196f3;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 25px;
             font-size: 14px;
-            color: #0d47a1;
+            color: #1b5e20;
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.1);
         }
 
         .info-box strong {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            font-weight: 600;
         }
 
         .warning-box {
@@ -254,4 +257,115 @@
             border-radius: 3px;
             font-family: 'Courier New', monospace;
             font-size: 12px;
+        }
+
+        /* Estilos para la sección de explicación de código */
+        .code-explanation {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .code-explanation summary {
+            font-size: 16px;
+            font-weight: 600;
+            color: #495057;
+            cursor: pointer;
+            list-style: none;
+            padding: 10px;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+
+        .code-explanation summary:hover {
+            background-color: #e9ecef;
+        }
+
+        .code-explanation summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .code-explanation[open] summary {
+            margin-bottom: 20px;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 15px;
+        }
+
+        .code-section {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4a90e2;
+        }
+
+        .code-section h3 {
+            color: #495057;
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+
+        .code-section pre {
+            background: #282c34;
+            border-radius: 6px;
+            padding: 15px;
+            overflow-x: auto;
+            margin: 0;
+        }
+
+        .code-section code {
+            color: #abb2bf;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            background: transparent;
+            padding: 0;
+        }
+
+        .code-flow {
+            background: linear-gradient(135deg, #4a90e220 0%, #667eea20 100%);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 10px;
+        }
+
+        .code-flow h3 {
+            color: #495057;
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .shared-diagram {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tab-box {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #4a90e2;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 2px solid #4a90e2;
+        }
+
+        .worker-box {
+            background: linear-gradient(135deg, #4a90e2 0%, #667eea 100%);
+            padding: 20px 40px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: white;
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+            text-align: center;
+        }
+
+        .arrows {
+            font-size: 24px;
+            color: #4a90e2;
         }

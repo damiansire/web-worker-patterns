@@ -17,6 +17,78 @@
             Este ejemplo muestra cómo crear, usar y terminar Workers de forma apropiada.
         </div>
 
+        <details class="code-explanation">
+            <summary>📖 Ver Código - ¿Cómo funciona?</summary>
+            
+            <div class="code-section">
+                <h3>1️⃣ Crear Worker (main.js)</h3>
+                <pre><code>let worker = null;
+
+function createWorker() {
+    // Crear nueva instancia del worker
+    worker = new Worker('worker.js');
+    
+    // Configurar listeners
+    worker.onmessage = handleMessage;
+    worker.onerror = handleError;
+}</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>2️⃣ Usar Worker (main.js)</h3>
+                <pre><code>// Enviar tarea al worker
+function startTask() {
+    if (worker) {
+        worker.postMessage({
+            action: 'startTask',
+            duration: 5000
+        });
+    }
+}</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>3️⃣ Terminar Worker (main.js)</h3>
+                <pre><code>function terminateWorker() {
+    if (worker) {
+        // Terminar inmediatamente el worker
+        worker.terminate();
+        worker = null;
+        
+        console.log('Worker terminado');
+    }
+}</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>4️⃣ Auto-terminación desde Worker (worker.js)</h3>
+                <pre><code>// El worker puede terminarse a sí mismo
+self.onmessage = function(e) {
+    if (e.data.action === 'finish') {
+        // Hacer limpieza
+        cleanup();
+        
+        // Auto-terminar
+        self.close();
+    }
+};</code></pre>
+            </div>
+
+            <div class="code-flow">
+                <h3>♻️ Ciclo de Vida del Worker</h3>
+                <div class="lifecycle-diagram">
+                    <div class="lifecycle-step">1. Creación<br><small>new Worker()</small></div>
+                    <div class="arrow">→</div>
+                    <div class="lifecycle-step">2. Activo<br><small>Procesando tareas</small></div>
+                    <div class="arrow">→</div>
+                    <div class="lifecycle-step">3. Terminación<br><small>terminate() o close()</small></div>
+                </div>
+                <p style="font-size: 12px; margin-top: 15px; text-align: center; color: #666;">
+                    ⚠️ Siempre termina workers que ya no necesitas para liberar memoria
+                </p>
+            </div>
+        </details>
+
         <div class="control-panel">
             <h3>🎮 Control del Worker</h3>
             

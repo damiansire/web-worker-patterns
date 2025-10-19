@@ -22,6 +22,80 @@
             Safari no los soporta. Firefox y Chrome sí. <a href="https://caniuse.com/sharedworkers" target="_blank">Ver compatibilidad</a>
         </div>
 
+        <details class="code-explanation">
+            <summary>📖 Ver Código - ¿Cómo funciona?</summary>
+            
+            <div class="code-section">
+                <h3>1️⃣ Crear Shared Worker (main.js)</h3>
+                <pre><code>// Crear el Shared Worker (compartido entre pestañas)
+const sharedWorker = new SharedWorker('shared_worker.js');
+
+// Obtener el puerto de comunicación
+const port = sharedWorker.port;</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>2️⃣ Conectar y Enviar (main.js)</h3>
+                <pre><code>// Iniciar la conexión
+port.start();
+
+// Enviar mensaje al Shared Worker
+port.postMessage({
+    type: 'message',
+    tabId: 'tab-123',
+    message: 'Hola desde pestaña 1'
+});</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>3️⃣ Manejar Conexiones (shared_worker.js)</h3>
+                <pre><code>const connections = [];
+
+// Evento cuando una pestaña se conecta
+self.onconnect = function(e) {
+    const port = e.ports[0];
+    connections.push(port);
+    
+    // Escuchar mensajes de esta pestaña
+    port.onmessage = function(event) {
+        const { type, message } = event.data;
+        
+        // Reenviar a TODAS las pestañas
+        connections.forEach(conn => {
+            conn.postMessage(message);
+        });
+    };
+    
+    port.start();
+};</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>4️⃣ Recibir Mensajes (main.js)</h3>
+                <pre><code>// Escuchar mensajes del Shared Worker
+port.onmessage = function(e) {
+    console.log('Mensaje recibido:', e.data);
+    // Este mensaje puede venir de cualquier pestaña
+};</code></pre>
+            </div>
+
+            <div class="code-flow">
+                <h3>🔄 Arquitectura Multi-Pestaña</h3>
+                <div class="shared-diagram">
+                    <div class="tab-box">Pestaña 1</div>
+                    <div class="arrows">↕️</div>
+                    <div class="worker-box">Shared Worker<br><small>(Una sola instancia)</small></div>
+                    <div class="arrows">↕️</div>
+                    <div class="tab-box">Pestaña 2</div>
+                    <div class="arrows">↕️</div>
+                    <div class="tab-box">Pestaña 3</div>
+                </div>
+                <p style="font-size: 12px; margin-top: 15px; text-align: center; color: #666;">
+                    💡 Un solo worker para todas las pestañas = memoria y recursos compartidos
+                </p>
+            </div>
+        </details>
+
         <div class="status-panel">
             <h3>📊 Estado de la Conexión</h3>
             <div class="status-item">

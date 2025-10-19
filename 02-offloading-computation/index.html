@@ -17,6 +17,64 @@
             y la animación se comportan diferente cuando el cálculo se hace en el hilo principal vs. en un worker.
         </div>
 
+        <details class="code-explanation">
+            <summary>📖 Ver Código - ¿Cómo funciona?</summary>
+            
+            <div class="code-section">
+                <h3>1️⃣ Crear Worker para Cómputo (main.js)</h3>
+                <pre><code>// Crear worker para tareas pesadas
+const worker = new Worker('worker.js');</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>2️⃣ Enviar Tarea al Worker (main.js)</h3>
+                <pre><code>// Enviar cantidad de primos a calcular
+const count = 50000;
+worker.postMessage({ count: count });</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>3️⃣ Procesar en Worker (worker.js)</h3>
+                <pre><code>// El worker ejecuta el cálculo pesado
+self.onmessage = function(e) {
+    const { count } = e.data;
+    
+    // Cálculo intensivo (esto NO bloquea la UI)
+    const primes = calculatePrimes(count);
+    
+    // Enviar resultado
+    self.postMessage({ primes: primes });
+};</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>4️⃣ Recibir Resultado (main.js)</h3>
+                <pre><code>// Recibir el resultado calculado
+worker.onmessage = function(e) {
+    const primes = e.data.primes;
+    console.log('Cálculo completo:', primes);
+};</code></pre>
+            </div>
+
+            <div class="code-flow">
+                <h3>🔄 Ventaja: UI No se Bloquea</h3>
+                <div class="comparison">
+                    <div class="comparison-item">
+                        <h4>❌ Sin Worker</h4>
+                        <p>• UI se congela</p>
+                        <p>• Animaciones se detienen</p>
+                        <p>• Usuario no puede interactuar</p>
+                    </div>
+                    <div class="comparison-item success">
+                        <h4>✅ Con Worker</h4>
+                        <p>• UI permanece fluida</p>
+                        <p>• Animaciones continúan</p>
+                        <p>• Usuario puede seguir interactuando</p>
+                    </div>
+                </div>
+            </div>
+        </details>
+
         <div class="demo-section">
             <h3>🔢 Calculadora de Números Primos</h3>
             

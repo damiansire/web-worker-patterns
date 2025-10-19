@@ -17,6 +17,85 @@
             Este ejemplo muestra diferentes tipos de errores y cómo capturarlos usando el evento <code>onerror</code>.
         </div>
 
+        <details class="code-explanation">
+            <summary>📖 Ver Código - ¿Cómo funciona?</summary>
+            
+            <div class="code-section">
+                <h3>1️⃣ Crear Worker y Configurar Error Handler (main.js)</h3>
+                <pre><code>const worker = new Worker('worker.js');
+
+// Capturar errores del worker
+worker.onerror = function(error) {
+    console.error('Error en worker:', error.message);
+    console.error('Archivo:', error.filename);
+    console.error('Línea:', error.lineno);
+    
+    // Prevenir que el error se propague
+    error.preventDefault();
+};</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>2️⃣ Provocar Error en Worker (worker.js)</h3>
+                <pre><code>self.onmessage = function(e) {
+    // Esto causará un ReferenceError
+    funcionQueNoExiste();
+    
+    // O lanzar un error personalizado
+    throw new Error('Error personalizado');
+};</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>3️⃣ Manejo de Errores con Try-Catch (worker.js)</h3>
+                <pre><code>self.onmessage = function(e) {
+    try {
+        // Código que puede fallar
+        const result = operacionPeligrosa();
+        
+        // Enviar resultado si todo va bien
+        self.postMessage({ success: true, result });
+    } catch (error) {
+        // Enviar error como mensaje
+        self.postMessage({ 
+            success: false, 
+            error: error.message 
+        });
+    }
+};</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>4️⃣ Recibir Mensajes de Error (main.js)</h3>
+                <pre><code>worker.onmessage = function(e) {
+    if (e.data.success) {
+        console.log('Éxito:', e.data.result);
+    } else {
+        console.error('Error:', e.data.error);
+        // Manejar el error en la UI
+    }
+};</code></pre>
+            </div>
+
+            <div class="code-flow">
+                <h3>🔄 Dos Formas de Manejar Errores</h3>
+                <div class="error-methods">
+                    <div class="method-item">
+                        <h4>1. Event Handler (onerror)</h4>
+                        <p>• Captura errores no manejados</p>
+                        <p>• Incluye información de línea/archivo</p>
+                        <p>• No puede enviar datos al hilo principal</p>
+                    </div>
+                    <div class="method-item">
+                        <h4>2. Try-Catch + postMessage</h4>
+                        <p>• Control fino de errores</p>
+                        <p>• Puede enviar detalles al hilo principal</p>
+                        <p>• Permite recuperación elegante</p>
+                    </div>
+                </div>
+            </div>
+        </details>
+
         <div class="error-types">
             <div class="error-card">
                 <h3>❌ 1. Error de Referencia</h3>

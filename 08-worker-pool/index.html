@@ -39,6 +39,97 @@
             </div>
         </div>
 
+        <details class="code-explanation">
+            <summary>📖 Ver Código - ¿Cómo funciona?</summary>
+            
+            <div class="code-section">
+                <h3>1️⃣ Crear Worker Pool (main.js)</h3>
+                <pre><code>class WorkerPool {
+    constructor(poolSize, workerScript) {
+        this.poolSize = poolSize;
+        this.workers = [];
+        this.taskQueue = [];
+        
+        // Crear workers fijos
+        for (let i = 0; i < poolSize; i++) {
+            const worker = new Worker(workerScript);
+            this.workers.push({
+                id: i,
+                instance: worker,
+                busy: false
+            });
+        }
+    }
+}</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>2️⃣ Agregar Tareas a la Cola (main.js)</h3>
+                <pre><code>addTask(task) {
+    // Agregar a la cola
+    this.taskQueue.push(task);
+    
+    // Procesar inmediatamente si hay workers libres
+    this.processQueue();
+}</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>3️⃣ Asignar Tareas a Workers (main.js)</h3>
+                <pre><code>processQueue() {
+    // Buscar workers disponibles
+    const available = this.workers.filter(w => !w.busy);
+    
+    available.forEach(worker => {
+        if (this.taskQueue.length > 0) {
+            const task = this.taskQueue.shift();
+            worker.busy = true;
+            worker.instance.postMessage(task);
+        }
+    });
+}</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>4️⃣ Recibir Resultados (main.js)</h3>
+                <pre><code>worker.instance.onmessage = (e) => {
+    // Marcar worker como disponible
+    worker.busy = false;
+    
+    // Procesar siguiente tarea
+    this.processQueue();
+    
+    // Manejar resultado
+    handleResult(e.data);
+};</code></pre>
+            </div>
+
+            <div class="code-flow">
+                <h3>♻️ Flujo del Worker Pool</h3>
+                <div class="pool-diagram">
+                    <div class="diagram-section">
+                        <strong>Cola de Tareas</strong>
+                        <div class="queue-viz">
+                            [Tarea 5] [Tarea 6] [Tarea 7] ...
+                        </div>
+                    </div>
+                    <div class="diagram-arrow">⬇️</div>
+                    <div class="diagram-section">
+                        <strong>Pool de Workers</strong>
+                        <div class="workers-viz">
+                            Worker 1 [ocupado]<br>
+                            Worker 2 [libre]<br>
+                            Worker 3 [ocupado]<br>
+                            Worker 4 [libre]
+                        </div>
+                    </div>
+                </div>
+                <p style="font-size: 12px; margin-top: 15px; text-align: center; color: #666;">
+                    💡 Patrón profesional para aplicaciones de producción
+                </p>
+            </div>
+        </details>
+
         <div class="stats-dashboard">
             <h3>📊 Dashboard del Pool</h3>
             <div class="stats-grid">

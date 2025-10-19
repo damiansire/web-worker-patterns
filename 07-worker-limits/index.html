@@ -17,6 +17,81 @@
             Este ejemplo te permite crear múltiples workers y ver qué sucede cuando alcanzas esos límites.
         </div>
 
+        <details class="code-explanation">
+            <summary>📖 Ver Código - ¿Cómo funciona?</summary>
+            
+            <div class="code-section">
+                <h3>1️⃣ Obtener Info del Sistema (main.js)</h3>
+                <pre><code>// Detectar número de núcleos disponibles
+const cpuCores = navigator.hardwareConcurrency || 4;
+console.log(`Núcleos CPU: ${cpuCores}`);</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>2️⃣ Crear Múltiples Workers (main.js)</h3>
+                <pre><code>const workers = [];
+
+function createWorkers(count) {
+    for (let i = 0; i < count; i++) {
+        try {
+            const worker = new Worker('worker.js');
+            workers.push(worker);
+            console.log(`Worker ${i + 1} creado`);
+        } catch (error) {
+            console.error('Error creando worker:', error);
+            break;
+        }
+    }
+}</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>3️⃣ Detectar Límites (main.js)</h3>
+                <pre><code>// Intentar crear workers hasta encontrar el límite
+let maxWorkers = 0;
+while (maxWorkers < 1000) {
+    try {
+        const w = new Worker('worker.js');
+        workers.push(w);
+        maxWorkers++;
+    } catch (e) {
+        console.log(`Límite alcanzado: ${maxWorkers}`);
+        break;
+    }
+}</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>4️⃣ Gestionar Recursos (main.js)</h3>
+                <pre><code>// Terminar workers para liberar recursos
+function cleanupWorkers() {
+    workers.forEach(worker => {
+        worker.terminate();
+    });
+    workers.length = 0;
+    console.log('Todos los workers terminados');
+}</code></pre>
+            </div>
+
+            <div class="code-flow">
+                <h3>📊 Límites Típicos por Navegador</h3>
+                <div class="browser-limits">
+                    <div class="limit-item">
+                        <strong>Chrome/Edge:</strong> ~500-1000 workers
+                    </div>
+                    <div class="limit-item">
+                        <strong>Firefox:</strong> ~250-500 workers
+                    </div>
+                    <div class="limit-item">
+                        <strong>Safari:</strong> ~100-200 workers
+                    </div>
+                </div>
+                <p style="font-size: 12px; margin-top: 15px; text-align: center; color: #666;">
+                    💡 Recomendación: Usa máximo 1-2x el número de núcleos CPU
+                </p>
+            </div>
+        </details>
+
         <div class="system-info-panel">
             <h3>💻 Información de tu Sistema</h3>
             <div class="system-info-grid">
