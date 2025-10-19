@@ -10,7 +10,7 @@ Este repositorio contiene una colección de ejemplos prácticos para ilustrar lo
 
 ```bash
 # 1. Clonar el repositorio
-git clone <tu-repo-url>
+git clone https://github.com/damiansire/web-worker-patterns.git
 cd web-worker-patterns
 
 # 2. Ejecutar con Docker (recomendado)
@@ -141,7 +141,7 @@ Usa el script que verifica y levanta Docker automáticamente:
 
 ```bash
 # 1. Clonar el repositorio
-git clone <tu-repo-url>
+git clone https://github.com/damiansire/web-worker-patterns.git
 cd web-worker-patterns
 
 # 2. Ejecutar el script (detecta tu sistema operativo)
@@ -163,7 +163,7 @@ El script automáticamente:
 
 ```bash
 # 1. Clonar el repositorio
-git clone <tu-repo-url>
+git clone https://github.com/damiansire/web-worker-patterns.git
 cd web-worker-patterns
 
 # 2. Asegurarse de que Docker está corriendo (ver arriba)
@@ -223,7 +223,7 @@ php -S localhost:8000
 
 1. Clona este repositorio:
    ```bash
-   git clone <tu-repo-url>
+   git clone https://github.com/damiansire/web-worker-patterns.git
    cd web-worker-patterns
    ```
 2. Inicia un servidor local usando una de las opciones anteriores.
