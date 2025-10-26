@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>09 - Angular - Objetos Transferibles</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Angular + Objetos Transferibles</h1>
+        <p class="subtitle">Ejemplo 03: Transferencia vs. Clonación de datos con Angular</p>
+
+        <div class="info-box">
+            <strong>💡 ¿Qué demuestra este ejemplo?</strong>
+            Los objetos transferibles (como <code>ArrayBuffer</code>) pueden "transferir" su propiedad al worker 
+            en lugar de ser clonados. Con Angular, encapsulamos esta lógica en un servicio para facilitar su uso.
+        </div>
+
+        <details class="code-explanation">
+            <summary>📖 Ver Código - ¿Cómo funciona?</summary>
+            
+            <div class="code-section">
+                <h3>1️⃣ Servicio con Transferencia (transfer.service.ts)</h3>
+                <pre><code><span class="keyword">import</span> { <span class="variable">Injectable</span> } <span class="keyword">from</span> <span class="string">'@angular/core'</span>;
+<span class="keyword">import</span> { <span class="variable">Observable</span>, <span class="variable">Subject</span> } <span class="keyword">from</span> <span class="string">'rxjs'</span>;
+
+<span class="variable">@Injectable</span>({ <span class="property">providedIn</span>: <span class="string">'root'</span> })
+<span class="keyword">export class</span> <span class="function">TransferService</span> {
+    <span class="keyword">private</span> <span class="variable">worker</span>: <span class="function">Worker</span>;
+    <span class="keyword">private</span> <span class="variable">resultSubject</span> = <span class="keyword">new</span> <span class="function">Subject</span>&lt;<span class="variable">any</span>&gt;();
+    
+    <span class="function">constructor</span>() {
+        <span class="keyword">this</span>.<span class="variable">worker</span> = <span class="keyword">new</span> <span class="function">Worker</span>(<span class="string">'./worker.js'</span>);
+        <span class="keyword">this</span>.<span class="variable">setupWorker</span>();
+    }
+    
+    <span class="comment">// Método con transferencia (RÁPIDO - transfiere propiedad)</span>
+    <span class="function">processWithTransfer</span>(<span class="variable">imageData</span>: <span class="function">ImageData</span>): <span class="function">Observable</span>&lt;<span class="variable">any</span>&gt; {
+        <span class="keyword">const</span> <span class="variable">buffer</span> = <span class="variable">imageData</span>.<span class="property">data</span>.<span class="property">buffer</span>;
+        
+        <span class="comment">// Transferir en lugar de clonar</span>
+        <span class="keyword">this</span>.<span class="variable">worker</span>.<span class="function">postMessage</span>(
+            { <span class="property">imageData</span> },
+            [<span class="variable">buffer</span>] <span class="comment">// Segundo parámetro: objetos a transferir</span>
+        );
+        
+        <span class="comment">// El buffer original ahora está vacío</span>
+        <span class="variable">console</span>.<span class="function">log</span>(<span class="string">'Buffer transferido, longitud:'</span>, <span class="variable">buffer</span>.<span class="property">byteLength</span>); <span class="comment">// 0</span>
+        
+        <span class="keyword">return</span> <span class="keyword">this</span>.<span class="variable">resultSubject</span>.<span class="function">asObservable</span>();
+    }
+    
+    <span class="comment">// Método sin transferencia (LENTO - clona datos)</span>
+    <span class="function">processWithClone</span>(<span class="variable">imageData</span>: <span class="function">ImageData</span>): <span class="function">Observable</span>&lt;<span class="variable">any</span>&gt; {
+        <span class="comment">// Normal postMessage clona los datos</span>
+        <span class="keyword">this</span>.<span class="variable">worker</span>.<span class="function">postMessage</span>({ <span class="property">imageData</span> });
+        
+        <span class="comment">// El buffer original sigue accesible</span>
+        <span class="variable">console</span>.<span class="function">log</span>(<span class="string">'Buffer clonado, longitud:'</span>, <span class="variable">imageData</span>.<span class="property">data</span>.<span class="property">buffer</span>.<span class="property">byteLength</span>); <span class="comment">// Sin cambios</span>
+        
+        <span class="keyword">return</span> <span class="keyword">this</span>.<span class="variable">resultSubject</span>.<span class="function">asObservable</span>();
+    }
+    
+    <span class="keyword">private</span> <span class="function">setupWorker</span>(): <span class="keyword">void</span> {
+        <span class="keyword">this</span>.<span class="variable">worker</span>.<span class="property">onmessage</span> = (<span class="variable">e</span>) =&gt; {
+            <span class="keyword">this</span>.<span class="variable">resultSubject</span>.<span class="function">next</span>(<span class="variable">e</span>.<span class="property">data</span>);
+        };
+    }
+}</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>2️⃣ Componente que usa el Servicio</h3>
+                <pre><code><span class="variable">@Component</span>({
+    <span class="property">selector</span>: <span class="string">'app-root'</span>,
+    <span class="property">templateUrl</span>: <span class="string">'./app.component.html'</span>
+})
+<span class="keyword">export class</span> <span class="function">AppComponent</span> {
+    <span class="variable">useTransfer</span>: <span class="variable">boolean</span> = <span class="keyword">true</span>;
+    <span class="variable">duration</span>: <span class="variable">number</span> = <span class="number">0</span>;
+    
+    <span class="function">constructor</span>(<span class="keyword">private</span> <span class="variable">transferService</span>: <span class="function">TransferService</span>) {}
+    
+    <span class="function">processImage</span>(): <span class="keyword">void</span> {
+        <span class="keyword">const</span> <span class="variable">imageData</span> = <span class="keyword">this</span>.<span class="variable">createTestImage</span>();
+        <span class="keyword">const</span> <span class="variable">startTime</span> = <span class="function">performance.now</span>();
+        
+        <span class="keyword">const</span> <span class="variable">method</span> = <span class="keyword">this</span>.<span class="variable">useTransfer</span>
+            ? <span class="string">'Transfer'</span>
+            : <span class="string">'Clone'</span>;
+        
+        <span class="keyword">const</span> <span class="variable">processFn</span> = <span class="keyword">this</span>.<span class="variable">useTransfer</span>
+            ? <span class="keyword">this</span>.<span class="variable">transferService</span>.<span class="function">processWithTransfer</span>(<span class="variable">imageData</span>)
+            : <span class="keyword">this</span>.<span class="variable">transferService</span>.<span class="function">processWithClone</span>(<span class="variable">imageData</span>);
+        
+        <span class="variable">processFn</span>.<span class="function">subscribe</span>(<span class="variable">result</span> =&gt; {
+            <span class="keyword">this</span>.<span class="variable">duration</span> = <span class="function">performance.now</span>() - <span class="variable">startTime</span>;
+            <span class="variable">console</span>.<span class="function">log</span>(<span class="variable">method</span>, <span class="string">'completado en'</span>, <span class="keyword">this</span>.<span class="variable">duration</span>, <span class="string">'ms'</span>);
+        });
+    }
+}</code></pre>
+            </div>
+        </details>
+
+        <div class="comparison-box" style="margin: 20px 0;">
+            <div class="comparison-column">
+                <h4>📋 Clonación</h4>
+                <p>• Copia los datos</p>
+                <p>• Lento para datos grandes</p>
+                <p>• Mantiene original intacto</p>
+            </div>
+            <div class="comparison-column good">
+                <h4>⚡ Transferencia</h4>
+                <p>• Mueve el puntero</p>
+                <p>• Mucho más rápido</p>
+                <p>• Original queda vacío</p>
+            </div>
+        </div>
+
+        <p style="text-align: center; color: #666; margin-top: 30px;">
+            💡 Usa transferencia para imágenes, audio, video o cualquier dato grande
+        </p>
+
+        <div class="button-group">
+            <button class="btn-worker" onclick="alert('La demo completa requiere un servidor con Angular')">
+                🚀 Probar con Transferencia
+            </button>
+            <button class="btn-main" onclick="alert('La demo completa requiere un servidor con Angular')">
+                📋 Probar con Clonación
+            </button>
+        </div>
+    </div>
+
+    <script src="worker.js"></script>
+</body>
+</html>
+

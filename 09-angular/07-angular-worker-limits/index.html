@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>09 - Angular - Límites de Workers</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ Angular + Límites de Workers</h1>
+        <p class="subtitle">Ejemplo 07: Entender límites del navegador con Angular</p>
+
+        <div class="info-box">
+            <strong>💡 ¿Qué demuestra este ejemplo?</strong>
+            Descubre cuántos workers puede manejar tu navegador y qué sucede cuando alcanzas esos límites.
+            Con Angular, encapsulamos la gestión de workers en servicios para mayor control.
+        </div>
+
+        <details class="code-explanation">
+            <summary>📖 Ver Código - ¿Cómo funciona?</summary>
+            
+            <div class="code-section">
+                <h3>1️⃣ Servicio de Gestión de Workers (limits.service.ts)</h3>
+                <pre><code><span class="keyword">import</span> { <span class="variable">Injectable</span> } <span class="keyword">from</span> <span class="string">'@angular/core'</span>;
+<span class="keyword">import</span> { <span class="variable">BehaviorSubject</span>, <span class="variable">Observable</span> } <span class="keyword">from</span> <span class="string">'rxjs'</span>;
+
+<span class="variable">@Injectable</span>({ <span class="property">providedIn</span>: <span class="string">'root'</span> })
+<span class="keyword">export class</span> <span class="function">LimitsService</span> {
+    <span class="keyword">private</span> <span class="variable">workers</span>: <span class="function">Worker</span>[] = [];
+    <span class="keyword">private</span> <span class="variable">maxWorkers</span>: <span class="variable">number</span> = <span class="number">0</span>;
+    <span class="keyword">private</span> <span class="variable">statsSubject</span> = <span class="keyword">new</span> <span class="function">BehaviorSubject</span>&lt;<span class="variable">any</span>&gt;({
+        <span class="property">active</span>: <span class="number">0</span>,
+        <span class="property">maxReached</span>: <span class="keyword">false</span>
+    });
+    
+    <span class="function">createWorker</span>(): <span class="variable">boolean</span> {
+        <span class="keyword">try</span> {
+            <span class="keyword">const</span> <span class="variable">worker</span> = <span class="keyword">new</span> <span class="function">Worker</span>(<span class="string">'./worker.js'</span>);
+            <span class="keyword">this</span>.<span class="variable">workers</span>.<span class="function">push</span>(<span class="variable">worker</span>);
+            
+            <span class="variable">worker</span>.<span class="property">onmessage</span> = (<span class="variable">e</span>) =&gt; {
+                <span class="variable">console</span>.<span class="function">log</span>(<span class="string">'Worker'</span>, <span class="keyword">this</span>.<span class="variable">workers</span>.<span class="property">length</span>, <span class="string">'respondió'</span>);
+            };
+            
+            <span class="variable">worker</span>.<span class="property">onerror</span> = (<span class="variable">error</span>) =&gt; {
+                <span class="variable">console</span>.<span class="function">error</span>(<span class="string">'Error en worker:'</span>, <span class="variable">error</span>);
+            };
+            
+            <span class="keyword">this</span>.<span class="variable">updateStats</span>();
+            <span class="keyword">return</span> <span class="keyword">true</span>;
+        } <span class="keyword">catch</span> (<span class="variable">error</span>) {
+            <span class="variable">console</span>.<span class="function">error</span>(<span class="string">'No se pudo crear worker:'</span>, <span class="variable">error</span>);
+            <span class="keyword">this</span>.<span class="variable">maxWorkers</span> = <span class="keyword">this</span>.<span class="variable">workers</span>.<span class="property">length</span>;
+            <span class="keyword">this</span>.<span class="variable">updateStats</span>();
+            <span class="keyword">return</span> <span class="keyword">false</span>;
+        }
+    }
+    
+    <span class="function">terminateAll</span>(): <span class="keyword">void</span> {
+        <span class="keyword">this</span>.<span class="variable">workers</span>.<span class="function">forEach</span>(<span class="variable">worker</span> =&gt; <span class="variable">worker</span>.<span class="function">terminate</span>());
+        <span class="keyword">this</span>.<span class="variable">workers</span> = [];
+        <span class="keyword">this</span>.<span class="variable">updateStats</span>();
+    }
+    
+    <span class="function">getStats</span>(): <span class="function">Observable</span>&lt;<span class="variable">any</span>&gt; {
+        <span class="keyword">return</span> <span class="keyword">this</span>.<span class="variable">statsSubject</span>.<span class="function">asObservable</span>();
+    }
+    
+    <span class="keyword">private</span> <span class="function">updateStats</span>(): <span class="keyword">void</span> {
+        <span class="keyword">this</span>.<span class="variable">statsSubject</span>.<span class="function">next</span>({
+            <span class="property">active</span>: <span class="keyword">this</span>.<span class="variable">workers</span>.<span class="property">length</span>,
+            <span class="property">maxReached</span>: <span class="keyword">this</span>.<span class="variable">maxWorkers</span> &gt; <span class="number">0</span>,
+            <span class="property">maxWorkers</span>: <span class="keyword">this</span>.<span class="variable">maxWorkers</span> || <span class="keyword">this</span>.<span class="variable">workers</span>.<span class="property">length</span>
+        });
+    }
+}</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>2️⃣ Componente con Gestión de Límites</h3>
+                <pre><code><span class="variable">@Component</span>({
+    <span class="property">selector</span>: <span class="string">'app-root'</span>
+})
+<span class="keyword">export class</span> <span class="function">AppComponent</span> {
+    <span class="variable">stats</span>: <span class="variable">any</span> = { <span class="property">active</span>: <span class="number">0</span>, <span class="property">maxReached</span>: <span class="keyword">false</span> };
+    
+    <span class="function">constructor</span>(<span class="keyword">private</span> <span class="variable">limitsService</span>: <span class="function">LimitsService</span>) {
+        <span class="keyword">this</span>.<span class="variable">limitsService</span>.<span class="function">getStats</span>().<span class="function">subscribe</span>(<span class="variable">stats</span> =&gt; {
+            <span class="keyword">this</span>.<span class="variable">stats</span> = <span class="variable">stats</span>;
+        });
+    }
+    
+    <span class="function">addWorker</span>(): <span class="keyword">void</span> {
+        <span class="keyword">const</span> <span class="variable">success</span> = <span class="keyword">this</span>.<span class="variable">limitsService</span>.<span class="function">createWorker</span>();
+        <span class="keyword">if</span> (!<span class="variable">success</span>) {
+            <span class="variable">alert</span>(<span class="string">'Se alcanzó el límite de workers'</span>);
+        }
+    }
+    
+    <span class="function">clearAll</span>(): <span class="keyword">void</span> {
+        <span class="keyword">this</span>.<span class="variable">limitsService</span>.<span class="function">terminateAll</span>();
+    }
+}</code></pre>
+            </div>
+        </details>
+
+        <div class="info-box" style="background: #fff3cd; border-left: 4px solid #ffc107;">
+            <h3>⚠️ Límites del Navegador</h3>
+            <p>El número máximo de workers varía por navegador y dispositivo</p>
+            <ul style="list-style-type: disc; padding-left: 20px;">
+                <li>Chrome: ~50-200 workers</li>
+                <li>Firefox: ~100-300 workers</li>
+                <li>Mobile: 10-50 workers</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="worker.js"></script>
+</body>
+</html>
+

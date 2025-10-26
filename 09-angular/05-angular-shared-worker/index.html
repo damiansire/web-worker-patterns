@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>09 - Angular - Shared Worker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 Angular + Shared Worker</h1>
+        <p class="subtitle">Ejemplo 05: Comunicación entre múltiples pestañas con Angular</p>
+
+        <div class="info-box">
+            <strong>💡 ¿Qué demuestra este ejemplo?</strong>
+            Un Shared Worker puede ser compartido por múltiples pestañas. Con Angular, encapsulamos esta lógica
+            en un servicio que gestiona la comunicación entre pestañas usando RxJS.
+        </div>
+
+        <details class="code-explanation">
+            <summary>📖 Ver Código - ¿Cómo funciona?</summary>
+            
+            <div class="code-section">
+                <h3>1️⃣ Servicio de Shared Worker (shared-worker.service.ts)</h3>
+                <pre><code><span class="keyword">import</span> { <span class="variable">Injectable</span> } <span class="keyword">from</span> <span class="string">'@angular/core'</span>;
+<span class="keyword">import</span> { <span class="variable">Observable</span>, <span class="variable">Subject</span> } <span class="keyword">from</span> <span class="string">'rxjs'</span>;
+
+<span class="variable">@Injectable</span>({ <span class="property">providedIn</span>: <span class="string">'root'</span> })
+<span class="keyword">export class</span> <span class="function">SharedWorkerService</span> {
+    <span class="keyword">private</span> <span class="variable">sharedWorker</span>: <span class="function">SharedWorker</span>;
+    <span class="keyword">private</span> <span class="variable">port</span>: <span class="function">MessagePort</span>;
+    <span class="keyword">private</span> <span class="variable">messages</span> = <span class="keyword">new</span> <span class="function">Subject</span>&lt;<span class="variable">string</span>&gt;();
+    <span class="keyword">private</span> <span class="variable">tabId</span>: <span class="variable">string</span>;
+    
+    <span class="function">constructor</span>() {
+        <span class="keyword">this</span>.<span class="variable">tabId</span> = <span class="function">this</span>.<span class="variable">generateTabId</span>();
+        <span class="keyword">this</span>.<span class="variable">setupSharedWorker</span>();
+    }
+    
+    <span class="keyword">private</span> <span class="function">setupSharedWorker</span>(): <span class="keyword">void</span> {
+        <span class="keyword">this</span>.<span class="variable">sharedWorker</span> = <span class="keyword">new</span> <span class="function">SharedWorker</span>(<span class="string">'./shared_worker.js'</span>);
+        <span class="keyword">this</span>.<span class="variable">port</span> = <span class="keyword">this</span>.<span class="variable">sharedWorker</span>.<span class="property">port</span>;
+        
+        <span class="comment">// Iniciar conexión</span>
+        <span class="keyword">this</span>.<span class="variable">port</span>.<span class="function">start</span>();
+        
+        <span class="comment">// Escuchar mensajes de todas las pestañas</span>
+        <span class="keyword">this</span>.<span class="variable">port</span>.<span class="property">onmessage</span> = (<span class="variable">e</span>) =&gt; {
+            <span class="variable">console</span>.<span class="function">log</span>(<span class="string">'Mensaje recibido en pestaña'</span>, <span class="keyword">this</span>.<span class="variable">tabId</span>, <span class="string">':'</span>, <span class="variable">e</span>.<span class="property">data</span>);
+            <span class="keyword">this</span>.<span class="variable">messages</span>.<span class="function">next</span>(<span class="variable">e</span>.<span class="property">data</span>.<span class="property">message</span>);
+        };
+    }
+    
+    <span class="function">sendMessage</span>(<span class="variable">message</span>: <span class="variable">string</span>): <span class="keyword">void</span> {
+        <span class="keyword">this</span>.<span class="variable">port</span>.<span class="function">postMessage</span>({
+            <span class="property">type</span>: <span class="string">'broadcast'</span>,
+            <span class="property">tabId</span>: <span class="keyword">this</span>.<span class="variable">tabId</span>,
+            <span class="property">message</span>
+        });
+    }
+    
+    <span class="function">getMessages</span>(): <span class="function">Observable</span>&lt;<span class="variable">string</span>&gt; {
+        <span class="keyword">return</span> <span class="keyword">this</span>.<span class="variable">messages</span>.<span class="function">asObservable</span>();
+    }
+    
+    <span class="keyword">private</span> <span class="function">generateTabId</span>(): <span class="variable">string</span> {
+        <span class="keyword">return</span> <span class="string">`tab-${Date.now()}-${Math.random()}`</span>;
+    }
+}</code></pre>
+            </div>
+        </details>
+
+        <div class="warning-box">
+            ⚠️ <strong>Nota de compatibilidad:</strong> Los Shared Workers no son soportados en todos los navegadores.
+            Safari no los soporta. Firefox y Chrome sí.
+        </div>
+
+        <p style="text-align: center; color: #666; margin-top: 30px;">
+            💡 Abre esta misma página en múltiples pestañas para ver la comunicación en tiempo real
+        </p>
+    </div>
+</body>
+</html>
+

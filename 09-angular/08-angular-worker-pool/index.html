@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>09 - Angular - Worker Pool</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>♻️ Angular + Worker Pool</h1>
+        <p class="subtitle">Ejemplo 08: Patrón profesional de Worker Pool con Angular</p>
+
+        <div class="info-box">
+            <strong>💡 ¿Qué demuestra este ejemplo?</strong>
+            Un Worker Pool reutiliza un número fijo de workers para procesar múltiples tareas en cola.
+            Con Angular y RxJS, podemos crear un sistema robusto y escalable de procesamiento.
+        </div>
+
+        <details class="code-explanation">
+            <summary>📖 Ver Código - ¿Cómo funciona?</summary>
+            
+            <div class="code-section">
+                <h3>1️⃣ Servicio de Worker Pool (worker-pool.service.ts)</h3>
+                <pre><code><span class="keyword">import</span> { <span class="variable">Injectable</span>, <span class="variable">OnDestroy</span> } <span class="keyword">from</span> <span class="string">'@angular/core'</span>;
+<span class="keyword">import</span> { <span class="variable">BehaviorSubject</span>, <span class="variable">Observable</span> } <span class="keyword">from</span> <span class="string">'rxjs'</span>;
+
+<span class="variable">@Injectable</span>({ <span class="property">providedIn</span>: <span class="string">'root'</span> })
+<span class="keyword">export class</span> <span class="function">WorkerPoolService</span> <span class="keyword">implements</span> <span class="variable">OnDestroy</span> {
+    <span class="keyword">private</span> <span class="variable">poolSize</span>: <span class="variable">number</span>;
+    <span class="keyword">private</span> <span class="variable">workers</span>: <span class="variable">WorkerPoolItem</span>[] = [];
+    <span class="keyword">private</span> <span class="variable">taskQueue</span>: <span class="variable">Task</span>[] = [];
+    <span class="keyword">private</span> <span class="variable">completed</span> = <span class="number">0</span>;
+    <span class="keyword">private</span> <span class="variable">active</span> = <span class="number">0</span>;
+    
+    <span class="variable">stats</span> = <span class="keyword">new</span> <span class="function">BehaviorSubject</span>&lt;<span class="variable">any</span>&gt;({
+        <span class="property">poolSize</span>: <span class="number">0</span>,
+        <span class="property">active</span>: <span class="number">0</span>,
+        <span class="property">queued</span>: <span class="number">0</span>,
+        <span class="property">completed</span>: <span class="number">0</span>
+    });
+    
+    <span class="function">initPool</span>(<span class="variable">size</span>: <span class="variable">number</span> = <span class="number">4</span>): <span class="keyword">void</span> {
+        <span class="keyword">this</span>.<span class="variable">poolSize</span> = <span class="variable">size</span>;
+        <span class="keyword">this</span>.<span class="variable">workers</span> = [];
+        
+        <span class="keyword">for</span> (<span class="keyword">let</span> <span class="variable">i</span> = <span class="number">0</span>; <span class="variable">i</span> &lt; <span class="variable">size</span>; <span class="variable">i</span>++) {
+            <span class="keyword">const</span> <span class="variable">worker</span> = <span class="keyword">new</span> <span class="function">Worker</span>(<span class="string">'./worker.js'</span>);
+            
+            <span class="keyword">const</span> <span class="variable">item</span>: <span class="variable">WorkerPoolItem</span> = {
+                <span class="property">id</span>: <span class="variable">i</span>,
+                <span class="property">worker</span>,
+                <span class="property">busy</span>: <span class="keyword">false</span>
+            };
+            
+            <span class="variable">worker</span>.<span class="property">onmessage</span> = (<span class="variable">e</span>) =&gt; {
+                <span class="keyword">this</span>.<span class="variable">handleWorkerComplete</span>(<span class="variable">item</span>, <span class="variable">e</span>.<span class="property">data</span>);
+            };
+            
+            <span class="keyword">this</span>.<span class="variable">workers</span>.<span class="function">push</span>(<span class="variable">item</span>);
+        }
+        
+        <span class="keyword">this</span>.<span class="variable">updateStats</span>();
+    }
+    
+    <span class="function">addTask</span>(<span class="variable">task</span>: <span class="variable">Task</span>): <span class="keyword">void</span> {
+        <span class="keyword">this</span>.<span class="variable">taskQueue</span>.<span class="function">push</span>(<span class="variable">task</span>);
+        <span class="keyword">this</span>.<span class="variable">processQueue</span>();
+        <span class="keyword">this</span>.<span class="variable">updateStats</span>();
+    }
+    
+    <span class="keyword">private</span> <span class="function">processQueue</span>(): <span class="keyword">void</span> {
+        <span class="keyword">const</span> <span class="variable">available</span> = <span class="keyword">this</span>.<span class="variable">workers</span>.<span class="function">filter</span>(<span class="variable">w</span> =&gt; !<span class="variable">w</span>.<span class="property">busy</span>);
+        
+        <span class="keyword">for</span> (<span class="keyword">const</span> <span class="variable">worker</span> <span class="keyword">of</span> <span class="variable">available</span>) {
+            <span class="keyword">if</span> (<span class="keyword">this</span>.<span class="variable">taskQueue</span>.<span class="property">length</span> &gt; <span class="number">0</span>) {
+                <span class="keyword">const</span> <span class="variable">task</span> = <span class="keyword">this</span>.<span class="variable">taskQueue</span>.<span class="function">shift</span>();
+                <span class="variable">worker</span>.<span class="property">busy</span> = <span class="keyword">true</span>;
+                <span class="variable">worker</span>.<span class="property">worker</span>.<span class="function">postMessage</span>(<span class="variable">task</span>.<span class="property">data</span>);
+                <span class="keyword">this</span>.<span class="variable">active</span>++;
+            }
+        }
+    }
+    
+    <span class="keyword">private</span> <span class="function">handleWorkerComplete</span>(<span class="variable">item</span>: <span class="variable">WorkerPoolItem</span>, <span class="variable">result</span>: <span class="variable">any</span>): <span class="keyword">void</span> {
+        <span class="variable">item</span>.<span class="property">busy</span> = <span class="keyword">false</span>;
+        <span class="keyword">this</span>.<span class="variable">active</span>--;
+        <span class="keyword">this</span>.<span class="variable">completed</span>++;
+        
+        <span class="comment">// Procesar siguiente tarea</span>
+        <span class="keyword">this</span>.<span class="variable">processQueue</span>();
+        <span class="keyword">this</span>.<span class="variable">updateStats</span>();
+    }
+    
+    <span class="function">getStats</span>(): <span class="function">Observable</span>&lt;<span class="variable">any</span>&gt; {
+        <span class="keyword">return</span> <span class="keyword">this</span>.<span class="variable">stats</span>.<span class="function">asObservable</span>();
+    }
+    
+    <span class="keyword">private</span> <span class="function">updateStats</span>(): <span class="keyword">void</span> {
+        <span class="keyword">this</span>.<span class="variable">stats</span>.<span class="function">next</span>({
+            <span class="property">poolSize</span>: <span class="keyword">this</span>.<span class="variable">poolSize</span>,
+            <span class="property">active</span>: <span class="keyword"> this.active</span>,
+            <span class="property">queued</span>: <span class="keyword">this</span>.<span class="variable">taskQueue</span>.<span class="property">length</span>,
+            <span class="property">completed</span>: <span class="keyword">this</span>.<span class="variable">completed</span>
+        });
+    }
+    
+    <span class="function">ngOnDestroy</span>(): <span class="keyword">void</span> {
+        <span class="keyword">this</span>.<span class="variable">workers</span>.<span class="function">forEach</span>(<span class="variable">w</span> =&gt; <span class="variable">w</span>.<span class="property">worker</span>.<span class="function">terminate</span>());
+    }
+}
+
+<span class="keyword">interface</span> <span class="variable">WorkerPoolItem</span> {
+    <span class="property">id</span>: <span class="variable">number</span>;
+    <span class="property">worker</span>: <span class="function">Worker</span>;
+    <span class="property">busy</span>: <span class="variable">boolean</span>;
+}
+
+<span class="keyword">interface</span> <span class="variable">Task</span> {
+    <span class="property">id</span>: <span class="variable">number</span>;
+    <span class="property">data</span>: <span class="variable">any</span>;
+}</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>2️⃣ Componente usando el Pool</h3>
+                <pre><code><span class="variable">@Component</span>({
+    <span class="property">selector</span>: <span class="string">'app-root'</span>
+})
+<span class="keyword">export class</span> <span class="function">AppComponent</span> {
+    <span class="variable">stats</span>: <span class="variable">any</span> = {};
+    
+    <span class="function">constructor</span>(<span class="keyword">private</span> <span class="variable">poolService</span>: <span class="function">WorkerPoolService</span>) {
+        <span class="comment">// Inicializar pool con 4 workers</span>
+        <span class="keyword">this</span>.<span class="variable">poolService</span>.<span class="function">initPool</span>(<span class="number">4</span>);
+        
+        <span class="keyword">this</span>.<span class="variable">poolService</span>.<span class="function">getStats</span>().<span class="function">subscribe</span>(<span class="variable">stats</span> =&gt; {
+            <span class="keyword">this</span>.<span class="variable">stats</span> = <span class="variable">stats</span>;
+        });
+    }
+    
+    <span class="function">addTasks</span>(<span class="variable">count</span>: <span class="variable">number</span>): <span class="keyword">void</span> {
+        <span class="keyword">for</span> (<span class="keyword">let</span> <span class="variable">i</span> = <span class="number">0</span>; <span class="variable">i</span> &lt; <span class="variable">count</span>; <span class="variable">i</span>++) {
+            <span class="keyword">this</span>.<span class="variable">poolService</span>.<span class="function">addTask</span>({
+                <span class="property">id</span>: <span class="variable">i</span>,
+                <span class="property">data</span>: { <span class="property">taskId</span>: <span class="variable">i</span>, <span class="property">duration</span>: <span class="number">1000</span> }
+            });
+        }
+    }
+}</code></pre>
+            </div>
+        </details>
+
+        <div class="info-box" style="background: #d4edda; border-left: 4px solid #28a745;">
+            <h3>✅ Ventajas del Worker Pool</h3>
+            <ul style="list-style-type: disc; padding-left: 20px;">
+                <li>Procesa infinitas tareas con pocos workers</li>
+                <li>Sin límites de navegador</li>
+                <li>Uso eficiente de recursos</li>
+                <li>Fácil de integrar con Angular</li>
+            </ul>
+        </div>
+
+        <p style="text-align: center; color: #666; margin-top: 30px;">
+            💡 Patrón profesional usado en aplicaciones de producción
+        </p>
+    </div>
+
+    <script src="worker.js"></script>
+</body>
+</html>
+

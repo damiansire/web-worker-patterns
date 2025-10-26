@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>09 - Angular - Comunicación Básica con Web Workers</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Angular + Web Workers - Comunicación Básica</h1>
+        <p class="subtitle">Ejemplo 01: Enviando y recibiendo mensajes con Angular</p>
+
+        <div class="main-grid">
+            <div class="content-column">
+                <div class="info-box">
+                    <strong>💡 ¿Qué hace este ejemplo?</strong>
+                    Este es el "Hola Mundo" de los Web Workers con Angular. Aprende cómo integrar Web Workers en una aplicación Angular usando servicios y observables para una comunicación reactiva.
+                </div>
+
+                <details class="code-explanation">
+            <summary>📖 Ver Código - ¿Cómo funciona?</summary>
+            
+            <div class="code-sections-list">
+                <div class="code-section">
+                    <h3>1️⃣ Crear el Servicio de Worker (worker.service.ts)</h3>
+                    <pre><code><span class="keyword">import</span> { <span class="variable">Injectable</span> } <span class="keyword">from</span> <span class="string">'@angular/core'</span>;
+<span class="keyword">import</span> { <span class="variable">Observable</span>, <span class="variable">Subject</span> } <span class="keyword">from</span> <span class="string">'rxjs'</span>;
+
+<span class="variable">@Injectable</span>({ <span class="property">providedIn</span>: <span class="string">'root'</span> })
+<span class="keyword">export class</span> <span class="function">WorkerService</span> {
+    <span class="keyword">private</span> <span class="variable">worker</span>: <span class="function">Worker</span>;
+    <span class="keyword">private</span> <span class="variable">messageSubject</span> = <span class="keyword">new</span> <span class="function">Subject</span>&lt;<span class="variable">string</span>&gt;();
+    
+    <span class="function">constructor</span>() {
+        <span class="keyword">this</span>.<span class="variable">worker</span> = <span class="keyword">new</span> <span class="function">Worker</span>(<span class="string">'./worker.js'</span>);
+        <span class="keyword">this</span>.<span class="variable">setupWorker</span>();
+    }
+    
+    <span class="keyword">private</span> <span class="function">setupWorker</span>(): <span class="keyword">void</span> {
+        <span class="keyword">this</span>.<span class="variable">worker</span>.<span class="property">onmessage</span> = (<span class="variable">e</span>) =&gt; {
+            <span class="keyword">this</span>.<span class="variable">messageSubject</span>.<span class="function">next</span>(<span class="variable">e</span>.<span class="property">data</span>);
+        };
+        
+        <span class="keyword">this</span>.<span class="variable">worker</span>.<span class="property">onerror</span> = (<span class="variable">error</span>) =&gt; {
+            <span class="keyword">this</span>.<span class="variable">messageSubject</span>.<span class="function">error</span>(<span class="variable">error</span>);
+        };
+    }
+    
+    <span class="function">sendMessage</span>(<span class="variable">message</span>: <span class="variable">string</span>): <span class="keyword">void</span> {
+        <span class="keyword">this</span>.<span class="variable">worker</span>.<span class="function">postMessage</span>(<span class="variable">message</span>);
+    }
+    
+    <span class="function">getMessages</span>(): <span class="function">Observable</span>&lt;<span class="variable">string</span>&gt; {
+        <span class="keyword">return</span> <span class="keyword">this</span>.<span class="variable">messageSubject</span>.<span class="function">asObservable</span>();
+    }
+}</code></pre>
+                </div>
+
+                <div class="code-section">
+                    <h3>2️⃣ Usar el Servicio en el Componente (app.component.ts)</h3>
+                    <pre><code><span class="keyword">import</span> { <span class="variable">Component</span> } <span class="keyword">from</span> <span class="string">'@angular/core'</span>;
+<span class="keyword">import</span> { <span class="variable">WorkerService</span> } <span class="keyword">from</span> <span class="string">'./worker.service'</span>;
+<span class="keyword">import</span> { <span class="variable">Subscription</span> } <span class="keyword">from</span> <span class="string">'rxjs'</span>;
+
+<span class="variable">@Component</span>({
+    <span class="property">selector</span>: <span class="string">'app-root'</span>,
+    <span class="property">templateUrl</span>: <span class="string">'./app.component.html'</span>
+})
+<span class="keyword">export class</span> <span class="function">AppComponent</span> {
+    <span class="variable">message</span>: <span class="variable">string</span> = <span class="string">''</span>;
+    <span class="variable">messages</span>: <span class="variable">string</span>[] = [];
+    <span class="keyword">private</span> <span class="variable">subscription</span>: <span class="function">Subscription</span>;
+    
+    <span class="function">constructor</span>(<span class="keyword">private</span> <span class="variable">workerService</span>: <span class="function">WorkerService</span>) {
+        <span class="comment">// Suscribirse a los mensajes del worker</span>
+        <span class="keyword">this</span>.<span class="variable">subscription</span> = <span class="keyword">this</span>.<span class="variable">workerService</span>
+            .<span class="function">getMessages</span>()
+            .<span class="function">subscribe</span>(<span class="variable">msg</span> =&gt; {
+                <span class="keyword">this</span>.<span class="variable">messages</span>.<span class="function">push</span>(<span class="variable">msg</span>);
+            });
+    }
+    
+    <span class="function">sendMessage</span>(): <span class="keyword">void</span> {
+        <span class="keyword">if</span> (<span class="keyword">this</span>.<span class="variable">message</span>.<span class="property">trim</span>()) {
+            <span class="keyword">this</span>.<span class="variable">workerService</span>.<span class="function">sendMessage</span>(<span class="keyword">this</span>.<span class="variable">message</span>);
+            <span class="keyword">this</span>.<span class="variable">message</span> = <span class="string">''</span>;
+        }
+    }
+    
+    <span class="function">ngOnDestroy</span>(): <span class="keyword">void</span> {
+        <span class="keyword">this</span>.<span class="variable">subscription</span>.<span class="function">unsubscribe</span>();
+    }
+}</code></pre>
+                </div>
+
+                <div class="code-section">
+                    <h3>3️⃣ Template del Componente (app.component.html)</h3>
+                    <pre><code><span class="comment">&lt;!-- Input para el mensaje --&gt;</span>
+<span class="keyword">&lt;input</span> 
+    <span class="property">type</span>=<span class="string">"text"</span> 
+    [(<span class="property">ngModel</span>)]=<span class="string">"message"</span>
+    (<span class="property">keyup.enter</span>)=<span class="string">"sendMessage()"</span>
+<span class="keyword">&gt;</span>
+
+<span class="comment">&lt;!-- Botón para enviar --&gt;</span>
+<span class="keyword">&lt;button</span> (<span class="property">click</span>)=<span class="string">"sendMessage()"</span><span class="keyword">&gt;</span>
+    Enviar Mensaje
+<span class="keyword">&lt;/button&gt;</span>
+
+<span class="comment">&lt;!-- Lista de mensajes --&gt;</span>
+<span class="keyword">&lt;div *ngFor="let msg of messages"</span> <span class="property">class</span>=<span class="string">"message"</span><span class="keyword">&gt;</span>
+    {{ msg }}
+<span class="keyword">&lt;/div&gt;</span></code></pre>
+                </div>
+
+                <div class="code-section">
+                    <h3>4️⃣ Worker (worker.js) - Igual que JavaScript</h3>
+                    <pre><code><span class="comment">// Escuchar mensajes del componente</span>
+<span class="variable">self</span>.<span class="property">onmessage</span> = <span class="keyword">function</span>(<span class="variable">e</span>) {
+    <span class="keyword">const</span> <span class="variable">mensaje</span> = <span class="variable">e</span>.<span class="property">data</span>;
+    <span class="variable">console</span>.<span class="function">log</span>(<span class="string">'Worker recibió:'</span>, <span class="variable">mensaje</span>);
+    
+    <span class="comment">// Procesar y responder</span>
+    <span class="keyword">const</span> <span class="variable">respuesta</span> = <span class="string">`Procesé tu mensaje: "</span><span class="variable">${mensaje}</span><span class="string">"`</span>;
+    <span class="variable">self</span>.<span class="function">postMessage</span>(<span class="variable">respuesta</span>);
+};</code></pre>
+                </div>
+            </div>
+        </details>
+
+        <div class="info-box" style="background: #fff3cd; border-left: 4px solid #ffc107;">
+            <h3>🎯 Ventajas de Angular + Web Workers</h3>
+            <ul style="list-style-type: disc; padding-left: 20px;">
+                <li><strong>Servicios:</strong> Encapsulación y reutilización del código del worker</li>
+                <li><strong>RxJS:</strong> Comunicación reactiva con Observables</li>
+                <li><strong>Dependency Injection:</strong> Fácil de testear y mockear</li>
+                <li><strong>TypeScript:</strong> Tipado fuerte para mayor seguridad</li>
+                <li><strong>Lifecycle:</strong> Gestión automática de subscriptions</li>
+            </ul>
+        </div>
+
+        <div class="input-group">
+            <label for="messageInput">Mensaje para el Worker:</label>
+            <input 
+                type="text" 
+                id="messageInput" 
+                placeholder="Escribe tu mensaje aquí..." 
+                value="¡Hola Worker desde Angular!"
+            >
+        </div>
+
+        <button id="sendButton">Enviar Mensaje al Worker</button>
+
+        <div class="messages" id="messagesContainer">
+            <p style="color: #999; text-align: center; font-style: italic;">
+                Los mensajes aparecerán aquí...
+            </p>
+        </div>
+    </div>
+
+    <div class="sidebar-column">
+        <div class="code-flow-standalone">
+            <h3>🔄 Flujo Angular + Worker</h3>
+            <div class="flow-diagram">
+                <div class="flow-step">Componente Angular</div>
+                <div class="flow-arrow">Inyecta ↓</div>
+                <div class="flow-step">WorkerService</div>
+                <div class="flow-arrow">postMessage() ↓</div>
+                <div class="flow-step">Worker</div>
+                <div class="flow-arrow">Observable ↑</div>
+                <div class="flow-step">Componente</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Simulación para la demo
+    const worker = new Worker('worker.js');
+    
+    document.getElementById('sendButton').addEventListener('click', function() {
+        const message = document.getElementById('messageInput').value;
+        if (message) {
+            worker.postMessage(message);
+            document.getElementById('messageInput').value = '';
+        }
+    });
+    
+    worker.onmessage = function(e) {
+        const messagesContainer = document.getElementById('messagesContainer');
+        const p = document.createElement('p');
+        p.textContent = `Worker: ${e.data}`;
+        messagesContainer.appendChild(p);
+    };
+</script>
+</body>
+</html>
+

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>09 - Angular - Descarga de Cómputo Pesado</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ Angular + Web Workers - Descarga de Cómputo</h1>
+        <p class="subtitle">Ejemplo 02: Evitando el bloqueo de la UI con Angular</p>
+
+        <div class="info-box">
+            <strong>💡 ¿Qué demuestra este ejemplo?</strong>
+            Calcula números primos de forma intensiva usando un Worker con Angular. 
+            Compara el enfoque con Worker vs sin Worker, mostrando cómo mantener la UI fluida.
+        </div>
+
+        <details class="code-explanation">
+            <summary>📖 Ver Código - ¿Cómo funciona?</summary>
+            
+            <div class="code-section">
+                <h3>1️⃣ Servicio de Cómputo (computation.service.ts)</h3>
+                <pre><code><span class="keyword">import</span> { <span class="variable">Injectable</span> } <span class="keyword">from</span> <span class="string">'@angular/core'</span>;
+<span class="keyword">import</span> { <span class="variable">Observable</span>, <span class="variable">Subject</span> } <span class="keyword">from</span> <span class="string">'rxjs'</span>;
+
+<span class="variable">@Injectable</span>({ <span class="property">providedIn</span>: <span class="string">'root'</span> })
+<span class="keyword">export class</span> <span class="function">ComputationService</span> {
+    <span class="keyword">private</span> <span class="variable">worker</span>: <span class="function">Worker</span>;
+    <span class="keyword">private</span> <span class="variable">resultSubject</span> = <span class="keyword">new</span> <span class="function">Subject</span>&lt;<span class="variable">any</span>&gt;();
+    
+    <span class="function">constructor</span>() {
+        <span class="keyword">if</span> (<span class="variable">typeof Worker</span> !== <span class="string">'undefined'</span>) {
+            <span class="keyword">this</span>.<span class="variable">worker</span> = <span class="keyword">new</span> <span class="function">Worker</span>(<span class="string">'./worker.js'</span>);
+            <span class="keyword">this</span>.<span class="variable">setupWorker</span>();
+        }
+    }
+    
+    <span class="function">calculatePrimes</span>(<span class="variable">count</span>: <span class="variable">number</span>): <span class="function">Observable</span>&lt;<span class="variable">any</span>&gt; {
+        <span class="keyword">if</span> (<span class="keyword">this</span>.<span class="variable">worker</span>) {
+            <span class="keyword">this</span>.<span class="variable">worker</span>.<span class="function">postMessage</span>({ <span class="property">count</span> });
+        }
+        <span class="keyword">return</span> <span class="keyword">this</span>.<span class="variable">resultSubject</span>.<span class="function">asObservable</span>();
+    }
+    
+    <span class="keyword">private</span> <span class="function">setupWorker</span>(): <span class="keyword">void</span> {
+        <span class="keyword">this</span>.<span class="variable">worker</span>.<span class="property">onmessage</span> = (<span class="variable">e</span>) =&gt; {
+            <span class="keyword">this</span>.<span class="variable">resultSubject</span>.<span class="function">next</span>(<span class="variable">e</span>.<span class="property">data</span>);
+        };
+        
+        <span class="keyword">this</span>.<span class="variable">worker</span>.<span class="property">onerror</span> = (<span class="variable">error</span>) =&gt; {
+            <span class="keyword">this</span>.<span class="variable">resultSubject</span>.<span class="function">error</span>(<span class="variable">error</span>);
+        };
+    }
+    
+    <span class="function">ngOnDestroy</span>(): <span class="keyword">void</span> {
+        <span class="keyword">if</span> (<span class="keyword">this</span>.<span class="variable">worker</span>) {
+            <span class="keyword">this</span>.<span class="variable">worker</span>.<span class="function">terminate</span>();
+        }
+    }
+}</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>2️⃣ Componente con Estado Reactivo (app.component.ts)</h3>
+                <pre><code><span class="keyword">import</span> { <span class="variable">Component</span>, <span class="variable">OnInit</span> } <span class="keyword">from</span> <span class="string">'@angular/core'</span>;
+<span class="keyword">import</span> { <span class="variable">ComputationService</span> } <span class="keyword">from</span> <span class="string">'./computation.service'</span>;
+
+<span class="variable">@Component</span>({
+    <span class="property">selector</span>: <span class="string">'app-root'</span>,
+    <span class="property">templateUrl</span>: <span class="string">'./app.component.html'</span>
+})
+<span class="keyword">export class</span> <span class="function">AppComponent</span> <span class="keyword">implements</span> <span class="variable">OnInit</span> {
+    <span class="variable">count</span>: <span class="variable">number</span> = <span class="number">50000</span>;
+    <span class="variable">result</span>: <span class="variable">any</span> | <span class="keyword">null</span> = <span class="keyword">null</span>;
+    <span class="variable">loading</span>: <span class="variable">boolean</span> = <span class="keyword">false</span>;
+    <span class="variable">counter</span>: <span class="variable">number</span> = <span class="number">0</span>;
+    
+    <span class="function">constructor</span>(<span class="keyword">private</span> <span class="variable">computationService</span>: <span class="function">ComputationService</span>) {}
+    
+    <span class="function">ngOnInit</span>(): <span class="keyword">void</span> {
+        <span class="comment">// Contador para demostrar que la UI no se congela</span>
+        <span class="function">setInterval</span>(() =&gt; {
+            <span class="keyword">this</span>.<span class="variable">counter</span>++;
+        }, <span class="number">100</span>);
+    }
+    
+    <span class="function">calculateWithWorker</span>(): <span class="keyword">void</span> {
+        <span class="keyword">this</span>.<span class="variable">loading</span> = <span class="keyword">true</span>;
+        <span class="keyword">const</span> <span class="variable">startTime</span> = <span class="function">performance.now</span>();
+        
+        <span class="keyword">this</span>.<span class="variable">computationService</span>.<span class="function">calculatePrimes</span>(<span class="keyword">this</span>.<span class="variable">count</span>)
+            .<span class="function">subscribe</span>(<span class="variable">result</span> =&gt; {
+                <span class="keyword">const</span> <span class="variable">duration</span> = <span class="function">performance.now</span>() - <span class="variable">startTime</span>;
+                <span class="keyword">this</span>.<span class="variable">result</span> = {
+                    <span class="property">...result</span>,
+                    <span class="property">duration</span>,
+                    <span class="property">method</span>: <span class="string">'Worker'</span>
+                };
+                <span class="keyword">this</span>.<span class="variable">loading</span> = <span class="keyword">false</span>;
+            });
+    }
+    
+    <span class="function">calculateWithoutWorker</span>(): <span class="keyword">void</span> {
+        <span class="comment">// Cálculo en el hilo principal (bloquea la UI)</span>
+        <span class="keyword">this</span>.<span class="variable">loading</span> = <span class="keyword">true</span>;
+        <span class="keyword">const</span> <span class="variable">startTime</span> = <span class="function">performance.now</span>();
+        
+        <span class="keyword">const</span> <span class="variable">primes</span> = <span class="keyword">this</span>.<span class="variable">calculatePrimes</span>(<span class="keyword">this</span>.<span class="variable">count</span>);
+        <span class="keyword">const</span> <span class="variable">duration</span> = <span class="function">performance.now</span>() - <span class="variable">startTime</span>;
+        
+        <span class="keyword">this</span>.<span class="variable">result</span> = {
+            <span class="property">primes</span>,
+            <span class="property">count</span>: <span class="variable">primes.length</span>,
+            <span class="property">duration</span>,
+            <span class="property">method</span>: <span class="string">'Hilo Principal'</span>
+        };
+        <span class="keyword">this</span>.<span class="variable">loading</span> = <span class="keyword">false</span>;
+    }
+    
+    <span class="keyword">private</span> <span class="function">calculatePrimes</span>(<span class="variable">max</span>: <span class="variable">number</span>): <span class="variable">number</span>[] {
+        <span class="comment">// Implementación bloqueante del cálculo</span>
+        <span class="keyword">const</span> <span class="variable">primes</span>: <span class="variable">number</span>[] = [];
+        <span class="keyword">for</span> (<span class="keyword">let</span> <span class="variable">i</span> = <span class="number">2</span>; <span class="variable">primes</span>.<span class="property">length</span> &lt; <span class="variable">max</span>; <span class="variable">i</span>++) {
+            <span class="keyword">let</span> <span class="variable">isPrime</span> = <span class="keyword">true</span>;
+            <span class="keyword">for</span> (<span class="keyword">let</span> <span class="variable">j</span> = <span class="number">2</span>; <span class="variable">j</span> &lt;= <span class="function">Math.sqrt</span>(<span class="variable">i</span>); <span class="variable">j</span>++) {
+                <span class="keyword">if</span> (<span class="variable">i</span> % <span class="variable">j</span> === <span class="number">0</span>) {
+                    <span class="variable">isPrime</span> = <span class="keyword">false</span>;
+                    <span class="keyword">break</span>;
+                }
+            }
+            <span class="keyword">if</span> (<span class="variable">isPrime</span>) <span class="variable">primes</span>.<span class="function">push</span>(<span class="variable">i</span>);
+        }
+        <span class="keyword">return</span> <span class="variable">primes</span>;
+    }
+}</code></pre>
+            </div>
+
+            <div class="code-section">
+                <h3>3️⃣ Template con Estado Reactivo (app.component.html)</h3>
+                <pre><code><span class="comment">&lt;!-- Input para cantidad de primos --&gt;</span>
+<span class="keyword">&lt;input</span> 
+    <span class="property">type</span>=<span class="string">"number"</span>
+    [(<span class="property">ngModel</span>)]=<span class="string">"count"</span>
+    <span class="property">min</span>=<span class="string">"1000"</span>
+    <span class="property">max</span>=<span class="string">"100000"</span>
+<span class="keyword">&gt;</span>
+
+<span class="comment">&lt;!-- Botones de cálculo --&gt;</span>
+<span class="keyword">&lt;button</span> 
+    (<span class="property">click</span>)=<span class="string">"calculateWithWorker()"</span>
+    [<span class="property">disabled</span>]=<span class="string">"loading"</span>
+<span class="keyword">&gt;</span>
+    🚀 Calcular con Worker
+<span class="keyword">&lt;/button&gt;</span>
+
+<span class="keyword">&lt;button</span> 
+    (<span class="property">click</span>)=<span class="string">"calculateWithoutWorker()"</span>
+    [<span class="property">disabled</span>]=<span class="string">"loading"</span>
+<span class="keyword">&gt;</span>
+    🐌 Calcular en Hilo Principal
+<span class="keyword">&lt;/button&gt;</span>
+
+<span class="comment">&lt;!-- Resultado --&gt;</span>
+<span class="keyword">&lt;div *ngIf="loading"&gt;</span>⏳ Calculando...
+<span class="keyword">&lt;/div&gt;</span>
+
+<span class="keyword">&lt;div *ngIf="result && !loading"&gt;</span>
+    <span class="keyword">&lt;h3&gt;</span>{{ result.method }} completó el cálculo
+    <span class="keyword">&lt;br&gt;</span>Total: {{ result.count }}
+    <span class="keyword">&lt;br&gt;</span>Tiempo: {{ result.duration | number }}ms
+<span class="keyword">&lt;/div&gt;</span>
+
+<span class="comment">&lt;!-- Contador para demostrar que la UI no se congela --&gt;</span>
+<span class="keyword">&lt;div&gt;</span>Contador: {{ counter }}
+<span class="keyword">&lt;/div&gt;</span></code></pre>
+            </div>
+        </details>
+
+        <div class="comparison-box" style="margin: 30px 0;">
+            <div class="comparison-column bad">
+                <h4>❌ Sin Worker (Hilo Principal)</h4>
+                <ul>
+                    <li>UI se congela</li>
+                    <li>Animaciones se detienen</li>
+                    <li>Contador se pausa</li>
+                </ul>
+            </div>
+            <div class="comparison-column good">
+                <h4>✅ Con Worker</h4>
+                <ul>
+                    <li>UI permanece fluida</li>
+                    <li>Animaciones continúan</li>
+                    <li>Contador sigue contando</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h3>🔢 Calculadora de Números Primos</h3>
+            
+            <div class="input-group">
+                <label for="numberInput">¿Cuántos números primos calcular?</label>
+                <input 
+                    type="number" 
+                    id="numberInput" 
+                    value="50000" 
+                    min="1000" 
+                    max="100000"
+                    step="1000"
+                >
+            </div>
+
+            <div class="button-group">
+                <button class="btn-worker" id="workerBtn">
+                    🚀 Calcular con Worker<br>
+                    <small style="font-size: 11px; font-weight: normal;">(No bloquea la UI)</small>
+                </button>
+                <button class="btn-main" id="mainBtn">
+                    🐌 Calcular en Hilo Principal<br>
+                    <small style="font-size: 11px; font-weight: normal;">(Bloquea la UI)</small>
+                </button>
+            </div>
+
+            <div class="spinner" id="spinner"></div>
+            <div id="result"></div>
+        </div>
+
+        <div class="ui-test">
+            <h3 style="margin-bottom: 10px;">🎯 Prueba de Respuesta de la UI</h3>
+            <p style="font-size: 14px; opacity: 0.9;">Si la UI está bloqueada, este contador se congelará</p>
+            <div class="counter" id="counter">0</div>
+            <div class="animation-box"></div>
+        </div>
+    </div>
+
+    <script>
+        // Demo simulation
+        let counter = 0;
+        setInterval(() => {
+            counter++;
+            document.getElementById('counter').textContent = counter;
+        }, 100);
+
+        const worker = new Worker('worker.js');
+        
+        document.getElementById('workerBtn').addEventListener('click', function() {
+            const count = parseInt(document.getElementById('numberInput').value);
+            document.getElementById('spinner').classList.add('active');
+            
+            worker.postMessage({ count });
+        });
+        
+        worker.onmessage = function(e) {
+            document.getElementById('spinner').classList.remove('active');
+            document.getElementById('result').innerHTML = `<strong>✅ Cálculo completado</strong><br>Total: ${e.data.count} números primos`;
+        };
+    </script>
+</body>
+</html>
+
