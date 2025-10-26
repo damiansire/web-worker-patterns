@@ -20,8 +20,15 @@
         <details class="code-explanation">
             <summary>📖 Ver Código - ¿Cómo funciona?</summary>
             
-            <div class="code-section">
-                <h3>1️⃣ Servicio de Shared Worker (shared-worker.service.ts)</h3>
+            <div class="tabs-container">
+                <div class="tabs-header">
+                    <button class="tab-button active" data-tab="service">📦 shared-worker.service.ts</button>
+                    <button class="tab-button" data-tab="component">⚙️ app.component.ts</button>
+                </div>
+
+                <div id="service" class="tab-content active">
+                    <div class="code-section">
+                        <h3>Servicio de Shared Worker</h3>
                 <pre><code><span class="keyword">import</span> { <span class="variable">Injectable</span> } <span class="keyword">from</span> <span class="string">'@angular/core'</span>;
 <span class="keyword">import</span> { <span class="variable">Observable</span>, <span class="variable">Subject</span> } <span class="keyword">from</span> <span class="string">'rxjs'</span>;
 
@@ -67,6 +74,8 @@
         <span class="keyword">return</span> <span class="string">`tab-${Date.now()}-${Math.random()}`</span>;
     }
 }</code></pre>
+                    </div>
+                </div>
             </div>
         </details>
 
@@ -79,6 +88,26 @@
             💡 Abre esta misma página en múltiples pestañas para ver la comunicación en tiempo real
         </p>
     </div>
+
+    <script>
+        // Funcionalidad de tabs
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetTab = button.getAttribute('data-tab');
+
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+
+                    button.classList.add('active');
+                    document.getElementById(targetTab).classList.add('active');
+                });
+            });
+        });
+    </script>
 </body>
 </html>
 

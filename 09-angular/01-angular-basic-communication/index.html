@@ -21,9 +21,17 @@
                 <details class="code-explanation">
             <summary>📖 Ver Código - ¿Cómo funciona?</summary>
             
-            <div class="code-sections-list">
-                <div class="code-section">
-                    <h3>1️⃣ Crear el Servicio de Worker (worker.service.ts)</h3>
+            <div class="tabs-container">
+                <div class="tabs-header">
+                    <button class="tab-button active" data-tab="service">📦 worker.service.ts</button>
+                    <button class="tab-button" data-tab="component">⚙️ app.component.ts</button>
+                    <button class="tab-button" data-tab="template">🎨 app.component.html</button>
+                    <button class="tab-button" data-tab="worker">🔧 worker.js</button>
+                </div>
+
+                <div id="service" class="tab-content active">
+                    <div class="code-section">
+                        <h3>Servicio de Worker</h3>
                     <pre><code><span class="keyword">import</span> { <span class="variable">Injectable</span> } <span class="keyword">from</span> <span class="string">'@angular/core'</span>;
 <span class="keyword">import</span> { <span class="variable">Observable</span>, <span class="variable">Subject</span> } <span class="keyword">from</span> <span class="string">'rxjs'</span>;
 
@@ -55,10 +63,12 @@
         <span class="keyword">return</span> <span class="keyword">this</span>.<span class="variable">messageSubject</span>.<span class="function">asObservable</span>();
     }
 }</code></pre>
+                    </div>
                 </div>
 
-                <div class="code-section">
-                    <h3>2️⃣ Usar el Servicio en el Componente (app.component.ts)</h3>
+                <div id="component" class="tab-content">
+                    <div class="code-section">
+                        <h3>Componente</h3>
                     <pre><code><span class="keyword">import</span> { <span class="variable">Component</span> } <span class="keyword">from</span> <span class="string">'@angular/core'</span>;
 <span class="keyword">import</span> { <span class="variable">WorkerService</span> } <span class="keyword">from</span> <span class="string">'./worker.service'</span>;
 <span class="keyword">import</span> { <span class="variable">Subscription</span> } <span class="keyword">from</span> <span class="string">'rxjs'</span>;
@@ -92,10 +102,12 @@
         <span class="keyword">this</span>.<span class="variable">subscription</span>.<span class="function">unsubscribe</span>();
     }
 }</code></pre>
+                    </div>
                 </div>
 
-                <div class="code-section">
-                    <h3>3️⃣ Template del Componente (app.component.html)</h3>
+                <div id="template" class="tab-content">
+                    <div class="code-section">
+                        <h3>Template</h3>
                     <pre><code><span class="comment">&lt;!-- Input para el mensaje --&gt;</span>
 <span class="keyword">&lt;input</span> 
     <span class="property">type</span>=<span class="string">"text"</span> 
@@ -112,10 +124,12 @@
 <span class="keyword">&lt;div *ngFor="let msg of messages"</span> <span class="property">class</span>=<span class="string">"message"</span><span class="keyword">&gt;</span>
     {{ msg }}
 <span class="keyword">&lt;/div&gt;</span></code></pre>
+                    </div>
                 </div>
 
-                <div class="code-section">
-                    <h3>4️⃣ Worker (worker.js) - Igual que JavaScript</h3>
+                <div id="worker" class="tab-content">
+                    <div class="code-section">
+                        <h3>Worker</h3>
                     <pre><code><span class="comment">// Escuchar mensajes del componente</span>
 <span class="variable">self</span>.<span class="property">onmessage</span> = <span class="keyword">function</span>(<span class="variable">e</span>) {
     <span class="keyword">const</span> <span class="variable">mensaje</span> = <span class="variable">e</span>.<span class="property">data</span>;
@@ -125,6 +139,7 @@
     <span class="keyword">const</span> <span class="variable">respuesta</span> = <span class="string">`Procesé tu mensaje: "</span><span class="variable">${mensaje}</span><span class="string">"`</span>;
     <span class="variable">self</span>.<span class="function">postMessage</span>(<span class="variable">respuesta</span>);
 };</code></pre>
+                    </div>
                 </div>
             </div>
         </details>
@@ -176,6 +191,26 @@
 </div>
 
 <script>
+    // Funcionalidad de tabs
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetTab = button.getAttribute('data-tab');
+
+                // Remover clase active de todos los botones y contenidos
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+
+                // Agregar clase active al botón y contenido seleccionado
+                button.classList.add('active');
+                document.getElementById(targetTab).classList.add('active');
+            });
+        });
+    });
+
     // Simulación para la demo
     const worker = new Worker('worker.js');
     

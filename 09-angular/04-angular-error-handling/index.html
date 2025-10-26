@@ -20,8 +20,16 @@
         <details class="code-explanation">
             <summary>📖 Ver Código - ¿Cómo funciona?</summary>
             
-            <div class="code-section">
-                <h3>1️⃣ Servicio con Manejo de Errores (error-handler.service.ts)</h3>
+            <div class="tabs-container">
+                <div class="tabs-header">
+                    <button class="tab-button active" data-tab="service">📦 error-handler.service.ts</button>
+                    <button class="tab-button" data-tab="component">⚙️ app.component.ts</button>
+                    <button class="tab-button" data-tab="worker">🔧 worker.js</button>
+                </div>
+
+                <div id="service" class="tab-content active">
+                    <div class="code-section">
+                        <h3>Servicio con Manejo de Errores</h3>
                 <pre><code><span class="keyword">import</span> { <span class="variable">Injectable</span> } <span class="keyword">from</span> <span class="string">'@angular/core'</span>;
 <span class="keyword">import</span> { <span class="variable">Observable</span>, <span class="variable">Subject</span>, <span class="variable">throwError</span> } <span class="keyword">from</span> <span class="string">'rxjs'</span>;
 
@@ -70,10 +78,12 @@
         <span class="keyword">return</span> <span class="keyword">this</span>.<span class="variable">errorSubject</span>.<span class="function">asObservable</span>();
     }
 }</code></pre>
-            </div>
+                    </div>
+                </div>
 
-            <div class="code-section">
-                <h3>2️⃣ Componente con Manejo de Errores</h3>
+                <div id="component" class="tab-content">
+                    <div class="code-section">
+                        <h3>Componente con Manejo de Errores</h3>
                 <pre><code><span class="variable">@Component</span>({
     <span class="property">selector</span>: <span class="string">'app-root'</span>,
     <span class="property">templateUrl</span>: <span class="string">'./app.component.html'</span>
@@ -114,10 +124,12 @@
         <span class="variable">console</span>.<span class="function">error</span>(<span class="string">'Error capturado:'</span>, <span class="variable">error</span>);
     }
 }</code></pre>
-            </div>
+                    </div>
+                </div>
 
-            <div class="code-section">
-                <h3>3️⃣ Worker con Manejo de Errores (worker.js)</h3>
+                <div id="worker" class="tab-content">
+                    <div class="code-section">
+                        <h3>Worker con Manejo de Errores</h3>
                 <pre><code><span class="variable">self</span>.<span class="property">onmessage</span> = <span class="keyword">function</span>(<span class="variable">e</span>) {
     <span class="keyword">const</span> { <span class="variable">type</span> } = <span class="variable">e</span>.<span class="property">data</span>;
     
@@ -143,6 +155,8 @@
         });
     }
 };</code></pre>
+                    </div>
+                </div>
             </div>
         </details>
 
@@ -160,6 +174,25 @@
         </p>
     </div>
 
+    <script>
+        // Funcionalidad de tabs
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetTab = button.getAttribute('data-tab');
+
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+
+                    button.classList.add('active');
+                    document.getElementById(targetTab).classList.add('active');
+                });
+            });
+        });
+    </script>
     <script src="worker.js"></script>
 </body>
 </html>

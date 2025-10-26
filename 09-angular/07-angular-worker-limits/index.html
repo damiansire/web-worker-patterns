@@ -20,8 +20,15 @@
         <details class="code-explanation">
             <summary>📖 Ver Código - ¿Cómo funciona?</summary>
             
-            <div class="code-section">
-                <h3>1️⃣ Servicio de Gestión de Workers (limits.service.ts)</h3>
+            <div class="tabs-container">
+                <div class="tabs-header">
+                    <button class="tab-button active" data-tab="service">📦 limits.service.ts</button>
+                    <button class="tab-button" data-tab="component">⚙️ app.component.ts</button>
+                </div>
+
+                <div id="service" class="tab-content active">
+                    <div class="code-section">
+                        <h3>Servicio de Gestión de Workers</h3>
                 <pre><code><span class="keyword">import</span> { <span class="variable">Injectable</span> } <span class="keyword">from</span> <span class="string">'@angular/core'</span>;
 <span class="keyword">import</span> { <span class="variable">BehaviorSubject</span>, <span class="variable">Observable</span> } <span class="keyword">from</span> <span class="string">'rxjs'</span>;
 
@@ -75,10 +82,12 @@
         });
     }
 }</code></pre>
-            </div>
+                    </div>
+                </div>
 
-            <div class="code-section">
-                <h3>2️⃣ Componente con Gestión de Límites</h3>
+                <div id="component" class="tab-content">
+                    <div class="code-section">
+                        <h3>Componente con Gestión de Límites</h3>
                 <pre><code><span class="variable">@Component</span>({
     <span class="property">selector</span>: <span class="string">'app-root'</span>
 })
@@ -102,6 +111,8 @@
         <span class="keyword">this</span>.<span class="variable">limitsService</span>.<span class="function">terminateAll</span>();
     }
 }</code></pre>
+                    </div>
+                </div>
             </div>
         </details>
 
@@ -116,6 +127,22 @@
         </div>
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetTab = button.getAttribute('data-tab');
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    button.classList.add('active');
+                    document.getElementById(targetTab).classList.add('active');
+                });
+            });
+        });
+    </script>
     <script src="worker.js"></script>
 </body>
 </html>

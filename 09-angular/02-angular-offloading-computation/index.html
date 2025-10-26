@@ -20,9 +20,18 @@
         <details class="code-explanation">
             <summary>📖 Ver Código - ¿Cómo funciona?</summary>
             
-            <div class="code-section">
-                <h3>1️⃣ Servicio de Cómputo (computation.service.ts)</h3>
-                <pre><code><span class="keyword">import</span> { <span class="variable">Injectable</span> } <span class="keyword">from</span> <span class="string">'@angular/core'</span>;
+            <div class="tabs-container">
+                <div class="tabs-header">
+                    <button class="tab-button active" data-tab="service">📦 computation.service.ts</button>
+                    <button class="tab-button" data-tab="component">⚙️ app.component.ts</button>
+                    <button class="tab-button" data-tab="template">🎨 app.component.html</button>
+                    <button class="tab-button" data-tab="worker">🔧 worker.js</button>
+                </div>
+
+                <div id="service" class="tab-content active">
+                    <div class="code-section">
+                        <h3>Servicio de Cómputo</h3>
+                        <pre><code><span class="keyword">import</span> { <span class="variable">Injectable</span> } <span class="keyword">from</span> <span class="string">'@angular/core'</span>;
 <span class="keyword">import</span> { <span class="variable">Observable</span>, <span class="variable">Subject</span> } <span class="keyword">from</span> <span class="string">'rxjs'</span>;
 
 <span class="variable">@Injectable</span>({ <span class="property">providedIn</span>: <span class="string">'root'</span> })
@@ -60,11 +69,13 @@
         }
     }
 }</code></pre>
-            </div>
+                    </div>
+                </div>
 
-            <div class="code-section">
-                <h3>2️⃣ Componente con Estado Reactivo (app.component.ts)</h3>
-                <pre><code><span class="keyword">import</span> { <span class="variable">Component</span>, <span class="variable">OnInit</span> } <span class="keyword">from</span> <span class="string">'@angular/core'</span>;
+                <div id="component" class="tab-content">
+                    <div class="code-section">
+                        <h3>Componente con Estado Reactivo</h3>
+                        <pre><code><span class="keyword">import</span> { <span class="variable">Component</span>, <span class="variable">OnInit</span> } <span class="keyword">from</span> <span class="string">'@angular/core'</span>;
 <span class="keyword">import</span> { <span class="variable">ComputationService</span> } <span class="keyword">from</span> <span class="string">'./computation.service'</span>;
 
 <span class="variable">@Component</span>({
@@ -135,11 +146,13 @@
         <span class="keyword">return</span> <span class="variable">primes</span>;
     }
 }</code></pre>
-            </div>
+                    </div>
+                </div>
 
-            <div class="code-section">
-                <h3>3️⃣ Template con Estado Reactivo (app.component.html)</h3>
-                <pre><code><span class="comment">&lt;!-- Input para cantidad de primos --&gt;</span>
+                <div id="template" class="tab-content">
+                    <div class="code-section">
+                        <h3>Template con Estado Reactivo</h3>
+                        <pre><code><span class="comment">&lt;!-- Input para cantidad de primos --&gt;</span>
 <span class="keyword">&lt;input</span> 
     <span class="property">type</span>=<span class="string">"number"</span>
     [(<span class="property">ngModel</span>)]=<span class="string">"count"</span>
@@ -175,6 +188,46 @@
 <span class="comment">&lt;!-- Contador para demostrar que la UI no se congela --&gt;</span>
 <span class="keyword">&lt;div&gt;</span>Contador: {{ counter }}
 <span class="keyword">&lt;/div&gt;</span></code></pre>
+                    </div>
+                </div>
+
+                <div id="worker" class="tab-content">
+                    <div class="code-section">
+                        <h3>Worker (worker.js)</h3>
+                        <pre><code><span class="comment">// Función para calcular números primos</span>
+<span class="keyword">function</span> <span class="function">calculatePrimes</span>(<span class="variable">max</span>) {
+    <span class="keyword">const</span> <span class="variable">primes</span> = [];
+    
+    <span class="keyword">for</span> (<span class="keyword">let</span> <span class="variable">i</span> = <span class="number">2</span>; <span class="variable">primes</span>.<span class="property">length</span> &lt; <span class="variable">max</span>; <span class="variable">i</span>++) {
+        <span class="keyword">let</span> <span class="variable">isPrime</span> = <span class="keyword">true</span>;
+        
+        <span class="keyword">for</span> (<span class="keyword">let</span> <span class="variable">j</span> = <span class="number">2</span>; <span class="variable">j</span> &lt;= <span class="function">Math.sqrt</span>(<span class="variable">i</span>); <span class="variable">j</span>++) {
+            <span class="keyword">if</span> (<span class="variable">i</span> % <span class="variable">j</span> === <span class="number">0</span>) {
+                <span class="variable">isPrime</span> = <span class="keyword">false</span>;
+                <span class="keyword">break</span>;
+            }
+        }
+        
+        <span class="keyword">if</span> (<span class="variable">isPrime</span>) {
+            <span class="variable">primes</span>.<span class="function">push</span>(<span class="variable">i</span>);
+        }
+    }
+    
+    <span class="keyword">return</span> <span class="variable">primes</span>;
+}
+
+<span class="comment">// Escuchar mensajes del componente</span>
+<span class="variable">self</span>.<span class="property">onmessage</span> = <span class="keyword">function</span>(<span class="variable">e</span>) {
+    <span class="keyword">const</span> { <span class="variable">count</span> } = <span class="variable">e</span>.<span class="property">data</span>;
+    <span class="keyword">const</span> <span class="variable">primes</span> = <span class="function">calculatePrimes</span>(<span class="variable">count</span>);
+    
+    <span class="variable">self</span>.<span class="function">postMessage</span>({
+        <span class="property">primes</span>: <span class="variable">primes</span>,
+        <span class="property">count</span>: <span class="variable">primes.length</span>
+    });
+};</code></pre>
+                    </div>
+                </div>
             </div>
         </details>
 
@@ -236,6 +289,26 @@
     </div>
 
     <script>
+        // Funcionalidad de tabs
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetTab = button.getAttribute('data-tab');
+
+                    // Remover clase active de todos los botones y contenidos
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+
+                    // Agregar clase active al botón y contenido seleccionado
+                    button.classList.add('active');
+                    document.getElementById(targetTab).classList.add('active');
+                });
+            });
+        });
+
         // Demo simulation
         let counter = 0;
         setInterval(() => {

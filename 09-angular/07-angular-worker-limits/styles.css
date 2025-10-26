@@ -762,3 +762,65 @@ button:active {
     color: #ff9800;
 }
 
+/* Estilos para tabs */
+.tabs-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.tabs-header {
+    display: flex;
+    background: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+    border-radius: 8px 8px 0 0;
+    overflow-x: auto;
+}
+
+.tab-button {
+    padding: 12px 20px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+    transition: all 0.3s;
+    white-space: nowrap;
+    position: relative;
+}
+
+.tab-button:hover {
+    background: #e9ecef;
+    color: #333;
+}
+
+.tab-button.active {
+    color: #ff9800;
+    border-bottom-color: #ff9800;
+    background: white;
+}
+
+.tab-content {
+    display: none;
+    padding: 20px;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
