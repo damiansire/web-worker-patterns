@@ -31,8 +31,8 @@
                 <div id="service" class="tab-content active">
                     <div class="code-section">
                         <h3>Servicio de Cómputo</h3>
-                        <pre><code><span class="keyword">import</span> { <span class="variable">Injectable</span> } <span class="keyword">from</span> <span class="string">'@angular/core'</span>;
-<span class="keyword">import</span> { <span class="variable">Observable</span>, <span class="variable">Subject</span> } <span class="keyword">from</span> <span class="string">'rxjs'</span>;
+                        <pre><code><span class="keyword">import</span> { <span class="variable">injectable</span> } <span class="keyword">from</span> <span class="string">'@angular/core'</span>;
+<span class="keyword">import</span> { <span class="variable">Subject</span> } <span class="keyword">from</span> <span class="string">'rxjs'</span>;
 
 <span class="variable">@Injectable</span>({ <span class="property">providedIn</span>: <span class="string">'root'</span> })
 <span class="keyword">export class</span> <span class="function">ComputationService</span> {
@@ -46,7 +46,7 @@
         }
     }
     
-    <span class="function">calculatePrimes</span>(<span class="variable">count</span>: <span class="variable">number</span>): <span class="function">Observable</span>&lt;<span class="variable">any</span>&gt; {
+    <span class="function">calculatePrimes</span>(<span class="variable">count</span>: <span class="variable">number</span>) {
         <span class="keyword">if</span> (<span class="keyword">this</span>.<span class="variable">worker</span>) {
             <span class="keyword">this</span>.<span class="variable">worker</span>.<span class="function">postMessage</span>({ <span class="property">count</span> });
         }
@@ -75,59 +75,63 @@
                 <div id="component" class="tab-content">
                     <div class="code-section">
                         <h3>Componente con Estado Reactivo</h3>
-                        <pre><code><span class="keyword">import</span> { <span class="variable">Component</span>, <span class="variable">OnInit</span> } <span class="keyword">from</span> <span class="string">'@angular/core'</span>;
+                        <pre><code><span class="keyword">import</span> { <span class="variable">Component</span>, <span class="variable">signal</span>, <span class="variable">inject</span>, <span class="variable">effect</span> } <span class="keyword">from</span> <span class="string">'@angular/core'</span>;
 <span class="keyword">import</span> { <span class="variable">ComputationService</span> } <span class="keyword">from</span> <span class="string">'./computation.service'</span>;
 
 <span class="variable">@Component</span>({
     <span class="property">selector</span>: <span class="string">'app-root'</span>,
-    <span class="property">templateUrl</span>: <span class="string">'./app.component.html'</span>
+    <span class="property">templateUrl</span>: <span class="string">'./app.component.html'</span>,
+    <span class="property">standalone</span>: <span class="keyword">true</span>
 })
-<span class="keyword">export class</span> <span class="function">AppComponent</span> <span class="keyword">implements</span> <span class="variable">OnInit</span> {
-    <span class="variable">count</span>: <span class="variable">number</span> = <span class="number">50000</span>;
-    <span class="variable">result</span>: <span class="variable">any</span> | <span class="keyword">null</span> = <span class="keyword">null</span>;
-    <span class="variable">loading</span>: <span class="variable">boolean</span> = <span class="keyword">false</span>;
-    <span class="variable">counter</span>: <span class="variable">number</span> = <span class="number">0</span>;
+<span class="keyword">export class</span> <span class="function">AppComponent</span> {
+    <span class="comment">// Angular 21: inject() function</span>
+    <span class="keyword">private</span> <span class="variable">computationService</span> = <span class="function">inject</span>(<span class="variable">ComputationService</span>);
     
-    <span class="function">constructor</span>(<span class="keyword">private</span> <span class="variable">computationService</span>: <span class="function">ComputationService</span>) {}
+    <span class="comment">// Angular 21: Signals for reactive state</span>
+    <span class="variable">count</span> = <span class="function">signal</span>(<span class="number">50000</span>);
+    <span class="variable">result</span> = <span class="function">signal</span>&lt;<span class="variable">any</span> | <span class="keyword">null</span>&gt;(<span class="keyword">null</span>);
+    <span class="variable">loading</span> = <span class="function">signal</span>(<span class="keyword">false</span>);
+    <span class="variable">counter</span> = <span class="function">signal</span>(<span class="number">0</span>);
     
-    <span class="function">ngOnInit</span>(): <span class="keyword">void</span> {
-        <span class="comment">// Contador para demostrar que la UI no se congela</span>
-        <span class="function">setInterval</span>(() =&gt; {
-            <span class="keyword">this</span>.<span class="variable">counter</span>++;
-        }, <span class="number">100</span>);
+    <span class="function">constructor</span>() {
+        <span class="comment">// Angular 21: effect() for side effects</span>
+        <span class="function">effect</span>(() =&gt; {
+            <span class="function">setInterval</span>(() =&gt; {
+                <span class="keyword">this</span>.<span class="variable">counter</span>.<span class="function">update</span>(<span class="variable">c</span> =&gt; <span class="variable">c</span> + <span class="number">1</span>);
+            }, <span class="number">100</span>);
+        });
     }
     
     <span class="function">calculateWithWorker</span>(): <span class="keyword">void</span> {
-        <span class="keyword">this</span>.<span class="variable">loading</span> = <span class="keyword">true</span>;
+        <span class="keyword">this</span>.<span class="variable">loading</span>.<span class="function">set</span>(<span class="keyword">true</span>);
         <span class="keyword">const</span> <span class="variable">startTime</span> = <span class="function">performance.now</span>();
         
-        <span class="keyword">this</span>.<span class="variable">computationService</span>.<span class="function">calculatePrimes</span>(<span class="keyword">this</span>.<span class="variable">count</span>)
+        <span class="keyword">this</span>.<span class="variable">computationService</span>.<span class="function">calculatePrimes</span>(<span class="keyword">this</span>.<span class="variable">count</span>())
             .<span class="function">subscribe</span>(<span class="variable">result</span> =&gt; {
                 <span class="keyword">const</span> <span class="variable">duration</span> = <span class="function">performance.now</span>() - <span class="variable">startTime</span>;
-                <span class="keyword">this</span>.<span class="variable">result</span> = {
+                <span class="keyword">this</span>.<span class="variable">result</span>.<span class="function">set</span>({
                     <span class="property">...result</span>,
                     <span class="property">duration</span>,
                     <span class="property">method</span>: <span class="string">'Worker'</span>
-                };
-                <span class="keyword">this</span>.<span class="variable">loading</span> = <span class="keyword">false</span>;
+                });
+                <span class="keyword">this</span>.<span class="variable">loading</span>.<span class="function">set</span>(<span class="keyword">false</span>);
             });
     }
     
     <span class="function">calculateWithoutWorker</span>(): <span class="keyword">void</span> {
-        <span class="comment">// Cálculo en el hilo principal (bloquea la UI)</span>
-        <span class="keyword">this</span>.<span class="variable">loading</span> = <span class="keyword">true</span>;
+        <span class="keyword">this</span>.<span class="variable">loading</span>.<span class="function">set</span>(<span class="keyword">true</span>);
         <span class="keyword">const</span> <span class="variable">startTime</span> = <span class="function">performance.now</span>();
         
-        <span class="keyword">const</span> <span class="variable">primes</span> = <span class="keyword">this</span>.<span class="variable">calculatePrimes</span>(<span class="keyword">this</span>.<span class="variable">count</span>);
+        <span class="keyword">const</span> <span class="variable">primes</span> = <span class="keyword">this</span>.<span class="variable">calculatePrimes</span>(<span class="keyword">this</span>.<span class="variable">count</span>());
         <span class="keyword">const</span> <span class="variable">duration</span> = <span class="function">performance.now</span>() - <span class="variable">startTime</span>;
         
-        <span class="keyword">this</span>.<span class="variable">result</span> = {
+        <span class="keyword">this</span>.<span class="variable">result</span>.<span class="function">set</span>({
             <span class="property">primes</span>,
             <span class="property">count</span>: <span class="variable">primes.length</span>,
             <span class="property">duration</span>,
             <span class="property">method</span>: <span class="string">'Hilo Principal'</span>
-        };
-        <span class="keyword">this</span>.<span class="variable">loading</span> = <span class="keyword">false</span>;
+        });
+        <span class="keyword">this</span>.<span class="variable">loading</span>.<span class="function">set</span>(<span class="keyword">false</span>);
     }
     
     <span class="keyword">private</span> <span class="function">calculatePrimes</span>(<span class="variable">max</span>: <span class="variable">number</span>): <span class="variable">number</span>[] {
@@ -152,42 +156,42 @@
                 <div id="template" class="tab-content">
                     <div class="code-section">
                         <h3>Template con Estado Reactivo</h3>
-                        <pre><code><span class="comment">&lt;!-- Input para cantidad de primos --&gt;</span>
+                        <pre><code><span class="comment">&lt;!-- Angular 21: Control flow --&gt;</span>
 <span class="keyword">&lt;input</span> 
     <span class="property">type</span>=<span class="string">"number"</span>
-    [(<span class="property">ngModel</span>)]=<span class="string">"count"</span>
+    [(<span class="property">ngModel</span>)]=<span class="string">"count()"</span>
     <span class="property">min</span>=<span class="string">"1000"</span>
     <span class="property">max</span>=<span class="string">"100000"</span>
 <span class="keyword">&gt;</span>
 
-<span class="comment">&lt;!-- Botones de cálculo --&gt;</span>
 <span class="keyword">&lt;button</span> 
     (<span class="property">click</span>)=<span class="string">"calculateWithWorker()"</span>
-    [<span class="property">disabled</span>]=<span class="string">"loading"</span>
+    [<span class="property">disabled</span>]=<span class="string">"loading()"</span>
 <span class="keyword">&gt;</span>
     🚀 Calcular con Worker
 <span class="keyword">&lt;/button&gt;</span>
 
 <span class="keyword">&lt;button</span> 
     (<span class="property">click</span>)=<span class="string">"calculateWithoutWorker()"</span>
-    [<span class="property">disabled</span>]=<span class="string">"loading"</span>
+    [<span class="property">disabled</span>]=<span class="string">"loading()"</span>
 <span class="keyword">&gt;</span>
     🐌 Calcular en Hilo Principal
 <span class="keyword">&lt;/button&gt;</span>
 
-<span class="comment">&lt;!-- Resultado --&gt;</span>
-<span class="keyword">&lt;div *ngIf="loading"&gt;</span>⏳ Calculando...
-<span class="keyword">&lt;/div&gt;</span>
+<span class="comment">&lt;!-- Angular 21: @if instead of *ngIf --&gt;</span>
+@<span class="variable">if</span> (<span class="variable">loading</span>()) {
+    &lt;<span class="variable">div</span>&gt;⏳ Calculando...&lt;/<span class="variable">div</span>&gt;
+}
 
-<span class="keyword">&lt;div *ngIf="result && !loading"&gt;</span>
-    <span class="keyword">&lt;h3&gt;</span>{{ result.method }} completó el cálculo
-    <span class="keyword">&lt;br&gt;</span>Total: {{ result.count }}
-    <span class="keyword">&lt;br&gt;</span>Tiempo: {{ result.duration | number }}ms
-<span class="keyword">&lt;/div&gt;</span>
+@<span class="variable">if</span> (<span class="variable">result</span>() && !<span class="variable">loading</span>()) {
+    &lt;<span class="variable">div</span>&gt;
+        &lt;<span class="variable">h3</span>&gt;{{ <span class="variable">result</span>().<span class="property">method</span> }} completó el cálculo&lt;/<span class="variable">h3</span>&gt;
+        &lt;<span class="variable">br</span>&gt;Total: {{ <span class="variable">result</span>().<span class="property">count</span> }}
+        &lt;<span class="variable">br</span>&gt;Tiempo: {{ <span class="variable">result</span>().<span class="property">duration</span> | <span class="variable">number</span> }}ms
+    &lt;/<span class="variable">div</span>&gt;
+}
 
-<span class="comment">&lt;!-- Contador para demostrar que la UI no se congela --&gt;</span>
-<span class="keyword">&lt;div&gt;</span>Contador: {{ counter }}
-<span class="keyword">&lt;/div&gt;</span></code></pre>
+&lt;<span class="variable">div</span>&gt;Contador: {{ <span class="variable">counter</span>() }}&lt;/<span class="variable">div</span>&gt;</code></pre>
                     </div>
                 </div>
 

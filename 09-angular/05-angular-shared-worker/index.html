@@ -29,8 +29,8 @@
                 <div id="service" class="tab-content active">
                     <div class="code-section">
                         <h3>Servicio de Shared Worker</h3>
-                <pre><code><span class="keyword">import</span> { <span class="variable">Injectable</span> } <span class="keyword">from</span> <span class="string">'@angular/core'</span>;
-<span class="keyword">import</span> { <span class="variable">Observable</span>, <span class="variable">Subject</span> } <span class="keyword">from</span> <span class="string">'rxjs'</span>;
+                <pre><code><span class="keyword">import</span> { <span class="variable">injectable</span> } <span class="keyword">from</span> <span class="string">'@angular/core'</span>;
+<span class="keyword">import</span> { <span class="variable">Subject</span> } <span class="keyword">from</span> <span class="string">'rxjs'</span>;
 
 <span class="variable">@Injectable</span>({ <span class="property">providedIn</span>: <span class="string">'root'</span> })
 <span class="keyword">export class</span> <span class="function">SharedWorkerService</span> {
@@ -66,7 +66,7 @@
         });
     }
     
-    <span class="function">getMessages</span>(): <span class="function">Observable</span>&lt;<span class="variable">string</span>&gt; {
+    <span class="function">getMessages</span>() {
         <span class="keyword">return</span> <span class="keyword">this</span>.<span class="variable">messages</span>.<span class="function">asObservable</span>();
     }
     
