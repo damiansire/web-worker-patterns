@@ -1,0 +1,82 @@
+<div class="container">
+  <h1>🚀 Objetos Transferibles</h1>
+  <p class="subtitle">Ejemplo 03: Transferencia vs. Clonación de datos</p>
+
+  <div class="info-box">
+    <strong>💡 ¿Qué demuestra este ejemplo?</strong>
+    Los objetos transferibles (como <code>ArrayBuffer</code>) pueden "transferir" su propiedad al worker 
+    en lugar de ser clonados. Esto es muchísimo más rápido para grandes volúmenes de datos.
+  </div>
+
+  <details class="code-explanation">
+    <summary>📖 Ver Código - ¿Cómo funciona?</summary>
+    
+    <div class="code-section">
+      <h3>1️⃣ Crear ArrayBuffer</h3>
+      <pre><code>const imageData = new ImageData(1024, 1024);
+const buffer = imageData.data.buffer;</code></pre>
+    </div>
+    
+    <div class="code-section">
+      <h3>2️⃣ Método 1: Clonación (Lento)</h3>
+      <pre><code>worker.postMessage({{'{'}} imageData: imageData {{'}'}});
+// El buffer original sigue siendo accesible</code></pre>
+    </div>
+    
+    <div class="code-section">
+      <h3>3️⃣ Método 2: Transferencia (Rápido)</h3>
+      <pre><code>worker.postMessage({{'{'}} imageData: imageData {{'}'}}, [imageData.data.buffer]);
+// ⚠️ El buffer original queda INACCESIBLE</code></pre>
+    </div>
+  </details>
+
+  <div class="demo-section">
+    <h3>🖼️ Procesamiento de Imagen</h3>
+    
+    <div class="size-selector">
+      <label>Tamaño de los datos:</label>
+      <select [ngModel]="sizeMB()" (ngModelChange)="sizeMB.set($event)">
+        <option [value]="1">1 MB (256x256 imagen)</option>
+        <option [value]="4">4 MB (512x512 imagen)</option>
+        <option [value]="16">16 MB (1024x1024 imagen)</option>
+        <option [value]="64">64 MB (2048x2048 imagen)</option>
+      </select>
+    </div>
+
+    <div class="button-group">
+      <button class="btn-transfer" (click)="processWithTransfer()" [disabled]="isLoading()">
+        ⚡ Con Transferencia<br>
+        <small style="font-size: 11px; font-weight: normal;">(Transfer ownership)</small>
+      </button>
+      <button class="btn-clone" (click)="processWithClone()" [disabled]="isLoading()">
+        📋 Con Clonación<br>
+        <small style="font-size: 11px; font-weight: normal;">(Structured clone)</small>
+      </button>
+    </div>
+
+    <div class="spinner" [class.active]="isLoading()"></div>
+  </div>
+
+  <div class="comparison" [style.display]="(transferTime() > 0 && cloneTime() > 0) ? 'grid' : 'none'">
+    <div class="comparison-item transfer">
+      <div class="label">Con Transferencia</div>
+      <div class="value">{{ transferTime() }}</div>
+      <div class="unit">milisegundos</div>
+    </div>
+    <div class="comparison-item clone">
+      <div class="label">Con Clonación</div>
+      <div class="value">{{ cloneTime() }}</div>
+      <div class="unit">milisegundos</div>
+    </div>
+  </div>
+
+  @if (transferTime() > 0 && cloneTime() > 0) {
+    <div class="result">
+      <strong>📊 Análisis de Rendimiento</strong>
+      <p>
+        <strong>Mejora con transferencia:</strong> {{ ((cloneTime() - transferTime()) / cloneTime() * 100).toFixed(1) }}% más rápido<br>
+        <strong>Diferencia:</strong> {{ cloneTime() - transferTime() }} ms ahorrados
+      </p>
+    </div>
+  }
+</div>
