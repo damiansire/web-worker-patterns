@@ -1,0 +1,10 @@
+<div class="info-box">
+  @if (title) {
+    <strong>{{ title }}</strong>
+  }
+  <ng-content></ng-content>
+  @if (content) {
+    <span>{{ content }}</span>
+  }
+</div>
+
