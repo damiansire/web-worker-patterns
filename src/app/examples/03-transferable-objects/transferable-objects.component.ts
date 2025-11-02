@@ -1,6 +1,9 @@
 import { Component, OnInit, OnDestroy, signal, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { InfoBoxComponent } from '../../core/components/info-box/info-box.component';
+import { CodeExplanationComponent } from '../../core/components/code-explanation/code-explanation.component';
+import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
 
 interface ImageData {
   buffer: ArrayBuffer;
@@ -17,7 +20,7 @@ interface ProcessResult {
 
 @Component({
   selector: 'app-transferable-objects',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent],
   templateUrl: './transferable-objects.component.html',
   styleUrl: './transferable-objects.component.scss',
   standalone: true

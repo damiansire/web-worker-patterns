@@ -1,6 +1,9 @@
 import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { InfoBoxComponent } from '../../core/components/info-box/info-box.component';
+import { CodeExplanationComponent } from '../../core/components/code-explanation/code-explanation.component';
+import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
 
 interface Message {
   sender: string;
@@ -11,7 +14,7 @@ interface Message {
 
 @Component({
   selector: 'app-shared-worker',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent],
   templateUrl: './shared-worker.component.html',
   styleUrl: './shared-worker.component.scss',
   standalone: true

@@ -4,40 +4,32 @@
 
   <div class="main-grid">
     <div class="content-column">
-      <div class="info-box">
-        <strong>💡 ¿Qué hace este ejemplo?</strong>
+      <app-info-box title="💡 ¿Qué hace este ejemplo?">
         Este es el "Hola Mundo" de los Web Workers. Escribe un mensaje y envíalo al worker.
         El worker lo recibirá, lo procesará y te responderá de vuelta.
-      </div>
+      </app-info-box>
 
-      <details class="code-explanation">
-        <summary>📖 Ver Código - ¿Cómo funciona?</summary>
-        <div class="code-sections-list">
-          <div class="code-section">
-            <h3>1️⃣ Crear el Worker</h3>
-            <pre><code>const myWorker = new Worker('worker.js');</code></pre>
-          </div>
-          <div class="code-section">
-            <h3>2️⃣ Enviar mensaje al Worker</h3>
-            <pre><code>myWorker.postMessage('¡Hola Worker!');</code></pre>
-          </div>
-          <div class="code-section">
-            <h3>3️⃣ Recibir mensaje en el Worker</h3>
-            <pre><code>self.onmessage = function(e) {{'{'}}
+      <app-code-explanation summaryText="📖 Ver Código - ¿Cómo funciona?">
+        <app-code-section title="1️⃣ Crear el Worker">
+          <pre><code>const myWorker = new Worker('worker.js');</code></pre>
+        </app-code-section>
+        <app-code-section title="2️⃣ Enviar mensaje al Worker">
+          <pre><code>myWorker.postMessage('¡Hola Worker!');</code></pre>
+        </app-code-section>
+        <app-code-section title="3️⃣ Recibir mensaje en el Worker">
+          <pre><code>self.onmessage = function(e) {{'{'}}
     const mensaje = e.data;
     const respuesta = 'Procesé tu mensaje: ' + mensaje;
     self.postMessage(respuesta);
 {{ '}' }};</code></pre>
-          </div>
-          <div class="code-section">
-            <h3>4️⃣ Recibir respuesta del Worker</h3>
-            <pre><code>myWorker.onmessage = function(e) {{'{'}}
+        </app-code-section>
+        <app-code-section title="4️⃣ Recibir respuesta del Worker">
+          <pre><code>myWorker.onmessage = function(e) {{'{'}}
     const respuesta = e.data;
     console.log('Hilo principal recibió:', respuesta);
 {{ '}' }};</code></pre>
-          </div>
-        </div>
-      </details>
+        </app-code-section>
+      </app-code-explanation>
 
       <div class="input-group">
         <label for="messageInput">Mensaje para el Worker:</label>

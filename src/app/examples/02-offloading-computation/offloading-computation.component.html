@@ -2,39 +2,33 @@
   <h1>⚡ Descarga de Cómputo Pesado</h1>
   <p class="subtitle">Ejemplo 02: Evitando el bloqueo de la UI</p>
 
-  <div class="info-box">
-    <strong>💡 ¿Qué demuestra este ejemplo?</strong>
+  <app-info-box title="💡 ¿Qué demuestra este ejemplo?">
     Calcula números primos de forma intensiva. Prueba ambos botones y observa cómo el contador
     y la animación se comportan diferente cuando el cálculo se hace en el hilo principal vs. en un worker.
-  </div>
+  </app-info-box>
 
-  <details class="code-explanation">
-    <summary>📖 Ver Código - ¿Cómo funciona?</summary>
-    <div class="code-section">
-      <h3>1️⃣ Crear Worker para Cómputo</h3>
+  <app-code-explanation summaryText="📖 Ver Código - ¿Cómo funciona?">
+    <app-code-section title="1️⃣ Crear Worker para Cómputo">
       <pre><code>const worker = new Worker('worker.js');</code></pre>
-    </div>
-    <div class="code-section">
-      <h3>2️⃣ Enviar Tarea al Worker</h3>
+    </app-code-section>
+    <app-code-section title="2️⃣ Enviar Tarea al Worker">
       <pre><code>const count = 50000;
 worker.postMessage({{ '{' }} count: count {{ '}' }});</code></pre>
-    </div>
-    <div class="code-section">
-      <h3>3️⃣ Procesar en Worker</h3>
+    </app-code-section>
+    <app-code-section title="3️⃣ Procesar en Worker">
       <pre><code>self.onmessage = function(e) {{'{'}}
     const {{ '{' }} count {{ '}' }} = e.data;
     const primes = calculatePrimes(count);
     self.postMessage({{ '{' }} primes: primes {{ '}' }});
 {{ '}' }};</code></pre>
-    </div>
-    <div class="code-section">
-      <h3>4️⃣ Recibir Resultado</h3>
+    </app-code-section>
+    <app-code-section title="4️⃣ Recibir Resultado">
       <pre><code>worker.onmessage = function(e) {{'{'}}
     const primes = e.data.primes;
     console.log('Cálculo completo:', primes);
 {{ '}' }};</code></pre>
-    </div>
-  </details>
+    </app-code-section>
+  </app-code-explanation>
 
   <div class="demo-section">
     <h3>🔢 Calculadora de Números Primos</h3>

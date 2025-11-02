@@ -1,15 +1,14 @@
 import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-interface LogEntry {
-  timestamp: string;
-  message: string;
-  type: 'info' | 'success' | 'error' | 'warning';
-}
+import { InfoBoxComponent } from '../../core/components/info-box/info-box.component';
+import { CodeExplanationComponent } from '../../core/components/code-explanation/code-explanation.component';
+import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
+import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log-panel.component';
+import { StatsPanelComponent, StatCard } from '../../core/components/stats-panel/stats-panel.component';
 
 @Component({
   selector: 'app-lifecycle-termination',
-  imports: [CommonModule],
+  imports: [CommonModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, StatsPanelComponent],
   templateUrl: './lifecycle-termination.component.html',
   styleUrl: './lifecycle-termination.component.scss',
   standalone: true
@@ -84,5 +83,14 @@ export class LifecycleTerminationComponent implements OnInit, OnDestroy {
 
   clearLogs() {
     this.logs.set([]);
+    this.addLog('Logs limpiados', 'info');
+  }
+
+  getStats(): StatCard[] {
+    return [
+      { label: 'Workers Creados', value: this.createdCount() },
+      { label: 'Tareas Completadas', value: this.completedCount() },
+      { label: 'Terminaciones', value: this.terminatedCount() }
+    ];
   }
 }

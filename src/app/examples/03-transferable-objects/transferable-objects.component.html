@@ -2,33 +2,25 @@
   <h1>🚀 Objetos Transferibles</h1>
   <p class="subtitle">Ejemplo 03: Transferencia vs. Clonación de datos</p>
 
-  <div class="info-box">
-    <strong>💡 ¿Qué demuestra este ejemplo?</strong>
+  <app-info-box title="💡 ¿Qué demuestra este ejemplo?">
     Los objetos transferibles (como <code>ArrayBuffer</code>) pueden "transferir" su propiedad al worker 
     en lugar de ser clonados. Esto es muchísimo más rápido para grandes volúmenes de datos.
-  </div>
+  </app-info-box>
 
-  <details class="code-explanation">
-    <summary>📖 Ver Código - ¿Cómo funciona?</summary>
-    
-    <div class="code-section">
-      <h3>1️⃣ Crear ArrayBuffer</h3>
+  <app-code-explanation summaryText="📖 Ver Código - ¿Cómo funciona?">
+    <app-code-section title="1️⃣ Crear ArrayBuffer">
       <pre><code>const imageData = new ImageData(1024, 1024);
 const buffer = imageData.data.buffer;</code></pre>
-    </div>
-    
-    <div class="code-section">
-      <h3>2️⃣ Método 1: Clonación (Lento)</h3>
+    </app-code-section>
+    <app-code-section title="2️⃣ Método 1: Clonación (Lento)">
       <pre><code>worker.postMessage({{'{'}} imageData: imageData {{'}'}});
 // El buffer original sigue siendo accesible</code></pre>
-    </div>
-    
-    <div class="code-section">
-      <h3>3️⃣ Método 2: Transferencia (Rápido)</h3>
+    </app-code-section>
+    <app-code-section title="3️⃣ Método 2: Transferencia (Rápido)">
       <pre><code>worker.postMessage({{'{'}} imageData: imageData {{'}'}}, [imageData.data.buffer]);
 // ⚠️ El buffer original queda INACCESIBLE</code></pre>
-    </div>
-  </details>
+    </app-code-section>
+  </app-code-explanation>
 
   <div class="demo-section">
     <h3>🖼️ Procesamiento de Imagen</h3>

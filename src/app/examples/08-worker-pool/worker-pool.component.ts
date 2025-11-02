@@ -1,10 +1,11 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { InfoBoxComponent } from '../../core/components/info-box/info-box.component';
 
 @Component({
   selector: 'app-worker-pool',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, InfoBoxComponent],
   templateUrl: './worker-pool.component.html',
   styleUrl: './worker-pool.component.scss',
   standalone: true

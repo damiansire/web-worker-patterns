@@ -2,16 +2,13 @@
   <h1>♻️ Ciclo de Vida y Terminación</h1>
   <p class="subtitle">Ejemplo 06: Gestión del ciclo de vida de Workers</p>
 
-  <div class="info-box">
-    <strong>💡 ¿Qué demuestra este ejemplo?</strong>
+  <app-info-box title="💡 ¿Qué demuestra este ejemplo?">
     Es importante gestionar correctamente el ciclo de vida de los Workers para liberar recursos y memoria.
     Este ejemplo muestra cómo crear, usar y terminar Workers de forma apropiada.
-  </div>
+  </app-info-box>
 
-  <details class="code-explanation">
-    <summary>📖 Ver Código - ¿Cómo funciona?</summary>
-    <div class="code-section">
-      <h3>1️⃣ Crear Worker</h3>
+  <app-code-explanation summaryText="📖 Ver Código - ¿Cómo funciona?">
+    <app-code-section title="1️⃣ Crear Worker">
       <pre><code>let worker = null;
 
 function createWorker() {{'{'}}
@@ -19,17 +16,16 @@ function createWorker() {{'{'}}
     worker.onmessage = handleMessage;
     worker.onerror = handleError;
 {{ '}' }}</code></pre>
-    </div>
-    <div class="code-section">
-      <h3>2️⃣ Terminar Worker</h3>
+    </app-code-section>
+    <app-code-section title="2️⃣ Terminar Worker">
       <pre><code>function terminateWorker() {{'{'}}
     if (worker) {{'{'}}
         worker.terminate();
         worker = null;
     {{ '}' }}
 {{ '}' }}</code></pre>
-    </div>
-  </details>
+    </app-code-section>
+  </app-code-explanation>
 
   <div class="control-panel">
     <h3>🎮 Control del Worker</h3>
@@ -51,42 +47,12 @@ function createWorker() {{'{'}}
     </div>
   </div>
 
-  <div class="control-panel">
-    <h3>📊 Estadísticas</h3>
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="label">Workers Creados</div>
-        <div class="value">{{ createdCount() }}</div>
-      </div>
-      <div class="stat-card">
-        <div class="label">Tareas Completadas</div>
-        <div class="value">{{ completedCount() }}</div>
-      </div>
-      <div class="stat-card">
-        <div class="label">Terminaciones</div>
-        <div class="value">{{ terminatedCount() }}</div>
-      </div>
-    </div>
-  </div>
+  <app-stats-panel title="📊 Estadísticas" [stats]="getStats()"></app-stats-panel>
 
-  <div class="log-container">
-    <div class="log-header">
-      <span class="title">📋 Log de Eventos</span>
-      <button (click)="clearLogs()">Limpiar</button>
-    </div>
-    <div class="log-content">
-      @if (logs().length === 0) {
-        <div class="log-entry info">
-          <span class="timestamp">Sistema iniciado. Esperando acciones...</span>
-        </div>
-      } @else {
-        @for (log of logs(); track $index) {
-          <div class="log-entry" [class.info]="log.type === 'info'" [class.success]="log.type === 'success'" [class.error]="log.type === 'error'" [class.warning]="log.type === 'warning'">
-            <span class="timestamp">[{{ log.timestamp }}]</span>
-            <span class="message">{{ log.message }}</span>
-          </div>
-        }
-      }
-    </div>
-  </div>
+  <app-log-panel 
+    [logs]="logs()" 
+    title="📋 Log de Eventos"
+    emptyMessage="Sistema iniciado. Esperando acciones..."
+    (clear)="clearLogs()">
+  </app-log-panel>
 </div>
