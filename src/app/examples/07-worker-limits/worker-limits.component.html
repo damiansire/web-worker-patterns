@@ -1,0 +1,66 @@
+<div class="container">
+  <h1>📊 Límites de Workers</h1>
+  <p class="subtitle">Ejemplo 07: Test de límites y escalabilidad</p>
+
+  <div class="info-box">
+    <strong>💡 ¿Qué demuestra este ejemplo?</strong>
+    Descubre cuántos workers puede manejar tu navegador. Prueba diferentes cantidades y observa cuándo se alcanzan los límites.
+  </div>
+
+  <div class="demo-section">
+    <h3>⚙️ Configuración</h3>
+    <div class="settings">
+      <label>
+        Cantidad de Workers: <input type="number" [ngModel]="workerCount()" (ngModelChange)="workerCount.set($event)" min="1" max="1000" />
+      </label>
+      <div class="info-row">
+        <span>CPU Cores: <strong>{{ getCPUCores() }}</strong></span>
+        <span>Browser: <strong>{{ getBrowserInfo() }}</strong></span>
+      </div>
+    </div>
+
+    <div class="button-group">
+      <button class="btn-create" (click)="createWorker()">➕ Crear 1 Worker</button>
+      <button class="btn-stress" (click)="stressTest()">🚀 Test de Estrés</button>
+      <button class="btn-terminate" (click)="terminateAll()">🛑 Terminar Todos</button>
+      <button (click)="clearLogs()">🗑️ Limpiar Logs</button>
+    </div>
+  </div>
+
+  <div class="stats-panel">
+    <h3>📊 Estadísticas</h3>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Workers Activos</div>
+        <div class="stat-value">{{ activeCount() }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Creados</div>
+        <div class="stat-value">{{ totalCreated() }}</div>
+      </div>
+      <div class="stat-card error">
+        <div class="stat-label">Errores</div>
+        <div class="stat-value">{{ errorCount() }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="log-container">
+    <div class="log-header">
+      <span class="title">📋 Log de Eventos</span>
+      <button (click)="clearLogs()">Limpiar</button>
+    </div>
+    <div class="log-content">
+      @if (logs().length === 0) {
+        <p class="empty-message">Los logs aparecerán aquí</p>
+      } @else {
+        @for (log of logs(); track $index) {
+          <div class="log-entry" [class.info]="log.type === 'info'" [class.success]="log.type === 'success'" [class.error]="log.type === 'error'" [class.warning]="log.type === 'warning'">
+            <span class="timestamp">[{{ log.timestamp }}]</span>
+            <span class="message">{{ log.message }}</span>
+          </div>
+        }
+      }
+    </div>
+  </div>
+</div>
