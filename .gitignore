@@ -1,47 +1,72 @@
-# Sistema operativo
+# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+dist/
+build/
+
+# Node
+/node_modules
+node_modules/
+npm-debug.log
+npm-debug.log*
+yarn-error.log
+yarn-error.log*
+yarn-debug.log*
+package-lock.json
+yarn.lock
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.sublime-project
+*.swp
+*.swo
+*~
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+# Miscellaneous
+/.angular/cache
+.sass-cache/
+/connect.lock
+/coverage
+coverage/
+.nyc_output/
+/libpeerconnection.log
+testem.log
+/typings
+__screenshots__/
+
+# System files
 .DS_Store
 .DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
-ehthumbs.db
 Thumbs.db
+ehthumbs.db
 desktop.ini
 
-# IDEs y editores
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-*.sublime-project
-*.sublime-workspace
-
-# Logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Node modules (si en el futuro se agregan)
-node_modules/
-package-lock.json
-yarn.lock
-
-# Archivos temporales
+# Temporary files
 *.tmp
 *.temp
 
-# Archivos de configuración local
+# Local configuration files
 .env
 .env.local
 .env.*.local
-
-# Cobertura de tests
-coverage/
-.nyc_output/
-
-# Build outputs (si se agregan en el futuro)
-dist/
-build/
-
