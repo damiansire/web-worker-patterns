@@ -1,0 +1,84 @@
+<div class="container">
+  <h1>🌐 Shared Worker</h1>
+  <p class="subtitle">Ejemplo 05: Comunicación entre múltiples pestañas</p>
+
+  <div class="info-box">
+    <strong>💡 ¿Qué demuestra este ejemplo?</strong>
+    Un Shared Worker puede ser compartido por múltiples contextos de navegación (pestañas, iframes, ventanas).
+    Es ideal para compartir estado, gestionar conexiones WebSocket compartidas, o sincronizar datos entre pestañas.
+  </div>
+
+  <div class="warning-box">
+    ⚠️ <strong>Nota de compatibilidad:</strong> Los Shared Workers no son soportados en todos los navegadores.
+    Safari no los soporta. Firefox y Chrome sí.
+  </div>
+
+  <details class="code-explanation">
+    <summary>📖 Ver Código - ¿Cómo funciona?</summary>
+    <div class="code-section">
+      <h3>1️⃣ Crear Shared Worker</h3>
+      <pre><code>const sharedWorker = new SharedWorker('shared_worker.js');
+const port = sharedWorker.port;
+port.start();</code></pre>
+    </div>
+    <div class="code-section">
+      <h3>2️⃣ Conectar y Enviar</h3>
+      <pre><code>port.postMessage({{'{'}}
+    type: 'message',
+    tabId: 'tab-123',
+    message: 'Hola desde pestaña 1'
+{{ '}' }});</code></pre>
+    </div>
+  </details>
+
+  <div class="status-panel">
+    <h3>📊 Estado de la Conexión</h3>
+    <div class="status-item">
+      <span class="status-label">Estado del Worker:</span>
+      <span class="status-value" [class.active]="workerStatus() === 'Conectado'">{{ workerStatus() }}</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">Tu ID de Pestaña:</span>
+      <span class="status-value">{{ tabId() }}</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">Pestañas Conectadas:</span>
+      <span class="status-value">{{ connectedTabs() }}</span>
+    </div>
+  </div>
+
+  <div class="message-panel">
+    <h3>💬 Chat entre Pestañas</h3>
+    
+    <div class="input-group">
+      <input 
+        type="text" 
+        placeholder="Escribe un mensaje..."
+        [value]="messageText()"
+        (input)="messageText.set($any($event.target).value)"
+        (keypress)="onKeyPress($event)"
+      >
+      <button (click)="sendMessage()">Enviar</button>
+    </div>
+
+    <p class="instructions">
+      💡 <strong>Abre esta misma página en otra pestaña</strong> para ver cómo se comparten los mensajes
+    </p>
+
+    <div class="messages" [class.active]="messages().length > 0">
+      @if (messages().length === 0) {
+        <p class="empty-message">
+          Los mensajes aparecerán aquí. Abre otra pestaña para probar la comunicación.
+        </p>
+      } @else {
+        @for (msg of messages(); track $index) {
+          <div class="message" [class.system]="msg.type === 'system'" [class.self]="msg.type === 'self'" [class.other]="msg.type === 'other'">
+            <div class="sender">{{ msg.sender }}</div>
+            <div class="text">{{ msg.text }}</div>
+            <div class="timestamp">{{ msg.timestamp }}</div>
+          </div>
+        }
+      }
+    </div>
+  </div>
+</div>
