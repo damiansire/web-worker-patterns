@@ -1,0 +1,82 @@
+<div class="container">
+  <h1>⚠️ Manejo de Errores en Workers</h1>
+  <p class="subtitle">Ejemplo 04: Capturando y manejando errores</p>
+
+  <div class="info-box">
+    <strong>💡 ¿Qué demuestra este ejemplo?</strong>
+    Los errores que ocurren dentro de un Web Worker deben ser manejados adecuadamente.
+    Este ejemplo muestra diferentes tipos de errores y cómo capturarlos.
+  </div>
+
+  <details class="code-explanation">
+    <summary>📖 Ver Código - ¿Cómo funciona?</summary>
+    <div class="code-section">
+      <h3>1️⃣ Configurar Error Handler</h3>
+      <pre><code>worker.onerror = function(error) {{'{'}}
+    console.error('Error:', error.message);
+    error.preventDefault();
+{{ '}' }};</code></pre>
+    </div>
+    <div class="code-section">
+      <h3>2️⃣ Provocar Error en Worker</h3>
+      <pre><code>// Esto causará un ReferenceError
+funcionQueNoExiste();
+
+// O lanzar error personalizado
+throw new Error('Error personalizado');</code></pre>
+    </div>
+  </details>
+
+  <div class="error-types">
+    <div class="error-card">
+      <h3>❌ 1. Error de Referencia</h3>
+      <p>Intentar usar una función que no existe.</p>
+      <button (click)="triggerError('reference')">Provocar ReferenceError</button>
+    </div>
+
+    <div class="error-card">
+      <h3>🔢 2. Error de Tipo</h3>
+      <p>Operación con tipo de dato incorrecto.</p>
+      <button (click)="triggerError('type')">Provocar TypeError</button>
+    </div>
+
+    <div class="error-card">
+      <h3>➗ 3. Error Matemático</h3>
+      <p>Operaciones matemáticas inválidas.</p>
+      <button (click)="triggerError('math')">Provocar Error Matemático</button>
+    </div>
+
+    <div class="error-card">
+      <h3>🎯 4. Error Personalizado</h3>
+      <p>Lanzar un error con mensaje específico.</p>
+      <button (click)="triggerError('custom')">Lanzar Error Personalizado</button>
+    </div>
+
+    <div class="error-card success">
+      <h3>✅ 5. Operación Exitosa</h3>
+      <p>Operación que se completa sin errores.</p>
+      <button (click)="triggerError('success')">Ejecutar sin Errores</button>
+    </div>
+  </div>
+
+  <div class="console">
+    <div class="console-header">
+      <span class="title">📋 Consola de Eventos</span>
+      <button (click)="clearLogs()">Limpiar</button>
+    </div>
+    <div class="log-container">
+      @if (logs().length === 0) {
+        <div class="log-entry info">
+          <span class="timestamp">Sistema iniciado. Esperando acciones...</span>
+        </div>
+      } @else {
+        @for (log of logs(); track $index) {
+          <div class="log-entry" [class.info]="log.type === 'info'" [class.success]="log.type === 'success'" [class.error]="log.type === 'error'" [class.warning]="log.type === 'warning'">
+            <span class="timestamp">[{{ log.timestamp }}]</span>
+            <span class="message">{{ log.message }}</span>
+          </div>
+        }
+      }
+    </div>
+  </div>
+</div>
