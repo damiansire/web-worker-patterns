@@ -1,0 +1,134 @@
+// Shared button styles
+button {
+  padding: 14px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.button-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+// Button variants
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-create-multiple {
+  background: linear-gradient(135deg, #4caf50 0%, #8bc34a 100%);
+  color: white;
+}
+
+.btn-stress {
+  background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%);
+  color: white;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #f44336 0%, #e91e63 100%);
+  color: white;
+}
+
+.btn-secondary {
+  background: #e0e0e0;
+  color: #666;
+}
+
+.btn-worker {
+  background: linear-gradient(135deg, #4caf50 0%, #8bc34a 100%);
+  color: white;
+}
+
+.btn-main {
+  background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%);
+  color: white;
+}
+
+.btn-create {
+  background: linear-gradient(135deg, #4caf50 0%, #8bc34a 100%);
+  color: white;
+}
+
+.btn-start {
+  background: linear-gradient(135deg, #2196f3 0%, #21cbf3 100%);
+  color: white;
+}
+
+.btn-terminate {
+  background: linear-gradient(135deg, #f44336 0%, #e91e63 100%);
+  color: white;
+}
+
+.btn-detect {
+  background: linear-gradient(135deg, #fc5c7d 0%, #6a82fb 100%);
+  color: white;
+  padding: 14px 30px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(252, 92, 125, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+.btn-stop {
+  background: #f44336;
+  color: white;
+  padding: 14px 30px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(244, 67, 54, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+

@@ -1,0 +1,85 @@
+// Shared container styles
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+h1 {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.subtitle {
+  color: #666;
+  margin-bottom: 30px;
+  font-size: 14px;
+}
+
+h3 {
+  color: #555;
+  margin-bottom: 15px;
+  font-size: 18px;
+}
+
+.control-panel {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 25px;
+  margin-bottom: 25px;
+}
+
+.input-row {
+  margin-bottom: 15px;
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    color: #555;
+    font-weight: 500;
+  }
+
+  input[type="number"],
+  input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+
+    &:focus {
+      outline: none;
+      border-color: #fc5c7d;
+    }
+  }
+}
+
+.input-group {
+  margin-bottom: 20px;
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    color: #555;
+    font-weight: 500;
+  }
+
+  input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+
+    &:focus {
+      outline: none;
+      border-color: #fc5c7d;
+    }
+  }
+}
+

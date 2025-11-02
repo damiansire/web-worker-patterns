@@ -1,45 +1,23 @@
-import { Component, OnInit, OnDestroy, signal, ViewChild, ElementRef, effect } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-interface LogEntry {
-  timestamp: string;
-  message: string;
-  type: 'info' | 'success' | 'error' | 'warning';
-}
+import { InfoBoxComponent } from '../../core/components/info-box/info-box.component';
+import { CodeExplanationComponent } from '../../core/components/code-explanation/code-explanation.component';
+import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
+import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log-panel.component';
 
 @Component({
   selector: 'app-error-handling',
-  imports: [CommonModule],
+  imports: [CommonModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent],
   templateUrl: './error-handling.component.html',
   styleUrl: './error-handling.component.scss',
   standalone: true
 })
 export class ErrorHandlingComponent implements OnInit, OnDestroy {
-  @ViewChild('logContainer', { static: false }) logContainer!: ElementRef<HTMLDivElement>;
   logs = signal<LogEntry[]>([]);
   private worker?: Worker;
 
-  constructor() {
-    // Efecto que se ejecuta cuando logs cambia
-    effect(() => {
-      // Simplemente acceder a logs() hace que el efecto se ejecute cuando cambie
-      this.logs();
-      // Hacer scroll después de que el DOM se actualice
-      setTimeout(() => {
-        this.scrollToBottom();
-      }, 0);
-    });
-  }
-
   ngOnInit() {
     this.createWorker();
-  }
-
-  private scrollToBottom() {
-    if (this.logContainer) {
-      const element = this.logContainer.nativeElement;
-      element.scrollTop = element.scrollHeight;
-    }
   }
 
   private createWorker() {

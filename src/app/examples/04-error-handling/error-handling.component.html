@@ -2,30 +2,26 @@
   <h1>⚠️ Manejo de Errores en Workers</h1>
   <p class="subtitle">Ejemplo 04: Capturando y manejando errores</p>
 
-  <div class="info-box">
-    <strong>💡 ¿Qué demuestra este ejemplo?</strong>
+  <app-info-box title="💡 ¿Qué demuestra este ejemplo?">
     Los errores que ocurren dentro de un Web Worker deben ser manejados adecuadamente.
     Este ejemplo muestra diferentes tipos de errores y cómo capturarlos.
-  </div>
+  </app-info-box>
 
-  <details class="code-explanation">
-    <summary>📖 Ver Código - ¿Cómo funciona?</summary>
-    <div class="code-section">
-      <h3>1️⃣ Configurar Error Handler</h3>
+  <app-code-explanation summaryText="📖 Ver Código - ¿Cómo funciona?">
+    <app-code-section title="1️⃣ Configurar Error Handler">
       <pre><code>worker.onerror = function(error) {{'{'}}
     console.error('Error:', error.message);
     error.preventDefault();
 {{ '}' }};</code></pre>
-    </div>
-    <div class="code-section">
-      <h3>2️⃣ Provocar Error en Worker</h3>
+    </app-code-section>
+    <app-code-section title="2️⃣ Provocar Error en Worker">
       <pre><code>// Esto causará un ReferenceError
 funcionQueNoExiste();
 
 // O lanzar error personalizado
 throw new Error('Error personalizado');</code></pre>
-    </div>
-  </details>
+    </app-code-section>
+  </app-code-explanation>
 
   <div class="error-types">
     <div class="error-card">
@@ -59,24 +55,10 @@ throw new Error('Error personalizado');</code></pre>
     </div>
   </div>
 
-  <div class="console" #logContainer>
-    <div class="console-header">
-      <span class="title">📋 Consola de Eventos</span>
-      <button (click)="clearLogs()">Limpiar</button>
-    </div>
-    <div class="log-container">
-      @if (logs().length === 0) {
-        <div class="log-entry info">
-          <span class="timestamp">Sistema iniciado. Esperando acciones...</span>
-        </div>
-      } @else {
-        @for (log of logs(); track $index) {
-          <div class="log-entry" [class.info]="log.type === 'info'" [class.success]="log.type === 'success'" [class.error]="log.type === 'error'" [class.warning]="log.type === 'warning'">
-            <span class="timestamp">[{{ log.timestamp }}]</span>
-            <span class="message">{{ log.message }}</span>
-          </div>
-        }
-      }
-    </div>
-  </div>
+  <app-log-panel 
+    [logs]="logs()" 
+    title="📋 Consola de Eventos"
+    emptyMessage="Sistema iniciado. Esperando acciones..."
+    (clear)="clearLogs()">
+  </app-log-panel>
 </div>

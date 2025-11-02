@@ -2,20 +2,16 @@
   <h1>⚠️ Límites de Workers</h1>
   <p class="subtitle">Ejemplo 07: Cantidad máxima y gestión de recursos</p>
 
-  <div class="info-box">
-    <strong>💡 ¿Qué demuestra este ejemplo?</strong>
+  <app-info-box title="💡 ¿Qué demuestra este ejemplo?">
     Los navegadores tienen límites en la cantidad de workers que pueden ejecutarse simultáneamente.
     Este ejemplo te permite crear múltiples workers y ver qué sucede cuando alcanzas esos límites.
-  </div>
+  </app-info-box>
 
-  <details class="code-explanation">
-    <summary>📖 Ver Código - ¿Cómo funciona?</summary>
-    <div class="code-section">
-      <h3>1️⃣ Obtener Info del Sistema</h3>
+  <app-code-explanation summaryText="📖 Ver Código - ¿Cómo funciona?">
+    <app-code-section title="1️⃣ Obtener Info del Sistema">
       <pre><code>const cpuCores = navigator.hardwareConcurrency || 4;</code></pre>
-    </div>
-    <div class="code-section">
-      <h3>2️⃣ Crear Múltiples Workers</h3>
+    </app-code-section>
+    <app-code-section title="2️⃣ Crear Múltiples Workers">
       <pre><code>const workers = [];
 
 for (let i = 0; i < count; i++) {{'{'}}
@@ -26,8 +22,8 @@ for (let i = 0; i < count; i++) {{'{'}}
         console.error('Error:', error);
     {{ '}' }}
 {{ '}' }}</code></pre>
-    </div>
-  </details>
+    </app-code-section>
+  </app-code-explanation>
 
   <div class="system-info-panel">
     <h3>💻 Información de tu Sistema</h3>
@@ -114,27 +110,7 @@ for (let i = 0; i < count; i++) {{'{'}}
     }
   </div>
 
-  <div class="stats-panel">
-    <h3>📊 Estado Actual</h3>
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-label">Workers Activos</div>
-        <div class="stat-value active">{{ activeCount() }}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Total Creados</div>
-        <div class="stat-value">{{ totalCreated() }}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Errores</div>
-        <div class="stat-value error">{{ errorCount() }}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Memoria Usada</div>
-        <div class="stat-value">{{ memoryUsed() }}</div>
-      </div>
-    </div>
-  </div>
+  <app-stats-panel title="📊 Estado Actual" [stats]="getStats()"></app-stats-panel>
 
   <div class="control-panel">
     <h3>🎮 Controles Manuales</h3>
@@ -153,22 +129,11 @@ for (let i = 0; i < count; i++) {{'{'}}
     </div>
   </div>
 
-  <div class="log-panel">
-    <h3>📋 Log de Eventos</h3>
-    <div class="log-container" #logContainer>
-      @if (logs().length === 0) {
-        <div class="log-entry info">
-          <span class="timestamp">Sistema iniciado. Listo para crear workers.</span>
-        </div>
-      } @else {
-        @for (log of logs(); track $index) {
-          <div class="log-entry" [class.info]="log.type === 'info'" [class.success]="log.type === 'success'" [class.error]="log.type === 'error'" [class.warning]="log.type === 'warning'">
-            <span class="timestamp">[{{ log.timestamp }}]</span>
-            <span class="message">{{ log.message }}</span>
-          </div>
-        }
-      }
-    </div>
-  </div>
+  <app-log-panel 
+    [logs]="logs()" 
+    title="📋 Log de Eventos"
+    emptyMessage="Sistema iniciado. Listo para crear workers."
+    (clear)="clearLogs()">
+  </app-log-panel>
 </div>
 

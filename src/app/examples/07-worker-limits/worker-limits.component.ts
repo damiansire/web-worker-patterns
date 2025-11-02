@@ -1,12 +1,11 @@
-import { Component, OnInit, OnDestroy, signal, effect, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-interface LogEntry {
-  timestamp: string;
-  message: string;
-  type: 'info' | 'success' | 'error' | 'warning';
-}
+import { InfoBoxComponent } from '../../core/components/info-box/info-box.component';
+import { CodeExplanationComponent } from '../../core/components/code-explanation/code-explanation.component';
+import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
+import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log-panel.component';
+import { StatsPanelComponent, StatCard } from '../../core/components/stats-panel/stats-panel.component';
 
 interface WorkerData {
   id: number;
@@ -17,14 +16,12 @@ interface WorkerData {
 
 @Component({
   selector: 'app-worker-limits',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, StatsPanelComponent],
   templateUrl: './worker-limits.component.html',
   styleUrl: './worker-limits.component.scss',
   standalone: true
 })
 export class WorkerLimitsComponent implements OnInit, OnDestroy {
-  @ViewChild('logContainer', { static: false }) logContainer!: ElementRef<HTMLDivElement>;
-  
   workerCount = signal(10);
   activeCount = signal(0);
   totalCreated = signal(0);
@@ -51,14 +48,6 @@ export class WorkerLimitsComponent implements OnInit, OnDestroy {
   private memoryInterval?: any;
 
   constructor() {
-    effect(() => {
-      this.logs();
-      setTimeout(() => {
-        if (this.logContainer) {
-          this.logContainer.nativeElement.scrollTop = this.logContainer.nativeElement.scrollHeight;
-        }
-      }, 0);
-    });
   }
 
   ngOnInit() {
@@ -292,5 +281,14 @@ export class WorkerLimitsComponent implements OnInit, OnDestroy {
 
   getRecommendedMax(): number {
     return this.getCPUCores() * 2;
+  }
+
+  getStats(): StatCard[] {
+    return [
+      { label: 'Workers Activos', value: this.activeCount(), type: 'active' },
+      { label: 'Total Creados', value: this.totalCreated() },
+      { label: 'Errores', value: this.errorCount(), type: 'error' },
+      { label: 'Memoria Usada', value: this.memoryUsed() }
+    ];
   }
 }
