@@ -146,7 +146,8 @@ for (let i = 0; i < count; i++) {{'{'}}
 
     <div class="button-grid">
       <button class="btn-primary" (click)="createWorker()">➕ Crear 1 Worker</button>
-      <button class="btn-stress" (click)="stressTest()">🔥 Test de Estrés</button>
+      <button class="btn-create-multiple" (click)="createMultipleWorkers()">➕➕ Crear {{ workerCount() }} Workers</button>
+      <button class="btn-stress" (click)="stressTest()">🔥 Test de Estrés (50)</button>
       <button class="btn-danger" (click)="terminateAll()">🛑 Terminar Todos</button>
       <button class="btn-secondary" (click)="clearLogs()">🗑️ Limpiar Logs</button>
     </div>

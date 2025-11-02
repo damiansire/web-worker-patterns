@@ -140,17 +140,18 @@ export class WorkerLimitsComponent implements OnInit, OnDestroy {
     }
   }
 
-  async stressTest() {
-    this.addLog(`Intentando crear ${this.workerCount()} workers...`, 'info');
+  async createMultipleWorkers() {
+    const count = this.workerCount();
+    this.addLog(`Intentando crear ${count} workers...`, 'info');
     
-    if (this.workerCount() > this.getRecommendedMax()) {
-      this.addLog(`Advertencia: Estás creando más workers que el recomendado para tu sistema`, 'warning');
+    if (count > this.getRecommendedMax()) {
+      this.addLog(`Advertencia: Estás creando más workers (${count}) que el recomendado (${this.getRecommendedMax()}) para tu sistema (${this.getCPUCores()} cores)`, 'warning');
     }
     
     let successCount = 0;
     let failCount = 0;
     
-    for (let i = 0; i < this.workerCount(); i++) {
+    for (let i = 0; i < count; i++) {
       await new Promise(resolve => setTimeout(resolve, 50));
       if (this.createWorker()) {
         successCount++;
@@ -161,6 +162,29 @@ export class WorkerLimitsComponent implements OnInit, OnDestroy {
     
     this.addLog(`Creación completada: ${successCount} exitosos, ${failCount} fallidos`, 
       failCount > 0 ? 'warning' : 'success');
+  }
+
+  async stressTest() {
+    const stressCount = 50;
+    this.addLog(`🔥 Iniciando test de estrés: intentando crear ${stressCount} workers...`, 'warning');
+    this.addLog(`💻 Tu sistema tiene ${this.getCPUCores()} núcleos CPU. Máximo recomendado: ${this.getRecommendedMax()} workers`, 'info');
+    
+    let successCount = 0;
+    let failCount = 0;
+    
+    for (let i = 0; i < stressCount; i++) {
+      await new Promise(resolve => setTimeout(resolve, 50));
+      if (this.createWorker()) {
+        successCount++;
+      } else {
+        failCount++;
+      }
+    }
+    
+    this.addLog(`🔥 Test de estrés completado:`, 'warning');
+    this.addLog(`   ✅ ${successCount} workers creados exitosamente`, 'success');
+    this.addLog(`   ❌ ${failCount} workers fallaron (límite alcanzado)`, 'error');
+    this.addLog(`   📊 Límite práctico detectado: ~${successCount} workers`, 'info');
   }
 
   async autoDetectLimit() {
