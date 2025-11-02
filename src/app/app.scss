@@ -6,6 +6,8 @@
 
 html, body {
   height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 body {
@@ -33,20 +35,12 @@ body {
   }
 }
 
-.container {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  width: 100%;
-  padding: 0;
-}
-
 .main-grid {
   display: grid;
   grid-template-columns: 280px 1fr;
   gap: 20px;
   padding: 15px;
-  min-height: calc(100vh - 160px); // Altura menos header y footer
+  min-height: 100vh;
 
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
@@ -62,11 +56,4 @@ body {
   min-height: 0;
 }
 
-.sidebar {
-  @media (max-width: 1024px) {
-    max-height: 300px;
-    overflow-y: auto;
-    margin-bottom: 0;
-  }
-}
 
