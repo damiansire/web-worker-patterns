@@ -1,58 +1,164 @@
 <div class="container">
-  <h1>📊 Límites de Workers</h1>
-  <p class="subtitle">Ejemplo 07: Test de límites y escalabilidad</p>
+  <h1>⚠️ Límites de Workers</h1>
+  <p class="subtitle">Ejemplo 07: Cantidad máxima y gestión de recursos</p>
 
   <div class="info-box">
     <strong>💡 ¿Qué demuestra este ejemplo?</strong>
-    Descubre cuántos workers puede manejar tu navegador. Prueba diferentes cantidades y observa cuándo se alcanzan los límites.
+    Los navegadores tienen límites en la cantidad de workers que pueden ejecutarse simultáneamente.
+    Este ejemplo te permite crear múltiples workers y ver qué sucede cuando alcanzas esos límites.
   </div>
 
-  <div class="demo-section">
-    <h3>⚙️ Configuración</h3>
-    <div class="settings">
-      <label>
-        Cantidad de Workers: <input type="number" [ngModel]="workerCount()" (ngModelChange)="workerCount.set($event)" min="1" max="1000" />
-      </label>
-      <div class="info-row">
-        <span>CPU Cores: <strong>{{ getCPUCores() }}</strong></span>
-        <span>Browser: <strong>{{ getBrowserInfo() }}</strong></span>
+  <details class="code-explanation">
+    <summary>📖 Ver Código - ¿Cómo funciona?</summary>
+    <div class="code-section">
+      <h3>1️⃣ Obtener Info del Sistema</h3>
+      <pre><code>const cpuCores = navigator.hardwareConcurrency || 4;</code></pre>
+    </div>
+    <div class="code-section">
+      <h3>2️⃣ Crear Múltiples Workers</h3>
+      <pre><code>const workers = [];
+
+for (let i = 0; i < count; i++) {{'{'}}
+    try {{'{'}}
+        const worker = new Worker('worker.js');
+        workers.push(worker);
+    {{ '}' }} catch (error) {{'{'}}
+        console.error('Error:', error);
+    {{ '}' }}
+{{ '}' }}</code></pre>
+    </div>
+  </details>
+
+  <div class="system-info-panel">
+    <h3>💻 Información de tu Sistema</h3>
+    <div class="system-info-grid">
+      <div class="info-item">
+        <div class="info-icon">🖥️</div>
+        <div class="info-content">
+          <div class="info-label">Núcleos CPU</div>
+          <div class="info-value">{{ getCPUCores() }}</div>
+        </div>
+      </div>
+      <div class="info-item">
+        <div class="info-icon">📏</div>
+        <div class="info-content">
+          <div class="info-label">Límite Recomendado</div>
+          <div class="info-value">{{ getRecommendedMax() }} workers</div>
+        </div>
+      </div>
+      <div class="info-item">
+        <div class="info-icon">🌐</div>
+        <div class="info-content">
+          <div class="info-label">Navegador</div>
+          <div class="info-value">{{ getBrowserInfo() }}</div>
+        </div>
+      </div>
+      <div class="info-item">
+        <div class="info-icon">🎯</div>
+        <div class="info-content">
+          <div class="info-label">Límite Detectado</div>
+          <div class="info-value">{{ detectedLimit() }}</div>
+        </div>
       </div>
     </div>
+  </div>
 
-    <div class="button-group">
-      <button class="btn-create" (click)="createWorker()">➕ Crear 1 Worker</button>
-      <button class="btn-stress" (click)="stressTest()">🚀 Test de Estrés</button>
-      <button class="btn-terminate" (click)="terminateAll()">🛑 Terminar Todos</button>
-      <button (click)="clearLogs()">🗑️ Limpiar Logs</button>
+  <div class="auto-detect-panel">
+    <h3>🔍 Auto-detección de Límites</h3>
+    <p class="panel-description">
+      Esta función crea workers progresivamente (1, 2, 3...) hasta encontrar el límite real de tu navegador.
+    </p>
+    
+    <div class="detect-controls">
+      <button class="btn-detect" (click)="autoDetectLimit()" [disabled]="detectionInProgress()">
+        🔍 Detectar Límite Automáticamente
+      </button>
+      <button class="btn-stop" (click)="stopDetection()" [disabled]="!detectionInProgress()">
+        ⏹️ Detener Detección
+      </button>
     </div>
+
+    @if (detectStatusVisible()) {
+      <div class="detect-status">
+        <div class="status-content">
+          <div class="status-icon">🔄</div>
+          <div class="status-text">
+            <strong>Detectando límites...</strong>
+            <div>{{ detectProgress() }}</div>
+          </div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="detectProgressPercent()"></div>
+        </div>
+      </div>
+    }
+
+    @if (detectResultVisible()) {
+      <div class="detect-result">
+        <h4>📊 Resultado de la Detección</h4>
+        <div class="result-stats">
+          <div class="result-item">
+            <span class="result-label">Límite Detectado:</span>
+            <span class="result-value">{{ detectResult().finalLimit }} workers</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">Tiempo Total:</span>
+            <span class="result-value">{{ detectResult().detectionTime }}</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">vs Recomendado:</span>
+            <span class="result-value">{{ detectResult().vsRecommended }}</span>
+          </div>
+        </div>
+      </div>
+    }
   </div>
 
   <div class="stats-panel">
-    <h3>📊 Estadísticas</h3>
+    <h3>📊 Estado Actual</h3>
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-label">Workers Activos</div>
-        <div class="stat-value">{{ activeCount() }}</div>
+        <div class="stat-value active">{{ activeCount() }}</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Total Creados</div>
         <div class="stat-value">{{ totalCreated() }}</div>
       </div>
-      <div class="stat-card error">
+      <div class="stat-card">
         <div class="stat-label">Errores</div>
-        <div class="stat-value">{{ errorCount() }}</div>
+        <div class="stat-value error">{{ errorCount() }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Memoria Usada</div>
+        <div class="stat-value">{{ memoryUsed() }}</div>
       </div>
     </div>
   </div>
 
-  <div class="log-container">
-    <div class="log-header">
-      <span class="title">📋 Log de Eventos</span>
-      <button (click)="clearLogs()">Limpiar</button>
+  <div class="control-panel">
+    <h3>🎮 Controles Manuales</h3>
+    
+    <div class="input-row">
+      <label>Cantidad de workers a crear:</label>
+      <input type="number" [ngModel]="workerCount()" (ngModelChange)="workerCount.set($event)" min="1" max="100" />
     </div>
-    <div class="log-content">
+
+    <div class="button-grid">
+      <button class="btn-primary" (click)="createWorker()">➕ Crear 1 Worker</button>
+      <button class="btn-stress" (click)="stressTest()">🔥 Test de Estrés</button>
+      <button class="btn-danger" (click)="terminateAll()">🛑 Terminar Todos</button>
+      <button class="btn-secondary" (click)="clearLogs()">🗑️ Limpiar Logs</button>
+    </div>
+  </div>
+
+  <div class="log-panel">
+    <h3>📋 Log de Eventos</h3>
+    <div class="log-container" #logContainer>
       @if (logs().length === 0) {
-        <p class="empty-message">Los logs aparecerán aquí</p>
+        <div class="log-entry info">
+          <span class="timestamp">Sistema iniciado. Listo para crear workers.</span>
+        </div>
       } @else {
         @for (log of logs(); track $index) {
           <div class="log-entry" [class.info]="log.type === 'info'" [class.success]="log.type === 'success'" [class.error]="log.type === 'error'" [class.warning]="log.type === 'warning'">
@@ -64,3 +170,4 @@
     </div>
   </div>
 </div>
+
