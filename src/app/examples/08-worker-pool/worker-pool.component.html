@@ -1,0 +1,29 @@
+<div class="container">
+  <h1>🏊 Worker Pool</h1>
+  <p class="subtitle">Ejemplo 08: Pool de workers reutilizables</p>
+
+  <div class="info-box">
+    <strong>💡 ¿Qué demuestra este ejemplo?</strong>
+    Procesa cientos de tareas con solo unos pocos workers. Patrón profesional para producción.
+  </div>
+
+  <div class="demo-section">
+    <div class="settings">
+      <label>
+        Tamaño del Pool: <input type="number" [ngModel]="poolSize()" (ngModelChange)="poolSize.set($event)" min="1" max="16" />
+      </label>
+      <label>
+        Tareas a Procesar: <input type="number" [ngModel]="taskCount()" (ngModelChange)="taskCount.set($event)" min="1" max="1000" />
+      </label>
+    </div>
+
+    <button class="btn-process" (click)="processTasks()">🚀 Procesar Tareas</button>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">Tareas Procesadas:</span>
+        <span class="value">{{ tasksProcessed() }} / {{ taskCount() }}</span>
+      </div>
+    </div>
+  </div>
+</div>

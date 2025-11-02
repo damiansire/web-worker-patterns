@@ -1,0 +1,111 @@
+@import '../01-basic-communication/basic-communication.component.scss';
+
+.container {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 900px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  margin: 20px auto;
+}
+
+h1 {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.subtitle {
+  color: #666;
+  margin-bottom: 30px;
+  font-size: 14px;
+}
+
+.info-box {
+  background: #e8f5e9;
+  border: 2px solid #4caf50;
+  border-radius: 10px;
+  padding: 18px;
+  margin-bottom: 25px;
+  font-size: 14px;
+  color: #1b5e20;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.1);
+
+  strong {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+}
+
+.demo-section {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 25px;
+  margin-bottom: 20px;
+}
+
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+
+    input {
+      padding: 8px 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 16px;
+      width: 100px;
+    }
+  }
+}
+
+.btn-process {
+  width: 100%;
+  padding: 15px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+  }
+}
+
+.stats {
+  margin-top: 20px;
+  padding: 15px;
+  background: white;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.stat {
+  font-size: 18px;
+
+  .label {
+    font-weight: 500;
+    margin-right: 10px;
+    color: #666;
+  }
+
+  .value {
+    font-weight: bold;
+    color: #667eea;
+  }
+}
