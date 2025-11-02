@@ -1,0 +1,18 @@
+<div class="stats-panel">
+  <h3>{{ title }}</h3>
+  <div class="stats-grid">
+    @for (stat of stats; track stat.label) {
+      <div class="stat-card" [class.error]="stat.type === 'error'">
+        <div class="stat-label">{{ stat.label }}</div>
+        <div class="stat-value" 
+             [class.active]="stat.type === 'active'"
+             [class.error]="stat.type === 'error'"
+             [class.success]="stat.type === 'success'"
+             [class.warning]="stat.type === 'warning'">
+          {{ stat.value }}
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
