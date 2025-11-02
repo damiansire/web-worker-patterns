@@ -1,0 +1,15 @@
+// Styles for example pages - optimized for fullscreen layout
+// Remove duplicate container styles since .content in app.scss handles the background
+
+.example-container {
+  // Remove default container styles that conflict with fullscreen layout
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+

@@ -1,17 +1,22 @@
 footer {
   text-align: center;
   color: white;
-  margin-top: 50px;
-  opacity: 0.9;
+  padding: 10px 20px;
+  flex-shrink: 0;
+  opacity: 0.85;
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  font-size: 12px;
 
   p {
-    margin: 5px 0;
+    margin: 3px 0;
   }
 
   a {
     color: white;
     text-decoration: none;
-    border-bottom: 1px solid white;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    transition: opacity 0.2s;
 
     &:hover {
       opacity: 0.8;
