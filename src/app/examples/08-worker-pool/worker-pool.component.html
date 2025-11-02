@@ -1,28 +1,116 @@
 <div class="example-content">
-  <h1>🏊 Worker Pool</h1>
-  <p class="subtitle">Ejemplo 08: Pool de workers reutilizables</p>
+  <h1>🏊 Worker Pool Pattern</h1>
+  <p class="subtitle">Ejemplo 08: Procesar muchas tareas con pocos workers</p>
 
   <app-info-box title="💡 ¿Qué demuestra este ejemplo?">
-    Procesa cientos de tareas con solo unos pocos workers. Patrón profesional para producción.
+    En lugar de crear un worker por tarea (lo cual tiene límites), un Worker Pool reutiliza 
+    un número fijo de workers para procesar múltiples tareas en cola. Esto es el patrón usado 
+    en aplicaciones de producción.
   </app-info-box>
 
-  <div class="demo-section">
-    <div class="settings">
-      <label>
-        Tamaño del Pool: <input type="number" [ngModel]="poolSize()" (ngModelChange)="poolSize.set($event)" min="1" max="16" />
-      </label>
-      <label>
-        Tareas a Procesar: <input type="number" [ngModel]="taskCount()" (ngModelChange)="taskCount.set($event)" min="1" max="1000" />
-      </label>
+  <div class="comparison-box">
+    <div class="comparison-column bad">
+      <h4>❌ Enfoque Malo</h4>
+      <ul>
+        <li>Crear 1 worker por tarea</li>
+        <li>100 tareas = 100 workers</li>
+        <li>Alcanza límites del navegador</li>
+        <li>Alto consumo de memoria</li>
+      </ul>
     </div>
-
-    <button class="btn-process" (click)="processTasks()">🚀 Procesar Tareas</button>
-
-    <div class="stats">
-      <div class="stat">
-        <span class="label">Tareas Procesadas:</span>
-        <span class="value">{{ tasksProcessed() }} / {{ taskCount() }}</span>
-      </div>
+    <div class="comparison-column good">
+      <h4>✅ Worker Pool</h4>
+      <ul>
+        <li>Pool fijo de 4-8 workers</li>
+        <li>100 tareas = 4-8 workers reutilizados</li>
+        <li>Sin límites de tareas</li>
+        <li>Uso eficiente de recursos</li>
+      </ul>
     </div>
   </div>
+
+  <app-code-explanation summaryText="📖 Ver Código - ¿Cómo funciona?">
+    <app-code-section title="1️⃣ Crear Worker Pool">
+      <pre><code>class WorkerPool {{'{'}}
+    constructor(poolSize, workerScript) {{'{'}}
+        this.poolSize = poolSize;
+        this.workers = [];
+        this.taskQueue = [];
+        // Crear workers fijos
+        for (let i = 0; i < poolSize; i++) {{'{'}}
+            const worker = new Worker(workerScript);
+            this.workers.push({{'{'}} id: i, instance: worker, busy: false {{ '}' }});
+        {{ '}' }}
+    {{ '}' }}
+{{ '}' }}</code></pre>
+    </app-code-section>
+    <app-code-section title="2️⃣ Agregar Tareas a la Cola">
+      <pre><code>addTask(task) {{'{'}}
+    this.taskQueue.push(task);
+    this.processQueue();
+{{ '}' }}</code></pre>
+    </app-code-section>
+    <app-code-section title="3️⃣ Asignar Tareas a Workers">
+      <pre><code>processQueue() {{'{'}}
+    const available = this.workers.filter(w => !w.busy);
+    available.forEach(worker => {{'{'}}
+        if (this.taskQueue.length > 0) {{'{'}}
+            const task = this.taskQueue.shift();
+            worker.busy = true;
+            worker.instance.postMessage(task);
+        {{ '}' }}
+    {{ '}' }});
+{{ '}' }}</code></pre>
+    </app-code-section>
+    <app-code-section title="4️⃣ Recibir Resultados">
+      <pre><code>worker.instance.onmessage = (e) => {{'{'}}
+    worker.busy = false;
+    this.processQueue();
+    handleResult(e.data);
+{{ '}' }};</code></pre>
+    </app-code-section>
+  </app-code-explanation>
+
+  <app-stats-panel title="📊 Dashboard del Pool" [stats]="getStats()"></app-stats-panel>
+
+  <div class="control-panel">
+    <h3>🎮 Controles</h3>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label>Tamaño del Pool:</label>
+        <input type="number" [ngModel]="poolSizeInput()" (ngModelChange)="poolSizeInput.set($event)" min="1" max="16" />
+        <small>Recomendado: 4-8 workers</small>
+      </div>
+      <div class="form-group">
+        <button class="btn-primary" (click)="initializePool()">🚀 Inicializar Pool</button>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Cantidad de Tareas:</label>
+        <input type="number" [ngModel]="taskCount()" (ngModelChange)="taskCount.set($event)" min="1" max="1000" />
+        <small>Puedes agregar más tareas que workers</small>
+      </div>
+      <div class="form-group">
+        <label>Duración de cada tarea (ms):</label>
+        <input type="number" [ngModel]="taskDuration()" (ngModelChange)="taskDuration.set($event)" min="100" max="5000" step="100" />
+      </div>
+    </div>
+
+    <div class="button-grid">
+      <button class="btn-success" (click)="addTasks()" [disabled]="!poolInitialized()">➕ Agregar Tareas</button>
+      <button class="btn-stress" (click)="stressTest()" [disabled]="!poolInitialized()">🔥 Stress Test (100)</button>
+      <button class="btn-danger" (click)="clearQueue()" [disabled]="!poolInitialized()">🗑️ Limpiar Cola</button>
+      <button class="btn-secondary" (click)="shutdownPool()" [disabled]="!poolInitialized()">🛑 Apagar Pool</button>
+    </div>
+  </div>
+
+  <app-log-panel 
+    [logs]="logs()" 
+    title="📝 Log de Actividad"
+    emptyMessage="Sistema listo. Inicializa el pool para comenzar."
+    (clear)="clearLogs()">
+  </app-log-panel>
 </div>
