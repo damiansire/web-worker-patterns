@@ -1,0 +1,18 @@
+<nav class="sidebar">
+  <h3>📚 Ejemplos</h3>
+  @for (example of examples; track example.number) {
+    <a [routerLink]="example.route" class="sidebar-link">
+      <span class="number">{{ example.number }}</span>
+      <div class="content">
+        <h4>{{ example.title }}</h4>
+        <p>{{ example.description }}</p>
+        <div class="tags">
+          @for (tag of example.tags; track tag) {
+            <span class="tag">{{ tag }}</span>
+          }
+        </div>
+      </div>
+    </a>
+  }
+</nav>
+
