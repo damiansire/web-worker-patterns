@@ -55,6 +55,8 @@ const buffer = imageData.data.buffer;</code></pre>
     </div>
 
     <div class="spinner" [class.active]="isLoading()"></div>
+    
+    <div class="canvas-container" #canvasContainer></div>
   </div>
 
   <div class="comparison" [style.display]="(transferTime() > 0 && cloneTime() > 0) ? 'grid' : 'none'">
