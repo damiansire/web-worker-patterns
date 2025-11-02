@@ -1,0 +1,86 @@
+<div class="container">
+  <h1>🚀 Comunicación Básica con Web Workers</h1>
+  <p class="subtitle">Ejemplo 01: Enviando y recibiendo mensajes</p>
+
+  <div class="main-grid">
+    <div class="content-column">
+      <div class="info-box">
+        <strong>💡 ¿Qué hace este ejemplo?</strong>
+        Este es el "Hola Mundo" de los Web Workers. Escribe un mensaje y envíalo al worker.
+        El worker lo recibirá, lo procesará y te responderá de vuelta.
+      </div>
+
+      <details class="code-explanation">
+        <summary>📖 Ver Código - ¿Cómo funciona?</summary>
+        <div class="code-sections-list">
+          <div class="code-section">
+            <h3>1️⃣ Crear el Worker</h3>
+            <pre><code>const myWorker = new Worker('worker.js');</code></pre>
+          </div>
+          <div class="code-section">
+            <h3>2️⃣ Enviar mensaje al Worker</h3>
+            <pre><code>myWorker.postMessage('¡Hola Worker!');</code></pre>
+          </div>
+          <div class="code-section">
+            <h3>3️⃣ Recibir mensaje en el Worker</h3>
+            <pre><code>self.onmessage = function(e) {{'{'}}
+    const mensaje = e.data;
+    const respuesta = 'Procesé tu mensaje: ' + mensaje;
+    self.postMessage(respuesta);
+{{ '}' }};</code></pre>
+          </div>
+          <div class="code-section">
+            <h3>4️⃣ Recibir respuesta del Worker</h3>
+            <pre><code>myWorker.onmessage = function(e) {{'{'}}
+    const respuesta = e.data;
+    console.log('Hilo principal recibió:', respuesta);
+{{ '}' }};</code></pre>
+          </div>
+        </div>
+      </details>
+
+      <div class="input-group">
+        <label for="messageInput">Mensaje para el Worker:</label>
+        <input
+          type="text"
+          id="messageInput"
+          placeholder="Escribe tu mensaje aquí..."
+          [value]="messageText()"
+          (input)="messageText.set($any($event.target).value)"
+          (keypress)="onKeyPress($event)"
+        >
+      </div>
+
+      <button (click)="sendMessage()">Enviar Mensaje al Worker</button>
+
+      <div class="messages">
+        @if (messages().length === 0) {
+          <p style="color: #999; text-align: center; font-style: italic;">
+            Los mensajes aparecerán aquí...
+          </p>
+        } @else {
+          @for (msg of messages(); track $index) {
+            <div class="message" [class.from-main]="msg.sender === 'main'" [class.from-worker]="msg.sender === 'worker'">
+              <strong>{{ msg.sender === 'main' ? '📤 Hilo Principal' : '📥 Worker' }}</strong>
+              <div>{{ msg.text }}</div>
+            </div>
+          }
+        }
+      </div>
+    </div>
+
+    <div class="sidebar-column">
+      <div class="code-flow-standalone">
+        <h3>🔄 Flujo de Comunicación</h3>
+        <div class="flow-diagram">
+          <div class="flow-step">Hilo Principal</div>
+          <div class="flow-arrow">postMessage() ↓</div>
+          <div class="flow-step">Worker</div>
+          <div class="flow-arrow">↑ postMessage()</div>
+          <div class="flow-step">Hilo Principal</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
