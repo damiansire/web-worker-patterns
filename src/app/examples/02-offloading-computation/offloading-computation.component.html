@@ -1,0 +1,94 @@
+<div class="container">
+  <h1>⚡ Descarga de Cómputo Pesado</h1>
+  <p class="subtitle">Ejemplo 02: Evitando el bloqueo de la UI</p>
+
+  <div class="info-box">
+    <strong>💡 ¿Qué demuestra este ejemplo?</strong>
+    Calcula números primos de forma intensiva. Prueba ambos botones y observa cómo el contador
+    y la animación se comportan diferente cuando el cálculo se hace en el hilo principal vs. en un worker.
+  </div>
+
+  <details class="code-explanation">
+    <summary>📖 Ver Código - ¿Cómo funciona?</summary>
+    <div class="code-section">
+      <h3>1️⃣ Crear Worker para Cómputo</h3>
+      <pre><code>const worker = new Worker('worker.js');</code></pre>
+    </div>
+    <div class="code-section">
+      <h3>2️⃣ Enviar Tarea al Worker</h3>
+      <pre><code>const count = 50000;
+worker.postMessage({{ '{' }} count: count {{ '}' }});</code></pre>
+    </div>
+    <div class="code-section">
+      <h3>3️⃣ Procesar en Worker</h3>
+      <pre><code>self.onmessage = function(e) {{'{'}}
+    const {{ '{' }} count {{ '}' }} = e.data;
+    const primes = calculatePrimes(count);
+    self.postMessage({{ '{' }} primes: primes {{ '}' }});
+{{ '}' }};</code></pre>
+    </div>
+    <div class="code-section">
+      <h3>4️⃣ Recibir Resultado</h3>
+      <pre><code>worker.onmessage = function(e) {{'{'}}
+    const primes = e.data.primes;
+    console.log('Cálculo completo:', primes);
+{{ '}' }};</code></pre>
+    </div>
+  </details>
+
+  <div class="demo-section">
+    <h3>🔢 Calculadora de Números Primos</h3>
+    
+    <div class="input-group">
+      <label>¿Cuántos números primos calcular?</label>
+      <input 
+        type="number" 
+        [ngModel]="count()"
+        (ngModelChange)="count.set($event)"
+        min="1000" 
+        max="100000"
+        step="1000"
+      >
+    </div>
+
+    <div class="button-group">
+      <button class="btn-worker" (click)="calculateWithWorker()" [disabled]="isLoading()">
+        🚀 Calcular con Worker<br>
+        <small style="font-size: 11px; font-weight: normal;">(No bloquea la UI)</small>
+      </button>
+      <button class="btn-main" (click)="calculateInMainThread()" [disabled]="isLoading()">
+        🐌 Calcular en Hilo Principal<br>
+        <small style="font-size: 11px; font-weight: normal;">(Bloquea la UI)</small>
+      </button>
+    </div>
+
+    <div class="spinner" [class.active]="isLoading()"></div>
+    
+    @if (result(); as res) {
+      <div class="result">
+        <strong>✅ Cálculo completado con {{ res.method }}</strong><br>
+        <strong>Total calculados:</strong> {{ res.primes.length.toLocaleString() }} números primos<br>
+        <strong>Últimos 5:</strong> {{ res.primes.slice(-5).join(', ') }}<br>
+        <strong>Tiempo transcurrido:</strong> {{ res.duration }} ms<br>
+        <strong>Número primo más grande:</strong> {{ res.primes[res.primes.length - 1].toLocaleString() }}
+        @if (res.method === 'Hilo Principal') {
+          <div class="warning">
+            ⚠️ <strong>Nota:</strong> Durante este cálculo, la UI estuvo completamente congelada.
+            El contador se detuvo y las animaciones dejaron de funcionar.
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="ui-test">
+    <h3 style="margin-bottom: 10px;">🎯 Prueba de Respuesta de la UI</h3>
+    <p style="font-size: 14px; opacity: 0.9;">Si la UI está bloqueada, este contador se congelará</p>
+    <div class="counter">{{ counter() }}</div>
+    <div class="animation-box"></div>
+    <p style="font-size: 12px; opacity: 0.8;">
+      La caja debería seguir rebotando suavemente
+    </p>
+  </div>
+</div>
+
