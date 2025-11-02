@@ -6,33 +6,47 @@
 
 html, body {
   height: 100%;
-  overflow: hidden;
 }
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  
+  // Custom scrollbar for body
+  &::-webkit-scrollbar {
+    width: 12px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
+  }
 }
 
 .container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100vh;
   width: 100%;
   padding: 0;
-  overflow: hidden;
 }
 
 .main-grid {
   display: grid;
   grid-template-columns: 280px 1fr;
   gap: 20px;
-  flex: 1;
-  overflow: hidden;
   padding: 15px;
-  min-height: 0;
+  min-height: calc(100vh - 160px); // Altura menos header y footer
 
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
@@ -45,32 +59,7 @@ body {
   border-radius: 15px;
   padding: 25px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  overflow-y: auto;
-  overflow-x: hidden;
   min-height: 0;
-  height: 100%;
-  
-  // Smooth scrolling
-  scroll-behavior: smooth;
-  
-  // Custom scrollbar
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
-  
-  &::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-  }
-  
-  &::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 10px;
-    
-    &:hover {
-      background: #555;
-    }
-  }
 }
 
 .sidebar {

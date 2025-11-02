@@ -1,34 +1,6 @@
 // Shared container styles (for example pages)
 // Note: The main app container is in app.scss
-.container {
-  max-width: 100%;
-  margin: 0;
-  background: transparent;
-  border-radius: 0;
-  padding: 0;
-  box-shadow: none;
-  height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  
-  // Custom scrollbar for example containers
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
-  
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  
-  &::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 10px;
-    
-    &:hover {
-      background: rgba(0, 0, 0, 0.3);
-    }
-  }
-}
+// Example pages now use natural flow without internal scrolling
 
 h1 {
   color: #333;
