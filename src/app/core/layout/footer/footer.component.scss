@@ -1,0 +1,21 @@
+footer {
+  text-align: center;
+  color: white;
+  margin-top: 50px;
+  opacity: 0.9;
+
+  p {
+    margin: 5px 0;
+  }
+
+  a {
+    color: white;
+    text-decoration: none;
+    border-bottom: 1px solid white;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+
