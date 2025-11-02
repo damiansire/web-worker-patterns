@@ -1,0 +1,81 @@
+.log-panel {
+  background: #1e1e1e;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 25px;
+}
+
+.log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+
+  .title {
+    color: #fff;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  button {
+    background: #333;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background 0.2s;
+
+    &:hover {
+      background: #444;
+    }
+  }
+}
+
+.log-container {
+  max-height: 300px;
+  overflow-y: auto;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+}
+
+.log-entry {
+  margin-bottom: 8px;
+  padding: 6px;
+  border-radius: 4px;
+  animation: slideIn 0.3s ease-out;
+
+  &.info {
+    color: #64b5f6;
+  }
+
+  &.success {
+    color: #4caf50;
+  }
+
+  &.error {
+    color: #f44336;
+  }
+
+  &.warning {
+    color: #ff9800;
+  }
+
+  .timestamp {
+    opacity: 0.5;
+    margin-right: 8px;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
