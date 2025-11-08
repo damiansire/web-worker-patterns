@@ -1,29 +1,28 @@
 <div class="example-content">
-  <h1>🚀 Comunicación Básica con Web Workers</h1>
-  <p class="subtitle">Ejemplo 01: Enviando y recibiendo mensajes</p>
+  <h1>{{ texts().title }}</h1>
+  <p class="subtitle">{{ texts().subtitle }}</p>
 
   <div class="main-grid">
     <div class="content-column">
-      <app-info-box title="💡 ¿Qué hace este ejemplo?">
-        Este es el "Hola Mundo" de los Web Workers. Escribe un mensaje y envíalo al worker.
-        El worker lo recibirá, lo procesará y te responderá de vuelta.
+      <app-info-box [title]="texts().infoTitle">
+        {{ texts().infoDescription }}
       </app-info-box>
 
-      <app-code-explanation summaryText="📖 Ver Código - ¿Cómo funciona?">
-        <app-code-section title="1️⃣ Crear el Worker">
+      <app-code-explanation [summaryText]="texts().codeSummary">
+        <app-code-section [title]="texts().codeSections.createWorker">
           <pre><code>const myWorker = new Worker('worker.js');</code></pre>
         </app-code-section>
-        <app-code-section title="2️⃣ Enviar mensaje al Worker">
+        <app-code-section [title]="texts().codeSections.sendToWorker">
           <pre><code>myWorker.postMessage('¡Hola Worker!');</code></pre>
         </app-code-section>
-        <app-code-section title="3️⃣ Recibir mensaje en el Worker">
+        <app-code-section [title]="texts().codeSections.receiveInWorker">
           <pre><code>self.onmessage = function(e) {{'{'}}
     const mensaje = e.data;
     const respuesta = 'Procesé tu mensaje: ' + mensaje;
     self.postMessage(respuesta);
 {{ '}' }};</code></pre>
         </app-code-section>
-        <app-code-section title="4️⃣ Recibir respuesta del Worker">
+        <app-code-section [title]="texts().codeSections.receiveInMain">
           <pre><code>myWorker.onmessage = function(e) {{'{'}}
     const respuesta = e.data;
     console.log('Hilo principal recibió:', respuesta);
@@ -32,28 +31,28 @@
       </app-code-explanation>
 
       <div class="input-group">
-        <label for="messageInput">Mensaje para el Worker:</label>
+        <label for="messageInput">{{ texts().messageLabel }}</label>
         <input
           type="text"
           id="messageInput"
-          placeholder="Escribe tu mensaje aquí..."
+          [placeholder]="texts().messagePlaceholder"
           [value]="messageText()"
           (input)="messageText.set($any($event.target).value)"
           (keypress)="onKeyPress($event)"
         >
       </div>
 
-      <button (click)="sendMessage()">Enviar Mensaje al Worker</button>
+      <button (click)="sendMessage()">{{ texts().sendButton }}</button>
 
       <div class="messages">
         @if (messages().length === 0) {
           <p style="color: #999; text-align: center; font-style: italic;">
-            Los mensajes aparecerán aquí...
+            {{ texts().emptyState }}
           </p>
         } @else {
           @for (msg of messages(); track $index) {
             <div class="message" [class.from-main]="msg.sender === 'main'" [class.from-worker]="msg.sender === 'worker'">
-              <strong>{{ msg.sender === 'main' ? '📤 Hilo Principal' : '📥 Worker' }}</strong>
+              <strong>{{ msg.sender === 'main' ? texts().senderMain : texts().senderWorker }}</strong>
               <div>{{ msg.text }}</div>
             </div>
           }
@@ -63,13 +62,13 @@
 
     <div class="sidebar-column">
       <div class="code-flow-standalone">
-        <h3>🔄 Flujo de Comunicación</h3>
+        <h3>{{ texts().flowTitle }}</h3>
         <div class="flow-diagram">
-          <div class="flow-step">Hilo Principal</div>
-          <div class="flow-arrow">postMessage() ↓</div>
-          <div class="flow-step">Worker</div>
-          <div class="flow-arrow">↑ postMessage()</div>
-          <div class="flow-step">Hilo Principal</div>
+          <div class="flow-step">{{ texts().flowSteps[0] }}</div>
+          <div class="flow-arrow">{{ texts().flowSteps[1] }}</div>
+          <div class="flow-step">{{ texts().flowSteps[2] }}</div>
+          <div class="flow-arrow">{{ texts().flowSteps[3] }}</div>
+          <div class="flow-step">{{ texts().flowSteps[4] }}</div>
         </div>
       </div>
     </div>

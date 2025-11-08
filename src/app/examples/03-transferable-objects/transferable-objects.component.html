@@ -1,48 +1,46 @@
 <div class="example-content">
-  <h1>🚀 Objetos Transferibles</h1>
-  <p class="subtitle">Ejemplo 03: Transferencia vs. Clonación de datos</p>
+  <h1>{{ texts().title }}</h1>
+  <p class="subtitle">{{ texts().subtitle }}</p>
 
-  <app-info-box title="💡 ¿Qué demuestra este ejemplo?">
-    Los objetos transferibles (como <code>ArrayBuffer</code>) pueden "transferir" su propiedad al worker 
-    en lugar de ser clonados. Esto es muchísimo más rápido para grandes volúmenes de datos.
+  <app-info-box [title]="texts().infoTitle">
+    {{ texts().infoDescription }}
   </app-info-box>
 
-  <app-code-explanation summaryText="📖 Ver Código - ¿Cómo funciona?">
-    <app-code-section title="1️⃣ Crear ArrayBuffer">
+  <app-code-explanation [summaryText]="texts().codeSummary">
+    <app-code-section [title]="texts().codeSections.createBuffer">
       <pre><code>const imageData = new ImageData(1024, 1024);
 const buffer = imageData.data.buffer;</code></pre>
     </app-code-section>
-    <app-code-section title="2️⃣ Método 1: Clonación (Lento)">
+    <app-code-section [title]="texts().codeSections.methodClone">
       <pre><code>worker.postMessage({{'{'}} imageData: imageData {{'}'}});
 // El buffer original sigue siendo accesible</code></pre>
     </app-code-section>
-    <app-code-section title="3️⃣ Método 2: Transferencia (Rápido)">
+    <app-code-section [title]="texts().codeSections.methodTransfer">
       <pre><code>worker.postMessage({{'{'}} imageData: imageData {{'}'}}, [imageData.data.buffer]);
 // ⚠️ El buffer original queda INACCESIBLE</code></pre>
     </app-code-section>
   </app-code-explanation>
 
   <div class="demo-section">
-    <h3>🖼️ Procesamiento de Imagen</h3>
+    <h3>{{ texts().demo.title }}</h3>
     
     <div class="size-selector">
-      <label>Tamaño de los datos:</label>
+      <label>{{ texts().demo.sizeLabel }}</label>
       <select [ngModel]="sizeMB()" (ngModelChange)="sizeMB.set($event)">
-        <option [value]="1">1 MB (256x256 imagen)</option>
-        <option [value]="4">4 MB (512x512 imagen)</option>
-        <option [value]="16">16 MB (1024x1024 imagen)</option>
-        <option [value]="64">64 MB (2048x2048 imagen)</option>
+        @for (option of sizeOptions(); track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
       </select>
     </div>
 
     <div class="button-group">
       <button class="btn-transfer" (click)="processWithTransfer()" [disabled]="isLoading()">
-        ⚡ Con Transferencia<br>
-        <small style="font-size: 11px; font-weight: normal;">(Transfer ownership)</small>
+        {{ texts().demo.transferButton }}<br>
+        <small style="font-size: 11px; font-weight: normal;">{{ texts().demo.transferNote }}</small>
       </button>
       <button class="btn-clone" (click)="processWithClone()" [disabled]="isLoading()">
-        📋 Con Clonación<br>
-        <small style="font-size: 11px; font-weight: normal;">(Structured clone)</small>
+        {{ texts().demo.cloneButton }}<br>
+        <small style="font-size: 11px; font-weight: normal;">{{ texts().demo.cloneNote }}</small>
       </button>
     </div>
 
@@ -53,23 +51,23 @@ const buffer = imageData.data.buffer;</code></pre>
 
   <div class="comparison" [style.display]="(transferTime() > 0 && cloneTime() > 0) ? 'grid' : 'none'">
     <div class="comparison-item transfer">
-      <div class="label">Con Transferencia</div>
+      <div class="label">{{ texts().comparison.transferLabel }}</div>
       <div class="value">{{ transferTime() }}</div>
-      <div class="unit">milisegundos</div>
+      <div class="unit">{{ texts().comparison.unit }}</div>
     </div>
     <div class="comparison-item clone">
-      <div class="label">Con Clonación</div>
+      <div class="label">{{ texts().comparison.cloneLabel }}</div>
       <div class="value">{{ cloneTime() }}</div>
-      <div class="unit">milisegundos</div>
+      <div class="unit">{{ texts().comparison.unit }}</div>
     </div>
   </div>
 
   @if (transferTime() > 0 && cloneTime() > 0) {
     <div class="result">
-      <strong>📊 Análisis de Rendimiento</strong>
+      <strong>{{ texts().result.title }}</strong>
       <p>
-        <strong>Mejora con transferencia:</strong> {{ ((cloneTime() - transferTime()) / cloneTime() * 100).toFixed(1) }}% más rápido<br>
-        <strong>Diferencia:</strong> {{ cloneTime() - transferTime() }} ms ahorrados
+        <strong>{{ texts().result.improvementLabel }}</strong> {{ ((cloneTime() - transferTime()) / cloneTime() * 100).toFixed(1) }}{{ texts().result.improvementSuffix }}<br>
+        <strong>{{ texts().result.differenceLabel }}</strong> {{ cloneTime() - transferTime() }} {{ texts().result.differenceSuffix }}
       </p>
     </div>
   }

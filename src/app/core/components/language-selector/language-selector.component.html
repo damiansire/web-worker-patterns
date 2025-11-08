@@ -1,0 +1,16 @@
+<div class="language-overlay" *ngIf="!language.isLanguageSelected()">
+  <div class="language-dialog">
+    <h2>{{ language.t('language.selectorTitle') }}</h2>
+    <p>{{ language.t('language.selectorDescription') }}</p>
+
+    <div class="language-options">
+      @for (lang of language.languages; track lang.code) {
+        <button type="button" (click)="selectLanguage(lang.code)">
+          <span class="native">{{ lang.nativeLabel }}</span>
+          <span class="label">{{ language.t(`language.${lang.code === 'es' ? 'spanish' : lang.code === 'en' ? 'english' : 'portuguese'}`) }}</span>
+        </button>
+      }
+    </div>
+  </div>
+</div>
+

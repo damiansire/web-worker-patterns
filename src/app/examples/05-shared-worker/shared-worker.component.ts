@@ -1,9 +1,10 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InfoBoxComponent } from '../../core/components/info-box/info-box.component';
 import { CodeExplanationComponent } from '../../core/components/code-explanation/code-explanation.component';
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
+import { LanguageService } from '../../core/services/language.service';
 
 interface Message {
   sender: string;
@@ -11,6 +12,9 @@ interface Message {
   timestamp: string;
   type: 'system' | 'self' | 'other';
 }
+
+type WorkerStatus = 'disconnected' | 'connected' | 'unsupported';
+type SharedWorkerEvent = 'connected' | 'broadcast' | 'tabConnected' | 'tabDisconnected';
 
 @Component({
   selector: 'app-shared-worker',
@@ -20,11 +24,15 @@ interface Message {
   standalone: true
 })
 export class SharedWorkerComponent implements OnInit, OnDestroy {
+  private readonly language = inject(LanguageService);
+
+  readonly texts = computed(() => this.language.t<any>('examplesContent.sharedWorker'));
+
   tabId = signal('');
   messageText = signal('');
   messages = signal<Message[]>([]);
   connectedTabs = signal(0);
-  workerStatus = signal('Desconectado');
+  workerStatus = signal<WorkerStatus>('disconnected');
   private worker?: any;
 
   ngOnInit() {
@@ -41,21 +49,38 @@ export class SharedWorkerComponent implements OnInit, OnDestroy {
       });
       
       this.worker.port.onmessage = (e: MessageEvent<any>) => {
-        const { type, tabId: senderTabId, message, connectedCount } = e.data;
+        const { type, tabId: senderTabId, message, connectedCount } = e.data as {
+          type: SharedWorkerEvent;
+          tabId: string;
+          message: string;
+          connectedCount: number;
+        };
         
         if (type === 'connected') {
-          this.workerStatus.set('Conectado');
-          this.addMessage('🤖 Sistema', `Conectado como ${uniqueId}`, 'system');
+          this.workerStatus.set('connected');
+          this.addMessage(
+            this.systemSender(),
+            this.format(this.texts().chatPanel?.systemMessages?.connected, { tabId: uniqueId }),
+            'system'
+          );
           this.connectedTabs.set(connectedCount);
         } else if (type === 'broadcast') {
           this.addMessage(senderTabId, message, senderTabId === uniqueId ? 'self' : 'other');
         } else if (type === 'tabConnected' || type === 'tabDisconnected') {
           this.connectedTabs.set(connectedCount);
-          this.addMessage('🤖 Sistema', `Pestaña ${type === 'tabConnected' ? 'conectada' : 'desconectada'}`, 'system');
+          const key = type === 'tabConnected' ? 'tabConnected' : 'tabDisconnected';
+          this.addMessage(
+            this.systemSender(),
+            this.texts().chatPanel?.systemMessages?.[key] ?? key,
+            'system'
+          );
         }
       };
     } else {
-      this.workerStatus.set('No soportado');
+      this.workerStatus.set('unsupported');
+      const message = this.texts().alerts?.unsupported ?? 'SharedWorker not supported';
+      alert(message);
+      this.addMessage(this.systemSender(), message, 'system');
     }
   }
 
@@ -84,5 +109,19 @@ export class SharedWorkerComponent implements OnInit, OnDestroy {
     if (event.key === 'Enter') {
       this.sendMessage();
     }
+  }
+
+  private systemSender(): string {
+    return this.texts().chatPanel?.systemSender ?? 'System';
+  }
+
+  private format(template: string | undefined, params: Record<string, string | number>): string {
+    if (!template) {
+      return Object.values(params).join(' ');
+    }
+    return Object.entries(params).reduce(
+      (acc, [key, value]) => acc.replace(new RegExp(`{{\\s*${key}\\s*}}`, 'g'), String(value)),
+      template
+    );
   }
 }

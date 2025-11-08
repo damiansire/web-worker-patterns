@@ -1,9 +1,10 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InfoBoxComponent } from '../../core/components/info-box/info-box.component';
 import { CodeExplanationComponent } from '../../core/components/code-explanation/code-explanation.component';
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
+import { LanguageService } from '../../core/services/language.service';
 
 interface Message {
   text: string;
@@ -18,11 +19,17 @@ interface Message {
   standalone: true
 })
 export class BasicCommunicationComponent implements OnInit, OnDestroy {
-  messageText = signal('¡Hola Worker!');
+  private readonly language = inject(LanguageService);
+
+  readonly texts = computed(() => this.language.t<any>('examplesContent.basicCommunication'));
+
+  messageText = signal('');
   messages = signal<Message[]>([]);
   private worker?: Worker;
 
   ngOnInit() {
+    this.messageText.set(this.texts().defaultMessage);
+
     if (typeof Worker !== 'undefined') {
       // Crear una nueva instancia del worker
       this.worker = new Worker(new URL('./basic-communication.worker', import.meta.url), { type: 'module' });

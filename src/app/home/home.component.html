@@ -1,19 +1,15 @@
 <div class="home-container">
   <div class="info-box">
-    <h3>💡 ¿Qué aprenderás?</h3>
+    <h3>{{ language.t('home.learnTitle') }}</h3>
     <ul>
-      <li>Cómo ejecutar código JavaScript en hilos de fondo</li>
-      <li>Evitar que la interfaz de usuario se congele con tareas pesadas</li>
-      <li>Optimizar el rendimiento con transferencia de datos</li>
-      <li>Manejar errores correctamente en workers</li>
-      <li>Compartir workers entre múltiples pestañas</li>
-      <li>Gestionar el ciclo de vida de workers</li>
-      <li>Entender límites y escalabilidad en producción</li>
+      @for (item of learnItems(); track item) {
+        <li>{{ item }}</li>
+      }
     </ul>
   </div>
 
   <div class="examples-grid">
-    @for (example of examples; track example.number) {
+    @for (example of examples(); track example.number) {
       <a [routerLink]="example.route" class="example-card">
         <div class="number">{{ example.number }}</div>
         <h2>{{ example.title }}</h2>
@@ -28,16 +24,11 @@
   </div>
 
   <div class="info-box info-box-order">
-    <h3>📖 Orden Recomendado</h3>
+    <h3>{{ language.t('home.orderTitle') }}</h3>
     <ul>
-      <li>Empieza con <strong>Comunicación Básica</strong> para entender los fundamentos</li>
-      <li>Continúa con <strong>Descarga de Cómputo</strong> para ver el caso de uso principal</li>
-      <li>Aprende sobre <strong>Manejo de Errores</strong> para hacer tu código más robusto</li>
-      <li>Explora <strong>Objetos Transferibles</strong> para optimizaciones de rendimiento</li>
-      <li>Experimenta con <strong>Ciclo de Vida</strong> para gestión de recursos</li>
-      <li>Entiende los <strong>Límites de Workers</strong> para aplicaciones escalables</li>
-      <li>Aprende el patrón <strong>Worker Pool</strong> para escalar a muchas tareas</li>
-      <li>Finalmente, prueba <strong>Shared Worker</strong> para casos avanzados</li>
+      @for (item of orderItems(); track item) {
+        <li>{{ item }}</li>
+      }
     </ul>
   </div>
 </div>

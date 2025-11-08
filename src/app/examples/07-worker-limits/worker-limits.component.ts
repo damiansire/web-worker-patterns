@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InfoBoxComponent } from '../../core/components/info-box/info-box.component';
@@ -6,6 +6,7 @@ import { CodeExplanationComponent } from '../../core/components/code-explanation
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
 import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log-panel.component';
 import { StatsPanelComponent, StatCard } from '../../core/components/stats-panel/stats-panel.component';
+import { LanguageService } from '../../core/services/language.service';
 
 interface WorkerData {
   id: number;
@@ -22,12 +23,16 @@ interface WorkerData {
   standalone: true
 })
 export class WorkerLimitsComponent implements OnInit, OnDestroy {
+  private readonly language = inject(LanguageService);
+
+  readonly texts = computed(() => this.language.t<any>('examplesContent.workerLimits'));
+
   workerCount = signal(10);
   activeCount = signal(0);
   totalCreated = signal(0);
   errorCount = signal(0);
   logs = signal<LogEntry[]>([]);
-  detectedLimit = signal<string>('No detectado');
+  detectedLimit = signal<string>('-');
   memoryUsed = signal<string>('-');
   
   // Detección automática
@@ -51,10 +56,19 @@ export class WorkerLimitsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.addLog(`Sistema iniciado. CPU cores detectados: ${this.getCPUCores()}`, 'info');
-    this.addLog(`Navegador: ${this.getBrowserInfo()}`, 'info');
-    this.addLog(`Máximo recomendado de workers: ${this.getRecommendedMax()}`, 'info');
-    this.addLog(`Usa la auto-detección para encontrar el límite real de tu navegador`, 'info');
+    this.addLog(
+      this.format(this.texts().logs?.systemStarted, { cores: this.getCPUCores() }),
+      'info'
+    );
+    this.addLog(
+      this.format(this.texts().logs?.browserInfo, { browser: this.getBrowserInfo() }),
+      'info'
+    );
+    this.addLog(
+      this.format(this.texts().logs?.recommendedMax, { recommended: this.getRecommendedMax() }),
+      'info'
+    );
+    this.addLog(this.texts().logs?.autodetectSuggestion ?? '', 'info');
     
     // Actualizar memoria periódicamente
     this.memoryInterval = setInterval(() => {
@@ -108,13 +122,13 @@ export class WorkerLimitsComponent implements OnInit, OnDestroy {
       
       worker.onerror = () => {
         this.errorCount.update(c => c + 1);
-        this.addLog(`Error en Worker #${workerId}`, 'error');
+        this.addLog(this.format(this.texts().logs?.workerError, { id: workerId }), 'error');
         this.updateStats();
       };
       
       this.workers.push(workerData);
       this.totalCreated.update(c => c + 1);
-      this.addLog(`Worker #${workerId} creado exitosamente`, 'success');
+      this.addLog(this.format(this.texts().logs?.workerCreated, { id: workerId }), 'success');
       
       worker.postMessage({ action: 'init', workerId });
       this.updateStats();
@@ -122,8 +136,8 @@ export class WorkerLimitsComponent implements OnInit, OnDestroy {
       return true;
     } catch (error: any) {
       this.errorCount.update(c => c + 1);
-      this.addLog(`Error al crear worker: ${error.message}`, 'error');
-      this.addLog(`Posiblemente has alcanzado el límite del navegador`, 'warning');
+      this.addLog(this.format(this.texts().logs?.errorCreatingWorker, { message: error.message }), 'error');
+      this.addLog(this.texts().logs?.limitReachedWarning ?? '', 'warning');
       this.updateStats();
       return false;
     }
@@ -131,10 +145,17 @@ export class WorkerLimitsComponent implements OnInit, OnDestroy {
 
   async createMultipleWorkers() {
     const count = this.workerCount();
-    this.addLog(`Intentando crear ${count} workers...`, 'info');
+    this.addLog(this.format(this.texts().logs?.creatingMultiple, { count }), 'info');
     
     if (count > this.getRecommendedMax()) {
-      this.addLog(`Advertencia: Estás creando más workers (${count}) que el recomendado (${this.getRecommendedMax()}) para tu sistema (${this.getCPUCores()} cores)`, 'warning');
+      this.addLog(
+        this.format(this.texts().logs?.overRecommendedWarning, {
+          count,
+          recommended: this.getRecommendedMax(),
+          cores: this.getCPUCores()
+        }),
+        'warning'
+      );
     }
     
     let successCount = 0;
@@ -149,14 +170,22 @@ export class WorkerLimitsComponent implements OnInit, OnDestroy {
       }
     }
     
-    this.addLog(`Creación completada: ${successCount} exitosos, ${failCount} fallidos`, 
-      failCount > 0 ? 'warning' : 'success');
+    this.addLog(
+      this.format(this.texts().logs?.multipleResult, { success: successCount, fail: failCount }),
+      failCount > 0 ? 'warning' : 'success'
+    );
   }
 
   async stressTest() {
     const stressCount = 50;
-    this.addLog(`🔥 Iniciando test de estrés: intentando crear ${stressCount} workers...`, 'warning');
-    this.addLog(`💻 Tu sistema tiene ${this.getCPUCores()} núcleos CPU. Máximo recomendado: ${this.getRecommendedMax()} workers`, 'info');
+    this.addLog(this.format(this.texts().logs?.stressStart, { count: stressCount }), 'warning');
+    this.addLog(
+      this.format(this.texts().logs?.stressInfo, {
+        cores: this.getCPUCores(),
+        recommended: this.getRecommendedMax()
+      }),
+      'info'
+    );
     
     let successCount = 0;
     let failCount = 0;
@@ -170,10 +199,10 @@ export class WorkerLimitsComponent implements OnInit, OnDestroy {
       }
     }
     
-    this.addLog(`🔥 Test de estrés completado:`, 'warning');
-    this.addLog(`   ✅ ${successCount} workers creados exitosamente`, 'success');
-    this.addLog(`   ❌ ${failCount} workers fallaron (límite alcanzado)`, 'error');
-    this.addLog(`   📊 Límite práctico detectado: ~${successCount} workers`, 'info');
+    this.addLog(this.texts().logs?.stressSummary ?? '', 'warning');
+    this.addLog(this.format(this.texts().logs?.stressSuccess, { count: successCount }), 'success');
+    this.addLog(this.format(this.texts().logs?.stressFail, { count: failCount }), 'error');
+    this.addLog(this.format(this.texts().logs?.stressDetected, { limit: successCount }), 'info');
   }
 
   async autoDetectLimit() {
@@ -190,14 +219,16 @@ export class WorkerLimitsComponent implements OnInit, OnDestroy {
     this.detectStatusVisible.set(true);
     this.detectResultVisible.set(false);
     
-    this.addLog('Iniciando auto-detección de límites...', 'info');
+    this.addLog(this.texts().logs?.autodetectStart ?? '', 'info');
     
     let currentWorker = 1;
     let consecutiveFailures = 0;
     let lastSuccessful = 0;
     
     while (currentWorker <= 100 && !this.detectionStopped()) {
-      this.detectProgress.set(`Creando worker #${currentWorker}...`);
+      this.detectProgress.set(
+        this.format(this.texts().logs?.autodetectProgress, { number: currentWorker })
+      );
       this.detectProgressPercent.set(Math.min(currentWorker, 99));
       
       const success = this.createWorker();
@@ -205,11 +236,11 @@ export class WorkerLimitsComponent implements OnInit, OnDestroy {
       if (success) {
         consecutiveFailures = 0;
         lastSuccessful = currentWorker;
-        this.addLog(`Worker #${currentWorker} creado exitosamente`, 'success');
+        this.addLog(this.format(this.texts().logs?.workerCreated, { id: currentWorker }), 'success');
       } else {
         consecutiveFailures++;
         if (consecutiveFailures >= 3) {
-          this.addLog(`Límite detectado: ${lastSuccessful} workers`, 'warning');
+          this.addLog(this.format(this.texts().logs?.autodetectDetected, { limit: lastSuccessful }), 'warning');
           break;
         }
       }
@@ -222,7 +253,7 @@ export class WorkerLimitsComponent implements OnInit, OnDestroy {
     const detectionDuration = ((Date.now() - startDetectionTime) / 1000).toFixed(1);
     
     this.detectProgressPercent.set(100);
-    this.detectProgress.set('Detección completada');
+    this.detectProgress.set(this.texts().autoDetect?.completedLabel ?? 'Detection completed');
     
     setTimeout(() => {
       this.detectStatusVisible.set(false);
@@ -231,9 +262,8 @@ export class WorkerLimitsComponent implements OnInit, OnDestroy {
       this.detectedLimit.set(`${lastSuccessful} workers`);
       
       const recommended = this.getRecommendedMax();
-      const comparison = lastSuccessful > recommended 
-        ? `+${lastSuccessful - recommended} sobre recomendado`
-        : `${recommended - lastSuccessful} bajo recomendado`;
+      const diff = lastSuccessful - recommended;
+      const comparison = diff > 0 ? `+${diff}` : `${diff}`;
       
       this.detectResult.set({
         finalLimit: lastSuccessful,
@@ -241,14 +271,14 @@ export class WorkerLimitsComponent implements OnInit, OnDestroy {
         vsRecommended: comparison
       });
       
-      this.addLog(`Detección completada en ${detectionDuration}s`, 'success');
-      this.addLog(`Tu navegador soporta hasta ${lastSuccessful} workers`, 'info');
+      this.addLog(this.format(this.texts().logs?.autodetectComplete, { seconds: detectionDuration }), 'success');
+      this.addLog(this.format(this.texts().logs?.autodetectSupport, { limit: lastSuccessful }), 'info');
     }, 500);
   }
 
   stopDetection() {
     this.detectionStopped.set(true);
-    this.addLog('Detección detenida por el usuario', 'warning');
+    this.addLog(this.texts().logs?.autodetectStopped ?? '', 'warning');
     this.detectionInProgress.set(false);
     this.detectStatusVisible.set(false);
   }
@@ -257,13 +287,13 @@ export class WorkerLimitsComponent implements OnInit, OnDestroy {
     const count = this.workers.length;
     this.workers.forEach(w => w.worker.terminate());
     this.workers = [];
-    this.addLog(`Todos los workers terminados (${count} workers)`, 'warning');
+    this.addLog(this.format(this.texts().logs?.terminateAll, { count }), 'warning');
     this.updateStats();
   }
 
   clearLogs() {
     this.logs.set([]);
-    this.addLog('Logs limpiados', 'info');
+    this.addLog(this.texts().logs?.logsCleared ?? 'Logs cleared', 'info');
   }
 
   getBrowserInfo(): string {
@@ -272,7 +302,7 @@ export class WorkerLimitsComponent implements OnInit, OnDestroy {
     if (ua.indexOf("Edg") > -1) return "Edge";
     if (ua.indexOf("Chrome") > -1) return "Chrome";
     if (ua.indexOf("Safari") > -1) return "Safari";
-    return "Desconocido";
+    return "Unknown";
   }
 
   getCPUCores(): number {
@@ -284,11 +314,28 @@ export class WorkerLimitsComponent implements OnInit, OnDestroy {
   }
 
   getStats(): StatCard[] {
+    const statsTexts = this.texts().statsPanel ?? {};
     return [
-      { label: 'Workers Activos', value: this.activeCount(), type: 'active' },
-      { label: 'Total Creados', value: this.totalCreated() },
-      { label: 'Errores', value: this.errorCount(), type: 'error' },
-      { label: 'Memoria Usada', value: this.memoryUsed() }
+      { label: statsTexts.active ?? 'Active workers', value: this.activeCount(), type: 'active' },
+      { label: statsTexts.totalCreated ?? 'Total created', value: this.totalCreated() },
+      { label: statsTexts.errors ?? 'Errors', value: this.errorCount(), type: 'error' },
+      { label: statsTexts.memory ?? 'Memory used', value: this.memoryUsed() }
     ];
+  }
+
+  createMultipleLabel(): string {
+    return this.format(this.texts().manualControls?.buttons?.createMultiple, {
+      count: this.workerCount()
+    });
+  }
+
+  private format(template: string | undefined, params: Record<string, string | number>): string {
+    if (!template) {
+      return Object.values(params).join(' ');
+    }
+    return Object.entries(params).reduce(
+      (acc, [key, value]) => acc.replace(new RegExp(`{{\\s*${key}\\s*}}`, 'g'), String(value)),
+      template
+    );
   }
 }

@@ -1,9 +1,12 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { InfoBoxComponent } from '../../core/components/info-box/info-box.component';
 import { CodeExplanationComponent } from '../../core/components/code-explanation/code-explanation.component';
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
 import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log-panel.component';
+import { LanguageService } from '../../core/services/language.service';
+
+type ErrorKey = 'reference' | 'type' | 'math' | 'custom' | 'success';
 
 @Component({
   selector: 'app-error-handling',
@@ -13,6 +16,12 @@ import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log
   standalone: true
 })
 export class ErrorHandlingComponent implements OnInit, OnDestroy {
+  private readonly language = inject(LanguageService);
+
+  readonly texts = computed(() => this.language.t<any>('examplesContent.errorHandling'));
+
+  readonly errorKeys: ErrorKey[] = ['reference', 'type', 'math', 'custom', 'success'];
+
   logs = signal<LogEntry[]>([]);
   private worker?: Worker;
 
@@ -23,28 +32,31 @@ export class ErrorHandlingComponent implements OnInit, OnDestroy {
   private createWorker() {
     if (typeof Worker !== 'undefined') {
       this.worker = new Worker(new URL('./error-handling.worker', import.meta.url), { type: 'module' });
-      this.addLog('🔧 Worker creado exitosamente', 'success');
+      this.addLog(this.texts().logs?.workerCreated ?? 'Worker created', 'success');
 
       this.worker.onmessage = (e: MessageEvent) => {
         if (e.data.message) {
-          this.addLog(`📨 ${e.data.message}`, 'success');
+          this.addLog(this.format(this.texts().logs?.messageReceived, { message: e.data.message }), 'success');
         }
         if (e.data.result) {
-          this.addLog(`   └─ Resultado: ${e.data.result}`, 'info');
+          this.addLog(this.format(this.texts().logs?.resultReceived, { result: e.data.result }), 'info');
         }
       };
 
       this.worker.onerror = (e: ErrorEvent) => {
         // Prevenir que el error se propague y cause problemas
         e.preventDefault();
-        
-        this.addLog('❌ ERROR CAPTURADO EN EL WORKER:', 'error');
-        this.addLog(`   └─ Mensaje: ${e.message}`, 'error');
-        this.addLog(`   └─ Archivo: ${e.filename}`, 'error');
-        this.addLog(`   └─ Línea: ${e.lineno}, Columna: ${e.colno}`, 'error');
-        
+
+        this.addLog(this.texts().logs?.errorCaptured ?? 'Error captured in worker', 'error');
+        this.addLog(this.format(this.texts().logs?.errorMessage, { message: e.message }), 'error');
+        this.addLog(this.format(this.texts().logs?.errorFile, { file: e.filename }), 'error');
+        this.addLog(
+          this.format(this.texts().logs?.errorLine, { line: e.lineno, column: e.colno }),
+          'error'
+        );
+
         // Recrear el worker para que siga funcionando
-        this.addLog('🔄 Recreando worker...', 'warning');
+        this.addLog(this.texts().logs?.recreatingWorker ?? 'Recreating worker...', 'warning');
         setTimeout(() => {
           this.worker?.terminate();
           this.createWorker();
@@ -52,8 +64,12 @@ export class ErrorHandlingComponent implements OnInit, OnDestroy {
       };
 
       if (this.logs().length === 0) {
-        this.addLog('✨ Sistema de manejo de errores listo', 'success');
+        this.addLog(this.texts().logs?.systemReady ?? 'System ready', 'success');
       }
+    } else {
+      const message = this.texts().alerts?.unsupported ?? 'Web Workers not supported';
+      alert(message);
+      this.addLog(message, 'error');
     }
   }
 
@@ -67,12 +83,30 @@ export class ErrorHandlingComponent implements OnInit, OnDestroy {
   }
 
   triggerError(errorType: string) {
-    this.addLog(`🎯 Provocando error de tipo: "${errorType}"`, 'info');
+    const key = (errorType as ErrorKey) ?? 'custom';
+    this.addLog(
+      this.format(this.texts().logs?.triggerError, { type: this.getErrorTypeLabel(key) }),
+      'info'
+    );
     this.worker?.postMessage({ action: 'triggerError', errorType });
   }
 
   clearLogs() {
     this.logs.set([]);
-    this.addLog('Consola limpiada', 'info');
+    this.addLog(this.texts().logs?.consoleCleared ?? 'Console cleared', 'info');
+  }
+
+  private getErrorTypeLabel(type: ErrorKey): string {
+    return this.texts().errorTypes?.[type]?.logLabel ?? type;
+  }
+
+  private format(template: string | undefined, params: Record<string, string | number>): string {
+    if (!template) {
+      return Object.values(params).join(' ');
+    }
+    return Object.entries(params).reduce(
+      (acc, [key, value]) => acc.replace(new RegExp(`{{\\s*${key}\\s*}}`, 'g'), String(value)),
+      template
+    );
   }
 }

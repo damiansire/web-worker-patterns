@@ -1,9 +1,10 @@
-import { Component, OnInit, OnDestroy, signal, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, ViewChild, ElementRef, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InfoBoxComponent } from '../../core/components/info-box/info-box.component';
 import { CodeExplanationComponent } from '../../core/components/code-explanation/code-explanation.component';
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
+import { LanguageService } from '../../core/services/language.service';
 
 interface ImageData {
   buffer: ArrayBuffer;
@@ -26,6 +27,14 @@ interface ProcessResult {
   standalone: true
 })
 export class TransferableObjectsComponent implements OnInit, OnDestroy {
+  private readonly language = inject(LanguageService);
+
+  readonly texts = computed(() => this.language.t<any>('examplesContent.transferableObjects'));
+
+  readonly sizeOptions = computed(() =>
+    (this.texts().demo?.sizeOptions ?? []) as { value: number; label: string }[]
+  );
+
   @ViewChild('canvasContainer', { static: false }) canvasContainer!: ElementRef<HTMLDivElement>;
   
   sizeMB = signal(16);
@@ -46,10 +55,10 @@ export class TransferableObjectsComponent implements OnInit, OnDestroy {
 
           if (e.data.transferable) {
             this.transferTime.set(totalTime);
-            this.displayImage(e.data.imageData, 'Con Transferencia');
+            this.displayImage(e.data.imageData, 'transfer');
           } else {
             this.cloneTime.set(totalTime);
-            this.displayImage(e.data.imageData, 'Con Clonación');
+            this.displayImage(e.data.imageData, 'clone');
           }
 
           this.isLoading.set(false);
@@ -57,7 +66,7 @@ export class TransferableObjectsComponent implements OnInit, OnDestroy {
       };
 
       this.worker.onerror = (e: ErrorEvent) => {
-        console.error('Worker error:', e);
+        console.error(`${this.texts().logs.workerError}:`, e);
         this.isLoading.set(false);
       };
     }
@@ -90,14 +99,15 @@ export class TransferableObjectsComponent implements OnInit, OnDestroy {
     };
   }
 
-  private displayImage(imageData: ImageData, label: string) {
+  private displayImage(imageData: ImageData, labelKey: 'original' | 'transfer' | 'clone') {
     if (!this.canvasContainer) return;
     
     const wrapper = document.createElement('div');
     wrapper.className = 'canvas-wrapper';
     
     const labelEl = document.createElement('label');
-    labelEl.textContent = label;
+    const labels = this.texts().canvasLabels ?? {};
+    labelEl.textContent = labels[labelKey] ?? '';
     
     const canvas = document.createElement('canvas');
     const displaySize = 200;
@@ -132,7 +142,7 @@ export class TransferableObjectsComponent implements OnInit, OnDestroy {
     }
     
     const imageData = this.generateImageData(sizeMB);
-    this.displayImage(imageData, 'Original');
+    this.displayImage(imageData, 'original');
     this.processingStartTime = performance.now();
 
     if (this.worker) {
@@ -152,7 +162,7 @@ export class TransferableObjectsComponent implements OnInit, OnDestroy {
     }
     
     const imageData = this.generateImageData(sizeMB);
-    this.displayImage(imageData, 'Original');
+    this.displayImage(imageData, 'original');
     this.processingStartTime = performance.now();
 
     if (this.worker) {

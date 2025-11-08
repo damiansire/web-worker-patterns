@@ -1,14 +1,13 @@
 <div class="example-content">
-  <h1>♻️ Ciclo de Vida y Terminación</h1>
-  <p class="subtitle">Ejemplo 06: Gestión del ciclo de vida de Workers</p>
+  <h1>{{ texts().title }}</h1>
+  <p class="subtitle">{{ texts().subtitle }}</p>
 
-  <app-info-box title="💡 ¿Qué demuestra este ejemplo?">
-    Es importante gestionar correctamente el ciclo de vida de los Workers para liberar recursos y memoria.
-    Este ejemplo muestra cómo crear, usar y terminar Workers de forma apropiada.
+  <app-info-box [title]="texts().infoTitle">
+    {{ texts().infoDescription }}
   </app-info-box>
 
-  <app-code-explanation summaryText="📖 Ver Código - ¿Cómo funciona?">
-    <app-code-section title="1️⃣ Crear Worker">
+  <app-code-explanation [summaryText]="texts().codeSummary">
+    <app-code-section [title]="texts().codeSections?.createWorker">
       <pre><code>let worker = null;
 
 function createWorker() {{'{'}}
@@ -17,7 +16,7 @@ function createWorker() {{'{'}}
     worker.onerror = handleError;
 {{ '}' }}</code></pre>
     </app-code-section>
-    <app-code-section title="2️⃣ Terminar Worker">
+    <app-code-section [title]="texts().codeSections?.terminateWorker">
       <pre><code>function terminateWorker() {{'{'}}
     if (worker) {{'{'}}
         worker.terminate();
@@ -28,31 +27,37 @@ function createWorker() {{'{'}}
   </app-code-explanation>
 
   <div class="control-panel">
-    <h3>🎮 Control del Worker</h3>
+    <h3>{{ texts().controlPanel?.title }}</h3>
     
     <div class="status-indicator" [class.inactive]="workerStatus() === 'none'" [class.active]="workerStatus() === 'created' || workerStatus() === 'working'" [class.working]="workerStatus() === 'working'">
       <div class="status-dot"></div>
-      <span>{{ workerStatus() === 'none' ? 'Worker no creado' : workerStatus() === 'created' ? 'Worker listo' : workerStatus() === 'working' ? 'Procesando...' : 'Completado' }}</span>
+      <span>{{ statusLabel() }}</span>
     </div>
 
     <div class="button-grid">
-      <button class="btn-create" (click)="createWorker()" [disabled]="workerStatus() !== 'none'">➕ Crear Worker</button>
-      <button class="btn-start" (click)="startTask()" [disabled]="workerStatus() !== 'created'">▶️ Iniciar Tarea Larga</button>
-      <button class="btn-terminate" (click)="terminateWorker()" [disabled]="workerStatus() === 'none'">🛑 Terminar Worker</button>
-      <button (click)="clearLogs()">🗑️ Limpiar Logs</button>
+      <button class="btn-create" (click)="createWorker()" [disabled]="workerStatus() !== 'none'">
+        {{ texts().controlPanel?.buttons?.create }}
+      </button>
+      <button class="btn-start" (click)="startTask()" [disabled]="workerStatus() !== 'created'">
+        {{ texts().controlPanel?.buttons?.start }}
+      </button>
+      <button class="btn-terminate" (click)="terminateWorker()" [disabled]="workerStatus() === 'none'">
+        {{ texts().controlPanel?.buttons?.terminate }}
+      </button>
+      <button (click)="clearLogs()">{{ texts().controlPanel?.buttons?.clear }}</button>
     </div>
 
     <div class="progress-bar" [style.display]="workerStatus() === 'working' ? 'block' : 'none'">
-      <div class="progress-fill" [style.width.%]="progress()">{{ progress() }}%</div>
+      <div class="progress-fill" [style.width.%]="progress()">{{ formatProgress() }}</div>
     </div>
   </div>
 
-  <app-stats-panel title="📊 Estadísticas" [stats]="getStats()"></app-stats-panel>
+  <app-stats-panel [title]="texts().statsPanel?.title" [stats]="getStats()"></app-stats-panel>
 
   <app-log-panel 
     [logs]="logs()" 
-    title="📋 Log de Eventos"
-    emptyMessage="Sistema iniciado. Esperando acciones..."
+    [title]="texts().logPanel?.title"
+    [emptyMessage]="texts().logPanel?.empty"
     (clear)="clearLogs()">
   </app-log-panel>
 </div>

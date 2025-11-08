@@ -1,0 +1,66 @@
+.language-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 12, 20, 0.85);
+  backdrop-filter: blur(6px);
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+  padding: 24px;
+}
+
+.language-dialog {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 360px;
+  width: 100%;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.language-dialog h2 {
+  margin: 0 0 8px;
+  font-size: 24px;
+}
+
+.language-dialog p {
+  margin: 0 0 24px;
+  color: #555;
+}
+
+.language-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.language-options button {
+  border: none;
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  background: #f5f6ff;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  font-size: 16px;
+}
+
+.language-options button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(102, 126, 234, 0.2);
+}
+
+.language-options .native {
+  font-weight: 600;
+  color: #333;
+}
+
+.language-options .label {
+  font-size: 14px;
+  color: #667;
+}
+

@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-header',
@@ -8,5 +9,6 @@ import { Component } from '@angular/core';
   standalone: true
 })
 export class HeaderComponent {
+  protected readonly language = inject(LanguageService);
 }
 

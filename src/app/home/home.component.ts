@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NavigationService } from '../core/services/navigation.service';
+import { LanguageService } from '../core/services/language.service';
 
 @Component({
   selector: 'app-home',
@@ -10,10 +11,11 @@ import { NavigationService } from '../core/services/navigation.service';
   standalone: true
 })
 export class HomeComponent {
-  examples: any[];
+  protected readonly navigation = inject(NavigationService);
+  protected readonly language = inject(LanguageService);
 
-  constructor(private navigationService: NavigationService) {
-    this.examples = this.navigationService.getExamples();
-  }
+  readonly examples = this.navigation.examples;
+  readonly learnItems = computed(() => this.language.t<string[]>('home.learnItems', []));
+  readonly orderItems = computed(() => this.language.t<string[]>('home.orderItems', []));
 }
 

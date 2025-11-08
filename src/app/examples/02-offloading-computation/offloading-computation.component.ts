@@ -1,14 +1,15 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InfoBoxComponent } from '../../core/components/info-box/info-box.component';
 import { CodeExplanationComponent } from '../../core/components/code-explanation/code-explanation.component';
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
+import { LanguageService } from '../../core/services/language.service';
 
 interface PrimeResult {
   primes: number[];
   duration: number;
-  method: 'Worker' | 'Hilo Principal';
+  method: 'worker' | 'main';
 }
 
 @Component({
@@ -19,6 +20,10 @@ interface PrimeResult {
   standalone: true
 })
 export class OffloadingComputationComponent implements OnInit, OnDestroy {
+  private readonly language = inject(LanguageService);
+
+  readonly texts = computed(() => this.language.t<any>('examplesContent.offloadingComputation'));
+
   count = signal(50000);
   isLoading = signal(false);
   result = signal<PrimeResult | null>(null);
@@ -33,19 +38,19 @@ export class OffloadingComputationComponent implements OnInit, OnDestroy {
       this.worker.onmessage = (e: MessageEvent<{ primes: number[]; count: number }>) => {
         const endTime = performance.now();
         const duration = Math.round(endTime - (this.startTime || 0));
-        
-        console.log('✅ Worker completó el cálculo');
-        
+
+        console.log(this.texts().logs.workerComplete);
+
         this.isLoading.set(false);
         this.result.set({
           primes: e.data.primes,
           duration,
-          method: 'Worker'
+          method: 'worker'
         });
       };
 
       this.worker.onerror = (error: ErrorEvent) => {
-        console.error('❌ Error en el worker:', error);
+        console.error(`${this.texts().logs.workerError}:`, error);
         this.isLoading.set(false);
       };
     }
@@ -69,12 +74,12 @@ export class OffloadingComputationComponent implements OnInit, OnDestroy {
 
   calculateWithWorker() {
     if (!this.worker) {
-      alert('Web Workers no soportados en este navegador');
+      alert(this.texts().alerts.unsupported);
       return;
     }
 
     const count = this.count();
-    console.log(`🚀 Iniciando cálculo de ${count} números primos en Worker...`);
+    console.log(this.format(this.texts().logs.workerStart, { count }));
     this.isLoading.set(true);
     this.result.set(null);
     this.startTime = performance.now();
@@ -84,8 +89,8 @@ export class OffloadingComputationComponent implements OnInit, OnDestroy {
 
   calculateInMainThread() {
     const count = this.count();
-    console.log(`🐌 Iniciando cálculo de ${count} números primos en el hilo principal...`);
-    console.warn('⚠️ La UI se congelará durante el cálculo');
+    console.log(this.format(this.texts().logs.mainStart, { count }));
+    console.warn(this.texts().logs.mainWarning);
 
     this.isLoading.set(true);
     this.result.set(null);
@@ -97,13 +102,13 @@ export class OffloadingComputationComponent implements OnInit, OnDestroy {
       const endTime = performance.now();
       const duration = Math.round(endTime - startTime);
 
-      console.log('✅ Cálculo en hilo principal completado');
-      
+      console.log(this.texts().logs.mainComplete);
+
       this.isLoading.set(false);
       this.result.set({
         primes,
         duration,
-        method: 'Hilo Principal'
+        method: 'main'
       });
     }, 100);
   }
@@ -127,6 +132,13 @@ export class OffloadingComputationComponent implements OnInit, OnDestroy {
     }
     
     return primes;
+  }
+
+  private format(template: string, params: Record<string, string | number>): string {
+    return Object.entries(params).reduce(
+      (acc, [key, value]) => acc.replace(new RegExp(`{{\\s*${key}\\s*}}`, 'g'), String(value)),
+      template
+    );
   }
 }
 

@@ -1,20 +1,19 @@
 <div class="example-content">
-  <h1>⚠️ Manejo de Errores en Workers</h1>
-  <p class="subtitle">Ejemplo 04: Capturando y manejando errores</p>
+  <h1>{{ texts().title }}</h1>
+  <p class="subtitle">{{ texts().subtitle }}</p>
 
-  <app-info-box title="💡 ¿Qué demuestra este ejemplo?">
-    Los errores que ocurren dentro de un Web Worker deben ser manejados adecuadamente.
-    Este ejemplo muestra diferentes tipos de errores y cómo capturarlos.
+  <app-info-box [title]="texts().infoTitle">
+    {{ texts().infoDescription }}
   </app-info-box>
 
-  <app-code-explanation summaryText="📖 Ver Código - ¿Cómo funciona?">
-    <app-code-section title="1️⃣ Configurar Error Handler">
+  <app-code-explanation [summaryText]="texts().codeSummary">
+    <app-code-section [title]="texts().codeSections?.configureHandler">
       <pre><code>worker.onerror = function(error) {{'{'}}
     console.error('Error:', error.message);
     error.preventDefault();
 {{ '}' }};</code></pre>
     </app-code-section>
-    <app-code-section title="2️⃣ Provocar Error en Worker">
+    <app-code-section [title]="texts().codeSections?.throwError">
       <pre><code>// Esto causará un ReferenceError
 funcionQueNoExiste();
 
@@ -24,41 +23,19 @@ throw new Error('Error personalizado');</code></pre>
   </app-code-explanation>
 
   <div class="error-types">
-    <div class="error-card">
-      <h3>❌ 1. Error de Referencia</h3>
-      <p>Intentar usar una función que no existe.</p>
-      <button (click)="triggerError('reference')">Provocar ReferenceError</button>
-    </div>
-
-    <div class="error-card">
-      <h3>🔢 2. Error de Tipo</h3>
-      <p>Operación con tipo de dato incorrecto.</p>
-      <button (click)="triggerError('type')">Provocar TypeError</button>
-    </div>
-
-    <div class="error-card">
-      <h3>➗ 3. Error Matemático</h3>
-      <p>Operaciones matemáticas inválidas.</p>
-      <button (click)="triggerError('math')">Provocar Error Matemático</button>
-    </div>
-
-    <div class="error-card">
-      <h3>🎯 4. Error Personalizado</h3>
-      <p>Lanzar un error con mensaje específico.</p>
-      <button (click)="triggerError('custom')">Lanzar Error Personalizado</button>
-    </div>
-
-    <div class="error-card success">
-      <h3>✅ 5. Operación Exitosa</h3>
-      <p>Operación que se completa sin errores.</p>
-      <button (click)="triggerError('success')">Ejecutar sin Errores</button>
-    </div>
+    @for (type of errorKeys; track type) {
+      <div class="error-card" [class.success]="type === 'success'">
+        <h3>{{ texts().errorTypes?.[type]?.title }}</h3>
+        <p>{{ texts().errorTypes?.[type]?.description }}</p>
+        <button (click)="triggerError(type)">{{ texts().errorTypes?.[type]?.button }}</button>
+      </div>
+    }
   </div>
 
   <app-log-panel 
     [logs]="logs()" 
-    title="📋 Consola de Eventos"
-    emptyMessage="Sistema iniciado. Esperando acciones..."
+    [title]="texts().logPanel?.title"
+    [emptyMessage]="texts().logPanel?.empty"
     (clear)="clearLogs()">
   </app-log-panel>
 </div>

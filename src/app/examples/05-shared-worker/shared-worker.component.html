@@ -1,24 +1,23 @@
 <div class="example-content">
-  <h1>🌐 Shared Worker</h1>
-  <p class="subtitle">Ejemplo 05: Comunicación entre múltiples pestañas</p>
+  <h1>{{ texts().title }}</h1>
+  <p class="subtitle">{{ texts().subtitle }}</p>
 
-  <app-info-box title="💡 ¿Qué demuestra este ejemplo?">
-    Un Shared Worker puede ser compartido por múltiples contextos de navegación (pestañas, iframes, ventanas).
-    Es ideal para compartir estado, gestionar conexiones WebSocket compartidas, o sincronizar datos entre pestañas.
+  <app-info-box [title]="texts().infoTitle">
+    {{ texts().infoDescription }}
   </app-info-box>
 
   <div class="warning-box">
-    ⚠️ <strong>Nota de compatibilidad:</strong> Los Shared Workers no son soportados en todos los navegadores.
-    Safari no los soporta. Firefox y Chrome sí.
+    {{ texts().compatibilityNote?.title }}
+    {{ texts().compatibilityNote?.details }}
   </div>
 
-  <app-code-explanation summaryText="📖 Ver Código - ¿Cómo funciona?">
-    <app-code-section title="1️⃣ Crear Shared Worker">
+  <app-code-explanation [summaryText]="texts().codeSummary">
+    <app-code-section [title]="texts().codeSections?.createSharedWorker">
       <pre><code>const sharedWorker = new SharedWorker('shared_worker.js');
 const port = sharedWorker.port;
 port.start();</code></pre>
     </app-code-section>
-    <app-code-section title="2️⃣ Conectar y Enviar">
+    <app-code-section [title]="texts().codeSections?.connectAndSend">
       <pre><code>port.postMessage({{'{'}}
     type: 'message',
     tabId: 'tab-123',
@@ -28,43 +27,45 @@ port.start();</code></pre>
   </app-code-explanation>
 
   <div class="status-panel">
-    <h3>📊 Estado de la Conexión</h3>
+    <h3>{{ texts().statusPanel?.title }}</h3>
     <div class="status-item">
-      <span class="status-label">Estado del Worker:</span>
-      <span class="status-value" [class.active]="workerStatus() === 'Conectado'">{{ workerStatus() }}</span>
+      <span class="status-label">{{ texts().statusPanel?.statusLabel }}</span>
+      <span class="status-value" [class.active]="workerStatus() === 'connected'">
+        {{ texts().statusPanel?.statuses?.[workerStatus()] }}
+      </span>
     </div>
     <div class="status-item">
-      <span class="status-label">Tu ID de Pestaña:</span>
+      <span class="status-label">{{ texts().statusPanel?.tabIdLabel }}</span>
       <span class="status-value">{{ tabId() }}</span>
     </div>
     <div class="status-item">
-      <span class="status-label">Pestañas Conectadas:</span>
+      <span class="status-label">{{ texts().statusPanel?.connectedLabel }}</span>
       <span class="status-value">{{ connectedTabs() }}</span>
     </div>
   </div>
 
   <div class="message-panel">
-    <h3>💬 Chat entre Pestañas</h3>
+    <h3>{{ texts().chatPanel?.title }}</h3>
     
     <div class="input-group">
       <input 
         type="text" 
-        placeholder="Escribe un mensaje..."
+        [placeholder]="texts().chatPanel?.placeholder"
         [value]="messageText()"
         (input)="messageText.set($any($event.target).value)"
         (keypress)="onKeyPress($event)"
       >
-      <button (click)="sendMessage()">Enviar</button>
+      <button (click)="sendMessage()">{{ texts().chatPanel?.sendButton }}</button>
     </div>
 
     <p class="instructions">
-      💡 <strong>Abre esta misma página en otra pestaña</strong> para ver cómo se comparten los mensajes
+      {{ texts().chatPanel?.instructions }}
     </p>
 
     <div class="messages" [class.active]="messages().length > 0">
       @if (messages().length === 0) {
         <p class="empty-message">
-          Los mensajes aparecerán aquí. Abre otra pestaña para probar la comunicación.
+          {{ texts().chatPanel?.emptyState }}
         </p>
       } @else {
         @for (msg of messages(); track $index) {

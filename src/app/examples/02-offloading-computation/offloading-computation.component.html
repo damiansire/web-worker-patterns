@@ -1,28 +1,27 @@
 <div class="example-content">
-  <h1>⚡ Descarga de Cómputo Pesado</h1>
-  <p class="subtitle">Ejemplo 02: Evitando el bloqueo de la UI</p>
+  <h1>{{ texts().title }}</h1>
+  <p class="subtitle">{{ texts().subtitle }}</p>
 
-  <app-info-box title="💡 ¿Qué demuestra este ejemplo?">
-    Calcula números primos de forma intensiva. Prueba ambos botones y observa cómo el contador
-    y la animación se comportan diferente cuando el cálculo se hace en el hilo principal vs. en un worker.
+  <app-info-box [title]="texts().infoTitle">
+    {{ texts().infoDescription }}
   </app-info-box>
 
-  <app-code-explanation summaryText="📖 Ver Código - ¿Cómo funciona?">
-    <app-code-section title="1️⃣ Crear Worker para Cómputo">
+  <app-code-explanation [summaryText]="texts().codeSummary">
+    <app-code-section [title]="texts().codeSections.createWorker">
       <pre><code>const worker = new Worker('worker.js');</code></pre>
     </app-code-section>
-    <app-code-section title="2️⃣ Enviar Tarea al Worker">
+    <app-code-section [title]="texts().codeSections.sendTask">
       <pre><code>const count = 50000;
 worker.postMessage({{ '{' }} count: count {{ '}' }});</code></pre>
     </app-code-section>
-    <app-code-section title="3️⃣ Procesar en Worker">
+    <app-code-section [title]="texts().codeSections.processInWorker">
       <pre><code>self.onmessage = function(e) {{'{'}}
     const {{ '{' }} count {{ '}' }} = e.data;
     const primes = calculatePrimes(count);
     self.postMessage({{ '{' }} primes: primes {{ '}' }});
 {{ '}' }};</code></pre>
     </app-code-section>
-    <app-code-section title="4️⃣ Recibir Resultado">
+    <app-code-section [title]="texts().codeSections.receiveResult">
       <pre><code>worker.onmessage = function(e) {{'{'}}
     const primes = e.data.primes;
     console.log('Cálculo completo:', primes);
@@ -31,10 +30,10 @@ worker.postMessage({{ '{' }} count: count {{ '}' }});</code></pre>
   </app-code-explanation>
 
   <div class="demo-section">
-    <h3>🔢 Calculadora de Números Primos</h3>
+    <h3>{{ texts().demo.title }}</h3>
     
     <div class="input-group">
-      <label>¿Cuántos números primos calcular?</label>
+      <label>{{ texts().demo.countLabel }}</label>
       <input 
         type="number" 
         [ngModel]="count()"
@@ -47,12 +46,12 @@ worker.postMessage({{ '{' }} count: count {{ '}' }});</code></pre>
 
     <div class="button-group">
       <button class="btn-worker" (click)="calculateWithWorker()" [disabled]="isLoading()">
-        🚀 Calcular con Worker<br>
-        <small style="font-size: 11px; font-weight: normal;">(No bloquea la UI)</small>
+        {{ texts().demo.workerButton }}<br>
+        <small style="font-size: 11px; font-weight: normal;">{{ texts().demo.workerNote }}</small>
       </button>
       <button class="btn-main" (click)="calculateInMainThread()" [disabled]="isLoading()">
-        🐌 Calcular en Hilo Principal<br>
-        <small style="font-size: 11px; font-weight: normal;">(Bloquea la UI)</small>
+        {{ texts().demo.mainButton }}<br>
+        <small style="font-size: 11px; font-weight: normal;">{{ texts().demo.mainNote }}</small>
       </button>
     </div>
 
@@ -60,15 +59,15 @@ worker.postMessage({{ '{' }} count: count {{ '}' }});</code></pre>
     
     @if (result(); as res) {
       <div class="result">
-        <strong>✅ Cálculo completado con {{ res.method }}</strong><br>
-        <strong>Total calculados:</strong> {{ res.primes.length.toLocaleString() }} números primos<br>
-        <strong>Últimos 5:</strong> {{ res.primes.slice(-5).join(', ') }}<br>
-        <strong>Tiempo transcurrido:</strong> {{ res.duration }} ms<br>
-        <strong>Número primo más grande:</strong> {{ res.primes[res.primes.length - 1].toLocaleString() }}
-        @if (res.method === 'Hilo Principal') {
+        <strong>{{ texts().result.completedPrefix }} {{ texts().result.methodLabels[res.method] }}</strong><br>
+        <strong>{{ texts().result.totalLabel }}</strong> {{ res.primes.length.toLocaleString() }} {{ texts().result.primesSuffix }}<br>
+        <strong>{{ texts().result.lastFiveLabel }}</strong> {{ res.primes.slice(-5).join(', ') }}<br>
+        <strong>{{ texts().result.durationLabel }}</strong> {{ res.duration }} {{ texts().result.durationUnit }}<br>
+        <strong>{{ texts().result.largestLabel }}</strong> {{ res.primes[res.primes.length - 1].toLocaleString() }}
+        @if (res.method === 'main') {
           <div class="warning">
-            ⚠️ <strong>Nota:</strong> Durante este cálculo, la UI estuvo completamente congelada.
-            El contador se detuvo y las animaciones dejaron de funcionar.
+            <strong>{{ texts().result.warningTitle }}</strong>
+            {{ texts().result.warningDescription }}
           </div>
         }
       </div>
@@ -76,12 +75,12 @@ worker.postMessage({{ '{' }} count: count {{ '}' }});</code></pre>
   </div>
 
   <div class="ui-test">
-    <h3 style="margin-bottom: 10px;">🎯 Prueba de Respuesta de la UI</h3>
-    <p style="font-size: 14px; opacity: 0.9;">Si la UI está bloqueada, este contador se congelará</p>
+    <h3 style="margin-bottom: 10px;">{{ texts().uiTest.title }}</h3>
+    <p style="font-size: 14px; opacity: 0.9;">{{ texts().uiTest.info }}</p>
     <div class="counter">{{ counter() }}</div>
     <div class="animation-box"></div>
     <p style="font-size: 12px; opacity: 0.8;">
-      La caja debería seguir rebotando suavemente
+      {{ texts().uiTest.note }}
     </p>
   </div>
 </div>

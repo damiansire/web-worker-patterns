@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InfoBoxComponent } from '../../core/components/info-box/info-box.component';
@@ -6,6 +6,7 @@ import { CodeExplanationComponent } from '../../core/components/code-explanation
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
 import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log-panel.component';
 import { StatsPanelComponent, StatCard } from '../../core/components/stats-panel/stats-panel.component';
+import { LanguageService } from '../../core/services/language.service';
 
 interface Task {
   id: string;
@@ -39,6 +40,10 @@ interface PoolStats {
   standalone: true
 })
 export class WorkerPoolComponent implements OnInit, OnDestroy {
+  private readonly language = inject(LanguageService);
+
+  readonly texts = computed(() => this.language.t<any>('examplesContent.workerPool'));
+
   poolSizeInput = signal(4);
   taskCount = signal(20);
   taskDuration = signal(1000);
@@ -58,8 +63,11 @@ export class WorkerPoolComponent implements OnInit, OnDestroy {
   private statsInterval?: any;
 
   ngOnInit() {
-    this.addLog('Sistema listo. Configura e inicializa tu Worker Pool.', 'info');
-    this.addLog(`💻 Núcleos CPU detectados: ${navigator.hardwareConcurrency || 'desconocido'}`, 'info');
+    this.addLog(this.texts().logs?.systemReady ?? 'System ready', 'info');
+    this.addLog(
+      this.format(this.texts().logs?.cpuInfo, { cores: navigator.hardwareConcurrency || '—' }),
+      'info'
+    );
     this.updateStats();
   }
 
@@ -80,7 +88,7 @@ export class WorkerPoolComponent implements OnInit, OnDestroy {
   initializePool() {
     const size = this.poolSizeInput();
     if (size < 1 || size > 16) {
-      this.addLog('Por favor, ingresa un tamaño de pool entre 1 y 16', 'warning');
+      this.addLog(this.texts().logs?.invalidPoolSize ?? 'Invalid pool size', 'warning');
       return;
     }
 
@@ -99,7 +107,14 @@ export class WorkerPoolComponent implements OnInit, OnDestroy {
     });
 
     this.poolInitialized.set(true);
-    this.addLog(`✨ Recomendación: Tu sistema tiene ${navigator.hardwareConcurrency || 4} núcleos CPU`, 'info');
+    this.addLog(
+      this.format(this.texts().logs?.poolInitialized, { size }),
+      'success'
+    );
+    this.addLog(
+      this.format(this.texts().logs?.recommendation, { cores: navigator.hardwareConcurrency || 4 }),
+      'info'
+    );
     
     this.statsInterval = setInterval(() => {
       if (this.workerPool) {
@@ -111,7 +126,7 @@ export class WorkerPoolComponent implements OnInit, OnDestroy {
 
   addTasks() {
     if (!this.workerPool) {
-      this.addLog('Primero debes inicializar el pool', 'warning');
+      this.addLog(this.texts().logs?.initializeFirst ?? 'Initialize the pool first', 'warning');
       return;
     }
 
@@ -134,11 +149,11 @@ export class WorkerPoolComponent implements OnInit, OnDestroy {
 
   stressTest() {
     if (!this.workerPool) {
-      this.addLog('Primero debes inicializar el pool', 'warning');
+      this.addLog(this.texts().logs?.initializeFirst ?? 'Initialize the pool first', 'warning');
       return;
     }
 
-    this.addLog('🔥 Iniciando stress test con 100 tareas...', 'warning');
+    this.addLog(this.texts().logs?.stressStart ?? 'Starting stress test...', 'warning');
     
     const tasks: Task[] = [];
     for (let i = 0; i < 100; i++) {
@@ -177,17 +192,18 @@ export class WorkerPoolComponent implements OnInit, OnDestroy {
 
   clearLogs() {
     this.logs.set([]);
-    this.addLog('Logs limpiados', 'info');
+    this.addLog(this.texts().logs?.logsCleared ?? 'Logs cleared', 'info');
   }
 
   getStats(): StatCard[] {
+    const statsTexts = this.texts().statsPanel ?? {};
     return [
-      { label: 'Workers en Pool', value: this.poolSize() },
-      { label: 'En Cola', value: this.queueSize() },
-      { label: 'Procesando', value: this.processing() },
-      { label: 'Completadas', value: this.completed(), type: 'success' },
-      { label: 'Tareas/seg', value: this.throughput().toFixed(1) },
-      { label: 'Tiempo Prom', value: this.avgTime() > 0 ? `${this.avgTime()}ms` : '-' }
+      { label: statsTexts.poolSize ?? 'Workers', value: this.poolSize() },
+      { label: statsTexts.queue ?? 'Queue', value: this.queueSize() },
+      { label: statsTexts.processing ?? 'Processing', value: this.processing() },
+      { label: statsTexts.completed ?? 'Completed', value: this.completed(), type: 'success' },
+      { label: statsTexts.throughput ?? 'Tasks/sec', value: this.throughput().toFixed(1) },
+      { label: statsTexts.avgTime ?? 'Avg time', value: this.avgTime() > 0 ? `${this.avgTime()}ms` : '-' }
     ];
   }
 
@@ -207,6 +223,16 @@ export class WorkerPoolComponent implements OnInit, OnDestroy {
     this.completed.set(stats.completed);
     this.avgTime.set(stats.avgTime);
     this.throughput.set(stats.throughput);
+  }
+
+  format(template: string | undefined, params: Record<string, string | number>): string {
+    if (!template) {
+      return Object.values(params).join(' ');
+    }
+    return Object.entries(params).reduce(
+      (acc, [key, value]) => acc.replace(new RegExp(`{{\\s*${key}\\s*}}`, 'g'), String(value)),
+      template
+    );
   }
 }
 
@@ -228,7 +254,6 @@ class WorkerPool {
     this.statsCallback = statsCallback;
     this.startTime = Date.now();
     this.initializeWorkers();
-    component.addLog(`Worker Pool inicializado con ${size} workers`, 'success');
   }
 
   private initializeWorkers() {
@@ -245,7 +270,13 @@ class WorkerPool {
       };
 
       worker.instance.onerror = (error: ErrorEvent) => {
-        this.component.addLog(`Error en Worker #${worker.id}: ${error.message}`, 'error');
+        this.component.addLog(
+          this.component.format(this.component.texts().logs?.workerError ?? '', {
+            id: worker.id,
+            message: error.message
+          }),
+          'error'
+        );
       };
 
       this.workers.push(worker);
@@ -253,7 +284,10 @@ class WorkerPool {
   }
 
   addTasks(tasks: Task[]) {
-    this.component.addLog(`${tasks.length} tareas agregadas a la cola`, 'info');
+    this.component.addLog(
+      this.component.format(this.component.texts().logs?.tasksAdded ?? '', { count: tasks.length }),
+      'info'
+    );
     this.taskQueue.push(...tasks);
     this.processQueue();
   }
@@ -279,7 +313,13 @@ class WorkerPool {
     this.activeCount++;
     task.startedAt = Date.now();
 
-    this.component.addLog(`Worker #${worker.id} procesando Tarea #${parseInt(task.id.slice(-3)) % 1000}`, 'info');
+    this.component.addLog(
+      this.component.format(this.component.texts().logs?.workerProcessing ?? '', {
+        id: worker.id,
+        task: task.data
+      }),
+      'info'
+    );
 
     worker.instance.postMessage({
       taskId: task.id,
@@ -295,7 +335,14 @@ class WorkerPool {
     const completionTime = Date.now() - (task.startedAt || 0);
     this.completionTimes.push(completionTime);
 
-    this.component.addLog(`Worker #${worker.id} completó Tarea #${parseInt(result.taskId.slice(-3)) % 1000} en ${completionTime}ms`, 'success');
+    this.component.addLog(
+      this.component.format(this.component.texts().logs?.workerCompleted ?? '', {
+        id: worker.id,
+        task: task.data,
+        time: completionTime
+      }),
+      'success'
+    );
 
     worker.busy = false;
     worker.currentTask = null;
@@ -309,7 +356,10 @@ class WorkerPool {
   clearQueue() {
     const cleared = this.taskQueue.length;
     this.taskQueue = [];
-    this.component.addLog(`Cola limpiada: ${cleared} tareas removidas`, 'warning');
+    this.component.addLog(
+      this.component.format(this.component.texts().logs?.queueCleared ?? '', { count: cleared }),
+      'warning'
+    );
     this.statsCallback();
   }
 
@@ -320,7 +370,7 @@ class WorkerPool {
     this.workers = [];
     this.taskQueue = [];
     this.activeCount = 0;
-    this.component.addLog('Worker Pool apagado', 'warning');
+    this.component.addLog(this.component.texts().logs?.poolShutdown ?? 'Pool shutdown', 'warning');
     this.statsCallback();
   }
 
@@ -344,3 +394,4 @@ class WorkerPool {
     };
   }
 }
+
