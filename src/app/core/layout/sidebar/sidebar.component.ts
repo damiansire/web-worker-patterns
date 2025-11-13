@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { LanguageService } from '../../services/language.service';
 import { NavigationService } from '../../services/navigation.service';
+import { LanguageSelectorComponent } from '../../components/language-selector/language-selector.component';
 
 interface Example {
   number: string;
@@ -13,7 +14,7 @@ interface Example {
 
 @Component({
   selector: 'app-sidebar',
-  imports: [RouterLink],
+  imports: [RouterLink, LanguageSelectorComponent],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss',
   standalone: true

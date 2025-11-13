@@ -9,13 +9,28 @@
   position: sticky;
   top: 15px;
 
-  h3 {
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
     margin-bottom: 15px;
-    color: #333;
-    font-size: 20px;
-    font-weight: 600;
+    flex-direction: column;
+
+    h3 {
+      margin: 0;
+      color: #333;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .sidebar-language-selector {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
   }
-  
+
   // Custom scrollbar
   &::-webkit-scrollbar {
     width: 6px;

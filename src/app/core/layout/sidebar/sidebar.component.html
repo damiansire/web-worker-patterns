@@ -1,5 +1,8 @@
 <nav class="sidebar">
-  <h3>{{ language.t('sidebar.title') }}</h3>
+  <div class="sidebar-header">
+    <h3>{{ language.t('sidebar.title') }}</h3>
+    <app-language-selector class="sidebar-language-selector" />
+  </div>
   @for (example of examples(); track example.number) {
     <a [routerLink]="example.route" class="sidebar-link">
       <span class="number">{{ example.number }}</span>

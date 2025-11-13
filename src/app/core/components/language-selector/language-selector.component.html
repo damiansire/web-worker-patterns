@@ -1,9 +1,20 @@
-<div class="language-toggle" *ngIf="language.isLanguageSelected() && !selectorOpen()">
-  <button type="button" (click)="openSelector()">
-    <span class="globe" aria-hidden="true">🌐</span>
-    <span class="label">{{ language.t('language.changeButton') }}</span>
-    <span class="current" *ngIf="currentLanguage() as lang">{{ lang.nativeLabel }}</span>
-  </button>
+<div
+  class="language-inline"
+  role="group"
+  [attr.aria-label]="language.t('language.selectorTitle')"
+>
+  @for (lang of orderedLanguages(); track lang.code) {
+    <button
+      type="button"
+      (click)="selectLanguage(lang.code)"
+      [class.active]="isSelected(lang.code)"
+      [attr.aria-pressed]="isSelected(lang.code)"
+      [attr.aria-label]="language.t(`language.${lang.code === 'es' ? 'spanish' : lang.code === 'en' ? 'english' : 'portuguese'}`)"
+    >
+      <span class="flag" aria-hidden="true">{{ flagEmoji[lang.code] }}</span>
+      <span class="code">{{ codeLabel(lang.code) }}</span>
+    </button>
+  }
 </div>
 
 <div class="language-overlay" *ngIf="selectorOpen()">
@@ -12,7 +23,7 @@
     <p>{{ language.t('language.selectorDescription') }}</p>
 
     <div class="language-options">
-      @for (lang of language.languages; track lang.code) {
+      @for (lang of orderedLanguages(); track lang.code) {
         <button type="button" (click)="selectLanguage(lang.code)">
           <span class="native">{{ lang.nativeLabel }}</span>
           <span class="label">{{ language.t(`language.${lang.code === 'es' ? 'spanish' : lang.code === 'en' ? 'english' : 'portuguese'}`) }}</span>

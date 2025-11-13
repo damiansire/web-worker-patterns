@@ -15,6 +15,22 @@ export class LanguageSelectorComponent {
   protected readonly currentLanguage = computed(() =>
     this.language.languages.find(lang => lang.code === this.language.currentLanguage())
   );
+  private readonly languageOrder: LanguageCode[] = ['es', 'pt', 'en'];
+  protected readonly orderedLanguages = computed(() =>
+    this.languageOrder
+      .map(code => this.language.languages.find(lang => lang.code === code))
+      .filter((lang): lang is (typeof this.language.languages)[number] => Boolean(lang))
+  );
+  protected readonly flagEmoji: Record<LanguageCode, string> = {
+    es: '🇪🇸',
+    en: '🇺🇸',
+    pt: '🇧🇷'
+  };
+  private readonly codeLabels: Record<LanguageCode, string> = {
+    es: 'ES',
+    en: 'EN',
+    pt: 'PT'
+  };
 
   constructor() {
     effect(() => {
@@ -22,10 +38,6 @@ export class LanguageSelectorComponent {
         this.selectorOpen.set(true);
       }
     });
-  }
-
-  openSelector() {
-    this.selectorOpen.set(true);
   }
 
   closeSelector() {
@@ -37,6 +49,14 @@ export class LanguageSelectorComponent {
   selectLanguage(code: LanguageCode) {
     this.language.setLanguage(code);
     this.selectorOpen.set(false);
+  }
+
+  protected isSelected(code: LanguageCode): boolean {
+    return this.language.currentLanguage() === code;
+  }
+
+  protected codeLabel(code: LanguageCode): string {
+    return this.codeLabels[code];
   }
 }
 
