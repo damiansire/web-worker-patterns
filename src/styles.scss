@@ -13,6 +13,9 @@ body {
   min-height: 100vh;
 }
 
+// Syntax highlighting theme
+@import 'highlight.js/styles/github-dark.css';
+
 // Import shared styles
 @import './app/core/styles/_shared';
 
