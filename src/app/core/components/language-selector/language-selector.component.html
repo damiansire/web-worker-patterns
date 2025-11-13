@@ -1,4 +1,12 @@
-<div class="language-overlay" *ngIf="!language.isLanguageSelected()">
+<div class="language-toggle" *ngIf="language.isLanguageSelected() && !selectorOpen()">
+  <button type="button" (click)="openSelector()">
+    <span class="globe" aria-hidden="true">🌐</span>
+    <span class="label">{{ language.t('language.changeButton') }}</span>
+    <span class="current" *ngIf="currentLanguage() as lang">{{ lang.nativeLabel }}</span>
+  </button>
+</div>
+
+<div class="language-overlay" *ngIf="selectorOpen()">
   <div class="language-dialog">
     <h2>{{ language.t('language.selectorTitle') }}</h2>
     <p>{{ language.t('language.selectorDescription') }}</p>
@@ -11,6 +19,15 @@
         </button>
       }
     </div>
+
+    <button
+      type="button"
+      class="close-button"
+      (click)="closeSelector()"
+      *ngIf="language.isLanguageSelected()"
+    >
+      {{ language.t('language.closeButton') }}
+    </button>
   </div>
 </div>
 

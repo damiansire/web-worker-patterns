@@ -11,7 +11,9 @@ export const translations = {
       selectorDescription: 'Elige el idioma para la experiencia completa de la aplicación.',
       spanish: 'Español',
       english: 'Inglés',
-      portuguese: 'Portugués'
+      portuguese: 'Portugués',
+      changeButton: 'Cambiar idioma',
+      closeButton: 'Mantener idioma actual'
     },
     sidebar: {
       title: '📚 Ejemplos'
@@ -522,7 +524,9 @@ export const translations = {
       selectorDescription: 'Pick the language for the full application experience.',
       spanish: 'Spanish',
       english: 'English',
-      portuguese: 'Portuguese'
+      portuguese: 'Portuguese',
+      changeButton: 'Change language',
+      closeButton: 'Keep current language'
     },
     sidebar: {
       title: '📚 Examples'
@@ -1033,7 +1037,9 @@ export const translations = {
       selectorDescription: 'Escolha o idioma para aproveitar toda a experiência do aplicativo.',
       spanish: 'Espanhol',
       english: 'Inglês',
-      portuguese: 'Português'
+      portuguese: 'Português',
+      changeButton: 'Alterar idioma',
+      closeButton: 'Manter idioma atual'
     },
     sidebar: {
       title: '📚 Exemplos'
