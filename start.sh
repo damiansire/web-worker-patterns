@@ -1,141 +1,105 @@
 #!/bin/bash
 
-# Script para iniciar automáticamente el proyecto con Docker
+# Script para iniciar automáticamente la nueva app Angular del proyecto
 # Compatible con macOS, Linux y Git Bash en Windows
 
-set -e  # Salir si hay algún error
+set -euo pipefail
 
-echo "🚀 Iniciando Web Worker Patterns..."
-echo ""
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "${PROJECT_ROOT}"
 
-# Colores para el output
+NODE_REQUIRED_MAJOR=18
+NPM_REQUIRED_MAJOR=9
+DEV_SERVER_PORT=4200
+STAMP_FILE="node_modules/.install.stamp"
+
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
-NC='\033[0m' # No Color
+NC='\033[0m' # Sin color
 
-# Función para verificar si Docker está instalado
-check_docker_installed() {
-    if ! command -v docker &> /dev/null; then
-        echo -e "${RED}❌ Docker no está instalado${NC}"
-        echo ""
-        echo "Por favor, instala Docker Desktop desde:"
-        echo "https://www.docker.com/products/docker-desktop"
+print_header() {
+    echo "====================================="
+    echo "  Web Worker Patterns - Angular App"
+    echo "====================================="
+    echo ""
+}
+
+require_command() {
+    local cmd="$1"
+    local friendly="$2"
+    if ! command -v "${cmd}" >/dev/null 2>&1; then
+        echo -e "${RED}❌ ${friendly} no está instalado o no está en el PATH${NC}"
         exit 1
     fi
-    echo -e "${GREEN}✅ Docker está instalado${NC}"
+    echo -e "${GREEN}✅ ${friendly} detectado${NC}"
 }
 
-# Función para verificar si Docker está corriendo
-check_docker_running() {
-    if ! docker info &> /dev/null; then
-        echo -e "${YELLOW}⚠️  Docker no está corriendo${NC}"
-        return 1
+check_node_version() {
+    local version
+    version="$(node -v | sed 's/^v//')"
+    local major="${version%%.*}"
+
+    if (( major < NODE_REQUIRED_MAJOR )); then
+        echo -e "${RED}❌ Se requiere Node.js >= ${NODE_REQUIRED_MAJOR}.x (encontrado ${version})${NC}"
+        echo "Descarga la versión actual desde: https://nodejs.org/"
+        exit 1
     fi
-    echo -e "${GREEN}✅ Docker está corriendo${NC}"
-    return 0
+    echo -e "${GREEN}✅ Node.js ${version}${NC}"
 }
 
-# Función para intentar iniciar Docker (solo macOS)
-start_docker_macos() {
-    echo -e "${YELLOW}🔄 Intentando iniciar Docker Desktop...${NC}"
-    
-    if [ -d "/Applications/Docker.app" ]; then
-        open -a Docker
-        echo "⏳ Esperando a que Docker inicie..."
-        
-        # Esperar hasta 60 segundos a que Docker inicie
-        for i in {1..60}; do
-            if docker info &> /dev/null; then
-                echo -e "${GREEN}✅ Docker iniciado correctamente${NC}"
-                return 0
-            fi
-            sleep 1
-            echo -n "."
-        done
-        
-        echo ""
-        echo -e "${RED}❌ Docker tardó demasiado en iniciar${NC}"
-        return 1
+check_npm_version() {
+    local version
+    version="$(npm -v)"
+    local major="${version%%.*}"
+
+    if (( major < NPM_REQUIRED_MAJOR )); then
+        echo -e "${RED}❌ Se requiere npm >= ${NPM_REQUIRED_MAJOR}.x (encontrado ${version})${NC}"
+        echo "Actualiza npm con: npm install -g npm"
+        exit 1
+    fi
+    echo -e "${GREEN}✅ npm ${version}${NC}"
+}
+
+install_dependencies() {
+    local needs_install=0
+
+    if [ ! -d "node_modules" ]; then
+        needs_install=1
+    elif [ ! -f "${STAMP_FILE}" ]; then
+        needs_install=1
+    elif [ "package-lock.json" -nt "${STAMP_FILE}" ]; then
+        needs_install=1
+    fi
+
+    if [ "${needs_install}" -eq 1 ]; then
+        echo -e "${YELLOW}📦 Instalando dependencias del proyecto...${NC}"
+        npm install
+        mkdir -p "$(dirname "${STAMP_FILE}")"
+        touch "${STAMP_FILE}"
+        echo -e "${GREEN}✅ Dependencias listas${NC}"
     else
-        echo -e "${RED}❌ Docker Desktop no encontrado en /Applications${NC}"
-        return 1
+        echo -e "${GREEN}✅ Dependencias actualizadas (saltando npm install)${NC}"
     fi
 }
 
-# Función principal
+start_dev_server() {
+    echo ""
+    echo -e "${YELLOW}⚙️  Iniciando servidor de desarrollo Angular...${NC}"
+    echo "   🌐 URL: http://localhost:${DEV_SERVER_PORT}"
+    echo "   📌 Usa Ctrl+C para detener el servidor."
+    echo ""
+    npm run start -- --host 0.0.0.0 --port "${DEV_SERVER_PORT}"
+}
+
 main() {
-    echo "=====================================";
-    echo "  Web Worker Patterns - Setup";
-    echo "=====================================";
-    echo ""
-    
-    # 1. Verificar que Docker esté instalado
-    check_docker_installed
-    
-    # 2. Verificar que Docker esté corriendo
-    if ! check_docker_running; then
-        echo ""
-        
-        # Detectar sistema operativo
-        OS="$(uname -s)"
-        case "${OS}" in
-            Darwin*)    # macOS
-                start_docker_macos
-                ;;
-            Linux*)     # Linux
-                echo -e "${YELLOW}Para iniciar Docker en Linux, ejecuta:${NC}"
-                echo "  sudo systemctl start docker"
-                echo ""
-                echo "¿Deseas que lo inicie automáticamente? (requiere sudo)"
-                read -p "Iniciar Docker ahora? (s/n): " -n 1 -r
-                echo ""
-                if [[ $REPLY =~ ^[SsYy]$ ]]; then
-                    sudo systemctl start docker
-                    sleep 2
-                    if ! check_docker_running; then
-                        exit 1
-                    fi
-                else
-                    exit 1
-                fi
-                ;;
-            MINGW*|MSYS*|CYGWIN*)    # Windows (Git Bash)
-                echo -e "${YELLOW}En Windows, inicia Docker Desktop manualmente:${NC}"
-                echo "  1. Busca 'Docker Desktop' en el menú inicio"
-                echo "  2. Haz clic para iniciarlo"
-                echo "  3. Espera a ver el ícono en la bandeja del sistema"
-                echo "  4. Ejecuta este script nuevamente"
-                exit 1
-                ;;
-            *)
-                echo -e "${RED}Sistema operativo no reconocido: ${OS}${NC}"
-                exit 1
-                ;;
-        esac
-    fi
-    
-    echo ""
-    
-    # 3. Construir y levantar el contenedor
-    echo "🐳 Levantando contenedor con Docker Compose..."
-    docker-compose up -d --build
-    
-    echo ""
-    echo -e "${GREEN}=====================================";
-    echo "  ✅ ¡Listo!";
-    echo "=====================================${NC}";
-    echo ""
-    echo "🌐 Abre tu navegador en:"
-    echo "   👉 http://localhost:9000"
-    echo ""
-    echo "📋 Comandos útiles:"
-    echo "   Ver logs:      docker-compose logs -f"
-    echo "   Detener:       docker-compose down"
-    echo "   Reiniciar:     docker-compose restart"
-    echo ""
+    print_header
+    require_command node "Node.js"
+    require_command npm "npm"
+    check_node_version
+    check_npm_version
+    install_dependencies
+    start_dev_server
 }
 
-# Ejecutar función principal
 main
-

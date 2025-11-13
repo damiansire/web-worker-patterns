@@ -1,131 +1,108 @@
 @echo off
-REM Script para Windows para iniciar el proyecto con Docker
+REM Script para Windows para iniciar la nueva app Angular del proyecto
 REM Compatible con Command Prompt y PowerShell
 
 setlocal enabledelayedexpansion
 
-REM Habilitar colores ANSI en Windows 10+
-reg add HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1 /f >nul 2>&1
+cd /d "%~dp0"
+
+set NODE_REQUIRED_MAJOR=18
+set NPM_REQUIRED_MAJOR=9
+set DEV_SERVER_PORT=4200
+set STAMP_FILE=node_modules\.install.stamp
 
 echo.
 echo =====================================
-echo   Web Worker Patterns - Setup
+echo   Web Worker Patterns - Angular App
 echo =====================================
 echo.
 
-REM Verificar si Docker esta instalado
-docker --version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo [X] Docker no esta instalado
-    echo.
-    echo Por favor, instala Docker Desktop desde:
-    echo https://www.docker.com/products/docker-desktop
+REM Verificar Node.js
+node --version >nul 2>&1
+if errorlevel 1 (
+    echo [X] Node.js no esta instalado o no esta en el PATH.
+    echo Descargalo desde: https://nodejs.org/
     echo.
     pause
     exit /b 1
 )
-echo [OK] Docker esta instalado
 
-REM Verificar si Docker esta corriendo
-docker info >nul 2>&1
-if %errorlevel% neq 0 (
-    echo [!] Docker no esta corriendo
+for /f "tokens=1 delims=v" %%i in ('node -v') do set NODE_VERSION=%%i
+for /f "tokens=1 delims=." %%i in ("!NODE_VERSION!") do set NODE_MAJOR=%%i
+
+if !NODE_MAJOR! lss %NODE_REQUIRED_MAJOR% (
+    echo [X] Se requiere Node.js ^>= %NODE_REQUIRED_MAJOR%.x (encontrado !NODE_VERSION!).
+    echo Por favor actualiza Node.js.
     echo.
-    echo Intentando iniciar Docker Desktop automaticamente...
-    
-    REM Intentar iniciar Docker Desktop
-    if exist "C:\Program Files\Docker\Docker\Docker Desktop.exe" (
-        start "" "C:\Program Files\Docker\Docker\Docker Desktop.exe"
-        echo Esperando a que Docker Desktop inicie...
-        echo (Esto puede tomar 20-40 segundos)
-        echo.
-        
-        REM Esperar hasta 60 segundos a que Docker inicie
-        set /a counter=0
-        :wait_loop
-        timeout /t 2 /nobreak >nul
-        docker info >nul 2>&1
-        if %errorlevel% equ 0 (
-            echo.
-            echo [OK] Docker iniciado correctamente
-            goto docker_ready
-        )
-        
-        set /a counter+=2
-        if !counter! lss 60 (
-            echo|set /p="."
-            goto wait_loop
-        )
-        
-        echo.
-        echo [X] Docker tardo demasiado en iniciar
-        echo.
-        echo Por favor:
-        echo 1. Verifica que Docker Desktop este iniciando (icono en la bandeja)
-        echo 2. Espera unos segundos mas
-        echo 3. Ejecuta este script nuevamente
-        echo.
-        pause
-        exit /b 1
-    ) else (
-        echo [X] Docker Desktop no encontrado en la ruta por defecto
-        echo.
-        echo Por favor, inicia Docker Desktop manualmente:
-        echo 1. Busca "Docker Desktop" en el menu inicio
-        echo 2. Haz clic para iniciarlo
-        echo 3. Espera a ver el icono en la bandeja del sistema
-        echo 4. Ejecuta este script nuevamente
-        echo.
-        pause
-        exit /b 1
-    )
+    pause
+    exit /b 1
+)
+echo [OK] Node.js !NODE_VERSION!
+
+REM Verificar npm
+npm --version >nul 2>&1
+if errorlevel 1 (
+    echo [X] npm no esta instalado o no esta en el PATH.
+    echo Instala npm desde: https://nodejs.org/
+    echo.
+    pause
+    exit /b 1
 )
 
-:docker_ready
-echo [OK] Docker esta corriendo
-echo.
-
-REM Levantar el contenedor
-echo Levantando contenedor con Docker Compose...
-echo (Esto puede tomar un momento la primera vez)
-echo.
-docker-compose up -d --build
-
-if %errorlevel% neq 0 (
+for /f "tokens=1 delims=." %%i in ('npm -v') do set NPM_MAJOR=%%i
+if !NPM_MAJOR! lss %NPM_REQUIRED_MAJOR% (
+    echo [X] Se requiere npm ^>= %NPM_REQUIRED_MAJOR%.x.
+    echo Actualiza npm con: npm install -g npm
     echo.
-    echo [X] Error al levantar el contenedor
-    echo.
-    echo Posibles soluciones:
-    echo 1. Verifica que el puerto 9000 este disponible
-    echo 2. Ejecuta: docker-compose down
-    echo 3. Intenta nuevamente
+    pause
+    exit /b 1
+)
+for /f %%i in ('npm -v') do set NPM_VERSION=%%i
+echo [OK] npm !NPM_VERSION!
+
+call :ensure_dependencies
+if errorlevel 1 (
+    echo [X] No fue posible instalar las dependencias.
     echo.
     pause
     exit /b 1
 )
 
 echo.
-echo =====================================
-echo   *** Listo! ***
-echo =====================================
+echo Iniciando servidor de desarrollo Angular...
+echo    URL: http://localhost:%DEV_SERVER_PORT%
+echo    Usa Ctrl+C para detener el servidor.
 echo.
-echo Abre tu navegador en:
-echo    ^>^>^> http://localhost:9000
-echo.
-echo Comandos utiles:
-echo    Ver logs:      docker-compose logs -f
-echo    Detener:       docker-compose down
-echo    Reiniciar:     docker-compose restart
-echo.
-echo.
-echo Presiona cualquier tecla para abrir en el navegador...
-pause >nul
+call npm run start -- --host 0.0.0.0 --port %DEV_SERVER_PORT%
+exit /b %errorlevel%
 
-REM Intentar abrir el navegador automaticamente
-start http://localhost:9000
+:ensure_dependencies
+if not exist node_modules (
+    call :install_dependencies
+    exit /b %errorlevel%
+)
 
+powershell -NoProfile -Command ^
+  "$stamp = Get-Item '%STAMP_FILE%' -ErrorAction SilentlyContinue; " ^
+  "$lock = Get-Item 'package-lock.json'; " ^
+  "if(-not $stamp -or $lock.LastWriteTimeUtc -gt $stamp.LastWriteTimeUtc) { exit 1 }"
+
+if errorlevel 1 (
+    call :install_dependencies
+    exit /b %errorlevel%
+)
+
+echo [OK] Dependencias actualizadas (sin ejecutar npm install)
+exit /b 0
+
+:install_dependencies
 echo.
-echo [OK] Navegador abierto
-echo.
-echo Presiona cualquier tecla para cerrar...
-pause >nul
+echo Instalando dependencias del proyecto...
+call npm install
+if errorlevel 1 (
+    echo [X] Error durante npm install.
+    exit /b 1
+)
+powershell -NoProfile -Command "New-Item -ItemType File -Force -Path '%STAMP_FILE%' | Out-Null" >nul
+echo [OK] Dependencias listas
+exit /b 0
