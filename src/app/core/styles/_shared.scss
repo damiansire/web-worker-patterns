@@ -1,6 +1,6 @@
 // Shared styles that can be used across examples
-@import './buttons';
-@import './containers';
+@use './buttons' as *;
+@use './containers' as *;
 
 // Common animations
 @keyframes slideIn {

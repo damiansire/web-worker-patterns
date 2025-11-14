@@ -1,4 +1,11 @@
-import { AfterContentChecked, Component, ElementRef, HostBinding, Input } from '@angular/core';
+import {
+  AfterContentChecked,
+  Component,
+  ElementRef,
+  HostBinding,
+  Input,
+  ViewChild
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import hljs from 'highlight.js/lib/core';
 import javascript from 'highlight.js/lib/languages/javascript';
@@ -25,7 +32,11 @@ if (!languagesRegistered) {
 export class CodeSectionComponent implements AfterContentChecked {
   @Input() title?: string;
   @Input() tech: CodeVariant = 'javascript';
-  @HostBinding('class.is-hidden') private hidden = false;
+  @Input() code?: string;
+  @Input() languageClass = 'language-typescript';
+  @ViewChild('codeBlock', { read: ElementRef }) private readonly codeBlock?: ElementRef<HTMLElement>;
+
+  private hidden = false;
 
   private highlightedElements = new WeakSet<HTMLElement>();
 
@@ -33,6 +44,7 @@ export class CodeSectionComponent implements AfterContentChecked {
 
   ngAfterContentChecked() {
     this.highlightProjectedCode();
+    this.highlightInlineCode();
   }
 
   private highlightProjectedCode() {
@@ -52,8 +64,27 @@ export class CodeSectionComponent implements AfterContentChecked {
     });
   }
 
+  private highlightInlineCode() {
+    if (!this.codeBlock) {
+      return;
+    }
+
+    const element = this.codeBlock.nativeElement;
+    if (this.highlightedElements.has(element)) {
+      return;
+    }
+
+    hljs.highlightElement(element);
+    this.highlightedElements.add(element);
+  }
+
   setHidden(isHidden: boolean) {
     this.hidden = isHidden;
+  }
+
+  @HostBinding('class.is-hidden')
+  get isHidden(): boolean {
+    return this.hidden;
   }
 }
 

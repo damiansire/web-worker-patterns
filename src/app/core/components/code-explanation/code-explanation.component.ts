@@ -6,7 +6,7 @@ import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-code-explanation',
-  imports: [CommonModule, CodeSectionComponent],
+  imports: [CommonModule],
   templateUrl: './code-explanation.component.html',
   styleUrl: './code-explanation.component.scss',
   standalone: true

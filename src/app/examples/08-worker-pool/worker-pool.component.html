@@ -27,46 +27,50 @@
 
   <app-code-explanation [summaryText]="texts().codeSummary">
     <app-code-section [title]="texts().codeSections?.createPool">
-      <pre><code>class WorkerPool {{'{'}}
-    constructor(poolSize, workerScript) {{'{'}}
+      <pre ngNonBindable><code>class WorkerPool {{ '{' }}
+    constructor(poolSize, workerScript) {{ '{' }}
         this.poolSize = poolSize;
         this.workers = [];
         this.taskQueue = [];
         // Crear workers fijos
-        for (let i = 0; i < poolSize; i++) {{'{'}}
+        for (let i = 0; i < poolSize; i++) {{ '{' }}
             const worker = new Worker(workerScript);
-            this.workers.push({{'{'}} id: i, instance: worker, busy: false {{ '}' }});
+            this.workers.push({{ '{' }} id: i, instance: worker, busy: false {{ '}' }});
         {{ '}' }}
     {{ '}' }}
-{{ '}' }}</code></pre>
+{{ '}' }}
+</code></pre>
     </app-code-section>
     <app-code-section [title]="texts().codeSections?.addTask">
-      <pre><code>addTask(task) {{'{'}}
+      <pre ngNonBindable><code>addTask(task) {{ '{' }}
     this.taskQueue.push(task);
     this.processQueue();
-{{ '}' }}</code></pre>
+{{ '}' }}
+</code></pre>
     </app-code-section>
     <app-code-section [title]="texts().codeSections?.assignTask">
-      <pre><code>processQueue() {{'{'}}
+      <pre ngNonBindable><code>processQueue() {{ '{' }}
     const available = this.workers.filter(w => !w.busy);
-    available.forEach(worker => {{'{'}}
-        if (this.taskQueue.length > 0) {{'{'}}
+    available.forEach(worker => {{ '{' }}
+        if (this.taskQueue.length > 0) {{ '{' }}
             const task = this.taskQueue.shift();
             worker.busy = true;
             worker.instance.postMessage(task);
         {{ '}' }}
     {{ '}' }});
-{{ '}' }}</code></pre>
+{{ '}' }}
+</code></pre>
     </app-code-section>
     <app-code-section [title]="texts().codeSections?.receiveResult">
-      <pre><code>worker.instance.onmessage = (e) => {{'{'}}
+      <pre ngNonBindable><code>worker.instance.onmessage = (e) => {{ '{' }}
     worker.busy = false;
     this.processQueue();
     handleResult(e.data);
-{{ '}' }};</code></pre>
+{{ '}' }};
+</code></pre>
     </app-code-section>
     <app-code-section tech="angular" [title]="texts().codeSections?.createPool">
-      <pre><code class="language-typescript">class WorkerPool {{ '{' }}
+      <pre ngNonBindable><code class="language-typescript">class WorkerPool {{ '{' }}
   constructor(
     private size: number,
     private component: WorkerPoolComponent,
@@ -92,10 +96,11 @@
       this.workers.push(worker);
     {{ '}' }}
   {{ '}' }}
-{{ '}' }}</code></pre>
+{{ '}' }}
+</code></pre>
     </app-code-section>
     <app-code-section tech="angular" [title]="texts().codeSections?.addTask">
-      <pre><code class="language-typescript">addTasks(tasks: Task[]) {{ '{' }}
+      <pre ngNonBindable><code class="language-typescript">addTasks(tasks: Task[]) {{ '{' }}
   this.component.addLog(
     this.component.format(this.component.texts().logs?.tasksAdded ?? '', {{ '{' }} count: tasks.length {{ '}' }}),
     'info'
@@ -103,10 +108,11 @@
 
   this.taskQueue.push(...tasks);
   this.processQueue();
-{{ '}' }}</code></pre>
+{{ '}' }}
+</code></pre>
     </app-code-section>
     <app-code-section tech="angular" [title]="texts().codeSections?.assignTask">
-      <pre><code class="language-typescript">private processQueue() {{ '{' }}
+      <pre ngNonBindable><code class="language-typescript">private processQueue() {{ '{' }}
   const available = this.workers.filter(worker => !worker.busy);
 
   available.forEach(worker => {{ '{' }}
@@ -117,10 +123,11 @@
   {{ '}' }});
 
   this.statsCallback();
-{{ '}' }}</code></pre>
+{{ '}' }}
+</code></pre>
     </app-code-section>
     <app-code-section tech="angular" [title]="texts().codeSections?.receiveResult">
-      <pre><code class="language-typescript">private assignTaskToWorker(worker: WorkerData, task: Task) {{ '{' }}
+      <pre ngNonBindable><code class="language-typescript">private assignTaskToWorker(worker: WorkerData, task: Task) {{ '{' }}
   worker.busy = true;
   worker.currentTask = task;
   task.startedAt = Date.now();
@@ -137,7 +144,8 @@ private handleWorkerComplete(worker: WorkerData, result: any) {{ '{' }}
   worker.currentTask = null;
   this.processQueue();
   this.statsCallback();
-{{ '}' }}</code></pre>
+{{ '}' }}
+</code></pre>
     </app-code-section>
   </app-code-explanation>
 

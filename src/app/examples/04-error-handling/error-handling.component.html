@@ -8,20 +8,22 @@
 
   <app-code-explanation [summaryText]="texts().codeSummary">
     <app-code-section [title]="texts().codeSections?.configureHandler">
-      <pre><code>worker.onerror = function(error) {{'{'}}
+      <pre ngNonBindable><code>worker.onerror = function(error) {{ '{' }}
     console.error('Error:', error.message);
     error.preventDefault();
-{{ '}' }};</code></pre>
+{{ '}' }};
+</code></pre>
     </app-code-section>
     <app-code-section [title]="texts().codeSections?.throwError">
-      <pre><code>// Esto causará un ReferenceError
+      <pre ngNonBindable><code>// Esto causará un ReferenceError
 funcionQueNoExiste();
 
 // O lanzar error personalizado
-throw new Error('Error personalizado');</code></pre>
+throw new Error('Error personalizado');
+</code></pre>
     </app-code-section>
     <app-code-section tech="angular" [title]="texts().codeSections?.configureHandler">
-      <pre><code class="language-typescript">this.worker.onerror = (event: ErrorEvent) => {{ '{' }}
+      <pre ngNonBindable><code class="language-typescript">this.worker.onerror = (event: ErrorEvent) => {{ '{' }}
   event.preventDefault();
 
   this.addLog(this.texts().logs?.errorCaptured ?? 'Error captured in worker', 'error');
@@ -32,10 +34,11 @@ throw new Error('Error personalizado');</code></pre>
     this.worker?.terminate();
     this.createWorker();
   {{ '}' }}, 100);
-{{ '}' }};</code></pre>
+{{ '}' }};
+</code></pre>
     </app-code-section>
     <app-code-section tech="angular" [title]="texts().codeSections?.throwError">
-      <pre><code class="language-typescript">triggerError(type: string) {{ '{' }}
+      <pre ngNonBindable><code class="language-typescript">triggerError(type: string) {{ '{' }}
   this.addLog(
     this.format(this.texts().logs?.triggerError, {{ '{' }}
       type: this.getErrorTypeLabel(type as any)
@@ -47,7 +50,8 @@ throw new Error('Error personalizado');</code></pre>
     action: 'triggerError',
     errorType: type
   {{ '}' }});
-{{ '}' }};</code></pre>
+{{ '}' }};
+</code></pre>
     </app-code-section>
   </app-code-explanation>
 

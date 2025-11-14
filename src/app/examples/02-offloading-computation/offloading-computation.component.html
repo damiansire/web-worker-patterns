@@ -8,27 +8,31 @@
 
   <app-code-explanation [summaryText]="texts().codeSummary">
     <app-code-section [title]="texts().codeSections.createWorker">
-      <pre><code>const worker = new Worker('worker.js');</code></pre>
+      <pre ngNonBindable><code>const worker = new Worker('worker.js');
+</code></pre>
     </app-code-section>
     <app-code-section [title]="texts().codeSections.sendTask">
-      <pre><code>const count = 50000;
-worker.postMessage({{ '{' }} count: count {{ '}' }});</code></pre>
+      <pre ngNonBindable><code>const count = 50000;
+worker.postMessage({{ '{' }} count: count {{ '}' }});
+</code></pre>
     </app-code-section>
     <app-code-section [title]="texts().codeSections.processInWorker">
-      <pre><code>self.onmessage = function(e) {{'{'}}
+      <pre ngNonBindable><code>self.onmessage = function(e) {{ '{' }}
     const {{ '{' }} count {{ '}' }} = e.data;
     const primes = calculatePrimes(count);
     self.postMessage({{ '{' }} primes: primes {{ '}' }});
-{{ '}' }};</code></pre>
+{{ '}' }};
+</code></pre>
     </app-code-section>
     <app-code-section [title]="texts().codeSections.receiveResult">
-      <pre><code>worker.onmessage = function(e) {{'{'}}
+      <pre ngNonBindable><code>worker.onmessage = function(e) {{ '{' }}
     const primes = e.data.primes;
     console.log('Cálculo completo:', primes);
-{{ '}' }};</code></pre>
+{{ '}' }};
+</code></pre>
     </app-code-section>
     <app-code-section tech="angular" [title]="texts().codeSections.createWorker">
-      <pre><code class="language-typescript">ngOnInit() {{ '{' }}
+      <pre ngNonBindable><code class="language-typescript">ngOnInit() {{ '{' }}
   if (typeof Worker !== 'undefined') {{ '{' }}
     this.worker = new Worker(
       new URL('./offloading-computation.worker', import.meta.url),
@@ -37,10 +41,11 @@ worker.postMessage({{ '{' }} count: count {{ '}' }});</code></pre>
   {{ '}' }} else {{ '{' }}
     alert(this.texts().alerts.unsupported);
   {{ '}' }}
-{{ '}' }}</code></pre>
+{{ '}' }}
+</code></pre>
     </app-code-section>
     <app-code-section tech="angular" [title]="texts().codeSections.sendTask">
-      <pre><code class="language-typescript">calculateWithWorker() {{ '{' }}
+      <pre ngNonBindable><code class="language-typescript">calculateWithWorker() {{ '{' }}
   if (!this.worker) {{ '{' }}
     alert(this.texts().alerts.unsupported);
     return;
@@ -52,10 +57,11 @@ worker.postMessage({{ '{' }} count: count {{ '}' }});</code></pre>
   this.startTime = performance.now();
 
   this.worker.postMessage({{ '{' }} count {{ '}' }});
-{{ '}' }}</code></pre>
+{{ '}' }}
+</code></pre>
     </app-code-section>
     <app-code-section tech="angular" [title]="texts().codeSections.processInWorker">
-      <pre><code class="language-typescript">/// offloading-computation.worker.ts
+      <pre ngNonBindable><code class="language-typescript">/// offloading-computation.worker.ts
 addEventListener('message', (event: MessageEvent<{{ '{' }} count: number {{ '}' }}>) => {{ '{' }}
   const primes = calculatePrimes(event.data.count);
 
@@ -63,10 +69,11 @@ addEventListener('message', (event: MessageEvent<{{ '{' }} count: number {{ '}' 
     primes,
     count: primes.length
   {{ '}' }});
-{{ '}' }});</code></pre>
+{{ '}' }});
+</code></pre>
     </app-code-section>
     <app-code-section tech="angular" [title]="texts().codeSections.receiveResult">
-      <pre><code class="language-typescript">this.worker.onmessage = (event: MessageEvent<{{ '{' }} primes: number[]; count: number {{ '}' }}>) => {{ '{' }}
+      <pre ngNonBindable><code class="language-typescript">this.worker.onmessage = (event: MessageEvent<{{ '{' }} primes: number[]; count: number {{ '}' }}>) => {{ '{' }}
   const endTime = performance.now();
   const duration = Math.round(endTime - (this.startTime || 0));
 
@@ -81,7 +88,8 @@ addEventListener('message', (event: MessageEvent<{{ '{' }} count: number {{ '}' 
 this.worker.onerror = (error: ErrorEvent) => {{ '{' }}
   console.error(error);
   this.isLoading.set(false);
-{{ '}' }};</code></pre>
+{{ '}' }};
+</code></pre>
     </app-code-section>
   </app-code-explanation>
 

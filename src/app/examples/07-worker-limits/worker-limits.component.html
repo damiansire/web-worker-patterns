@@ -8,31 +8,34 @@
 
   <app-code-explanation [summaryText]="texts().codeSummary">
     <app-code-section [title]="texts().codeSections?.systemInfo">
-      <pre><code>const cpuCores = navigator.hardwareConcurrency || 4;</code></pre>
+      <pre ngNonBindable><code>const cpuCores = navigator.hardwareConcurrency || 4;
+</code></pre>
     </app-code-section>
     <app-code-section [title]="texts().codeSections?.createMultiple">
-      <pre><code>const workers = [];
+      <pre ngNonBindable><code>const workers = [];
 
-for (let i = 0; i < count; i++) {{'{'}}
-    try {{'{'}}
+for (let i = 0; i < count; i++) {{ '{' }}
+    try {{ '{' }}
         const worker = new Worker('worker.js');
         workers.push(worker);
-    {{ '}' }} catch (error) {{'{'}}
+    {{ '}' }} catch (error) {{ '{' }}
         console.error('Error:', error);
     {{ '}' }}
-{{ '}' }}</code></pre>
+{{ '}' }}
+</code></pre>
     </app-code-section>
     <app-code-section tech="angular" [title]="texts().codeSections?.systemInfo">
-      <pre><code class="language-typescript">getCPUCores(): number {{ '{' }}
+      <pre ngNonBindable><code class="language-typescript">getCPUCores(): number {{ '{' }}
   return navigator.hardwareConcurrency || 4;
 {{ '}' }}
 
 getRecommendedMax(): number {{ '{' }}
   return this.getCPUCores() * 2;
-{{ '}' }}</code></pre>
+{{ '}' }}
+</code></pre>
     </app-code-section>
     <app-code-section tech="angular" [title]="texts().codeSections?.createMultiple">
-      <pre><code class="language-typescript">async createMultipleWorkers() {{ '{' }}
+      <pre ngNonBindable><code class="language-typescript">async createMultipleWorkers() {{ '{' }}
   const count = this.workerCount();
   let successCount = 0;
   let failCount = 0;
@@ -53,7 +56,8 @@ getRecommendedMax(): number {{ '{' }}
     {{ '}' }}),
     failCount > 0 ? 'warning' : 'success'
   );
-{{ '}' }}</code></pre>
+{{ '}' }}
+</code></pre>
     </app-code-section>
   </app-code-explanation>
 

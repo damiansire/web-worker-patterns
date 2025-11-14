@@ -2,6 +2,12 @@
   @if (title) {
     <h3>{{ title }}</h3>
   }
-  <ng-content></ng-content>
-</div>
 
+  @if (code) {
+    <pre><code #codeBlock [class]="languageClass" [innerText]="code"></code></pre>
+  } @else {
+    <div class="code-slot">
+      <ng-content></ng-content>
+    </div>
+  }
+</div>

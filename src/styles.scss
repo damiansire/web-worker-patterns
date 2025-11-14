@@ -1,5 +1,10 @@
 /* You can add global styles to this file, and also import other style files */
 
+@use './app/core/styles/_shared' as *;
+
+// Syntax highlighting theme
+@import 'highlight.js/styles/github-dark.css';
+
 * {
   margin: 0;
   padding: 0;
@@ -12,10 +17,4 @@ body {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
 }
-
-// Syntax highlighting theme
-@import 'highlight.js/styles/github-dark.css';
-
-// Import shared styles
-@import './app/core/styles/_shared';
 
