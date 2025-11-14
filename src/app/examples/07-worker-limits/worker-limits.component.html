@@ -22,6 +22,39 @@ for (let i = 0; i < count; i++) {{'{'}}
     {{ '}' }}
 {{ '}' }}</code></pre>
     </app-code-section>
+    <app-code-section tech="angular" [title]="texts().codeSections?.systemInfo">
+      <pre><code class="language-typescript">getCPUCores(): number {{ '{' }}
+  return navigator.hardwareConcurrency || 4;
+{{ '}' }}
+
+getRecommendedMax(): number {{ '{' }}
+  return this.getCPUCores() * 2;
+{{ '}' }}</code></pre>
+    </app-code-section>
+    <app-code-section tech="angular" [title]="texts().codeSections?.createMultiple">
+      <pre><code class="language-typescript">async createMultipleWorkers() {{ '{' }}
+  const count = this.workerCount();
+  let successCount = 0;
+  let failCount = 0;
+
+  for (let i = 0; i < count; i++) {{ '{' }}
+    await new Promise(resolve => setTimeout(resolve, 50));
+    if (this.createWorker()) {{ '{' }}
+      successCount++;
+    {{ '}' }} else {{ '{' }}
+      failCount++;
+    {{ '}' }}
+  {{ '}' }}
+
+  this.addLog(
+    this.format(this.texts().logs?.multipleResult, {{ '{' }}
+      success: successCount,
+      fail: failCount
+    {{ '}' }}),
+    failCount > 0 ? 'warning' : 'success'
+  );
+{{ '}' }}</code></pre>
+    </app-code-section>
   </app-code-explanation>
 
   <div class="system-info-panel">
