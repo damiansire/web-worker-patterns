@@ -28,6 +28,46 @@
     console.log('Hilo principal recibió:', respuesta);
 {{ '}' }};</code></pre>
         </app-code-section>
+        <app-code-section tech="angular" [title]="texts().codeSections.createWorker">
+          <pre><code class="language-typescript">ngOnInit() {{ '{' }}
+  if (typeof Worker !== 'undefined') {{ '{' }}
+    this.worker = new Worker(new URL('./basic-communication.worker', import.meta.url), {{ '{' }} type: 'module' {{ '}' }});
+    this.worker.onmessage = (event: MessageEvent) => {{ '{' }}
+      this.addMessage(event.data, 'worker');
+    {{ '}' }};
+  {{ '}' }} else {{ '{' }}
+    alert('❌ Tu navegador no soporta Web Workers.');
+  {{ '}' }}
+{{ '}' }}</code></pre>
+        </app-code-section>
+        <app-code-section tech="angular" [title]="texts().codeSections.sendToWorker">
+          <pre><code class="language-typescript">sendMessage() {{ '{' }}
+  const message = this.messageText().trim();
+  if (!message || !this.worker) {{ '{' }}
+    return;
+  {{ '}' }}
+
+  this.addMessage(message, 'main');
+  this.worker.postMessage(message);
+  this.messageText.set('');
+{{ '}' }}</code></pre>
+        </app-code-section>
+        <app-code-section tech="angular" [title]="texts().codeSections.receiveInWorker">
+          <pre><code class="language-typescript">/// basic-communication.worker.ts
+addEventListener('message', ({ data }) => {{ '{' }}
+  const response = `Procesé tu mensaje: ${{ '{' }}data{{ '}' }}`;
+  postMessage(response);
+{{ '}' }});</code></pre>
+        </app-code-section>
+        <app-code-section tech="angular" [title]="texts().codeSections.receiveInMain">
+          <pre><code class="language-typescript">this.worker.onmessage = (event: MessageEvent) => {{ '{' }}
+  this.addMessage(event.data, 'worker');
+{{ '}' }};
+
+this.worker.onerror = (error: ErrorEvent) => {{ '{' }}
+  this.addMessage(`Error: ${{ '{' }}error.message{{ '}' }}`, 'worker');
+{{ '}' }};</code></pre>
+        </app-code-section>
       </app-code-explanation>
 
       <div class="input-group">
