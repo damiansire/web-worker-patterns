@@ -23,6 +23,75 @@ export class OffloadingComputationComponent implements OnInit, OnDestroy {
   private readonly language = inject(LanguageService);
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.offloadingComputation'));
+  readonly codeSnippets = {
+    vanillaCreateWorker: `const worker = new Worker('worker.js');\n`,
+    vanillaSendTask: String.raw`const count = 50000;
+worker.postMessage({ count });
+`,
+    vanillaProcessInWorker: String.raw`self.onmessage = function (e) {
+  const { count } = e.data;
+  const primes = calculatePrimes(count);
+  self.postMessage({ primes });
+};
+`,
+    vanillaReceiveResult: String.raw`worker.onmessage = function (e) {
+  const primes = e.data.primes;
+  console.log('Cálculo completo:', primes);
+};
+`,
+    angularCreateWorker: String.raw`ngOnInit() {
+  if (typeof Worker !== 'undefined') {
+    this.worker = new Worker(
+      new URL('./offloading-computation.worker', import.meta.url),
+      { type: 'module' }
+    );
+  } else {
+    alert(this.texts().alerts.unsupported);
+  }
+}
+`,
+    angularSendTask: String.raw`calculateWithWorker() {
+  if (!this.worker) {
+    alert(this.texts().alerts.unsupported);
+    return;
+  }
+
+  const count = this.count();
+  this.isLoading.set(true);
+  this.result.set(null);
+  this.startTime = performance.now();
+
+  this.worker.postMessage({ count });
+}
+`,
+    workerTsFile: String.raw`/// offloading-computation.worker.ts
+addEventListener('message', (event: MessageEvent<{ count: number }>) => {
+  const primes = calculatePrimes(event.data.count);
+
+  postMessage({
+    primes,
+    count: primes.length
+  });
+});
+`,
+    angularReceiveResult: String.raw`this.worker.onmessage = (event: MessageEvent<{ primes: number[]; count: number }>) => {
+  const endTime = performance.now();
+  const duration = Math.round(endTime - (this.startTime || 0));
+
+  this.isLoading.set(false);
+  this.result.set({
+    primes: event.data.primes,
+    duration,
+    method: 'worker'
+  });
+};
+
+this.worker.onerror = (error: ErrorEvent) => {
+  console.error(error);
+  this.isLoading.set(false);
+};
+`
+  };
 
   count = signal(50000);
   isLoading = signal(false);

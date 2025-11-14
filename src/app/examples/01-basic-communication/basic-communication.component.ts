@@ -22,6 +22,60 @@ export class BasicCommunicationComponent implements OnInit, OnDestroy {
   private readonly language = inject(LanguageService);
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.basicCommunication'));
+  readonly codeSnippets = {
+    vanillaCreateWorker: `const myWorker = new Worker('worker.js');\n`,
+    vanillaSendMessage: `myWorker.postMessage('¡Hola Worker!');\n`,
+    vanillaReceiveInWorker: String.raw`self.onmessage = function (e) {
+  const mensaje = e.data;
+  const respuesta = 'Procesé tu mensaje: ' + mensaje;
+  self.postMessage(respuesta);
+};
+`,
+    vanillaReceiveInMain: String.raw`myWorker.onmessage = function (e) {
+  const respuesta = e.data;
+  console.log('Hilo principal recibió:', respuesta);
+};
+`,
+    angularCreateWorker: String.raw`ngOnInit() {
+  if (typeof Worker !== 'undefined') {
+    this.worker = new Worker(
+      new URL('./basic-communication.worker', import.meta.url),
+      { type: 'module' }
+    );
+    this.worker.onmessage = (event: MessageEvent) => {
+      this.addMessage(event.data, 'worker');
+    };
+  } else {
+    alert('❌ Tu navegador no soporta Web Workers.');
+  }
+}
+`,
+    angularSendMessage: String.raw`sendMessage() {
+  const message = this.messageText().trim();
+  if (!message || !this.worker) {
+    return;
+  }
+
+  this.addMessage(message, 'main');
+  this.worker.postMessage(message);
+  this.messageText.set('');
+}
+`,
+    workerTsFile: String.raw`/// basic-communication.worker.ts
+addEventListener('message', ({ data }) => {
+  const response = \`Procesé tu mensaje: \${data}\`;
+  postMessage(response);
+});
+`,
+    angularReceiveInMain: String.raw`this.worker.onmessage = (event: MessageEvent) => {
+  this.addMessage(event.data, 'worker');
+};
+
+this.worker.onerror = (error: ErrorEvent) => {
+  this.addMessage(\`Error: \${error.message}\`, 'worker');
+};
+`
+  };
 
   messageText = signal('');
   messages = signal<Message[]>([]);
