@@ -65,6 +65,80 @@
     handleResult(e.data);
 {{ '}' }};</code></pre>
     </app-code-section>
+    <app-code-section tech="angular" [title]="texts().codeSections?.createPool">
+      <pre><code class="language-typescript">class WorkerPool {{ '{' }}
+  constructor(
+    private size: number,
+    private component: WorkerPoolComponent,
+    private statsCallback: () => void
+  ) {{ '{' }}
+    this.startTime = Date.now();
+    this.initializeWorkers();
+  {{ '}' }}
+
+  private initializeWorkers() {{ '{' }}
+    for (let i = 0; i < this.size; i++) {{ '{' }}
+      const worker: WorkerData = {{ '{' }}
+        id: i + 1,
+        instance: new Worker(new URL('./worker-pool.worker', import.meta.url), {{ '{' }} type: 'module' {{ '}' }}),
+        busy: false,
+        currentTask: null
+      {{ '}' }};
+
+      worker.instance.onmessage = (event: MessageEvent) => {{ '{' }}
+        this.handleWorkerComplete(worker, event.data);
+      {{ '}' }};
+
+      this.workers.push(worker);
+    {{ '}' }}
+  {{ '}' }}
+{{ '}' }}</code></pre>
+    </app-code-section>
+    <app-code-section tech="angular" [title]="texts().codeSections?.addTask">
+      <pre><code class="language-typescript">addTasks(tasks: Task[]) {{ '{' }}
+  this.component.addLog(
+    this.component.format(this.component.texts().logs?.tasksAdded ?? '', {{ '{' }} count: tasks.length {{ '}' }}),
+    'info'
+  );
+
+  this.taskQueue.push(...tasks);
+  this.processQueue();
+{{ '}' }}</code></pre>
+    </app-code-section>
+    <app-code-section tech="angular" [title]="texts().codeSections?.assignTask">
+      <pre><code class="language-typescript">private processQueue() {{ '{' }}
+  const available = this.workers.filter(worker => !worker.busy);
+
+  available.forEach(worker => {{ '{' }}
+    const task = this.taskQueue.shift();
+    if (task) {{ '{' }}
+      this.assignTaskToWorker(worker, task);
+    {{ '}' }}
+  {{ '}' }});
+
+  this.statsCallback();
+{{ '}' }}</code></pre>
+    </app-code-section>
+    <app-code-section tech="angular" [title]="texts().codeSections?.receiveResult">
+      <pre><code class="language-typescript">private assignTaskToWorker(worker: WorkerData, task: Task) {{ '{' }}
+  worker.busy = true;
+  worker.currentTask = task;
+  task.startedAt = Date.now();
+
+  worker.instance.postMessage({{ '{' }}
+    taskId: task.id,
+    data: task.data,
+    duration: task.duration
+  {{ '}' }});
+{{ '}' }}
+
+private handleWorkerComplete(worker: WorkerData, result: any) {{ '{' }}
+  worker.busy = false;
+  worker.currentTask = null;
+  this.processQueue();
+  this.statsCallback();
+{{ '}' }}</code></pre>
+    </app-code-section>
   </app-code-explanation>
 
   <app-stats-panel [title]="texts().statsPanel?.title" [stats]="getStats()"></app-stats-panel>
