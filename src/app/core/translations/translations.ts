@@ -15,6 +15,14 @@ export const translations = {
       changeButton: 'Cambiar idioma',
       closeButton: 'Mantener idioma actual'
     },
+    codeExplanation: {
+      angularButton: 'Angular',
+      javascriptButton: 'JavaScript',
+      emptyState: {
+        angular: 'Aún no hay código Angular disponible para este ejemplo.',
+        javascript: 'Aún no hay código JavaScript disponible para este ejemplo.'
+      }
+    },
     sidebar: {
       title: '📚 Ejemplos'
     },
@@ -528,6 +536,14 @@ export const translations = {
       changeButton: 'Change language',
       closeButton: 'Keep current language'
     },
+    codeExplanation: {
+      angularButton: 'Angular',
+      javascriptButton: 'JavaScript',
+      emptyState: {
+        angular: 'Angular code is not available for this example yet.',
+        javascript: 'JavaScript code is not available for this example yet.'
+      }
+    },
     sidebar: {
       title: '📚 Examples'
     },
@@ -1040,6 +1056,14 @@ export const translations = {
       portuguese: 'Português',
       changeButton: 'Alterar idioma',
       closeButton: 'Manter idioma atual'
+    },
+    codeExplanation: {
+      angularButton: 'Angular',
+      javascriptButton: 'JavaScript',
+      emptyState: {
+        angular: 'Ainda não há código Angular disponível para este exemplo.',
+        javascript: 'Ainda não há código JavaScript disponível para este exemplo.'
+      }
     },
     sidebar: {
       title: '📚 Exemplos'

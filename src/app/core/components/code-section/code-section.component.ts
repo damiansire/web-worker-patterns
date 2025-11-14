@@ -1,9 +1,10 @@
-import { AfterContentChecked, Component, ElementRef, Input } from '@angular/core';
+import { AfterContentChecked, Component, ElementRef, HostBinding, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import hljs from 'highlight.js/lib/core';
 import javascript from 'highlight.js/lib/languages/javascript';
 import json from 'highlight.js/lib/languages/json';
 import typescript from 'highlight.js/lib/languages/typescript';
+import { CodeVariant } from '../code-explanation/code-variant.type';
 
 let languagesRegistered = false;
 
@@ -23,6 +24,8 @@ if (!languagesRegistered) {
 })
 export class CodeSectionComponent implements AfterContentChecked {
   @Input() title?: string;
+  @Input() tech: CodeVariant = 'javascript';
+  @HostBinding('class.is-hidden') private hidden = false;
 
   private highlightedElements = new WeakSet<HTMLElement>();
 
@@ -47,6 +50,10 @@ export class CodeSectionComponent implements AfterContentChecked {
       hljs.highlightElement(block);
       this.highlightedElements.add(block);
     });
+  }
+
+  setHidden(isHidden: boolean) {
+    this.hidden = isHidden;
   }
 }
 

@@ -1,7 +1,32 @@
 <details class="code-explanation">
-  <summary>{{ summaryText }}</summary>
+  <summary>
+    <div class="summary-content">
+      <span class="summary-text">{{ summaryText }}</span>
+      <div class="variant-buttons">
+        <button
+          type="button"
+          [class.active]="isSelected('javascript')"
+          (click)="selectVariant('javascript')"
+        >
+          {{ javascriptLabel() }}
+        </button>
+        <button
+          type="button"
+          [class.active]="isSelected('angular')"
+          (click)="selectVariant('angular')"
+        >
+          {{ angularLabel() }}
+        </button>
+      </div>
+    </div>
+  </summary>
   <div class="code-sections-list">
     <ng-content></ng-content>
+    @if (showEmptyState()) {
+      <p class="empty-state">
+        {{ emptyStateMessage() }}
+      </p>
+    }
   </div>
 </details>
 

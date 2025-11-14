@@ -27,3 +27,7 @@
   }
 }
 
+:host(.is-hidden) {
+  display: none;
+}
+
