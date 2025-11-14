@@ -16,6 +16,9 @@ interface Message {
 type WorkerStatus = 'disconnected' | 'connected' | 'unsupported';
 type SharedWorkerEvent = 'connected' | 'broadcast' | 'tabConnected' | 'tabDisconnected';
 
+const code = (strings: TemplateStringsArray, ...values: unknown[]) =>
+  `${String.raw(strings, ...values).trim()}` + '\n';
+
 @Component({
   selector: 'app-shared-worker',
   imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent],
@@ -28,17 +31,20 @@ export class SharedWorkerComponent implements OnInit, OnDestroy {
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.sharedWorker'));
   readonly codeSnippets = {
-    createSharedWorker: `const sharedWorker = new SharedWorker('shared_worker.js');
+    createSharedWorker: code`
+const sharedWorker = new SharedWorker('shared_worker.js');
 const port = sharedWorker.port;
 port.start();
 `,
-    basicMessage: `port.postMessage({
+    basicMessage: code`
+port.postMessage({
   type: 'message',
   tabId: 'tab-123',
   message: 'Hola desde pestaña 1'
 });
 `,
-    angularComponent: String.raw`ngOnInit() {
+    angularComponent: code`
+ngOnInit() {
   if (typeof SharedWorker === 'undefined') {
     this.workerStatus.set('unsupported');
     alert(this.texts().alerts?.unsupported ?? 'SharedWorker not supported');

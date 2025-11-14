@@ -6,7 +6,8 @@ import { CodeExplanationComponent } from '../../core/components/code-explanation
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
 import { LanguageService } from '../../core/services/language.service';
 
-const block = (...lines: string[]) => `${lines.join('\n')}\n`;
+const code = (strings: TemplateStringsArray, ...values: unknown[]) =>
+  `${String.raw(strings, ...values).trim()}` + '\n';
 
 interface Message {
   text: string;
@@ -25,57 +26,63 @@ export class BasicCommunicationComponent implements OnInit, OnDestroy {
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.basicCommunication'));
   readonly codeSnippets = {
-    vanillaCreateWorker: block("const myWorker = new Worker('worker.js');"),
-    vanillaSendMessage: block("myWorker.postMessage('¡Hola Worker!');"),
-    vanillaReceiveInWorker: block(
-      'self.onmessage = function (e) {',
-      '  const mensaje = e.data;',
-      "  const respuesta = 'Procesé tu mensaje: ' + mensaje;",
-      '  self.postMessage(respuesta);',
-      '};'
-    ),
-    vanillaReceiveInMain: block(
-      'myWorker.onmessage = function (e) {',
-      '  const respuesta = e.data;',
-      "  console.log('Hilo principal recibió:', respuesta);",
-      '};'
-    ),
-    angularComponent: block(
-      'ngOnInit() {',
-      "  if (typeof Worker !== 'undefined') {",
-      "    this.worker = new Worker(",
-      "      new URL('./basic-communication.worker', import.meta.url),",
-      "      { type: 'module' }",
-      '    );',
-      '    this.worker.onmessage = (event: MessageEvent) => {',
-      "      this.addMessage(event.data, 'worker');",
-      '    };',
-      '    this.worker.onerror = (error: ErrorEvent) => {',
-      "      this.addMessage(`Error: ${error.message}`, 'worker');",
-      '    };',
-      '  } else {',
-      "    alert('❌ Tu navegador no soporta Web Workers.');",
-      '  }',
-      '}',
-      '',
-      'sendMessage() {',
-      '  const message = this.messageText().trim();',
-      '  if (!message || !this.worker) {',
-      '    return;',
-      '  }',
-      '',
-      "  this.addMessage(message, 'main');",
-      '  this.worker.postMessage(message);',
-      "  this.messageText.set('');",
-      '}'
-    ),
-    workerTsFile: block(
-      '/// basic-communication.worker.ts',
-      "addEventListener('message', ({ data }) => {",
-      "  const response = `Procesé tu mensaje: ${data}`;",
-      '  postMessage(response);',
-      '});'
-    )
+    vanillaCreateWorker: code`
+const myWorker = new Worker('worker.js');
+`,
+    vanillaSendMessage: code`
+myWorker.postMessage('¡Hola Worker!');
+`,
+    vanillaReceiveInWorker: code`
+self.onmessage = function (e) {
+  const mensaje = e.data;
+  const respuesta = 'Procesé tu mensaje: ' + mensaje;
+  self.postMessage(respuesta);
+};
+`,
+    vanillaReceiveInMain: code`
+myWorker.onmessage = function (e) {
+  const respuesta = e.data;
+  console.log('Hilo principal recibió:', respuesta);
+};
+`,
+    angularComponent: code`
+ngOnInit() {
+  if (typeof Worker !== 'undefined') {
+    this.worker = new Worker(
+      new URL('./basic-communication.worker', import.meta.url),
+      { type: 'module' }
+    );
+
+    this.worker.onmessage = (event: MessageEvent) => {
+      this.addMessage(event.data, 'worker');
+    };
+
+    this.worker.onerror = (error: ErrorEvent) => {
+      this.addMessage('Error: ' + error.message, 'worker');
+    };
+  } else {
+    alert('❌ Tu navegador no soporta Web Workers.');
+  }
+}
+
+sendMessage() {
+  const message = this.messageText().trim();
+  if (!message || !this.worker) {
+    return;
+  }
+
+  this.addMessage(message, 'main');
+  this.worker.postMessage(message);
+  this.messageText.set('');
+}
+`,
+    workerTsFile: code`
+/// basic-communication.worker.ts
+addEventListener('message', ({ data }) => {
+  const response = 'Procesé tu mensaje: ' + data;
+  postMessage(response);
+});
+`
   };
 
   messageText = signal('');

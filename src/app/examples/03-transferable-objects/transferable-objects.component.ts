@@ -6,7 +6,8 @@ import { CodeExplanationComponent } from '../../core/components/code-explanation
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
 import { LanguageService } from '../../core/services/language.service';
 
-const block = (...lines: string[]) => `${lines.join('\n')}\n`;
+const code = (strings: TemplateStringsArray, ...values: unknown[]) =>
+  `${String.raw(strings, ...values).trim()}` + '\n';
 
 interface ImageData {
   buffer: ArrayBuffer;
@@ -33,71 +34,71 @@ export class TransferableObjectsComponent implements OnInit, OnDestroy {
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.transferableObjects'));
   readonly codeSnippets = {
-    vanillaCreateBuffer: block(
-      'const imageData = new ImageData(1024, 1024);',
-      'const buffer = imageData.data.buffer;'
-    ),
-    vanillaClone: block(
-      'worker.postMessage({ imageData });',
-      '// El buffer original sigue siendo accesible'
-    ),
-    vanillaTransfer: block(
-      'worker.postMessage({ imageData }, [imageData.data.buffer]);',
-      '// ⚠️ El buffer original queda INACCESIBLE'
-    ),
-    angularComponent: block(
-      'private generateImageData(sizeMB: number) {',
-      '  const width = Math.sqrt((sizeMB * 1024 * 1024) / 4);',
-      '  const pixels = Math.floor(width * width);',
-      '',
-      '  const buffer = new ArrayBuffer(pixels * 4);',
-      '  const view = new Uint8Array(buffer);',
-      '',
-      '  for (let i = 0; i < pixels; i++) {',
-      '    const offset = i * 4;',
-      '    view[offset] = i % 256;',
-      '    view[offset + 1] = (i * 2) % 256;',
-      '    view[offset + 2] = (i * 3) % 256;',
-      '    view[offset + 3] = 255;',
-      '  }',
-      '',
-      '  return {',
-      '    buffer,',
-      '    width: Math.floor(width),',
-      '    height: Math.floor(width)',
-      '  };',
-      '}',
-      '',
-      'processWithClone() {',
-      '  const sizeMB = this.sizeMB();',
-      '  this.isLoading.set(true);',
-      '',
-      '  const imageData = this.generateImageData(sizeMB);',
-      "  this.displayImage(imageData, 'original');",
-      '  this.processingStartTime = performance.now();',
-      '',
-      '  this.worker?.postMessage({',
-      "    type: 'process',",
-      '    imageData,',
-      '    transferable: false',
-      '  });',
-      '}',
-      '',
-      'processWithTransfer() {',
-      '  const sizeMB = this.sizeMB();',
-      '  this.isLoading.set(true);',
-      '',
-      '  const imageData = this.generateImageData(sizeMB);',
-      "  this.displayImage(imageData, 'original');",
-      '  this.processingStartTime = performance.now();',
-      '',
-      '  this.worker?.postMessage({',
-      "    type: 'process',",
-      '    imageData,',
-      '    transferable: true',
-      '  }, [imageData.buffer]);',
-      '}'
-    )
+    vanillaCreateBuffer: code`
+const imageData = new ImageData(1024, 1024);
+const buffer = imageData.data.buffer;
+`,
+    vanillaClone: code`
+worker.postMessage({ imageData });
+// El buffer original sigue siendo accesible
+`,
+    vanillaTransfer: code`
+worker.postMessage({ imageData }, [imageData.data.buffer]);
+// ⚠️ El buffer original queda INACCESIBLE
+`,
+    angularComponent: code`
+private generateImageData(sizeMB: number) {
+  const width = Math.sqrt((sizeMB * 1024 * 1024) / 4);
+  const pixels = Math.floor(width * width);
+
+  const buffer = new ArrayBuffer(pixels * 4);
+  const view = new Uint8Array(buffer);
+
+  for (let i = 0; i < pixels; i++) {
+    const offset = i * 4;
+    view[offset] = i % 256;
+    view[offset + 1] = (i * 2) % 256;
+    view[offset + 2] = (i * 3) % 256;
+    view[offset + 3] = 255;
+  }
+
+  return {
+    buffer,
+    width: Math.floor(width),
+    height: Math.floor(width)
+  };
+}
+
+processWithClone() {
+  const sizeMB = this.sizeMB();
+  this.isLoading.set(true);
+
+  const imageData = this.generateImageData(sizeMB);
+  this.displayImage(imageData, 'original');
+  this.processingStartTime = performance.now();
+
+  this.worker?.postMessage({
+    type: 'process',
+    imageData,
+    transferable: false
+  });
+}
+
+processWithTransfer() {
+  const sizeMB = this.sizeMB();
+  this.isLoading.set(true);
+
+  const imageData = this.generateImageData(sizeMB);
+  this.displayImage(imageData, 'original');
+  this.processingStartTime = performance.now();
+
+  this.worker?.postMessage({
+    type: 'process',
+    imageData,
+    transferable: true
+  }, [imageData.buffer]);
+}
+`
   };
 
   readonly sizeOptions = computed(() =>

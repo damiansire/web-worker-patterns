@@ -7,9 +7,19 @@ import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log
 import { StatsPanelComponent, StatCard } from '../../core/components/stats-panel/stats-panel.component';
 import { LanguageService } from '../../core/services/language.service';
 
+const code = (strings: TemplateStringsArray, ...values: unknown[]) =>
+  `${String.raw(strings, ...values).trim()}` + '\n';
+
 @Component({
   selector: 'app-lifecycle-termination',
-  imports: [CommonModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, StatsPanelComponent],
+  imports: [
+    CommonModule,
+    InfoBoxComponent,
+    CodeExplanationComponent,
+    CodeSectionComponent,
+    LogPanelComponent,
+    StatsPanelComponent
+  ],
   templateUrl: './lifecycle-termination.component.html',
   styleUrl: './lifecycle-termination.component.scss',
   standalone: true
@@ -19,7 +29,8 @@ export class LifecycleTerminationComponent implements OnInit, OnDestroy {
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.lifecycleTermination'));
   readonly codeSnippets = {
-    basicCreate: `let worker = null;
+    basicCreate: code`
+let worker = null;
 
 function createWorker() {
   worker = new Worker('worker.js');
@@ -27,14 +38,16 @@ function createWorker() {
   worker.onerror = handleError;
 }
 `,
-    basicTerminate: `function terminateWorker() {
+    basicTerminate: code`
+function terminateWorker() {
   if (worker) {
     worker.terminate();
     worker = null;
   }
 }
 `,
-    angularComponent: String.raw`createWorker() {
+    angularComponent: code`
+createWorker() {
   if (this.worker) {
     return;
   }
@@ -100,17 +113,24 @@ terminateWorker() {
   }
 
   createWorker() {
-    if (this.worker) return;
-    
+    if (this.worker) {
+      return;
+    }
+
     this.addLog(this.texts().logs?.creating ?? 'Creating worker...', 'info');
-    
-    this.worker = new Worker(new URL('./lifecycle-termination.worker', import.meta.url), { type: 'module' });
-    
+
+    this.worker = new Worker(new URL('./lifecycle-termination.worker', import.meta.url), {
+      type: 'module'
+    });
+
     this.worker.onmessage = (e: MessageEvent<any>) => {
       if (e.data.type === 'progress') {
         this.progress.set(e.data.progress);
       } else if (e.data.type === 'complete') {
-        this.addLog(this.format(this.texts().logs?.taskCompleted, { result: e.data.result }), 'success');
+        this.addLog(
+          this.format(this.texts().logs?.taskCompleted, { result: e.data.result }),
+          'success'
+        );
         this.workerStatus.set('completed');
         this.completedCount.update(c => c + 1);
         this.progress.set(0);
@@ -127,8 +147,10 @@ terminateWorker() {
   }
 
   startTask() {
-    if (!this.worker) return;
-    
+    if (!this.worker) {
+      return;
+    }
+
     this.addLog(this.texts().logs?.startTask ?? 'Starting task...', 'info');
     this.workerStatus.set('working');
     this.progress.set(0);
@@ -171,6 +193,7 @@ terminateWorker() {
     if (!template) {
       return Object.values(params).join(' ');
     }
+
     return Object.entries(params).reduce(
       (acc, [key, value]) => acc.replace(new RegExp(`{{\\s*${key}\\s*}}`, 'g'), String(value)),
       template

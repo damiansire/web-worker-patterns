@@ -6,7 +6,7 @@ import { CodeExplanationComponent } from '../../core/components/code-explanation
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
 import { LanguageService } from '../../core/services/language.service';
 
-const block = (...lines: string[]) => `${lines.join('\n')}\n`;
+const block = (...lines: string[]) => lines.join('\n') + '\n';
 
 interface PrimeResult {
   primes: number[];
@@ -26,7 +26,9 @@ export class OffloadingComputationComponent implements OnInit, OnDestroy {
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.offloadingComputation'));
   readonly codeSnippets = {
-    vanillaCreateWorker: block("const worker = new Worker('worker.js');"),
+    vanillaCreateWorker: block(
+      "const worker = new Worker('worker.js');"
+    ),
     vanillaSendTask: block(
       'const count = 50000;',
       'worker.postMessage({ count });'
@@ -69,13 +71,13 @@ export class OffloadingComputationComponent implements OnInit, OnDestroy {
       '      this.isLoading.set(false);',
       '    };',
       '  } else {',
-      '    alert(this.texts().alerts.unsupported);',
+      "    alert(this.texts().alerts.unsupported);",
       '  }',
       '}',
       '',
       'calculateWithWorker() {',
       '  if (!this.worker) {',
-      '    alert(this.texts().alerts.unsupported);',
+      "    alert(this.texts().alerts.unsupported);",
       '    return;',
       '  }',
       '',

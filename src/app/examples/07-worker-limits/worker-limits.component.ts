@@ -8,7 +8,8 @@ import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log
 import { StatsPanelComponent, StatCard } from '../../core/components/stats-panel/stats-panel.component';
 import { LanguageService } from '../../core/services/language.service';
 
-const block = (...lines: string[]) => `${lines.join('\n')}\n`;
+const code = (strings: TemplateStringsArray, ...values: unknown[]) =>
+  `${String.raw(strings, ...values).trim()}` + '\n';
 
 interface WorkerData {
   id: number;
@@ -29,53 +30,53 @@ export class WorkerLimitsComponent implements OnInit, OnDestroy {
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.workerLimits'));
   readonly codeSnippets = {
-    vanillaSystemInfo: block(
-      'const cpuCores = navigator.hardwareConcurrency || 4;'
-    ),
-    vanillaCreateMultiple: block(
-      'const workers = [];',
-      '',
-      'for (let i = 0; i < count; i++) {',
-      '  try {',
-      "    const worker = new Worker('worker.js');",
-      '    workers.push(worker);',
-      '  } catch (error) {',
-      "    console.error('Error:', error);",
-      '  }',
-      '}'
-    ),
-    angularComponent: block(
-      'getCPUCores(): number {',
-      '  return navigator.hardwareConcurrency || 4;',
-      '}',
-      '',
-      'getRecommendedMax(): number {',
-      '  return this.getCPUCores() * 2;',
-      '}',
-      '',
-      'async createMultipleWorkers() {',
-      '  const count = this.workerCount();',
-      '  let successCount = 0;',
-      '  let failCount = 0;',
-      '',
-      '  for (let i = 0; i < count; i++) {',
-      '    await new Promise(resolve => setTimeout(resolve, 50));',
-      '    if (this.createWorker()) {',
-      '      successCount++;',
-      '    } else {',
-      '      failCount++;',
-      '    }',
-      '  }',
-      '',
-      '  this.addLog(',
-      '    this.format(this.texts().logs?.multipleResult, {',
-      '      success: successCount,',
-      '      fail: failCount',
-      '    }),',
-      "    failCount > 0 ? 'warning' : 'success'",
-      '  );',
-      '}'
-    )
+    vanillaSystemInfo: code`
+const cpuCores = navigator.hardwareConcurrency || 4;
+`,
+    vanillaCreateMultiple: code`
+const workers = [];
+
+for (let i = 0; i < count; i++) {
+  try {
+    const worker = new Worker('worker.js');
+    workers.push(worker);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+`,
+    angularComponent: code`
+getCPUCores(): number {
+  return navigator.hardwareConcurrency || 4;
+}
+
+getRecommendedMax(): number {
+  return this.getCPUCores() * 2;
+}
+
+async createMultipleWorkers() {
+  const count = this.workerCount();
+  let successCount = 0;
+  let failCount = 0;
+
+  for (let i = 0; i < count; i++) {
+    await new Promise(resolve => setTimeout(resolve, 50));
+    if (this.createWorker()) {
+      successCount++;
+    } else {
+      failCount++;
+    }
+  }
+
+  this.addLog(
+    this.format(this.texts().logs?.multipleResult, {
+      success: successCount,
+      fail: failCount
+    }),
+    failCount > 0 ? 'warning' : 'success'
+  );
+}
+`
   };
 
   workerCount = signal(10);
