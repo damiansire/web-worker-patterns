@@ -27,6 +27,62 @@ worker.postMessage({{ '{' }} count: count {{ '}' }});</code></pre>
     console.log('Cálculo completo:', primes);
 {{ '}' }};</code></pre>
     </app-code-section>
+    <app-code-section tech="angular" [title]="texts().codeSections.createWorker">
+      <pre><code class="language-typescript">ngOnInit() {{ '{' }}
+  if (typeof Worker !== 'undefined') {{ '{' }}
+    this.worker = new Worker(
+      new URL('./offloading-computation.worker', import.meta.url),
+      {{ '{' }} type: 'module' {{ '}' }}
+    );
+  {{ '}' }} else {{ '{' }}
+    alert(this.texts().alerts.unsupported);
+  {{ '}' }}
+{{ '}' }}</code></pre>
+    </app-code-section>
+    <app-code-section tech="angular" [title]="texts().codeSections.sendTask">
+      <pre><code class="language-typescript">calculateWithWorker() {{ '{' }}
+  if (!this.worker) {{ '{' }}
+    alert(this.texts().alerts.unsupported);
+    return;
+  {{ '}' }}
+
+  const count = this.count();
+  this.isLoading.set(true);
+  this.result.set(null);
+  this.startTime = performance.now();
+
+  this.worker.postMessage({{ '{' }} count {{ '}' }});
+{{ '}' }}</code></pre>
+    </app-code-section>
+    <app-code-section tech="angular" [title]="texts().codeSections.processInWorker">
+      <pre><code class="language-typescript">/// offloading-computation.worker.ts
+addEventListener('message', (event: MessageEvent<{{ '{' }} count: number {{ '}' }}>) => {{ '{' }}
+  const primes = calculatePrimes(event.data.count);
+
+  postMessage({{ '{' }}
+    primes,
+    count: primes.length
+  {{ '}' }});
+{{ '}' }});</code></pre>
+    </app-code-section>
+    <app-code-section tech="angular" [title]="texts().codeSections.receiveResult">
+      <pre><code class="language-typescript">this.worker.onmessage = (event: MessageEvent<{{ '{' }} primes: number[]; count: number {{ '}' }}>) => {{ '{' }}
+  const endTime = performance.now();
+  const duration = Math.round(endTime - (this.startTime || 0));
+
+  this.isLoading.set(false);
+  this.result.set({{ '{' }}
+    primes: event.data.primes,
+    duration,
+    method: 'worker'
+  {{ '}' }});
+{{ '}' }};
+
+this.worker.onerror = (error: ErrorEvent) => {{ '{' }}
+  console.error(error);
+  this.isLoading.set(false);
+{{ '}' }};</code></pre>
+    </app-code-section>
   </app-code-explanation>
 
   <div class="demo-section">
