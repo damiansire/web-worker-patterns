@@ -1,11 +1,4 @@
-import {
-  AfterContentChecked,
-  Component,
-  ElementRef,
-  HostBinding,
-  Input,
-  ViewChild
-} from '@angular/core';
+import { AfterContentChecked, Component, ElementRef, HostBinding, Input, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import hljs from 'highlight.js/lib/core';
 import javascript from 'highlight.js/lib/languages/javascript';
@@ -31,7 +24,17 @@ if (!languagesRegistered) {
 })
 export class CodeSectionComponent implements AfterContentChecked {
   @Input() title?: string;
-  @Input() tech: CodeVariant = 'javascript';
+  private _tech: CodeVariant = 'javascript';
+
+  @Input()
+  set tech(value: CodeVariant) {
+    this._tech = value ?? 'javascript';
+  }
+
+  get tech(): CodeVariant {
+    return this._tech;
+  }
+
   @Input() code?: string;
   @Input() languageClass = 'language-typescript';
   @ViewChild('codeBlock', { read: ElementRef }) private readonly codeBlock?: ElementRef<HTMLElement>;
@@ -85,6 +88,11 @@ export class CodeSectionComponent implements AfterContentChecked {
   @HostBinding('class.is-hidden')
   get isHidden(): boolean {
     return this.hidden;
+  }
+
+  @HostBinding('class.angular-block')
+  get isAngularVariant(): boolean {
+    return this.tech === 'angular';
   }
 }
 

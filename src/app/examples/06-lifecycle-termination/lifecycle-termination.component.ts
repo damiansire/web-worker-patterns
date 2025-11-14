@@ -34,7 +34,7 @@ function createWorker() {
   }
 }
 `,
-    angularCreate: String.raw`createWorker() {
+    angularComponent: String.raw`createWorker() {
   if (this.worker) {
     return;
   }
@@ -63,8 +63,8 @@ function createWorker() {
   this.workerStatus.set('created');
   this.createdCount.update(c => c + 1);
 }
-`,
-    angularTerminate: String.raw`terminateWorker() {
+
+terminateWorker() {
   if (!this.worker) {
     return;
   }

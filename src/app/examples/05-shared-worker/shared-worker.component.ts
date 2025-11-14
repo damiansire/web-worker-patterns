@@ -38,7 +38,7 @@ port.start();
   message: 'Hola desde pestaña 1'
 });
 `,
-    angularInit: String.raw`ngOnInit() {
+    angularComponent: String.raw`ngOnInit() {
   if (typeof SharedWorker === 'undefined') {
     this.workerStatus.set('unsupported');
     alert(this.texts().alerts?.unsupported ?? 'SharedWorker not supported');
@@ -70,8 +70,8 @@ port.start();
     }
   };
 }
-`,
-    angularSend: String.raw`sendMessage() {
+
+sendMessage() {
   const message = this.messageText().trim();
   if (!message || !this.worker) {
     return;
@@ -84,7 +84,7 @@ port.start();
   });
 
   this.messageText.set('');
-};
+}
 `
   };
 

@@ -7,79 +7,27 @@
   </app-info-box>
 
   <app-code-explanation [summaryText]="texts().codeSummary">
-    <app-code-section [title]="texts().codeSections.createBuffer">
-      <pre ngNonBindable><code>const imageData = new ImageData(1024, 1024);
-const buffer = imageData.data.buffer;
-</code></pre>
-    </app-code-section>
-    <app-code-section [title]="texts().codeSections.methodClone">
-      <pre ngNonBindable><code>worker.postMessage({{ '{' }} imageData: imageData {{ '}' }});
-// El buffer original sigue siendo accesible
-</code></pre>
-    </app-code-section>
-    <app-code-section [title]="texts().codeSections.methodTransfer">
-      <pre ngNonBindable><code>worker.postMessage({{ '{' }} imageData: imageData {{ '}' }}, [imageData.data.buffer]);
-// ⚠️ El buffer original queda INACCESIBLE
-</code></pre>
-    </app-code-section>
-    <app-code-section tech="angular" [title]="texts().codeSections.createBuffer">
-      <pre ngNonBindable><code class="language-typescript">private generateImageData(sizeMB: number) {{ '{' }}
-  const width = Math.sqrt((sizeMB * 1024 * 1024) / 4);
-  const pixels = Math.floor(width * width);
-
-  const buffer = new ArrayBuffer(pixels * 4);
-  const view = new Uint8Array(buffer);
-
-  for (let i = 0; i < pixels; i++) {{ '{' }}
-    const offset = i * 4;
-    view[offset] = i % 256;
-    view[offset + 1] = (i * 2) % 256;
-    view[offset + 2] = (i * 3) % 256;
-    view[offset + 3] = 255;
-  {{ '}' }}
-
-  return {{ '{' }}
-    buffer,
-    width: Math.floor(width),
-    height: Math.floor(width)
-  {{ '}' }};
-{{ '}' }}
-</code></pre>
-    </app-code-section>
-    <app-code-section tech="angular" [title]="texts().codeSections.methodClone">
-      <pre ngNonBindable><code class="language-typescript">processWithClone() {{ '{' }}
-  const sizeMB = this.sizeMB();
-  this.isLoading.set(true);
-
-  const imageData = this.generateImageData(sizeMB);
-  this.displayImage(imageData, 'original');
-  this.processingStartTime = performance.now();
-
-  this.worker?.postMessage({{ '{' }}
-    type: 'process',
-    imageData,
-    transferable: false
-  {{ '}' }});
-{{ '}' }}
-</code></pre>
-    </app-code-section>
-    <app-code-section tech="angular" [title]="texts().codeSections.methodTransfer">
-      <pre ngNonBindable><code class="language-typescript">processWithTransfer() {{ '{' }}
-  const sizeMB = this.sizeMB();
-  this.isLoading.set(true);
-
-  const imageData = this.generateImageData(sizeMB);
-  this.displayImage(imageData, 'original');
-  this.processingStartTime = performance.now();
-
-  this.worker?.postMessage({{ '{' }}
-    type: 'process',
-    imageData,
-    transferable: true
-  {{ '}' }}, [imageData.buffer]);
-{{ '}' }}
-</code></pre>
-    </app-code-section>
+    <app-code-section
+      [title]="texts().codeSections.createBuffer"
+      [code]="codeSnippets.vanillaCreateBuffer"
+      languageClass="language-javascript"
+    />
+    <app-code-section
+      [title]="texts().codeSections.methodClone"
+      [code]="codeSnippets.vanillaClone"
+      languageClass="language-javascript"
+    />
+    <app-code-section
+      [title]="texts().codeSections.methodTransfer"
+      [code]="codeSnippets.vanillaTransfer"
+      languageClass="language-javascript"
+    />
+    <app-code-section
+      tech="angular"
+      [title]="texts().codeSections.createBuffer"
+      [code]="codeSnippets.angularComponent"
+      languageClass="language-typescript"
+    />
   </app-code-explanation>
 
   <div class="demo-section">
