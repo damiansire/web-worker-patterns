@@ -6,6 +6,10 @@ export const routes: Routes = [
     loadComponent: () => import('./home/home.component').then(m => m.HomeComponent)
   },
   {
+    path: 'examples/-01-setinterval-counter',
+    loadComponent: () => import('./examples/-01-setinterval-counter/setinterval-counter.component').then(m => m.SetIntervalCounterComponent)
+  },
+  {
     path: 'examples/00-main-thread',
     loadComponent: () => import('./examples/00-main-thread/main-thread.component').then(m => m.MainThreadComponent)
   },

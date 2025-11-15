@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>-01 - Contador con setInterval</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>⏱️ Contador con setInterval</h1>
+        <p class="subtitle">Ejemplo -01: Fundamentos de JavaScript - Ejecución periódica</p>
+
+        <div class="info-box">
+            <strong>💡 ¿Qué enseña este ejemplo?</strong>
+            Este ejemplo muestra cómo usar <code>setInterval</code> para ejecutar código periódicamente. 
+            Es fundamental entender esto antes de aprender sobre Web Workers, ya que los contadores son 
+            una forma común de demostrar cómo el hilo principal puede bloquearse.
+        </div>
+
+        <details class="code-explanation">
+            <summary>📖 Ver Código - ¿Cómo funciona?</summary>
+            
+            <div class="code-sections-list">
+                <div class="code-section">
+                    <h3>1️⃣ Crear un Contador</h3>
+                    <pre><code><span class="comment">// Variable para almacenar el valor del contador</span>
+<span class="keyword">let</span> <span class="variable">contador</span> = <span class="number">0</span>;</code></pre>
+                </div>
+
+                <div class="code-section">
+                    <h3>2️⃣ Usar setInterval</h3>
+                    <pre><code><span class="comment">// setInterval ejecuta una función cada cierto tiempo (en milisegundos)</span>
+<span class="keyword">const</span> <span class="variable">intervalId</span> = <span class="function">setInterval</span>(<span class="keyword">function</span>() {
+    <span class="variable">contador</span>++;
+    <span class="variable">document</span>.<span class="function">getElementById</span>(<span class="string">'contador'</span>).<span class="property">textContent</span> = <span class="variable">contador</span>;
+}, <span class="number">1000</span>); <span class="comment">// Cada 1000ms (1 segundo)</span></code></pre>
+                </div>
+
+                <div class="code-section">
+                    <h3>3️⃣ Detener el Contador</h3>
+                    <pre><code><span class="comment">// Para detener el intervalo, usamos clearInterval</span>
+<span class="function">clearInterval</span>(<span class="variable">intervalId</span>);</code></pre>
+                </div>
+
+                <div class="code-section">
+                    <h3>4️⃣ ¿Por qué es importante?</h3>
+                    <pre><code><span class="comment">// setInterval ejecuta código en el HILO PRINCIPAL</span>
+<span class="comment">// Si el hilo principal está ocupado con cálculos pesados,</span>
+<span class="comment">// el contador se congelará y no se actualizará.</span>
+<span class="comment">// Esto es exactamente el problema que resuelven los Web Workers.</span></code></pre>
+                </div>
+            </div>
+        </details>
+
+        <div class="demo-section">
+            <h3>🔢 Demo: Contador con setInterval</h3>
+            
+            <div class="counter-display">
+                <div class="counter-value" id="counter">0</div>
+                <p class="counter-label">Contador activo</p>
+            </div>
+
+            <div class="controls">
+                <button id="startBtn">▶️ Iniciar</button>
+                <button id="pauseBtn" disabled>⏸️ Pausar</button>
+                <button id="resetBtn">🔄 Reiniciar</button>
+            </div>
+
+            <div class="speed-control">
+                <label for="speedSlider">Velocidad (ms):</label>
+                <input type="range" id="speedSlider" min="100" max="2000" value="1000" step="100">
+                <span id="speedValue">1000 ms</span>
+            </div>
+        </div>
+
+        <div class="info-box secondary">
+            <strong>📝 Nota:</strong> Este contador funciona perfectamente porque el hilo principal está libre. 
+            En el siguiente ejemplo (Bloqueo del Main Thread) verás qué pasa cuando el hilo principal 
+            está ocupado con cálculos pesados.
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
+

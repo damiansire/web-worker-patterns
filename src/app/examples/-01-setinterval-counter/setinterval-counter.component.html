@@ -1,0 +1,87 @@
+<div class="example-content">
+  <h1>{{ texts().title }}</h1>
+  <p class="subtitle">{{ texts().subtitle }}</p>
+
+  <app-info-box [title]="texts().infoTitle">
+    {{ texts().infoDescription }}
+  </app-info-box>
+
+  <app-code-explanation [summaryText]="texts().codeSummary">
+    <app-code-section
+      [title]="texts().codeSections.createCounter"
+      [code]="codeSnippets.vanillaCreateCounter"
+      languageClass="language-javascript"
+    />
+    <app-code-section
+      [title]="texts().codeSections.setInterval"
+      [code]="codeSnippets.vanillaSetInterval"
+      languageClass="language-javascript"
+    />
+    <app-code-section
+      [title]="texts().codeSections.clearInterval"
+      [code]="codeSnippets.vanillaClearInterval"
+      languageClass="language-javascript"
+    />
+    <app-code-section
+      [title]="texts().codeSections.whyImportant"
+      [code]="codeSnippets.vanillaWhyImportant"
+      languageClass="language-javascript"
+    />
+    <app-code-section
+      tech="angular"
+      [title]="texts().codeSections.angularImplementation"
+      [code]="codeSnippets.angularComponent"
+      languageClass="language-typescript"
+    />
+  </app-code-explanation>
+
+  <div class="demo-section">
+    <h3>{{ texts().demo.title }}</h3>
+    
+    <div class="counter-display">
+      <div class="counter-value">{{ counter() }}</div>
+      <p class="counter-label">{{ texts().demo.counterLabel }}</p>
+    </div>
+
+    <div class="controls">
+      <button 
+        class="btn-start" 
+        (click)="startCounter()" 
+        [disabled]="isRunning()"
+      >
+        {{ texts().demo.startButton }}
+      </button>
+      <button 
+        class="btn-pause" 
+        (click)="stopCounter()" 
+        [disabled]="!isRunning()"
+      >
+        {{ texts().demo.pauseButton }}
+      </button>
+      <button 
+        class="btn-reset" 
+        (click)="resetCounter()"
+      >
+        {{ texts().demo.resetButton }}
+      </button>
+    </div>
+
+    <div class="speed-control">
+      <label>{{ texts().demo.speedLabel }}:</label>
+      <input 
+        type="range" 
+        [ngModel]="speed()"
+        (ngModelChange)="onSpeedChange($event)"
+        min="100" 
+        max="2000" 
+        step="100"
+      >
+      <span class="speed-value">{{ speed() }} {{ texts().demo.speedUnit }}</span>
+    </div>
+  </div>
+
+  <app-info-box [title]="texts().noteTitle">
+    {{ texts().noteDescription }}
+  </app-info-box>
+</div>
+

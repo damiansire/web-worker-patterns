@@ -27,6 +27,11 @@ export const translations = {
       title: '📚 Ejemplos'
     },
     examplesMeta: {
+      setIntervalCounter: {
+        title: 'Contador con setInterval',
+        description: 'Aprende los fundamentos de JavaScript: cómo usar setInterval para ejecutar código periódicamente. Esencial antes de entender Web Workers.',
+        tags: ['Fundamentos', 'JavaScript']
+      },
       mainThread: {
         title: 'Bloqueo del Main Thread',
         description: 'Comprende el problema que los Web Workers resuelven. Observa cómo el cálculo de números primos bloquea completamente el hilo principal y congela la UI.',
@@ -97,6 +102,31 @@ export const translations = {
       ]
     },
     examplesContent: {
+      setIntervalCounter: {
+        title: '⏱️ Contador con setInterval',
+        subtitle: 'Ejemplo -01: Fundamentos de JavaScript - Ejecución periódica',
+        infoTitle: '💡 ¿Qué enseña este ejemplo?',
+        infoDescription: 'Este ejemplo muestra cómo usar setInterval para ejecutar código periódicamente. Es fundamental entender esto antes de aprender sobre Web Workers, ya que los contadores son una forma común de demostrar cómo el hilo principal puede bloquearse.',
+        codeSummary: '📖 Ver Código - ¿Cómo funciona?',
+        codeSections: {
+          createCounter: '1️⃣ Crear un Contador',
+          setInterval: '2️⃣ Usar setInterval',
+          clearInterval: '3️⃣ Detener el Contador',
+          whyImportant: '4️⃣ ¿Por qué es importante?',
+          angularImplementation: 'Implementación en Angular'
+        },
+        demo: {
+          title: '🔢 Demo: Contador con setInterval',
+          counterLabel: 'Contador activo',
+          startButton: '▶️ Iniciar',
+          pauseButton: '⏸️ Pausar',
+          resetButton: '🔄 Reiniciar',
+          speedLabel: 'Velocidad',
+          speedUnit: 'ms'
+        },
+        noteTitle: '📝 Nota',
+        noteDescription: 'Este contador funciona perfectamente porque el hilo principal está libre. En el siguiente ejemplo (Bloqueo del Main Thread) verás qué pasa cuando el hilo principal está ocupado con cálculos pesados.'
+      },
       mainThread: {
         title: '🔒 Bloqueo del Main Thread',
         subtitle: 'Ejemplo 00: El problema que resuelven los Web Workers',
@@ -600,6 +630,11 @@ export const translations = {
       title: '📚 Examples'
     },
     examplesMeta: {
+      setIntervalCounter: {
+        title: 'Counter with setInterval',
+        description: 'Learn JavaScript fundamentals: how to use setInterval to execute code periodically. Essential before understanding Web Workers.',
+        tags: ['Fundamentals', 'JavaScript']
+      },
       mainThread: {
         title: 'Main Thread Blocking',
         description: 'Understand the problem that Web Workers solve. See how calculating prime numbers completely blocks the main thread and freezes the UI.',
@@ -670,6 +705,31 @@ export const translations = {
       ]
     },
     examplesContent: {
+      setIntervalCounter: {
+        title: '⏱️ Counter with setInterval',
+        subtitle: 'Example -01: JavaScript Fundamentals - Periodic Execution',
+        infoTitle: '💡 What does this example teach?',
+        infoDescription: 'This example shows how to use setInterval to execute code periodically. It\'s fundamental to understand this before learning about Web Workers, as counters are a common way to demonstrate how the main thread can be blocked.',
+        codeSummary: '📖 View Code - How does it work?',
+        codeSections: {
+          createCounter: '1️⃣ Create a Counter',
+          setInterval: '2️⃣ Use setInterval',
+          clearInterval: '3️⃣ Stop the Counter',
+          whyImportant: '4️⃣ Why is it important?',
+          angularImplementation: 'Angular Implementation'
+        },
+        demo: {
+          title: '🔢 Demo: Counter with setInterval',
+          counterLabel: 'Active counter',
+          startButton: '▶️ Start',
+          pauseButton: '⏸️ Pause',
+          resetButton: '🔄 Reset',
+          speedLabel: 'Speed',
+          speedUnit: 'ms'
+        },
+        noteTitle: '📝 Note',
+        noteDescription: 'This counter works perfectly because the main thread is free. In the next example (Main Thread Blocking) you\'ll see what happens when the main thread is busy with heavy calculations.'
+      },
       mainThread: {
         title: '🔒 Main Thread Blocking',
         subtitle: 'Example 00: The problem Web Workers solve',
@@ -1173,6 +1233,11 @@ export const translations = {
       title: '📚 Exemplos'
     },
     examplesMeta: {
+      setIntervalCounter: {
+        title: 'Contador com setInterval',
+        description: 'Aprenda os fundamentos de JavaScript: como usar setInterval para executar código periodicamente. Essencial antes de entender Web Workers.',
+        tags: ['Fundamentos', 'JavaScript']
+      },
       mainThread: {
         title: 'Bloqueio da Thread Principal',
         description: 'Entenda o problema que os Web Workers resolvem. Veja como o cálculo de números primos bloqueia completamente a thread principal e congela a interface.',
@@ -1243,6 +1308,31 @@ export const translations = {
       ]
     },
     examplesContent: {
+      setIntervalCounter: {
+        title: '⏱️ Contador com setInterval',
+        subtitle: 'Exemplo -01: Fundamentos de JavaScript - Execução Periódica',
+        infoTitle: '💡 O que este exemplo ensina?',
+        infoDescription: 'Este exemplo mostra como usar setInterval para executar código periodicamente. É fundamental entender isso antes de aprender sobre Web Workers, pois os contadores são uma forma comum de demonstrar como a thread principal pode ser bloqueada.',
+        codeSummary: '📖 Ver Código - Como funciona?',
+        codeSections: {
+          createCounter: '1️⃣ Criar um Contador',
+          setInterval: '2️⃣ Usar setInterval',
+          clearInterval: '3️⃣ Parar o Contador',
+          whyImportant: '4️⃣ Por que é importante?',
+          angularImplementation: 'Implementação em Angular'
+        },
+        demo: {
+          title: '🔢 Demo: Contador com setInterval',
+          counterLabel: 'Contador ativo',
+          startButton: '▶️ Iniciar',
+          pauseButton: '⏸️ Pausar',
+          resetButton: '🔄 Reiniciar',
+          speedLabel: 'Velocidade',
+          speedUnit: 'ms'
+        },
+        noteTitle: '📝 Nota',
+        noteDescription: 'Este contador funciona perfeitamente porque a thread principal está livre. No próximo exemplo (Bloqueio da Thread Principal) você verá o que acontece quando a thread principal está ocupada com cálculos pesados.'
+      },
       mainThread: {
         title: '🔒 Bloqueio da Thread Principal',
         subtitle: 'Exemplo 00: O problema que os Web Workers resolvem',
