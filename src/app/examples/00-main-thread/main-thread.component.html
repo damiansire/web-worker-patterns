@@ -1,0 +1,85 @@
+<div class="example-content">
+  <h1>{{ texts().title }}</h1>
+  <p class="subtitle">{{ texts().subtitle }}</p>
+
+  <app-info-box [title]="texts().infoTitle">
+    {{ texts().infoDescription }}
+  </app-info-box>
+
+  <app-code-explanation [summaryText]="texts().codeSummary">
+    <app-code-section
+      [title]="texts().codeSections.calculatePrimes"
+      [code]="codeSnippets.vanillaCalculatePrimes"
+      languageClass="language-javascript"
+    />
+    <app-code-section
+      [title]="texts().codeSections.executeInMain"
+      [code]="codeSnippets.vanillaExecuteInMain"
+      languageClass="language-javascript"
+    />
+    <app-code-section
+      [title]="texts().codeSections.problem"
+      [code]="codeSnippets.vanillaProblem"
+      languageClass="language-javascript"
+    />
+    <app-code-section
+      tech="angular"
+      [title]="texts().codeSections.executeInMain"
+      [code]="codeSnippets.angularComponent"
+      languageClass="language-typescript"
+    />
+  </app-code-explanation>
+
+  <div class="demo-section">
+    <h3>{{ texts().demo.title }}</h3>
+    
+    <div class="input-group">
+      <label>{{ texts().demo.countLabel }}</label>
+      <input 
+        type="number" 
+        [ngModel]="count()"
+        (ngModelChange)="count.set($event)"
+        [disabled]="isLoading()"
+        min="1000" 
+        max="100000"
+        step="1000"
+      >
+    </div>
+
+    <button class="btn-main" (click)="calculateInMainThread()" [disabled]="isLoading()">
+      {{ texts().demo.button }}<br>
+      <small style="font-size: 11px; font-weight: normal;">{{ texts().demo.note }}</small>
+    </button>
+
+    <div class="spinner" [class.active]="isLoading()"></div>
+    
+    @if (result(); as res) {
+      <div class="result">
+        <strong>{{ texts().result.completedPrefix }}</strong><br>
+        <strong>{{ texts().result.totalLabel }}</strong> {{ res.primes.length.toLocaleString() }} {{ texts().result.primesSuffix }}<br>
+        <strong>{{ texts().result.lastFiveLabel }}</strong> {{ res.primes.slice(-5).join(', ') }}<br>
+        <strong>{{ texts().result.durationLabel }}</strong> {{ res.duration }} {{ texts().result.durationUnit }}<br>
+        <strong>{{ texts().result.largestLabel }}</strong> {{ res.primes[res.primes.length - 1].toLocaleString() }}
+        <div class="warning">
+          <strong>{{ texts().result.warningTitle }}</strong>
+          {{ texts().result.warningDescription }}
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="ui-test">
+    <h3 style="margin-bottom: 10px;">{{ texts().uiTest.title }}</h3>
+    <p style="font-size: 14px; opacity: 0.9;">{{ texts().uiTest.info }}</p>
+    <div class="counter">{{ counter() }}</div>
+    <div class="animation-box"></div>
+    <p style="font-size: 12px; opacity: 0.8;">
+      {{ texts().uiTest.note }}
+    </p>
+    <div class="warning" style="margin-top: 15px; padding: 15px; background: rgba(255, 255, 255, 0.2); border-left: 4px solid #ffc107; border-radius: 8px;">
+      <strong>{{ texts().uiTest.testTitle }}</strong>
+      {{ texts().uiTest.testDescription }}
+    </div>
+  </div>
+</div>
+

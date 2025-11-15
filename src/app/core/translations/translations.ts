@@ -27,6 +27,11 @@ export const translations = {
       title: '📚 Ejemplos'
     },
     examplesMeta: {
+      mainThread: {
+        title: 'Bloqueo del Main Thread',
+        description: 'Comprende el problema que los Web Workers resuelven. Observa cómo el cálculo de números primos bloquea completamente el hilo principal y congela la UI.',
+        tags: ['Problema', 'Fundamentos']
+      },
       basicCommunication: {
         title: 'Comunicación Básica',
         description: 'El "Hola Mundo" de los Web Workers. Aprende cómo el hilo principal y el worker se comunican mediante mensajes usando postMessage y onmessage.',
@@ -92,6 +97,47 @@ export const translations = {
       ]
     },
     examplesContent: {
+      mainThread: {
+        title: '🔒 Bloqueo del Main Thread',
+        subtitle: 'Ejemplo 00: El problema que resuelven los Web Workers',
+        infoTitle: '⚠️ ¿Qué demuestra este ejemplo?',
+        infoDescription: 'Este ejemplo muestra qué pasa cuando ejecutamos cálculos pesados directamente en el hilo principal. Observa cómo la UI se congela completamente durante el cálculo de números primos.',
+        codeSummary: '📖 Ver Código - ¿Cómo funciona?',
+        codeSections: {
+          calculatePrimes: '1️⃣ Función de Cálculo de Números Primos',
+          executeInMain: '2️⃣ Ejecutar Cálculo en el Main Thread',
+          problem: '3️⃣ El Problema'
+        },
+        demo: {
+          title: '🔢 Calculadora de Números Primos (Main Thread)',
+          countLabel: '¿Cuántos números primos calcular?',
+          button: '🔒 Calcular en Main Thread',
+          note: '(La UI se bloqueará)'
+        },
+        result: {
+          completedPrefix: '✅ Cálculo completado',
+          totalLabel: 'Total calculados:',
+          primesSuffix: 'números primos',
+          lastFiveLabel: 'Últimos 5:',
+          durationLabel: 'Tiempo transcurrido:',
+          durationUnit: 'ms',
+          largestLabel: 'Número primo más grande:',
+          warningTitle: '⚠️ Nota importante:',
+          warningDescription: 'Durante este cálculo, la UI estuvo completamente congelada. El contador se detuvo y las animaciones dejaron de funcionar. Este es el problema que los Web Workers resuelven.'
+        },
+        uiTest: {
+          title: '🎯 Prueba de Respuesta de la UI',
+          info: 'Si la UI está bloqueada, este contador se congelará',
+          note: 'La caja debería seguir rebotando suavemente',
+          testTitle: '⚠️ Prueba esto:',
+          testDescription: 'Haz clic en "Calcular" y observa cómo el contador se congela completamente. Esto es exactamente el problema que los Web Workers resuelven.'
+        },
+        logs: {
+          mainStart: '🔒 Iniciando cálculo de {{count}} números primos en el Main Thread...',
+          mainWarning: '⚠️ ADVERTENCIA: La UI se congelará durante el cálculo',
+          mainComplete: '✅ Cálculo en Main Thread completado'
+        }
+      },
       basicCommunication: {
         title: '🚀 Comunicación Básica con Web Workers',
         subtitle: 'Ejemplo 01: Enviando y recibiendo mensajes',
@@ -548,6 +594,11 @@ export const translations = {
       title: '📚 Examples'
     },
     examplesMeta: {
+      mainThread: {
+        title: 'Main Thread Blocking',
+        description: 'Understand the problem that Web Workers solve. See how calculating prime numbers completely blocks the main thread and freezes the UI.',
+        tags: ['Problem', 'Fundamentals']
+      },
       basicCommunication: {
         title: 'Basic Communication',
         description: 'The "Hello World" of Web Workers. Learn how the main thread and the worker communicate using postMessage and onmessage.',
@@ -613,6 +664,47 @@ export const translations = {
       ]
     },
     examplesContent: {
+      mainThread: {
+        title: '🔒 Main Thread Blocking',
+        subtitle: 'Example 00: The problem Web Workers solve',
+        infoTitle: '⚠️ What does this example show?',
+        infoDescription: 'This example shows what happens when we run heavy calculations directly on the main thread. Notice how the UI completely freezes during the prime number calculation.',
+        codeSummary: '📖 View Code - How does it work?',
+        codeSections: {
+          calculatePrimes: '1️⃣ Prime Number Calculation Function',
+          executeInMain: '2️⃣ Execute Calculation on Main Thread',
+          problem: '3️⃣ The Problem'
+        },
+        demo: {
+          title: '🔢 Prime Number Calculator (Main Thread)',
+          countLabel: 'How many prime numbers to calculate?',
+          button: '🔒 Calculate on Main Thread',
+          note: '(The UI will freeze)'
+        },
+        result: {
+          completedPrefix: '✅ Calculation completed',
+          totalLabel: 'Total computed:',
+          primesSuffix: 'prime numbers',
+          lastFiveLabel: 'Last 5:',
+          durationLabel: 'Elapsed time:',
+          durationUnit: 'ms',
+          largestLabel: 'Largest prime:',
+          warningTitle: '⚠️ Important note:',
+          warningDescription: 'During this calculation, the UI was completely frozen. The counter stopped and animations paused. This is the problem that Web Workers solve.'
+        },
+        uiTest: {
+          title: '🎯 UI Responsiveness Test',
+          info: 'If the UI is blocked, this counter will freeze',
+          note: 'The square should keep bouncing smoothly',
+          testTitle: '⚠️ Try this:',
+          testDescription: 'Click "Calculate" and watch how the counter freezes completely. This is exactly the problem that Web Workers solve.'
+        },
+        logs: {
+          mainStart: '🔒 Starting calculation of {{count}} prime numbers on the Main Thread...',
+          mainWarning: '⚠️ WARNING: The UI will freeze during this calculation',
+          mainComplete: '✅ Main Thread calculation completed'
+        }
+      },
       basicCommunication: {
         title: '🚀 Basic Communication with Web Workers',
         subtitle: 'Example 01: Sending and receiving messages',
@@ -1069,6 +1161,11 @@ export const translations = {
       title: '📚 Exemplos'
     },
     examplesMeta: {
+      mainThread: {
+        title: 'Bloqueio da Thread Principal',
+        description: 'Entenda o problema que os Web Workers resolvem. Veja como o cálculo de números primos bloqueia completamente a thread principal e congela a interface.',
+        tags: ['Problema', 'Fundamentos']
+      },
       basicCommunication: {
         title: 'Comunicação Básica',
         description: 'O "Olá Mundo" dos Web Workers. Aprenda como a thread principal e o worker se comunicam usando postMessage e onmessage.',
@@ -1134,6 +1231,47 @@ export const translations = {
       ]
     },
     examplesContent: {
+      mainThread: {
+        title: '🔒 Bloqueio da Thread Principal',
+        subtitle: 'Exemplo 00: O problema que os Web Workers resolvem',
+        infoTitle: '⚠️ O que este exemplo mostra?',
+        infoDescription: 'Este exemplo mostra o que acontece quando executamos cálculos pesados diretamente na thread principal. Observe como a interface congela completamente durante o cálculo de números primos.',
+        codeSummary: '📖 Ver Código - Como funciona?',
+        codeSections: {
+          calculatePrimes: '1️⃣ Função de Cálculo de Números Primos',
+          executeInMain: '2️⃣ Executar Cálculo na Thread Principal',
+          problem: '3️⃣ O Problema'
+        },
+        demo: {
+          title: '🔢 Calculadora de Números Primos (Thread Principal)',
+          countLabel: 'Quantos números primos calcular?',
+          button: '🔒 Calcular na Thread Principal',
+          note: '(A interface será bloqueada)'
+        },
+        result: {
+          completedPrefix: '✅ Cálculo concluído',
+          totalLabel: 'Total calculado:',
+          primesSuffix: 'números primos',
+          lastFiveLabel: 'Últimos 5:',
+          durationLabel: 'Tempo decorrido:',
+          durationUnit: 'ms',
+          largestLabel: 'Maior número primo:',
+          warningTitle: '⚠️ Nota importante:',
+          warningDescription: 'Durante este cálculo, a interface ficou completamente congelada. O contador parou e as animações foram interrompidas. Este é o problema que os Web Workers resolvem.'
+        },
+        uiTest: {
+          title: '🎯 Teste de Responsividade da Interface',
+          info: 'Se a interface estiver bloqueada, este contador vai congelar',
+          note: 'O quadrado deve continuar se movendo suavemente',
+          testTitle: '⚠️ Experimente isto:',
+          testDescription: 'Clique em "Calcular" e observe como o contador congela completamente. Este é exatamente o problema que os Web Workers resolvem.'
+        },
+        logs: {
+          mainStart: '🔒 Iniciando o cálculo de {{count}} números primos na Thread Principal...',
+          mainWarning: '⚠️ AVISO: A interface ficará congelada durante o cálculo',
+          mainComplete: '✅ Cálculo na Thread Principal concluído'
+        }
+      },
       basicCommunication: {
         title: '🚀 Comunicação Básica com Web Workers',
         subtitle: 'Exemplo 01: Enviando e recebendo mensagens',

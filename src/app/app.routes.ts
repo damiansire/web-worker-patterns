@@ -6,6 +6,10 @@ export const routes: Routes = [
     loadComponent: () => import('./home/home.component').then(m => m.HomeComponent)
   },
   {
+    path: 'examples/00-main-thread',
+    loadComponent: () => import('./examples/00-main-thread/main-thread.component').then(m => m.MainThreadComponent)
+  },
+  {
     path: 'examples/01-basic-communication',
     loadComponent: () => import('./examples/01-basic-communication/basic-communication.component').then(m => m.BasicCommunicationComponent)
   },

@@ -22,6 +22,7 @@ export class NavigationService {
   private readonly language = inject(LanguageService);
 
   private readonly config: ExampleConfig[] = [
+    { number: '00', route: '/examples/00-main-thread', translationKey: 'mainThread' },
     { number: '01', route: '/examples/01-basic-communication', translationKey: 'basicCommunication' },
     { number: '02', route: '/examples/02-offloading-computation', translationKey: 'offloadingComputation' },
     { number: '03', route: '/examples/03-transferable-objects', translationKey: 'transferableObjects' },

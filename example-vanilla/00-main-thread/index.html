@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>00 - Bloqueo del Main Thread</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 Bloqueo del Main Thread</h1>
+        <p class="subtitle">Ejemplo 00: El problema que resuelven los Web Workers</p>
+
+        <div class="info-box warning">
+            <strong>⚠️ ¿Qué demuestra este ejemplo?</strong>
+            Este ejemplo muestra qué pasa cuando ejecutamos cálculos pesados directamente en el hilo principal.
+            Observa cómo la UI se congela completamente durante el cálculo de números primos.
+        </div>
+
+        <details class="code-explanation">
+            <summary>📖 Ver Código - ¿Cómo funciona?</summary>
+            
+            <div class="code-sections-list">
+                <div class="code-section">
+                    <h3>1️⃣ Función de Cálculo de Números Primos</h3>
+                    <pre><code><span class="comment">// Función que calcula números primos de forma intensiva</span>
+<span class="keyword">function</span> <span class="function">calculatePrimes</span>(<span class="variable">max</span>) {
+    <span class="keyword">const</span> <span class="variable">primes</span> = [];
+    
+    <span class="keyword">for</span> (<span class="keyword">let</span> <span class="variable">i</span> = <span class="number">2</span>; <span class="variable">primes</span>.<span class="property">length</span> &lt; <span class="variable">max</span>; <span class="variable">i</span>++) {
+        <span class="keyword">let</span> <span class="variable">isPrime</span> = <span class="keyword">true</span>;
+        
+        <span class="keyword">for</span> (<span class="keyword">let</span> <span class="variable">j</span> = <span class="number">2</span>; <span class="variable">j</span> &lt;= <span class="function">Math</span>.<span class="function">sqrt</span>(<span class="variable">i</span>); <span class="variable">j</span>++) {
+            <span class="keyword">if</span> (<span class="variable">i</span> % <span class="variable">j</span> === <span class="number">0</span>) {
+                <span class="variable">isPrime</span> = <span class="keyword">false</span>;
+                <span class="keyword">break</span>;
+            }
+        }
+        
+        <span class="keyword">if</span> (<span class="variable">isPrime</span>) {
+            <span class="variable">primes</span>.<span class="function">push</span>(<span class="variable">i</span>);
+        }
+    }
+    
+    <span class="keyword">return</span> <span class="variable">primes</span>;
+}</code></pre>
+                </div>
+
+                <div class="code-section">
+                    <h3>2️⃣ Ejecutar Cálculo en el Main Thread</h3>
+                    <pre><code><span class="comment">// Cuando hacemos clic en el botón...</span>
+<span class="variable">calculateButton</span>.<span class="property">addEventListener</span>(<span class="string">'click'</span>, () => {
+    <span class="comment">// El cálculo se ejecuta directamente en el hilo principal</span>
+    <span class="keyword">const</span> <span class="variable">primes</span> = <span class="function">calculatePrimes</span>(<span class="number">50000</span>);
+    
+    <span class="comment">// ⚠️ Durante este cálculo, TODO se congela:</span>
+    <span class="comment">// - La UI no responde</span>
+    <span class="comment">// - Los contadores se detienen</span>
+    <span class="comment">// - Las animaciones se pausan</span>
+    <span class="comment">// - El usuario no puede interactuar</span>
+});</code></pre>
+                </div>
+
+                <div class="code-section">
+                    <h3>3️⃣ El Problema</h3>
+                    <pre><code><span class="comment">// JavaScript es single-threaded</span>
+<span class="comment">// Solo hay UN hilo principal que ejecuta:</span>
+<span class="comment">// 1. Código JavaScript</span>
+<span class="comment">// 2. Renderizado de la UI</span>
+<span class="comment">// 3. Eventos del usuario</span>
+<span class="comment">// 4. Animaciones</span>
+
+<span class="comment">// Si el hilo está ocupado calculando,</span>
+<span class="comment">// NADA MÁS puede ejecutarse</span>
+
+<span class="comment">// 💡 Solución: Web Workers</span>
+<span class="comment">// Los Web Workers ejecutan código en un hilo separado</span>
+<span class="comment">// y permiten que el main thread siga respondiendo</span></code></pre>
+                </div>
+            </div>
+        </details>
+
+        <div class="demo-section">
+            <h3>🔢 Calculadora de Números Primos (Main Thread)</h3>
+            
+            <div class="input-group">
+                <label for="numberInput">¿Cuántos números primos calcular?</label>
+                <input 
+                    type="number" 
+                    id="numberInput" 
+                    value="50000" 
+                    min="1000" 
+                    max="100000"
+                    step="1000"
+                >
+            </div>
+
+            <button id="calculateButton">
+                🔒 Calcular en Main Thread<br>
+                <small style="font-size: 11px; font-weight: normal;">(La UI se bloqueará)</small>
+            </button>
+
+            <div class="spinner" id="spinner"></div>
+            <div id="result"></div>
+        </div>
+
+        <div class="ui-test">
+            <h3 style="margin-bottom: 10px;">🎯 Prueba de Respuesta de la UI</h3>
+            <p style="font-size: 14px; opacity: 0.9;">Si la UI está bloqueada, este contador se congelará</p>
+            <div class="counter" id="counter">0</div>
+            <div class="animation-box"></div>
+            <p style="font-size: 12px; opacity: 0.8;">
+                La caja debería seguir rebotando suavemente
+            </p>
+            <div class="warning" style="margin-top: 15px; padding: 15px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 8px;">
+                <strong>⚠️ Prueba esto:</strong> Haz clic en "Calcular" y observa cómo el contador se congela completamente.
+                Esto es exactamente el problema que los Web Workers resuelven.
+            </div>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
+
