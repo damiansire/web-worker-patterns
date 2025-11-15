@@ -13,6 +13,11 @@ interface PrimeResult {
   duration: number;
 }
 
+interface NumberEvaluation {
+  number: number;
+  isPrime: boolean;
+}
+
 @Component({
   selector: 'app-main-thread',
   imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent],
@@ -119,6 +124,9 @@ export class MainThreadComponent implements OnInit, OnDestroy {
   isLoading = signal(false);
   result = signal<PrimeResult | null>(null);
   counter = signal(0);
+  evaluatedNumbers = signal<NumberEvaluation[]>([]);
+  showProcessorView = signal(false);
+  processingIndex = signal(-1); // Índice del número actualmente siendo procesado
   private counterInterval?: ReturnType<typeof setInterval>;
 
   ngOnInit() {
@@ -141,11 +149,14 @@ export class MainThreadComponent implements OnInit, OnDestroy {
 
     this.isLoading.set(true);
     this.result.set(null);
+    this.showProcessorView.set(true);
+    this.evaluatedNumbers.set([]);
+    this.processingIndex.set(-1);
 
     // Dar tiempo a que se actualice la UI antes de bloquear
-    setTimeout(() => {
+    setTimeout(async () => {
       const startTime = performance.now();
-      const primes = this.calculatePrimes(count);
+      const primes = await this.calculatePrimesWithProgress(count);
       const endTime = performance.now();
       const duration = Math.round(endTime - startTime);
 
@@ -182,11 +193,86 @@ export class MainThreadComponent implements OnInit, OnDestroy {
     return primes;
   }
 
+  private async calculatePrimesWithProgress(max: number): Promise<number[]> {
+    const primes: number[] = [];
+    const maxNumbersToShow = Math.min(max * 10, 1000); // Mostrar hasta 1000 números
+    
+    // Primero agregar todos los números como "no evaluados"
+    const initialNumbers: NumberEvaluation[] = [];
+    for (let i = 2; i <= maxNumbersToShow; i++) {
+      initialNumbers.push({ number: i, isPrime: false });
+    }
+    this.evaluatedNumbers.set(initialNumbers);
+    
+    // Luego evaluar cada número uno por uno
+    let index = 0;
+    for (let i = 2; primes.length < max; i++) {
+      let isPrime = true;
+      
+      // Verificar si es primo
+      for (let j = 2; j <= Math.sqrt(i); j++) {
+        if (i % j === 0) {
+          isPrime = false;
+          break;
+        }
+      }
+      
+      // Actualizar el número en la lista si está dentro del rango a mostrar
+      if (i <= maxNumbersToShow) {
+        this.processingIndex.set(index);
+        
+        // Dar tiempo para que la animación sea visible
+        await new Promise(resolve => setTimeout(resolve, 30));
+        
+        // Actualizar el número evaluado
+        const current = this.evaluatedNumbers();
+        if (current[index]) {
+          current[index] = { number: i, isPrime };
+          this.evaluatedNumbers.set([...current]);
+        }
+        
+        // Dar un poco más de tiempo para ver el resultado
+        await new Promise(resolve => setTimeout(resolve, 15));
+        
+        this.processingIndex.set(-1);
+        index++;
+      }
+      
+      if (isPrime) {
+        primes.push(i);
+      }
+    }
+    
+    return primes;
+  }
+
   private format(template: string, params: Record<string, string | number>): string {
     return Object.entries(params).reduce(
       (acc, [key, value]) => acc.replace(new RegExp(`{{\\s*${key}\\s*}}`, 'g'), String(value)),
       template
     );
+  }
+
+  getScrollOffset(): number {
+    const index = this.processingIndex();
+    if (index < 0 || index < 5) {
+      // Centrar los primeros números
+      const numberWidth = 40;
+      const firstNumberPosition = 0;
+      const containerCenter = 400; // Centro aproximado del contenedor
+      return containerCenter - firstNumberPosition - numberWidth / 2;
+    }
+    
+    // Cada número tiene aproximadamente 40px de ancho (32px min-width + 4px gap + padding)
+    const numberWidth = 40;
+    
+    // Calcular la posición del número actual
+    const currentPosition = index * numberWidth + numberWidth / 2;
+    
+    // Desplazar para mantener el número procesado en el centro
+    const containerCenter = 400; // Centro aproximado del contenedor
+    
+    return containerCenter - currentPosition;
   }
 }
 

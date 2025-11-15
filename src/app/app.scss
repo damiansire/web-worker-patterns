@@ -51,10 +51,14 @@ body {
 .content {
   background: white;
   border-radius: 15px;
-  padding: 0;
+  padding: 1rem;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   min-height: 0;
-  padding: 1rem
+  min-width: 0; // Permite que el contenedor se reduzca más allá del contenido
+  overflow-x: hidden; // Previene overflow horizontal
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 

@@ -1,5 +1,10 @@
 .example-content {
   padding: 30px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  min-width: 0; // Permite que el contenedor se reduzca más allá del contenido
 }
 
 h1 {
@@ -174,6 +179,163 @@ button {
   strong {
     display: block;
     margin-bottom: 5px;
+  }
+}
+
+.processor-view {
+  margin: 30px 0;
+  padding: 25px;
+  background: #1e1e1e;
+  border-radius: 12px;
+  border: 2px solid #3e3e3e;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  min-width: 0; // Permite que el contenedor se reduzca más allá del contenido
+
+  h3 {
+    color: #ffffff;
+    margin-bottom: 15px;
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  .processor-description {
+    color: #d4d4d4;
+    font-size: 14px;
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+
+  .numbers-container {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    height: 70px;
+    background: #252526;
+    border-radius: 8px;
+    border: 1px solid #3e3e3e;
+    overflow: hidden;
+    padding: 15px 0;
+    box-sizing: border-box;
+    min-width: 0; // Permite que el contenedor se reduzca más allá del contenido
+  }
+
+  .numbers-grid {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 4px;
+    height: 100%;
+    padding: 0;
+    align-items: center;
+    transition: transform 0.3s ease;
+    will-change: transform;
+    position: relative;
+    min-width: 0; // Permite que el contenedor se reduzca más allá del contenido
+    width: max-content; // El ancho se ajusta al contenido pero no causa overflow
+
+    .number-item {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 32px;
+      height: 32px;
+      padding: 0 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: 'Courier New', monospace;
+      flex-shrink: 0;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+
+      // Estado inicial - no evaluado
+      &.pending {
+        background: #2d2d30;
+        color: #858585;
+        border: 1px solid #3e3e3e;
+      }
+
+      // Estado durante evaluación
+      &.evaluating {
+        background: #2d3a50;
+        color: #4fc3f7;
+        border: 2px solid #29b6f6;
+        box-shadow: 0 0 10px rgba(41, 182, 246, 0.5);
+        transform: scale(1.1);
+        z-index: 10;
+      }
+
+      // Estado final - primo
+      &.prime {
+        background: #2d5016;
+        color: #73c991;
+        border: 1px solid #4ec9b0;
+      }
+
+      // Estado final - no primo
+      &.not-prime {
+        background: #5a1d1d;
+        color: #f48771;
+        border: 1px solid #d16969;
+      }
+    }
+  }
+
+  .processor-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 3px;
+    background: linear-gradient(to bottom, 
+      transparent 0%,
+      #29b6f6 10%,
+      #29b6f6 90%,
+      transparent 100%
+    );
+    box-shadow: 0 0 15px rgba(41, 182, 246, 0.8),
+                0 0 30px rgba(41, 182, 246, 0.4);
+    z-index: 20;
+    animation: pulse 1.5s ease-in-out infinite;
+    pointer-events: none;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 8px;
+      height: 8px;
+      background: #29b6f6;
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(41, 182, 246, 1);
+    }
+  }
+
+  .processing-indicator {
+    margin-top: 15px;
+    color: #d4d4d4;
+    font-size: 13px;
+    text-align: center;
+    font-style: italic;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 15px rgba(41, 182, 246, 0.8),
+                0 0 30px rgba(41, 182, 246, 0.4);
+  }
+  50% {
+    opacity: 0.7;
+    box-shadow: 0 0 20px rgba(41, 182, 246, 1),
+                0 0 40px rgba(41, 182, 246, 0.6);
   }
 }
 

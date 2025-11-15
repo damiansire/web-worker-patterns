@@ -125,6 +125,12 @@ export const translations = {
           warningTitle: '⚠️ Nota importante:',
           warningDescription: 'Durante este cálculo, la UI estuvo completamente congelada. El contador se detuvo y las animaciones dejaron de funcionar. Este es el problema que los Web Workers resuelven.'
         },
+        processorView: {
+          title: '💻 Lo que sucede dentro del procesador',
+          description: 'Observa cómo el procesador evalúa cada número en tiempo real. Los números verdes son primos y los rojos no lo son. Nota cómo se van agregando mientras el hilo principal está bloqueado.',
+          processing: 'Procesando...',
+          numbersEvaluated: 'números evaluados'
+        },
         uiTest: {
           title: '🎯 Prueba de Respuesta de la UI',
           info: 'Si la UI está bloqueada, este contador se congelará',
@@ -692,6 +698,12 @@ export const translations = {
           warningTitle: '⚠️ Important note:',
           warningDescription: 'During this calculation, the UI was completely frozen. The counter stopped and animations paused. This is the problem that Web Workers solve.'
         },
+        processorView: {
+          title: '💻 What happens inside the processor',
+          description: 'Watch how the processor evaluates each number in real time. Green numbers are primes and red ones are not. Notice how they are added while the main thread is blocked.',
+          processing: 'Processing...',
+          numbersEvaluated: 'numbers evaluated'
+        },
         uiTest: {
           title: '🎯 UI Responsiveness Test',
           info: 'If the UI is blocked, this counter will freeze',
@@ -1258,6 +1270,12 @@ export const translations = {
           largestLabel: 'Maior número primo:',
           warningTitle: '⚠️ Nota importante:',
           warningDescription: 'Durante este cálculo, a interface ficou completamente congelada. O contador parou e as animações foram interrompidas. Este é o problema que os Web Workers resolvem.'
+        },
+        processorView: {
+          title: '💻 O que acontece dentro do processador',
+          description: 'Observe como o processador avalia cada número em tempo real. Os números verdes são primos e os vermelhos não são. Note como eles são adicionados enquanto a thread principal está bloqueada.',
+          processing: 'Processando...',
+          numbersEvaluated: 'números avaliados'
         },
         uiTest: {
           title: '🎯 Teste de Responsividade da Interface',
