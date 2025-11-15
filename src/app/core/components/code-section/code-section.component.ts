@@ -77,8 +77,35 @@ export class CodeSectionComponent implements AfterContentChecked {
       return;
     }
 
-    hljs.highlightElement(element);
-    this.highlightedElements.add(element);
+    // Preserve the original text content with formatting
+    const originalText = element.textContent || '';
+    
+    if (originalText.trim()) {
+      try {
+        const highlighted = hljs.highlight(originalText, { 
+          language: this.getLanguageFromClass() 
+        });
+        element.innerHTML = highlighted.value;
+        this.highlightedElements.add(element);
+      } catch (e) {
+        // If highlighting fails, just keep the original content
+        console.warn('Failed to highlight code:', e);
+        this.highlightedElements.add(element);
+      }
+    }
+  }
+
+  private getLanguageFromClass(): string {
+    if (this.languageClass.includes('typescript')) {
+      return 'typescript';
+    }
+    if (this.languageClass.includes('javascript')) {
+      return 'javascript';
+    }
+    if (this.languageClass.includes('json')) {
+      return 'json';
+    }
+    return 'typescript'; // default
   }
 
   setHidden(isHidden: boolean) {
