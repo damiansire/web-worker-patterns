@@ -124,6 +124,20 @@ export const translations = {
           speedLabel: 'Velocidad',
           speedUnit: 'ms'
         },
+        threadView: {
+          title: '🧵 Visualización del Hilo Principal',
+          description: 'Observa cómo las tareas se agregan a la cola, se procesan en el hilo principal y se completan. Esto te ayudará a entender qué pasa cuando el hilo se bloquea.',
+          queueLabel: 'Cola de Tareas',
+          queueEmpty: 'Sin tareas pendientes',
+          mainThreadLabel: 'Hilo Principal',
+          idleLabel: 'En reposo',
+          resultLabel: 'Resultado',
+          resultText: 'Contador actualizado',
+          taskTypes: {
+            interval: 'setInterval',
+            render: 'Renderizado'
+          }
+        },
         noteTitle: '📝 Nota',
         noteDescription: 'Este contador funciona perfectamente porque el hilo principal está libre. En el siguiente ejemplo (Bloqueo del Main Thread) verás qué pasa cuando el hilo principal está ocupado con cálculos pesados.'
       },
@@ -727,6 +741,20 @@ export const translations = {
           speedLabel: 'Speed',
           speedUnit: 'ms'
         },
+        threadView: {
+          title: '🧵 Main Thread Visualization',
+          description: 'Watch how tasks are added to the queue, processed in the main thread, and completed. This will help you understand what happens when the thread gets blocked.',
+          queueLabel: 'Task Queue',
+          queueEmpty: 'No pending tasks',
+          mainThreadLabel: 'Main Thread',
+          idleLabel: 'Idle',
+          resultLabel: 'Result',
+          resultText: 'Counter updated',
+          taskTypes: {
+            interval: 'setInterval',
+            render: 'Rendering'
+          }
+        },
         noteTitle: '📝 Note',
         noteDescription: 'This counter works perfectly because the main thread is free. In the next example (Main Thread Blocking) you\'ll see what happens when the main thread is busy with heavy calculations.'
       },
@@ -1329,6 +1357,20 @@ export const translations = {
           resetButton: '🔄 Reiniciar',
           speedLabel: 'Velocidade',
           speedUnit: 'ms'
+        },
+        threadView: {
+          title: '🧵 Visualização da Thread Principal',
+          description: 'Observe como as tarefas são adicionadas à fila, processadas na thread principal e concluídas. Isso ajudará você a entender o que acontece quando a thread é bloqueada.',
+          queueLabel: 'Fila de Tarefas',
+          queueEmpty: 'Sem tarefas pendentes',
+          mainThreadLabel: 'Thread Principal',
+          idleLabel: 'Em repouso',
+          resultLabel: 'Resultado',
+          resultText: 'Contador atualizado',
+          taskTypes: {
+            interval: 'setInterval',
+            render: 'Renderização'
+          }
         },
         noteTitle: '📝 Nota',
         noteDescription: 'Este contador funciona perfeitamente porque a thread principal está livre. No próximo exemplo (Bloqueio da Thread Principal) você verá o que acontece quando a thread principal está ocupada com cálculos pesados.'

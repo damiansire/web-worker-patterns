@@ -80,6 +80,70 @@
     </div>
   </div>
 
+  <div class="thread-visualization">
+    <h3>{{ texts().threadView.title }}</h3>
+    <p class="thread-description">{{ texts().threadView.description }}</p>
+    
+    <div class="thread-diagram">
+      <!-- Cola de tareas -->
+      <div class="task-queue-section">
+        <div class="section-label">{{ texts().threadView.queueLabel }}</div>
+        <div class="task-queue">
+          @for (task of taskQueue(); track task.id) {
+            <div class="task-item task-queue-item" [attr.data-type]="task.type">
+              <span class="task-icon">⏱️</span>
+              <span class="task-label">{{ texts().threadView.taskTypes[task.type] }}</span>
+            </div>
+          }
+          @if (taskQueue().length === 0) {
+            <div class="task-queue-empty">{{ texts().threadView.queueEmpty }}</div>
+          }
+        </div>
+      </div>
+
+      <!-- Flecha de dirección -->
+      <div class="arrow-container">
+        <div class="arrow">→</div>
+      </div>
+
+      <!-- Hilo principal procesando -->
+      <div class="main-thread-section">
+        <div class="section-label">{{ texts().threadView.mainThreadLabel }}</div>
+        <div class="main-thread">
+          @if (processingTask(); as task) {
+            <div class="task-item task-processing" [attr.data-type]="task.type">
+              <span class="task-icon">⚙️</span>
+              <span class="task-label">{{ texts().threadView.taskTypes[task.type] }}</span>
+              <div class="processing-indicator">
+                <div class="spinner-dot"></div>
+                <div class="spinner-dot"></div>
+                <div class="spinner-dot"></div>
+              </div>
+            </div>
+          } @else {
+            <div class="thread-idle">
+              <span class="idle-icon">😴</span>
+              <span>{{ texts().threadView.idleLabel }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Resultado -->
+      <div class="arrow-container">
+        <div class="arrow">→</div>
+      </div>
+
+      <div class="result-section">
+        <div class="section-label">{{ texts().threadView.resultLabel }}</div>
+        <div class="result-display">
+          <div class="result-icon">✅</div>
+          <div class="result-text">{{ texts().threadView.resultText }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <app-info-box [title]="texts().noteTitle">
     {{ texts().noteDescription }}
   </app-info-box>

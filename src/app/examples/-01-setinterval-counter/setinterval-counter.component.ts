@@ -74,14 +74,60 @@ export class SetIntervalCounterComponent implements OnInit, OnDestroy {
   counter = signal(0);
   speed = signal(1000);
   isRunning = signal(false);
+  taskQueue = signal<Array<{ id: number; type: 'interval' | 'render'; timestamp: number }>>([]);
+  processingTask = signal<{ id: number; type: string } | null>(null);
   private intervalId?: ReturnType<typeof setInterval>;
+  private taskIdCounter = 0;
+  private queueInterval?: ReturnType<typeof setInterval>;
 
   ngOnInit() {
     // El contador no se inicia automáticamente
+    // Iniciar visualización del hilo principal
+    this.startThreadVisualization();
   }
 
   ngOnDestroy() {
     this.stopCounter();
+    this.stopThreadVisualization();
+  }
+
+  startThreadVisualization() {
+    // Simular el event loop cada 150ms para mostrar las tareas
+    this.queueInterval = setInterval(() => {
+      const queue = this.taskQueue();
+      const processing = this.processingTask();
+      
+      if (queue.length > 0 && !processing) {
+        // Tomar la primera tarea de la cola
+        const task = queue[0];
+        this.processingTask.set(task);
+        this.taskQueue.set(queue.slice(1));
+        
+        // Simular procesamiento de la tarea
+        setTimeout(() => {
+          this.processingTask.set(null);
+          
+          // Después de procesar el intervalo, agregar una tarea de renderizado
+          if (task.type === 'interval') {
+            const renderTaskId = ++this.taskIdCounter;
+            this.taskQueue.update(q => [...q, { 
+              id: renderTaskId, 
+              type: 'render', 
+              timestamp: Date.now() 
+            }]);
+          }
+        }, 80);
+      }
+    }, 150);
+  }
+
+  stopThreadVisualization() {
+    if (this.queueInterval) {
+      clearInterval(this.queueInterval);
+      this.queueInterval = undefined;
+    }
+    this.taskQueue.set([]);
+    this.processingTask.set(null);
   }
 
   startCounter() {
@@ -91,6 +137,14 @@ export class SetIntervalCounterComponent implements OnInit, OnDestroy {
 
     this.counter.update(c => c + 1); // Actualizar inmediatamente
     this.intervalId = setInterval(() => {
+      // Agregar tarea de intervalo a la cola
+      const taskId = ++this.taskIdCounter;
+      this.taskQueue.update(queue => [...queue, { 
+        id: taskId, 
+        type: 'interval', 
+        timestamp: Date.now() 
+      }]);
+      
       this.counter.update(c => c + 1);
     }, this.speed());
 
@@ -103,6 +157,13 @@ export class SetIntervalCounterComponent implements OnInit, OnDestroy {
       clearInterval(this.intervalId);
       this.intervalId = undefined;
       this.isRunning.set(false);
+      // Limpiar tareas pendientes de intervalo y renderizado relacionadas
+      this.taskQueue.update(queue => queue.filter(task => task.type !== 'interval'));
+      // Si hay una tarea procesando que es de intervalo, también limpiarla
+      const processing = this.processingTask();
+      if (processing && processing.type === 'interval') {
+        this.processingTask.set(null);
+      }
       console.log('⏸️ Contador pausado');
     }
   }

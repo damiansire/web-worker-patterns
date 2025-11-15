@@ -163,6 +163,243 @@ button {
   }
 }
 
+.thread-visualization {
+  margin: 30px 0;
+  padding: 30px;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  border-radius: 12px;
+  color: white;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+
+  h3 {
+    color: white;
+    margin-bottom: 15px;
+    font-size: 24px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .thread-description {
+    text-align: center;
+    margin-bottom: 30px;
+    opacity: 0.9;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+}
+
+.thread-diagram {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.task-queue-section,
+.main-thread-section,
+.result-section {
+  flex: 1;
+  min-width: 200px;
+  max-width: 300px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+}
+
+.section-label {
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 15px;
+  text-align: center;
+  opacity: 0.8;
+}
+
+.task-queue {
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.task-queue-empty {
+  text-align: center;
+  opacity: 0.5;
+  font-style: italic;
+  padding: 20px;
+}
+
+.main-thread {
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thread-idle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  opacity: 0.7;
+  font-size: 14px;
+
+  .idle-icon {
+    font-size: 32px;
+  }
+}
+
+.task-item {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  animation: slideIn 0.3s ease;
+
+  &[data-type="interval"] {
+    border-left: 4px solid #4caf50;
+  }
+
+  &[data-type="render"] {
+    border-left: 4px solid #2196f3;
+  }
+
+  .task-icon {
+    font-size: 20px;
+  }
+
+  .task-label {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 500;
+  }
+}
+
+.task-processing {
+  background: rgba(255, 193, 7, 0.3);
+  border-left-color: #ffc107 !important;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+
+  .processing-indicator {
+    display: flex;
+    gap: 4px;
+
+    .spinner-dot {
+      width: 8px;
+      height: 8px;
+      background: #ffc107;
+      border-radius: 50%;
+      animation: pulse-dot 1.4s ease-in-out infinite;
+
+      &:nth-child(1) {
+        animation-delay: 0s;
+      }
+
+      &:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+
+      &:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+    }
+  }
+}
+
+.arrow-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+
+  .arrow {
+    font-size: 32px;
+    color: rgba(255, 255, 255, 0.6);
+    animation: arrow-pulse 2s ease-in-out infinite;
+  }
+}
+
+.result-section {
+  .result-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 20px;
+
+    .result-icon {
+      font-size: 32px;
+    }
+
+    .result-text {
+      text-align: center;
+      font-size: 13px;
+      opacity: 0.9;
+    }
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes arrow-pulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: translateX(0);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateX(5px);
+  }
+}
+
+@media (max-width: 900px) {
+  .thread-diagram {
+    flex-direction: column;
+  }
+
+  .arrow-container {
+    transform: rotate(90deg);
+    min-height: 40px;
+  }
+
+  .task-queue-section,
+  .main-thread-section,
+  .result-section {
+    max-width: 100%;
+    width: 100%;
+  }
+}
+
 @media (max-width: 600px) {
   .example-content {
     padding: 20px;
@@ -182,6 +419,10 @@ button {
 
   button {
     width: 100%;
+  }
+
+  .thread-visualization {
+    padding: 20px;
   }
 }
 
