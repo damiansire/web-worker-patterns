@@ -21,12 +21,14 @@
     padding: 15px;
     overflow-x: auto;
     margin: 0;
+    white-space: pre;
 
     code {
       color: #d4d4d4;
       font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
       font-size: 14px;
       line-height: 1.8;
+      white-space: pre;
     }
   }
 }
