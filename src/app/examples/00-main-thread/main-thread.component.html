@@ -72,7 +72,7 @@
     <div class="processor-view">
       <h3>{{ texts().processorView.title }}</h3>
       <p class="processor-description">{{ texts().processorView.description }}</p>
-      <div class="numbers-container">
+      <div class="numbers-container" #numbersContainer>
         <div class="numbers-grid" [style.transform]="'translateX(' + getScrollOffset() + 'px)'">
           @for (item of evaluatedNumbers(); track item.number; let i = $index) {
             <span 

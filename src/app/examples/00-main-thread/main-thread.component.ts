@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, inject, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InfoBoxComponent } from '../../core/components/info-box/info-box.component';
@@ -25,8 +25,10 @@ interface NumberEvaluation {
   styleUrl: './main-thread.component.scss',
   standalone: true
 })
-export class MainThreadComponent implements OnInit, OnDestroy {
+export class MainThreadComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly language = inject(LanguageService);
+
+  @ViewChild('numbersContainer', { static: false }) numbersContainerRef?: ElementRef<HTMLElement>;
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.mainThread'));
   readonly codeSnippets = {
@@ -134,6 +136,10 @@ export class MainThreadComponent implements OnInit, OnDestroy {
     this.counterInterval = setInterval(() => {
       this.counter.update(c => c + 1);
     }, 100);
+  }
+
+  ngAfterViewInit() {
+    // Inicialización después de que la vista esté lista
   }
 
   ngOnDestroy() {
@@ -255,24 +261,51 @@ export class MainThreadComponent implements OnInit, OnDestroy {
 
   getScrollOffset(): number {
     const index = this.processingIndex();
-    if (index < 0 || index < 5) {
-      // Centrar los primeros números
-      const numberWidth = 40;
-      const firstNumberPosition = 0;
-      const containerCenter = 400; // Centro aproximado del contenedor
-      return containerCenter - firstNumberPosition - numberWidth / 2;
+    
+    // Obtener el ancho real del contenedor
+    let containerWidth = 800; // Valor por defecto
+    if (this.numbersContainerRef?.nativeElement) {
+      containerWidth = this.numbersContainerRef.nativeElement.clientWidth;
     }
     
-    // Cada número tiene aproximadamente 40px de ancho (32px min-width + 4px gap + padding)
-    const numberWidth = 40;
+    const containerCenter = containerWidth / 2;
+    const numberWidth = 40; // Cada número tiene aproximadamente 40px de ancho
     
-    // Calcular la posición del número actual
-    const currentPosition = index * numberWidth + numberWidth / 2;
+    if (index < 0) {
+      // Estado inicial: centrar el primer número
+      return containerCenter - (numberWidth / 2);
+    }
     
-    // Desplazar para mantener el número procesado en el centro
-    const containerCenter = 400; // Centro aproximado del contenedor
+    // Calcular la posición del centro del número actual sin desplazamiento
+    // El primer número (index 0) tiene su centro en numberWidth / 2 desde el inicio del grid
+    // Cada número adicional está separado por numberWidth
+    const numberCenterPosition = index * numberWidth + (numberWidth / 2);
     
-    return containerCenter - currentPosition;
+    // Calcular el offset necesario para centrar el número actual
+    // Si el número está a la izquierda del centro, offset será positivo (desplazar a la derecha)
+    // Si el número está a la derecha del centro, offset será negativo (desplazar a la izquierda)
+    const offset = containerCenter - numberCenterPosition;
+    
+    // Para los primeros números, empezar desde el inicio pero ajustar gradualmente
+    // Esto evita que se corra demasiado a la derecha al inicio
+    if (index === 0) {
+      // Primer número: centrar exactamente
+      return containerCenter - (numberWidth / 2);
+    }
+    
+    // Para números subsecuentes, centrar progresivamente
+    // Usar el offset calculado pero suavizar para los primeros números
+    if (index < 5) {
+      // Para los primeros 5 números, ajustar gradualmente desde el centro inicial
+      const initialOffset = containerCenter - (numberWidth / 2);
+      const currentOffset = containerCenter - numberCenterPosition;
+      // Interpolar entre el offset inicial y el actual
+      const progress = index / 5;
+      return initialOffset + (currentOffset - initialOffset) * progress;
+    }
+    
+    // Para números posteriores, siempre centrar exactamente
+    return offset;
   }
 }
 
