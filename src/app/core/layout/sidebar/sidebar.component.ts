@@ -4,14 +4,6 @@ import { LanguageService } from '../../services/language.service';
 import { NavigationService } from '../../services/navigation.service';
 import { LanguageSelectorComponent } from '../../components/language-selector/language-selector.component';
 
-interface Example {
-  number: string;
-  title: string;
-  description: string;
-  tags: string[];
-  route: string;
-}
-
 @Component({
   selector: 'app-sidebar',
   imports: [RouterLink, LanguageSelectorComponent],
@@ -23,6 +15,6 @@ export class SidebarComponent {
   protected readonly language = inject(LanguageService);
   protected readonly navigation = inject(NavigationService);
 
-  readonly examples = this.navigation.examples;
+  readonly categories = this.navigation.categories;
 }
 

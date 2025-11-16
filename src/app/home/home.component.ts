@@ -1,7 +1,6 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NavigationService } from '../core/services/navigation.service';
-import { LanguageService } from '../core/services/language.service';
 
 @Component({
   selector: 'app-home',
@@ -12,8 +11,7 @@ import { LanguageService } from '../core/services/language.service';
 })
 export class HomeComponent {
   protected readonly navigation = inject(NavigationService);
-  protected readonly language = inject(LanguageService);
 
-  readonly examples = this.navigation.examples;
+  readonly categories = this.navigation.categories;
 }
 

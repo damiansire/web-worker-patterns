@@ -26,6 +26,13 @@ export const translations = {
     sidebar: {
       title: '📚 Ejemplos'
     },
+    categories: {
+      understanding: 'Entendiendo por qué las necesitamos',
+      fundamentals: 'Fundamentos de Web Workers',
+      optimization: 'Optimización y Transferencia de Datos',
+      management: 'Manejo de Errores y Gestión',
+      advanced: 'Workers Avanzados'
+    },
     examplesMeta: {
       setIntervalCounter: {
         title: 'Contador con setInterval',
@@ -645,6 +652,13 @@ export const translations = {
     sidebar: {
       title: '📚 Examples'
     },
+    categories: {
+      understanding: 'Understanding Why We Need Them',
+      fundamentals: 'Web Workers Fundamentals',
+      optimization: 'Optimization and Data Transfer',
+      management: 'Error Handling and Management',
+      advanced: 'Advanced Workers'
+    },
     examplesMeta: {
       setIntervalCounter: {
         title: 'Counter with setInterval',
@@ -1263,6 +1277,13 @@ export const translations = {
     },
     sidebar: {
       title: '📚 Exemplos'
+    },
+    categories: {
+      understanding: 'Entendendo Por Que Precisamos Deles',
+      fundamentals: 'Fundamentos de Web Workers',
+      optimization: 'Otimização e Transferência de Dados',
+      management: 'Tratamento de Erros e Gerenciamento',
+      advanced: 'Workers Avançados'
     },
     examplesMeta: {
       setIntervalCounter: {

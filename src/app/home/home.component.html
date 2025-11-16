@@ -1,17 +1,22 @@
 <div class="home-container">
-  <div class="examples-grid">
-    @for (example of examples(); track example.number) {
-      <a [routerLink]="example.route" class="example-card">
-        <div class="number">{{ example.number }}</div>
-        <h2>{{ example.title }}</h2>
-        <p>{{ example.description }}</p>
-        <div class="tags">
-          @for (tag of example.tags; track tag) {
-            <span class="tag">{{ tag }}</span>
-          }
-        </div>
-      </a>
-    }
-  </div>
+  @for (category of categories(); track category.id) {
+    <div class="category-section">
+      <h2 class="category-title">{{ category.title }}</h2>
+      <div class="examples-grid">
+        @for (example of category.examples; track example.number) {
+          <a [routerLink]="example.route" class="example-card">
+            <div class="number">{{ example.number }}</div>
+            <h3>{{ example.title }}</h3>
+            <p>{{ example.description }}</p>
+            <div class="tags">
+              @for (tag of example.tags; track tag) {
+                <span class="tag">{{ tag }}</span>
+              }
+            </div>
+          </a>
+        }
+      </div>
+    </div>
+  }
 </div>
 

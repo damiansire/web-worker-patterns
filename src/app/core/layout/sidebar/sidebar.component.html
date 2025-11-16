@@ -3,19 +3,24 @@
     <h3>{{ language.t('sidebar.title') }}</h3>
     <app-language-selector class="sidebar-language-selector" />
   </div>
-  @for (example of examples(); track example.number) {
-    <a [routerLink]="example.route" class="sidebar-link">
-      <span class="number">{{ example.number }}</span>
-      <div class="content">
-        <h4>{{ example.title }}</h4>
-        <p>{{ example.description }}</p>
-        <div class="tags">
-          @for (tag of example.tags; track tag) {
-            <span class="tag">{{ tag }}</span>
-          }
-        </div>
-      </div>
-    </a>
+  @for (category of categories(); track category.id) {
+    <div class="category-group">
+      <h4 class="category-header">{{ category.title }}</h4>
+      @for (example of category.examples; track example.number) {
+        <a [routerLink]="example.route" class="sidebar-link">
+          <span class="number">{{ example.number }}</span>
+          <div class="content">
+            <h5>{{ example.title }}</h5>
+            <p>{{ example.description }}</p>
+            <div class="tags">
+              @for (tag of example.tags; track tag) {
+                <span class="tag">{{ tag }}</span>
+              }
+            </div>
+          </div>
+        </a>
+      }
+    </div>
   }
 </nav>
 
