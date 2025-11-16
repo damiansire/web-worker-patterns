@@ -1032,7 +1032,7 @@ export const translations = {
       },
       lifecycleTermination: {
         title: '♻️ Worker Lifecycle & Termination',
-        subtitle: 'Example 08: Managing a worker's lifecycle',
+        subtitle: "Example 08: Managing a worker's lifecycle",
         infoTitle: '💡 What does this example cover?',
         infoDescription: 'Managing a Worker correctly prevents memory leaks and zombie processes. This example illustrates how to create, use, and terminate a Worker in a controlled manner.',
         codeSummary: '📖 View Code - How does it work?',
