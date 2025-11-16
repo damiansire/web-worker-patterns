@@ -42,6 +42,10 @@ body {
   padding: 15px;
   min-height: 100vh;
 
+  &.no-sidebar {
+    grid-template-columns: 1fr;
+  }
+
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;

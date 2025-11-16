@@ -1,5 +1,7 @@
-<main class="main-grid">
-  <app-sidebar class="sidebar"></app-sidebar>
+<main class="main-grid" [class.no-sidebar]="isHomePage()">
+  @if (!isHomePage()) {
+    <app-sidebar class="sidebar"></app-sidebar>
+  }
   <div class="content">
     <router-outlet />
   </div>
