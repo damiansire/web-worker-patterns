@@ -171,12 +171,55 @@ button {
   color: white;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 
-  h3 {
-    color: white;
+  .visualization-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 15px;
-    font-size: 24px;
-    font-weight: 600;
-    text-align: center;
+    flex-wrap: wrap;
+    gap: 15px;
+
+    h3 {
+      color: white;
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .mode-selector {
+      display: flex;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 5px;
+      border-radius: 8px;
+      backdrop-filter: blur(10px);
+
+      .mode-btn {
+        padding: 8px 16px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        background: transparent;
+        color: white;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.1);
+          border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        &.active {
+          background: rgba(102, 126, 234, 0.8);
+          border-color: rgba(102, 126, 234, 1);
+          box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+        }
+      }
+    }
   }
 
   .thread-description {
@@ -423,6 +466,26 @@ button {
 
   .thread-visualization {
     padding: 20px;
+
+    .visualization-header {
+      flex-direction: column;
+      align-items: stretch;
+
+      h3 {
+        text-align: center;
+        margin-bottom: 15px;
+      }
+
+      .mode-selector {
+        width: 100%;
+        justify-content: center;
+
+        .mode-btn {
+          flex: 1;
+          max-width: 150px;
+        }
+      }
+    }
   }
 }
 

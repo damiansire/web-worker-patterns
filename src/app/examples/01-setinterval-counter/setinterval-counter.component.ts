@@ -74,6 +74,7 @@ export class SetIntervalCounterComponent implements OnInit, OnDestroy {
   counter = signal(0);
   speed = signal(1000);
   isRunning = signal(false);
+  visualizationMode = signal<'real' | 'slow'>('real');
   taskQueue = signal<Array<{ id: number; type: 'interval' | 'render'; timestamp: number }>>([]);
   processingTask = signal<{ id: number; type: string } | null>(null);
   private intervalId?: ReturnType<typeof setInterval>;
@@ -92,10 +93,19 @@ export class SetIntervalCounterComponent implements OnInit, OnDestroy {
   }
 
   startThreadVisualization() {
-    // Simular el event loop cada 150ms para mostrar las tareas
-    this.queueInterval = setInterval(() => {
+    // Obtener intervalos según el modo
+    const getIntervals = () => {
+      const mode = this.visualizationMode();
+      return mode === 'real' 
+        ? { queueCheck: 150, processing: 80 }
+        : { queueCheck: 500, processing: 300 };
+    };
+
+    // Función para procesar una iteración
+    const processQueue = () => {
       const queue = this.taskQueue();
       const processing = this.processingTask();
+      const intervals = getIntervals();
       
       if (queue.length > 0 && !processing) {
         // Tomar la primera tarea de la cola
@@ -116,18 +126,39 @@ export class SetIntervalCounterComponent implements OnInit, OnDestroy {
               timestamp: Date.now() 
             }]);
           }
-        }, 80);
+        }, intervals.processing);
       }
-    }, 150);
+    };
+
+    // Ejecutar la primera iteración
+    processQueue();
+    
+    // Crear intervalo recursivo que se ajusta al modo
+    const scheduleNext = () => {
+      const intervals = getIntervals();
+      this.queueInterval = setTimeout(() => {
+        processQueue();
+        scheduleNext();
+      }, intervals.queueCheck) as any;
+    };
+
+    scheduleNext();
   }
 
   stopThreadVisualization() {
     if (this.queueInterval) {
-      clearInterval(this.queueInterval);
+      clearTimeout(this.queueInterval);
       this.queueInterval = undefined;
     }
     this.taskQueue.set([]);
     this.processingTask.set(null);
+  }
+
+  onModeChange(mode: 'real' | 'slow') {
+    this.visualizationMode.set(mode);
+    // Reiniciar la visualización con el nuevo modo
+    this.stopThreadVisualization();
+    this.startThreadVisualization();
   }
 
   startCounter() {

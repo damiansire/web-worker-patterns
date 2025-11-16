@@ -127,6 +127,8 @@ export const translations = {
         threadView: {
           title: '🧵 Visualización del Hilo Principal',
           description: 'Observa cómo las tareas se agregan a la cola, se procesan en el hilo principal y se completan. Esto te ayudará a entender qué pasa cuando el hilo se bloquea.',
+          modeReal: 'Modo Real',
+          modeSlow: 'Modo Lento',
           queueLabel: 'Cola de Tareas',
           queueEmpty: 'Sin tareas pendientes',
           mainThreadLabel: 'Hilo Principal',
@@ -744,6 +746,8 @@ export const translations = {
         threadView: {
           title: '🧵 Main Thread Visualization',
           description: 'Watch how tasks are added to the queue, processed in the main thread, and completed. This will help you understand what happens when the thread gets blocked.',
+          modeReal: 'Real Mode',
+          modeSlow: 'Slow Mode',
           queueLabel: 'Task Queue',
           queueEmpty: 'No pending tasks',
           mainThreadLabel: 'Main Thread',
@@ -1361,6 +1365,8 @@ export const translations = {
         threadView: {
           title: '🧵 Visualização da Thread Principal',
           description: 'Observe como as tarefas são adicionadas à fila, processadas na thread principal e concluídas. Isso ajudará você a entender o que acontece quando a thread é bloqueada.',
+          modeReal: 'Modo Real',
+          modeSlow: 'Modo Lento',
           queueLabel: 'Fila de Tarefas',
           queueEmpty: 'Sem tarefas pendentes',
           mainThreadLabel: 'Thread Principal',

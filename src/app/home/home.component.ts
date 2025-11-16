@@ -15,7 +15,5 @@ export class HomeComponent {
   protected readonly language = inject(LanguageService);
 
   readonly examples = this.navigation.examples;
-  readonly learnItems = computed(() => this.language.t<string[]>('home.learnItems', []));
-  readonly orderItems = computed(() => this.language.t<string[]>('home.orderItems', []));
 }
 

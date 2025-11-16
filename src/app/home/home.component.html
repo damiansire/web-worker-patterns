@@ -1,13 +1,4 @@
 <div class="home-container">
-  <div class="info-box">
-    <h3>{{ language.t('home.learnTitle') }}</h3>
-    <ul>
-      @for (item of learnItems(); track item) {
-        <li>{{ item }}</li>
-      }
-    </ul>
-  </div>
-
   <div class="examples-grid">
     @for (example of examples(); track example.number) {
       <a [routerLink]="example.route" class="example-card">
@@ -21,15 +12,6 @@
         </div>
       </a>
     }
-  </div>
-
-  <div class="info-box info-box-order">
-    <h3>{{ language.t('home.orderTitle') }}</h3>
-    <ul>
-      @for (item of orderItems(); track item) {
-        <li>{{ item }}</li>
-      }
-    </ul>
   </div>
 </div>
 

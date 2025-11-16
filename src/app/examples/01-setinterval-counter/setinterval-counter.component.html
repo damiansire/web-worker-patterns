@@ -81,7 +81,25 @@
   </div>
 
   <div class="thread-visualization">
-    <h3>{{ texts().threadView.title }}</h3>
+    <div class="visualization-header">
+      <h3>{{ texts().threadView.title }}</h3>
+      <div class="mode-selector">
+        <button
+          class="mode-btn"
+          [class.active]="visualizationMode() === 'real'"
+          (click)="onModeChange('real')"
+        >
+          {{ texts().threadView.modeReal }}
+        </button>
+        <button
+          class="mode-btn"
+          [class.active]="visualizationMode() === 'slow'"
+          (click)="onModeChange('slow')"
+        >
+          {{ texts().threadView.modeSlow }}
+        </button>
+      </div>
+    </div>
     <p class="thread-description">{{ texts().threadView.description }}</p>
     
     <div class="thread-diagram">
