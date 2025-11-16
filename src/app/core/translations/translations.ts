@@ -104,7 +104,7 @@ export const translations = {
     examplesContent: {
       setIntervalCounter: {
         title: '⏱️ Contador con setInterval',
-        subtitle: 'Ejemplo -01: Fundamentos de JavaScript - Ejecución periódica',
+        subtitle: 'Ejemplo 01: Fundamentos de JavaScript - Ejecución periódica',
         infoTitle: '💡 ¿Qué enseña este ejemplo?',
         infoDescription: 'Este ejemplo muestra cómo usar setInterval para ejecutar código periódicamente. Es fundamental entender esto antes de aprender sobre Web Workers, ya que los contadores son una forma común de demostrar cómo el hilo principal puede bloquearse.',
         codeSummary: '📖 Ver Código - ¿Cómo funciona?',
@@ -143,7 +143,7 @@ export const translations = {
       },
       mainThread: {
         title: '🔒 Bloqueo del Main Thread',
-        subtitle: 'Ejemplo 00: El problema que resuelven los Web Workers',
+        subtitle: 'Ejemplo 02: El problema que resuelven los Web Workers',
         infoTitle: '⚠️ ¿Qué demuestra este ejemplo?',
         infoDescription: 'Este ejemplo muestra qué pasa cuando ejecutamos cálculos pesados directamente en el hilo principal. Observa cómo la UI se congela completamente durante el cálculo de números primos.',
         codeSummary: '📖 Ver Código - ¿Cómo funciona?',
@@ -190,7 +190,7 @@ export const translations = {
       },
       basicCommunication: {
         title: '🚀 Comunicación Básica con Web Workers',
-        subtitle: 'Ejemplo 01: Enviando y recibiendo mensajes',
+        subtitle: 'Ejemplo 03: Enviando y recibiendo mensajes',
         infoTitle: '💡 ¿Qué hace este ejemplo?',
         infoDescription: 'Este es el "Hola Mundo" de los Web Workers. Escribe un mensaje y envíalo al worker. El worker lo recibirá, lo procesará y te responderá de vuelta.',
         codeSummary: '📖 Ver Código - ¿Cómo funciona?',
@@ -212,7 +212,7 @@ export const translations = {
       },
       offloadingComputation: {
         title: '⚡ Descarga de Cómputo Pesado',
-        subtitle: 'Ejemplo 02: Evitando el bloqueo de la UI',
+        subtitle: 'Ejemplo 04: Evitando el bloqueo de la UI',
         infoTitle: '💡 ¿Qué demuestra este ejemplo?',
         infoDescription: 'Calcula números primos de forma intensiva. Prueba ambos botones y observa cómo el contador y la animación se comportan diferente cuando el cálculo se hace en el hilo principal vs. en un worker.',
         codeSummary: '📖 Ver Código - ¿Cómo funciona?',
@@ -264,7 +264,7 @@ export const translations = {
       },
       transferableObjects: {
         title: '🚀 Objetos Transferibles',
-        subtitle: 'Ejemplo 03: Transferencia vs. Clonación de datos',
+        subtitle: 'Ejemplo 05: Transferencia vs. Clonación de datos',
         infoTitle: '💡 ¿Qué demuestra este ejemplo?',
         infoDescription: 'Los objetos transferibles (como ArrayBuffer) pueden "transferir" su propiedad al worker en lugar de ser clonados. Esto es muchísimo más rápido para grandes volúmenes de datos.',
         codeSummary: '📖 Ver Código - ¿Cómo funciona?',
@@ -310,7 +310,7 @@ export const translations = {
       },
       errorHandling: {
         title: '⚠️ Manejo de Errores en Workers',
-        subtitle: 'Ejemplo 04: Capturando y manejando errores',
+        subtitle: 'Ejemplo 06: Capturando y manejando errores',
         infoTitle: '💡 ¿Qué demuestra este ejemplo?',
         infoDescription: 'Los errores que ocurren dentro de un Web Worker deben manejarse correctamente para evitar que la aplicación falle. Este ejemplo muestra distintos tipos de errores y cómo capturarlos.',
         codeSummary: '📖 Ver Código - ¿Cómo funciona?',
@@ -373,7 +373,7 @@ export const translations = {
       },
       sharedWorker: {
         title: '🌐 Shared Worker',
-        subtitle: 'Ejemplo 05: Comunicación entre múltiples pestañas',
+        subtitle: 'Ejemplo 07: Comunicación entre múltiples pestañas',
         infoTitle: '💡 ¿Qué demuestra este ejemplo?',
         infoDescription: 'Un Shared Worker puede compartirse entre pestañas, iframes o ventanas. Es ideal para coordinar estado compartido o mantener una sola conexión a recursos externos.',
         compatibilityNote: {
@@ -415,7 +415,7 @@ export const translations = {
       },
       lifecycleTermination: {
         title: '♻️ Ciclo de Vida y Terminación',
-        subtitle: 'Ejemplo 06: Gestión del ciclo de vida de Workers',
+        subtitle: 'Ejemplo 08: Gestión del ciclo de vida de Workers',
         infoTitle: '💡 ¿Qué demuestra este ejemplo?',
         infoDescription: 'Gestionar correctamente la vida de un Worker evita fugas de memoria y procesos colgados. Este ejemplo muestra cómo crear, usar y terminar un Worker de forma controlada.',
         codeSummary: '📖 Ver Código - ¿Cómo funciona?',
@@ -462,7 +462,7 @@ export const translations = {
       },
       workerLimits: {
         title: '⚠️ Límites de Workers',
-        subtitle: 'Ejemplo 07: Cantidad máxima y gestión de recursos',
+        subtitle: 'Ejemplo 09: Cantidad máxima y gestión de recursos',
         infoTitle: '💡 ¿Qué demuestra este ejemplo?',
         infoDescription: 'Los navegadores tienen límites en la cantidad de workers simultáneos. Este ejemplo permite crear muchos workers, detectar límites y monitorear el uso de recursos.',
         codeSummary: '📖 Ver Código - ¿Cómo funciona?',
@@ -545,7 +545,7 @@ export const translations = {
       },
       workerPool: {
         title: '🏊 Worker Pool Pattern',
-        subtitle: 'Ejemplo 08: Procesar muchas tareas con pocos workers',
+        subtitle: 'Ejemplo 10: Procesar muchas tareas con pocos workers',
         infoTitle: '💡 ¿Qué demuestra este ejemplo?',
         infoDescription: 'En lugar de crear un worker por tarea, un Worker Pool reutiliza un número fijo de workers para procesar múltiples tareas en cola. Este es el patrón usado en producción.',
         comparison: {
@@ -721,7 +721,7 @@ export const translations = {
     examplesContent: {
       setIntervalCounter: {
         title: '⏱️ Counter with setInterval',
-        subtitle: 'Example -01: JavaScript Fundamentals - Periodic Execution',
+        subtitle: 'Example 01: JavaScript Fundamentals - Periodic Execution',
         infoTitle: '💡 What does this example teach?',
         infoDescription: 'This example shows how to use setInterval to execute code periodically. It\'s fundamental to understand this before learning about Web Workers, as counters are a common way to demonstrate how the main thread can be blocked.',
         codeSummary: '📖 View Code - How does it work?',
@@ -760,7 +760,7 @@ export const translations = {
       },
       mainThread: {
         title: '🔒 Main Thread Blocking',
-        subtitle: 'Example 00: The problem Web Workers solve',
+        subtitle: 'Example 02: The problem Web Workers solve',
         infoTitle: '⚠️ What does this example show?',
         infoDescription: 'This example shows what happens when we run heavy calculations directly on the main thread. Notice how the UI completely freezes during the prime number calculation.',
         codeSummary: '📖 View Code - How does it work?',
@@ -807,7 +807,7 @@ export const translations = {
       },
       basicCommunication: {
         title: '🚀 Basic Communication with Web Workers',
-        subtitle: 'Example 01: Sending and receiving messages',
+        subtitle: 'Example 03: Sending and receiving messages',
         infoTitle: '💡 What does this example do?',
         infoDescription: 'This is the "Hello World" of Web Workers. Type a message and send it to the worker. The worker receives it, processes it, and sends a response back.',
         codeSummary: '📖 View Code - How does it work?',
@@ -829,7 +829,7 @@ export const translations = {
       },
       offloadingComputation: {
         title: '⚡ Heavy Computation Offloading',
-        subtitle: 'Example 02: Avoiding UI freezes',
+        subtitle: 'Example 04: Avoiding UI freezes',
         infoTitle: '💡 What does this example show?',
         infoDescription: 'It calculates prime numbers intensively. Try both buttons and see how the counter and animation behave differently when the calculation runs on the main thread versus a worker.',
         codeSummary: '📖 View Code - How does it work?',
@@ -881,7 +881,7 @@ export const translations = {
       },
       transferableObjects: {
         title: '🚀 Transferable Objects',
-        subtitle: 'Example 03: Transferring vs. cloning data',
+        subtitle: 'Example 05: Transferring vs. cloning data',
         infoTitle: '💡 What does this example demonstrate?',
         infoDescription: 'Transferable objects (like ArrayBuffer) can transfer their ownership to the worker instead of being cloned. This is far faster for large data volumes.',
         codeSummary: '📖 View Code - How does it work?',
@@ -927,7 +927,7 @@ export const translations = {
       },
       errorHandling: {
         title: '⚠️ Error Handling in Workers',
-        subtitle: 'Example 04: Capturing and managing errors',
+        subtitle: 'Example 06: Capturing and managing errors',
         infoTitle: '💡 What does this example show?',
         infoDescription: 'Errors thrown inside a Web Worker must be handled correctly to keep the app stable. This example walks through different error types and how to capture them.',
         codeSummary: '📖 View Code - How does it work?',
@@ -990,7 +990,7 @@ export const translations = {
       },
       sharedWorker: {
         title: '🌐 Shared Worker',
-        subtitle: 'Example 05: Communication across multiple tabs',
+        subtitle: 'Example 07: Communication across multiple tabs',
         infoTitle: '💡 What does this example demonstrate?',
         infoDescription: 'A Shared Worker can be used by multiple tabs, iframes, or windows. It is perfect for keeping shared state or maintaining a single connection to external services.',
         compatibilityNote: {
@@ -1032,7 +1032,7 @@ export const translations = {
       },
       lifecycleTermination: {
         title: '♻️ Worker Lifecycle & Termination',
-        subtitle: 'Example 06: Managing a worker’s lifecycle',
+        subtitle: 'Example 08: Managing a worker's lifecycle',
         infoTitle: '💡 What does this example cover?',
         infoDescription: 'Managing a Worker correctly prevents memory leaks and zombie processes. This example illustrates how to create, use, and terminate a Worker in a controlled manner.',
         codeSummary: '📖 View Code - How does it work?',
@@ -1079,7 +1079,7 @@ export const translations = {
       },
       workerLimits: {
         title: '⚠️ Worker Limits',
-        subtitle: 'Example 07: Maximum counts and resource management',
+        subtitle: 'Example 09: Maximum counts and resource management',
         infoTitle: '💡 What does this example show?',
         infoDescription: 'Browsers enforce a limit on how many workers can run at once. This example lets you create many workers, detect limits, and monitor resource usage.',
         codeSummary: '📖 View Code - How does it work?',
@@ -1162,7 +1162,7 @@ export const translations = {
       },
       workerPool: {
         title: '🏊 Worker Pool Pattern',
-        subtitle: 'Example 08: Process many tasks with few workers',
+        subtitle: 'Example 10: Process many tasks with few workers',
         infoTitle: '💡 What does this example illustrate?',
         infoDescription: 'Instead of creating one worker per task, a Worker Pool reuses a fixed number of workers to process a queue of tasks. This is the production-ready pattern.',
         comparison: {
@@ -1338,7 +1338,7 @@ export const translations = {
     examplesContent: {
       setIntervalCounter: {
         title: '⏱️ Contador com setInterval',
-        subtitle: 'Exemplo -01: Fundamentos de JavaScript - Execução Periódica',
+        subtitle: 'Exemplo 01: Fundamentos de JavaScript - Execução Periódica',
         infoTitle: '💡 O que este exemplo ensina?',
         infoDescription: 'Este exemplo mostra como usar setInterval para executar código periodicamente. É fundamental entender isso antes de aprender sobre Web Workers, pois os contadores são uma forma comum de demonstrar como a thread principal pode ser bloqueada.',
         codeSummary: '📖 Ver Código - Como funciona?',
@@ -1377,7 +1377,7 @@ export const translations = {
       },
       mainThread: {
         title: '🔒 Bloqueio da Thread Principal',
-        subtitle: 'Exemplo 00: O problema que os Web Workers resolvem',
+        subtitle: 'Exemplo 02: O problema que os Web Workers resolvem',
         infoTitle: '⚠️ O que este exemplo mostra?',
         infoDescription: 'Este exemplo mostra o que acontece quando executamos cálculos pesados diretamente na thread principal. Observe como a interface congela completamente durante o cálculo de números primos.',
         codeSummary: '📖 Ver Código - Como funciona?',
@@ -1424,7 +1424,7 @@ export const translations = {
       },
       basicCommunication: {
         title: '🚀 Comunicação Básica com Web Workers',
-        subtitle: 'Exemplo 01: Enviando e recebendo mensagens',
+        subtitle: 'Exemplo 03: Enviando e recebendo mensagens',
         infoTitle: '💡 O que este exemplo faz?',
         infoDescription: 'Este é o "Olá Mundo" dos Web Workers. Escreva uma mensagem e envie para o worker. O worker a recebe, processa e responde de volta.',
         codeSummary: '📖 Ver Código - Como funciona?',
@@ -1446,7 +1446,7 @@ export const translations = {
       },
       offloadingComputation: {
         title: '⚡ Descarga de Cálculo Pesado',
-        subtitle: 'Exemplo 02: Evitando travamentos na UI',
+        subtitle: 'Exemplo 04: Evitando travamentos na UI',
         infoTitle: '💡 O que este exemplo demonstra?',
         infoDescription: 'Calcula números primos de forma intensiva. Experimente ambos os botões e observe como o contador e a animação se comportam de maneira diferente quando o cálculo ocorre na thread principal ou em um worker.',
         codeSummary: '📖 Ver Código - Como funciona?',
@@ -1498,7 +1498,7 @@ export const translations = {
       },
       transferableObjects: {
         title: '🚀 Objetos Transferíveis',
-        subtitle: 'Exemplo 03: Transferência vs. clonagem de dados',
+        subtitle: 'Exemplo 05: Transferência vs. clonagem de dados',
         infoTitle: '💡 O que este exemplo demonstra?',
         infoDescription: 'Objetos transferíveis (como ArrayBuffer) podem transferir sua propriedade para o worker em vez de serem clonados. Isso é muito mais rápido para grandes volumes de dados.',
         codeSummary: '📖 Ver Código - Como funciona?',
@@ -1544,7 +1544,7 @@ export const translations = {
       },
       errorHandling: {
         title: '⚠️ Tratamento de Erros em Workers',
-        subtitle: 'Exemplo 04: Capturando e tratando erros',
+        subtitle: 'Exemplo 06: Capturando e tratando erros',
         infoTitle: '💡 O que este exemplo mostra?',
         infoDescription: 'Erros lançados dentro de um Web Worker precisam ser tratados corretamente para manter a aplicação estável. Este exemplo apresenta diferentes tipos de erro e como capturá-los.',
         codeSummary: '📖 Ver Código - Como funciona?',
@@ -1607,7 +1607,7 @@ export const translations = {
       },
       sharedWorker: {
         title: '🌐 Shared Worker',
-        subtitle: 'Exemplo 05: Comunicação entre várias abas',
+        subtitle: 'Exemplo 07: Comunicação entre várias abas',
         infoTitle: '💡 O que este exemplo demonstra?',
         infoDescription: 'Um Shared Worker pode ser compartilhado por várias abas, iframes ou janelas. Ideal para coordenar estado ou manter uma única conexão com serviços externos.',
         compatibilityNote: {
@@ -1649,7 +1649,7 @@ export const translations = {
       },
       lifecycleTermination: {
         title: '♻️ Ciclo de Vida e Término',
-        subtitle: 'Exemplo 06: Gerenciando o ciclo de vida de um Worker',
+        subtitle: 'Exemplo 08: Gerenciando o ciclo de vida de um Worker',
         infoTitle: '💡 O que este exemplo aborda?',
         infoDescription: 'Gerenciar corretamente um Worker evita vazamentos de memória e processos presos. Este exemplo mostra como criar, usar e terminar um Worker de maneira controlada.',
         codeSummary: '📖 Ver Código - Como funciona?',
@@ -1696,7 +1696,7 @@ export const translations = {
       },
       workerLimits: {
         title: '⚠️ Limites de Workers',
-        subtitle: 'Exemplo 07: Quantidade máxima e gestão de recursos',
+        subtitle: 'Exemplo 09: Quantidade máxima e gestão de recursos',
         infoTitle: '💡 O que este exemplo mostra?',
         infoDescription: 'Os navegadores limitam a quantidade de workers simultâneos. Este exemplo permite criar muitos workers, detectar limites e monitorar recursos.',
         codeSummary: '📖 Ver Código - Como funciona?',
@@ -1779,7 +1779,7 @@ export const translations = {
       },
       workerPool: {
         title: '🏊 Worker Pool Pattern',
-        subtitle: 'Exemplo 08: Processar muitas tarefas com poucos workers',
+        subtitle: 'Exemplo 10: Processar muitas tarefas com poucos workers',
         infoTitle: '💡 O que este exemplo ilustra?',
         infoDescription: 'Em vez de criar um worker por tarefa, um Worker Pool reutiliza um número fixo de workers para processar uma fila de tarefas. Este é o padrão usado em produção.',
         comparison: {
