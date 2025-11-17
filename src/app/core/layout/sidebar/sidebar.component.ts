@@ -1,12 +1,12 @@
 import { Component, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { LanguageService } from '../../services/language.service';
 import { NavigationService } from '../../services/navigation.service';
 import { LanguageSelectorComponent } from '../../components/language-selector/language-selector.component';
 
 @Component({
   selector: 'app-sidebar',
-  imports: [RouterLink, LanguageSelectorComponent],
+  imports: [RouterLink, RouterLinkActive, LanguageSelectorComponent],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss',
   standalone: true
