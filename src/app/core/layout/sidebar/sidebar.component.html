@@ -52,7 +52,7 @@
     }
 
     @if (filteredCategories().length === 0) {
-      <p class="search-empty">No se encontraron ejemplos para "{{ searchQuery() }}"</p>
+      <p class="search-empty">{{ language.t('sidebar.noResults', 'No results for') }} "{{ searchQuery() }}"</p>
     }
   </div>
 </nav>

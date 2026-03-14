@@ -58,6 +58,8 @@ export const translations = {
       advanced: 'Workers Avanzados'
     },
     home: {
+      heroTitle: 'Worker Lab',
+      heroSubtitle: 'Plataforma de simulación para computación paralela. Manipula hilos secundarios, optimiza recursos y rompe los límites del navegador.',
       learnTitle: '💡 ¿Qué aprenderás?',
       learnItems: [
         'Cómo ejecutar código JavaScript en hilos de fondo',
@@ -135,6 +137,8 @@ export const translations = {
       advanced: 'Advanced Workers'
     },
     home: {
+      heroTitle: 'Worker Lab',
+      heroSubtitle: 'Parallel computing simulation platform. Manipulate background threads, optimize resources, and push the limits of the browser.',
       learnTitle: '💡 What will you learn?',
       learnItems: [
         'How to run JavaScript code in background threads',
@@ -212,6 +216,8 @@ export const translations = {
       advanced: 'Workers Avançados'
     },
     home: {
+      heroTitle: 'Worker Lab',
+      heroSubtitle: 'Plataforma de simulação para computação paralela. Manipule threads secundárias, otimize recursos e ultrapasse os limites do navegador.',
       learnTitle: '💡 O que você vai aprender?',
       learnItems: [
         'Como executar código JavaScript em threads de fundo',
