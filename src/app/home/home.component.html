@@ -1,22 +1,42 @@
 <div class="home-container">
-  @for (category of categories(); track category.id) {
-    <div class="category-section">
-      <h2 class="category-title">{{ category.title }}</h2>
-      <div class="examples-grid">
-        @for (example of category.examples; track example.number) {
-          <a [routerLink]="example.route" class="example-card">
-            <div class="number">{{ example.number }}</div>
-            <h3>{{ example.title }}</h3>
-            <p>{{ example.description }}</p>
-            <div class="tags">
-              @for (tag of example.tags; track tag) {
-                <span class="tag">{{ tag }}</span>
-              }
-            </div>
-          </a>
-        }
-      </div>
-    </div>
-  }
-</div>
 
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-icon">⚙</div>
+    <h1 class="hero-title">Worker Lab</h1>
+    <p class="hero-subtitle">
+      Plataforma de simulación para computación paralela. Manipula hilos secundarios,
+      optimiza recursos y rompe los límites del navegador.
+    </p>
+  </div>
+
+  <!-- Categories -->
+  <div class="categories">
+    @for (category of categories(); track category.id) {
+      <section class="category-section">
+
+        <div class="category-header-row">
+          <span class="category-badge">{{ category.title }}</span>
+          <div class="category-divider"></div>
+        </div>
+
+        <div class="examples-grid">
+          @for (example of category.examples; track example.number) {
+            <a [routerLink]="example.route" class="example-card" [attr.data-category]="category.id">
+              <span class="card-number">{{ example.number }}</span>
+              <h3>{{ example.title }}</h3>
+              <p>{{ example.description }}</p>
+              <div class="tags">
+                @for (tag of example.tags; track tag) {
+                  <span class="tag" [attr.data-category]="category.id">{{ tag }}</span>
+                }
+              </div>
+            </a>
+          }
+        </div>
+
+      </section>
+    }
+  </div>
+
+</div>
