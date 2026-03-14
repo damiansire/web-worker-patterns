@@ -1,0 +1,26 @@
+<div class="example-shell" [class]="'layout-' + layout">
+  <header class="shell-header">
+    <h1>{{ title }}</h1>
+    @if (subtitle) {
+      <p class="subtitle">{{ subtitle }}</p>
+    }
+  </header>
+
+  <div class="shell-body">
+    <div class="slot-code">
+      <ng-content select="[slot=code]"></ng-content>
+    </div>
+
+    <div class="slot-main">
+      <div class="slot-visualization">
+        <ng-content select="[slot=visualization]"></ng-content>
+      </div>
+      <div class="slot-controls">
+        <ng-content select="[slot=controls]"></ng-content>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fallback for examples that have not adopted slots yet -->
+  <ng-content></ng-content>
+</div>

@@ -1,0 +1,91 @@
+.example-shell {
+  width: 100%;
+
+  .shell-header {
+    margin-bottom: 24px;
+
+    h1 {
+      font-size: clamp(22px, 3vw, 28px);
+      font-weight: 700;
+      color: #1e293b;
+      margin: 0 0 6px;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: #64748b;
+      margin: 0;
+    }
+  }
+
+  // ── Layout: split (default) ──────────────────────────────────────────────
+  &.layout-split {
+    .shell-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+
+      @media (max-width: 1100px) {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+
+  // ── Layout: focus (single column) ───────────────────────────────────────
+  &.layout-focus {
+    .shell-body {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+
+      .slot-code,
+      .slot-main {
+        width: 100%;
+      }
+    }
+  }
+
+  // ── Layout: comparison (equal columns) ──────────────────────────────────
+  &.layout-comparison {
+    .shell-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+
+      @media (max-width: 900px) {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+
+  // ── Layout: timeline (horizontal sequence) ───────────────────────────────
+  &.layout-timeline {
+    .shell-body {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+
+      .slot-visualization {
+        overflow-x: auto;
+      }
+    }
+  }
+
+  // ── Slot containers ───────────────────────────────────────────────────────
+  .slot-main {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .slot-code,
+  .slot-visualization,
+  .slot-controls {
+    &:empty {
+      display: none;
+    }
+  }
+}
