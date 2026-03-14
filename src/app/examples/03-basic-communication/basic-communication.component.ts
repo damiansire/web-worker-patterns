@@ -6,6 +6,7 @@ import { CodeExplanationComponent } from '../../core/components/code-explanation
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
 import { LanguageService } from '../../core/services/language.service';
 import { BASIC_COMMUNICATION_SNIPPETS } from './basic-communication.snippets';
+import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
 
 interface Message {
   text: string;
@@ -14,7 +15,7 @@ interface Message {
 
 @Component({
   selector: 'app-basic-communication',
-  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent],
+  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, ExampleNavComponent],
   templateUrl: './basic-communication.component.html',
   styleUrl: './basic-communication.component.scss',
   standalone: true

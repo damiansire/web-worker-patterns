@@ -6,6 +6,7 @@ import { CodeExplanationComponent } from '../../core/components/code-explanation
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
 import { LanguageService } from '../../core/services/language.service';
 import { SHARED_WORKER_SNIPPETS } from './shared-worker.snippets';
+import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
 
 interface Message {
   sender: string;
@@ -19,7 +20,7 @@ type SharedWorkerEvent = 'connected' | 'broadcast' | 'tabConnected' | 'tabDiscon
 
 @Component({
   selector: 'app-shared-worker',
-  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent],
+  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, ExampleNavComponent],
   templateUrl: './shared-worker.component.html',
   styleUrl: './shared-worker.component.scss',
   standalone: true

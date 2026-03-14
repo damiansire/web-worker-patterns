@@ -6,6 +6,7 @@ import { CodeExplanationComponent } from '../../core/components/code-explanation
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
 import { LanguageService } from '../../core/services/language.service';
 import { TRANSFERABLE_OBJECTS_SNIPPETS } from './transferable-objects.snippets';
+import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
 
 interface ImageData {
   buffer: ArrayBuffer;
@@ -22,7 +23,7 @@ interface ProcessResult {
 
 @Component({
   selector: 'app-transferable-objects',
-  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent],
+  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, ExampleNavComponent],
   templateUrl: './transferable-objects.component.html',
   styleUrl: './transferable-objects.component.scss',
   standalone: true

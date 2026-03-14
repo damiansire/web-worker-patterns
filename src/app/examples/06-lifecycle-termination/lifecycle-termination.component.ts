@@ -7,6 +7,7 @@ import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log
 import { StatsPanelComponent, StatCard } from '../../core/components/stats-panel/stats-panel.component';
 import { LanguageService } from '../../core/services/language.service';
 import { LIFECYCLE_TERMINATION_SNIPPETS } from './lifecycle-termination.snippets';
+import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
 
 @Component({
   selector: 'app-lifecycle-termination',
@@ -16,7 +17,8 @@ import { LIFECYCLE_TERMINATION_SNIPPETS } from './lifecycle-termination.snippets
     CodeExplanationComponent,
     CodeSectionComponent,
     LogPanelComponent,
-    StatsPanelComponent
+    StatsPanelComponent,
+    ExampleNavComponent
   ],
   templateUrl: './lifecycle-termination.component.html',
   styleUrl: './lifecycle-termination.component.scss',

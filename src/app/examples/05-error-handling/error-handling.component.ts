@@ -6,12 +6,13 @@ import { CodeSectionComponent } from '../../core/components/code-section/code-se
 import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log-panel.component';
 import { LanguageService } from '../../core/services/language.service';
 import { ERROR_HANDLING_SNIPPETS } from './error-handling.snippets';
+import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
 
 type ErrorKey = 'reference' | 'type' | 'math' | 'custom' | 'success';
 
 @Component({
   selector: 'app-error-handling',
-  imports: [CommonModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent],
+  imports: [CommonModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, ExampleNavComponent],
   templateUrl: './error-handling.component.html',
   styleUrl: './error-handling.component.scss',
   standalone: true

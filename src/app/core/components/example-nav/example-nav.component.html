@@ -1,0 +1,21 @@
+<nav class="example-nav">
+  @if (prevExample(); as prev) {
+    <a [routerLink]="prev.route" class="nav-link prev">
+      <span class="nav-direction">← {{ language.t('exampleNav.previous', 'Previous') }}</span>
+      <span class="nav-title">{{ prev.number }}. {{ prev.title }}</span>
+    </a>
+  } @else {
+    <div class="nav-link placeholder"></div>
+  }
+
+  <a routerLink="/" class="nav-home">{{ language.t('exampleNav.allExamples', 'All examples') }}</a>
+
+  @if (nextExample(); as next) {
+    <a [routerLink]="next.route" class="nav-link next">
+      <span class="nav-direction">{{ language.t('exampleNav.next', 'Next') }} →</span>
+      <span class="nav-title">{{ next.number }}. {{ next.title }}</span>
+    </a>
+  } @else {
+    <div class="nav-link placeholder"></div>
+  }
+</nav>

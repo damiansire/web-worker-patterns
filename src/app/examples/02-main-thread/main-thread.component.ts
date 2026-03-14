@@ -6,6 +6,7 @@ import { CodeExplanationComponent } from '../../core/components/code-explanation
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
 import { LanguageService } from '../../core/services/language.service';
 import { MAIN_THREAD_SNIPPETS } from './main-thread.snippets';
+import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
 
 interface PrimeResult {
   primes: number[];
@@ -19,7 +20,7 @@ interface NumberEvaluation {
 
 @Component({
   selector: 'app-main-thread',
-  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent],
+  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, ExampleNavComponent],
   templateUrl: './main-thread.component.html',
   styleUrl: './main-thread.component.scss',
   standalone: true

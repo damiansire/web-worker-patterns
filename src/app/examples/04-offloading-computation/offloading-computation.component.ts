@@ -6,6 +6,7 @@ import { CodeExplanationComponent } from '../../core/components/code-explanation
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
 import { LanguageService } from '../../core/services/language.service';
 import { OFFLOADING_COMPUTATION_SNIPPETS } from './offloading-computation.snippets';
+import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
 
 interface PrimeResult {
   primes: number[];
@@ -15,7 +16,7 @@ interface PrimeResult {
 
 @Component({
   selector: 'app-offloading-computation',
-  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent],
+  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, ExampleNavComponent],
   templateUrl: './offloading-computation.component.html',
   styleUrl: './offloading-computation.component.scss',
   standalone: true
