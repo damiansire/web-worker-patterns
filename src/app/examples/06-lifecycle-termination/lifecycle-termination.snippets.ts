@@ -4,6 +4,7 @@ export const LIFECYCLE_TERMINATION_SNIPPETS = {
   basicCreate: code`
 let worker = null;
 
+// Workers consume memory; not terminating them causes leaks when components unmount
 function createWorker() {
   worker = new Worker('worker.js');
   worker.onmessage = handleMessage;
@@ -11,6 +12,7 @@ function createWorker() {
 }
 `,
   basicTerminate: code`
+// terminate() stops the worker immediately—in-flight messages are dropped, no cleanup runs
 function terminateWorker() {
   if (worker) {
     worker.terminate();
@@ -19,6 +21,7 @@ function terminateWorker() {
 }
 `,
   angularComponent: code`
+// Best practice: create workers only when needed, terminate when done
 createWorker() {
   if (this.worker) {
     return;
@@ -49,6 +52,7 @@ createWorker() {
   this.createdCount.update(c => c + 1);
 }
 
+// Always terminate in cleanup/destroy—orphaned workers leak memory and keep running
 terminateWorker() {
   if (!this.worker) {
     return;

@@ -6,10 +6,12 @@ const imageData = new ImageData(1024, 1024);
 const buffer = imageData.data.buffer;
 `,
   vanillaClone: code`
+// Cloning copies every byte—slow and memory-heavy for large buffers
 worker.postMessage({ imageData });
 // El buffer original sigue siendo accesible
 `,
   vanillaTransfer: code`
+// Transfer = zero-copy: ownership moves to worker, original becomes detached
 worker.postMessage({ imageData }, [imageData.data.buffer]);
 // ⚠️ El buffer original queda INACCESIBLE
 `,
@@ -44,6 +46,7 @@ processWithClone() {
   this.displayImage(imageData, 'original');
   this.processingStartTime = performance.now();
 
+  // Use clone for small data or when you need the original after sending
   this.worker?.postMessage({
     type: 'process',
     imageData,
@@ -59,6 +62,7 @@ processWithTransfer() {
   this.displayImage(imageData, 'original');
   this.processingStartTime = performance.now();
 
+  // Use transfer for large ArrayBuffers when you won't need the original
   this.worker?.postMessage({
     type: 'process',
     imageData,

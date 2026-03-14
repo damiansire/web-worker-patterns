@@ -2,11 +2,14 @@ import { code } from '../../core/utils/code-snippet.helper';
 
 export const SHARED_WORKER_SNIPPETS = {
   createSharedWorker: code`
+// SharedWorker: one instance shared across tabs; dedicated Worker = one per tab
 const sharedWorker = new SharedWorker('shared_worker.js');
+// MessagePort: each tab gets a port to communicate; must call start() to receive
 const port = sharedWorker.port;
 port.start();
 `,
   basicMessage: code`
+// All communication goes through the port, not the SharedWorker directly
 port.postMessage({
   type: 'message',
   tabId: 'tab-123',
@@ -15,6 +18,7 @@ port.postMessage({
 `,
   angularComponent: code`
 ngOnInit() {
+  // SharedWorker persists until ALL tabs using it are closed
   if (typeof SharedWorker === 'undefined') {
     this.workerStatus.set('unsupported');
     alert(this.texts().alerts?.unsupported ?? 'SharedWorker not supported');
@@ -30,6 +34,7 @@ ngOnInit() {
   );
   this.worker.port.start();
 
+  // MessagePort connects this tab to the shared worker context
   this.worker.port.postMessage({
     type: 'connect',
     tabId

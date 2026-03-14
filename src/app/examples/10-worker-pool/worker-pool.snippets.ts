@@ -7,7 +7,7 @@ class WorkerPool {
     this.poolSize = poolSize;
     this.workers = [];
     this.taskQueue = [];
-    // Crear workers fijos
+    // Creating a new Worker per task is expensive—pool reuses a fixed set
     for (let i = 0; i < poolSize; i++) {
       const worker = new Worker(workerScript);
       this.workers.push({ id: i, instance: worker, busy: false });
@@ -16,12 +16,14 @@ class WorkerPool {
 }
 `,
   vanillaAddTask: code`
+// Task queue buffers work when all workers are busy—enables load balancing
 addTask(task) {
   this.taskQueue.push(task);
   this.processQueue();
 }
 `,
   vanillaProcessQueue: code`
+// Recycles idle workers: assign queued tasks to free workers
 processQueue() {
   const available = this.workers.filter(worker => !worker.busy);
 
@@ -35,6 +37,7 @@ processQueue() {
 }
 `,
   vanillaHandleResult: code`
+// When worker finishes, mark idle and process next queued task
 worker.instance.onmessage = event => {
   worker.busy = false;
   this.processQueue();
@@ -42,6 +45,7 @@ worker.instance.onmessage = event => {
 };
 `,
   angularPoolClass: code`
+// Pool avoids per-task Worker creation cost by reusing a fixed set of workers
 class WorkerPool {
   constructor(
     private size: number,
@@ -52,6 +56,7 @@ class WorkerPool {
     this.initializeWorkers();
   }
 
+  // Queue distributes tasks across workers—no task waits if a worker is free
   addTasks(tasks: Task[]) {
     this.component.addLog(
       this.component.format(
@@ -65,6 +70,7 @@ class WorkerPool {
     this.processQueue();
   }
 
+  // Pre-create workers once; they stay alive and process tasks from the queue
   private initializeWorkers() {
     for (let i = 0; i < this.size; i++) {
       const worker: WorkerData = {
@@ -85,6 +91,7 @@ class WorkerPool {
     }
   }
 
+  // Assign queued tasks to idle workers—recycles workers instead of creating new ones
   private processQueue() {
     const available = this.workers.filter(worker => !worker.busy);
 
@@ -123,12 +130,14 @@ class WorkerPool {
 }
 `,
   angularAddTask: code`
+// Queue holds overflow when pool is saturated; processQueue assigns to free workers
 addTask(task) {
   this.taskQueue.push(task);
   this.processQueue();
 }
 `,
   angularProcessQueue: code`
+// Load balancing: match queued tasks with available workers
 processQueue() {
   const available = this.workers.filter(worker => !worker.busy);
 
@@ -145,6 +154,7 @@ processQueue() {
 }
 `,
   angularHandleResult: code`
+// Worker becomes idle; processQueue picks up next task from queue
 worker.instance.onmessage = event => {
   worker.busy = false;
   this.processQueue();
