@@ -1,73 +1,73 @@
-# 🐳 Guía de Docker para Web Worker Patterns
+# Docker Guide for Web Worker Patterns
 
-Esta guía explica en detalle cómo usar Docker para ejecutar este proyecto.
+This guide explains in detail how to use Docker to run this project.
 
-## 📋 Tabla de Contenidos
+## Table of Contents
 
-- [¿Por qué Docker?](#por-qué-docker)
-- [Instalación de Docker](#instalación-de-docker)
-- [Uso Rápido](#uso-rápido)
+- [Why Docker?](#why-docker)
+- [Installing Docker](#installing-docker)
+- [Quick Usage](#quick-usage)
 - [Troubleshooting](#troubleshooting)
-- [Comandos Útiles](#comandos-útiles)
+- [Useful Commands](#useful-commands)
 
-## 🤔 ¿Por qué Docker?
+## Why Docker?
 
-Docker proporciona:
+Docker provides:
 
-- ✅ **Configuración cero**: No necesitas instalar Python, Node.js, PHP o ningún servidor web
-- ✅ **Portabilidad**: Funciona igual en macOS, Windows y Linux
-- ✅ **Aislamiento**: No interfiere con otros servicios en tu sistema
-- ✅ **Reproducibilidad**: Todos usan exactamente el mismo entorno
-- ✅ **Hot-reload**: Los cambios en archivos se reflejan inmediatamente
+- **Zero configuration**: No need to install Python, Node.js, PHP, or any web server
+- **Portability**: Works the same on macOS, Windows, and Linux
+- **Isolation**: Does not interfere with other services on your system
+- **Reproducibility**: Everyone uses exactly the same environment
+- **Hot-reload**: File changes are reflected immediately
 
-## 📦 Instalación de Docker
+## Installing Docker
 
 ### macOS
 
-1. Descarga Docker Desktop: https://www.docker.com/products/docker-desktop
-2. Abre el archivo `.dmg` descargado
-3. Arrastra Docker a tu carpeta de Aplicaciones
-4. Abre Docker desde Aplicaciones
-5. Espera a ver el ícono de Docker en la barra de menú
+1. Download Docker Desktop: https://www.docker.com/products/docker-desktop
+2. Open the downloaded `.dmg` file
+3. Drag Docker to your Applications folder
+4. Open Docker from Applications
+5. Wait for the Docker icon to appear in the menu bar
 
 ### Windows
 
-1. Descarga Docker Desktop: https://www.docker.com/products/docker-desktop
-2. Ejecuta el instalador
-3. Sigue las instrucciones (puede requerir reiniciar)
-4. Abre Docker Desktop desde el menú inicio
-5. Espera a ver el ícono de Docker en la bandeja del sistema
+1. Download Docker Desktop: https://www.docker.com/products/docker-desktop
+2. Run the installer
+3. Follow the instructions (may require a restart)
+4. Open Docker Desktop from the Start menu
+5. Wait for the Docker icon to appear in the system tray
 
-**Nota para Windows**: Necesitas WSL 2 (Windows Subsystem for Linux) instalado.
+**Note for Windows**: You need WSL 2 (Windows Subsystem for Linux) installed.
 
 ### Linux (Ubuntu/Debian)
 
 ```bash
-# Actualizar paquetes
+# Update packages
 sudo apt-get update
 
-# Instalar dependencias
+# Install dependencies
 sudo apt-get install ca-certificates curl gnupg lsb-release
 
-# Agregar la clave GPG de Docker
+# Add Docker's GPG key
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 
-# Agregar el repositorio
+# Add the repository
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-# Instalar Docker
+# Install Docker
 sudo apt-get update
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
-# Verificar instalación
+# Verify installation
 docker --version
 ```
 
-## 🚀 Uso Rápido
+## Quick Usage
 
-### Opción 1: Scripts Automáticos
+### Option 1: Automatic Scripts
 
-El proyecto incluye scripts que verifican y levantan Docker automáticamente:
+The project includes scripts that verify and start Docker automatically:
 
 **macOS/Linux:**
 
@@ -81,40 +81,40 @@ El proyecto incluye scripts que verifican y levantan Docker automáticamente:
 start.bat
 ```
 
-### Opción 2: Comandos Manuales
+### Option 2: Manual Commands
 
 ```bash
-# 1. Verificar que Docker está corriendo
+# 1. Verify Docker is running
 docker ps
 
-# 2. Levantar el proyecto
+# 2. Start the project
 docker-compose up -d
 
-# 3. Abrir en el navegador
+# 3. Open in the browser
 # http://localhost:9000
 ```
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### "Cannot connect to the Docker daemon"
 
-**Problema**: Docker no está corriendo.
+**Problem**: Docker is not running.
 
-**Solución**:
+**Solution**:
 
 **macOS:**
 
 ```bash
 open -a Docker
-# Espera 10-30 segundos
+# Wait 10-30 seconds
 docker ps
 ```
 
 **Windows:**
 
-- Busca "Docker Desktop" en el menú inicio
-- Haz clic para iniciarlo
-- Espera a ver el ícono en la bandeja del sistema
+- Search for "Docker Desktop" in the Start menu
+- Click to launch it
+- Wait for the icon to appear in the system tray
 
 **Linux:**
 
@@ -124,16 +124,16 @@ sudo systemctl start docker
 
 ### "Port is already allocated"
 
-**Problema**: El puerto está siendo usado por otro servicio.
+**Problem**: The port is being used by another service.
 
-**Solución 1** - Detener contenedores existentes:
+**Solution 1** - Stop existing containers:
 
 ```bash
 docker-compose down
 docker-compose up -d
 ```
 
-**Solución 2** - Ver qué está usando el puerto:
+**Solution 2** - See what's using the port:
 
 ```bash
 # macOS/Linux
@@ -143,15 +143,15 @@ lsof -i :3000
 Get-Process -Id (Get-NetTCPConnection -LocalPort 3000).OwningProcess
 ```
 
-**Solución 3** - Cambiar el puerto en `docker-compose.yml`:
+**Solution 3** - Change the port in `docker-compose.yml`:
 
 ```yaml
 ports:
-  - "8080:80" # Usar puerto 8080
-  # o cualquier otro puerto disponible
+  - "8080:80" # Use port 8080
+  # or any other available port
 ```
 
-Luego reiniciar:
+Then restart:
 
 ```bash
 docker-compose down
@@ -160,241 +160,241 @@ docker-compose up -d
 
 ### "Error response from daemon: Conflict"
 
-**Problema**: Ya existe un contenedor con el mismo nombre.
+**Problem**: A container with the same name already exists.
 
-**Solución**:
+**Solution**:
 
 ```bash
-# Detener y eliminar el contenedor existente
+# Stop and remove the existing container
 docker-compose down
 
-# Volver a crear
+# Recreate
 docker-compose up -d
 ```
 
-### Los cambios no se reflejan en el navegador
+### Changes are not reflected in the browser
 
-**Solución**:
+**Solution**:
 
 ```bash
-# 1. Limpiar caché del navegador (Ctrl+Shift+R o Cmd+Shift+R)
+# 1. Clear browser cache (Ctrl+Shift+R or Cmd+Shift+R)
 
-# 2. O reiniciar el contenedor
+# 2. Or restart the container
 docker-compose restart
 ```
 
-### Permiso denegado en Linux
+### Permission denied on Linux
 
-**Problema**: `permission denied while trying to connect to the Docker daemon socket`
+**Problem**: `permission denied while trying to connect to the Docker daemon socket`
 
-**Solución**:
+**Solution**:
 
 ```bash
-# Agregar tu usuario al grupo docker
+# Add your user to the docker group
 sudo usermod -aG docker $USER
 
-# Cerrar sesión y volver a iniciarla
-# O ejecutar:
+# Log out and log back in
+# Or run:
 newgrp docker
 
-# Verificar
+# Verify
 docker ps
 ```
 
-## 📚 Comandos Útiles
+## Useful Commands
 
-### Ver estado del contenedor
+### View container status
 
 ```bash
-# Listar contenedores activos
+# List active containers
 docker ps
 
-# Ver todos los contenedores (incluyendo detenidos)
+# View all containers (including stopped)
 docker ps -a
 
-# Ver logs en tiempo real
+# View logs in real time
 docker-compose logs -f
 
-# Ver logs de un servicio específico
+# View logs for a specific service
 docker-compose logs -f web-worker-patterns
 ```
 
-### Gestión del contenedor
+### Container management
 
 ```bash
-# Iniciar
+# Start
 docker-compose up -d
 
-# Detener
+# Stop
 docker-compose down
 
-# Reiniciar
+# Restart
 docker-compose restart
 
-# Reconstruir (después de cambios en Dockerfile)
+# Rebuild (after Dockerfile changes)
 docker-compose up -d --build
 
-# Detener sin eliminar
+# Stop without removing
 docker-compose stop
 
-# Volver a iniciar
+# Start again
 docker-compose start
 ```
 
-### Ver información
+### View information
 
 ```bash
-# Ver estadísticas de recursos
+# View resource statistics
 docker stats
 
-# Inspeccionar el contenedor
+# Inspect the container
 docker inspect web-worker-patterns
 
-# Ver el estado de salud
+# View health status
 docker ps --format "table {{.Names}}\t{{.Status}}"
 ```
 
-### Acceder al contenedor
+### Access the container
 
 ```bash
-# Abrir una shell dentro del contenedor
+# Open a shell inside the container
 docker exec -it web-worker-patterns sh
 
-# Ver archivos dentro del contenedor
+# View files inside the container
 docker exec web-worker-patterns ls -la /usr/share/nginx/html
 
-# Ver la configuración de nginx
+# View nginx configuration
 docker exec web-worker-patterns cat /etc/nginx/conf.d/default.conf
 ```
 
-### Limpieza
+### Cleanup
 
 ```bash
-# Eliminar el contenedor y sus volúmenes
+# Remove the container and its volumes
 docker-compose down -v
 
-# Limpiar imágenes sin usar
+# Clean unused images
 docker image prune
 
-# Limpiar todo (contenedores, redes, imágenes, volúmenes)
+# Clean everything (containers, networks, images, volumes)
 docker system prune -a --volumes
 ```
 
-## 🏗️ Arquitectura del Proyecto
+## Project Architecture
 
 ```
 ┌──────────────────┐
-│   Navegador      │  http://localhost:9000
-│  (Tu máquina)    │
+│   Browser        │  http://localhost:9000
+│  (Your machine)  │
 └────────┬─────────┘
          │
          ▼
 ┌──────────────────┐
-│   Docker Host    │  Puerto 3000 → Puerto 80
-│   (Tu máquina)   │
+│   Docker Host    │  Port 3000 → Port 80
+│  (Your machine)  │
 └────────┬─────────┘
          │
          ▼
 ┌──────────────────┐
-│   Contenedor     │  Nginx Alpine
+│   Container      │  Nginx Alpine
 │   web-worker-    │
-│   patterns       │  - Sirve archivos estáticos
-└────────┬─────────┘  - Headers CORS configurados
-         │            - Hot-reload habilitado
+│   patterns       │  - Serves static files
+└────────┬─────────┘  - CORS headers configured
+         │            - Hot-reload enabled
          ▼
 ┌──────────────────┐
-│  Archivos del    │  Montados desde tu máquina
-│  Proyecto        │  /usr/share/nginx/html/
+│  Project Files   │  Mounted from your machine
+│                  │  /usr/share/nginx/html/
 └──────────────────┘
 ```
 
-## 🔍 Archivos de Configuración
+## Configuration Files
 
 ### `Dockerfile`
 
-Define cómo se construye la imagen:
+Defines how the image is built:
 
-- Usa nginx:alpine (ligero y rápido)
-- Copia archivos del proyecto
-- Configura nginx para servir contenido estático
+- Uses nginx:alpine (lightweight and fast)
+- Copies project files
+- Configures nginx to serve static content
 
 ### `docker-compose.yml`
 
-Define el servicio completo:
+Defines the complete service:
 
-- Puertos (9000:80 por defecto, puedes cambiarlo)
-- Volúmenes (hot-reload)
+- Ports (9000:80 by default, you can change it)
+- Volumes (hot-reload)
 - Healthcheck
-- Nombre del contenedor
+- Container name
 
 ### `.dockerignore`
 
-Archivos que NO se copian al contenedor:
+Files that are NOT copied to the container:
 
 - .git
 - node_modules
-- Scripts de desarrollo
+- Development scripts
 
-## 💡 Tips y Mejores Prácticas
+## Tips and Best Practices
 
-### Desarrollo
+### Development
 
-- **Hot-reload está habilitado**: Los cambios se reflejan automáticamente
-- **Usa el puerto 3000**: Ya está configurado
-- **Revisa los logs**: `docker-compose logs -f` es tu amigo
+- **Hot-reload is enabled**: Changes are reflected automatically
+- **Use port 3000**: Already configured
+- **Check the logs**: `docker-compose logs -f` is your friend
 
-### Producción
+### Production
 
-Para producción, considera:
+For production, consider:
 
-- Usar una imagen más robusta (nginx:stable)
-- Configurar SSL/TLS
-- Optimizar el cache
-- Agregar compresión gzip
+- Using a more robust image (nginx:stable)
+- Configuring SSL/TLS
+- Optimizing cache
+- Adding gzip compression
 
 ### Performance
 
-El contenedor usa:
+The container uses:
 
-- Nginx Alpine (solo ~5MB)
-- Configuración optimizada de cache
-- Headers CORS correctos para workers
+- Nginx Alpine (only ~5MB)
+- Optimized cache configuration
+- Correct CORS headers for workers
 
-## ❓ Preguntas Frecuentes
+## FAQ
 
-### ¿Necesito saber Docker para usar esto?
+### Do I need to know Docker to use this?
 
-No. Los scripts automáticos (`start.sh` y `start.bat`) hacen todo por ti.
+No. The automatic scripts (`start.sh` and `start.bat`) do everything for you.
 
-### ¿Puedo cambiar el puerto?
+### Can I change the port?
 
-Sí. Edita `docker-compose.yml` y cambia `"9000:80"` a `"TU_PUERTO:80"`, luego ejecuta `docker-compose down && docker-compose up -d`.
+Yes. Edit `docker-compose.yml` and change `"9000:80"` to `"YOUR_PORT:80"`, then run `docker-compose down && docker-compose up -d`.
 
-### ¿Los cambios se guardan después de detener el contenedor?
+### Are changes saved after stopping the container?
 
-Sí. Los archivos están en tu máquina, el contenedor solo los sirve.
+Yes. The files are on your machine; the container only serves them.
 
-### ¿Cuánto espacio ocupa?
+### How much space does it take?
 
-- Imagen base (nginx:alpine): ~5MB
-- Imagen construida: ~5.5MB
-- Contenedor corriendo: ~10MB RAM
+- Base image (nginx:alpine): ~5MB
+- Built image: ~5.5MB
+- Running container: ~10MB RAM
 
-### ¿Puedo usar Docker Desktop UI?
+### Can I use Docker Desktop UI?
 
-Sí. Puedes gestionar todo desde la interfaz gráfica de Docker Desktop.
-
----
-
-## 🆘 ¿Necesitas ayuda?
-
-Si tienes problemas:
-
-1. Revisa esta guía de troubleshooting
-2. Ejecuta `docker-compose logs -f` para ver errores
-3. Verifica que Docker esté corriendo: `docker ps`
-4. Intenta reconstruir: `docker-compose up -d --build`
+Yes. You can manage everything from the Docker Desktop graphical interface.
 
 ---
 
-Hecho con ❤️ para la comunidad de desarrolladores.
+## Need Help?
+
+If you have problems:
+
+1. Check this troubleshooting guide
+2. Run `docker-compose logs -f` to see errors
+3. Verify Docker is running: `docker ps`
+4. Try rebuilding: `docker-compose up -d --build`
+
+---
+
+Made with love for the developer community.

@@ -4,7 +4,10 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Plataforma educativa interactiva sobre **Web Workers** construida con Angular 19. Incluye 10 ejemplos progresivos con demos en vivo, visualización de hilos, soporte multiidioma (ES/EN/PT) y un tema visual cyberpunk.
+> **🌐 This README is also available in other languages:**
+> [Español](docs/README.es.md) | [Português](docs/README.pt.md)
+
+Interactive educational platform about **Web Workers** built with Angular 19. Includes 10 progressive examples with live demos, thread visualization, multi-language support (ES/EN/PT), and a cyberpunk visual theme.
 
 ## Quick Start
 
@@ -15,107 +18,112 @@ npm install
 npm start
 ```
 
-Abre `http://localhost:4200` en tu navegador.
+Open `http://localhost:4200` in your browser.
 
-## Ejemplos incluidos
+## Included Examples
 
-La aplicación organiza los ejemplos en 5 categorías por nivel de complejidad:
+The application organizes examples into 5 categories by complexity level:
 
-### Fundamentos
+### Understanding
 
-| # | Ejemplo | Descripción |
+| # | Example | Description |
 |---|---------|-------------|
-| 01 | **Contador con setInterval** | Cómo funciona el event loop y por qué setInterval se ejecuta en el hilo principal. |
-| 02 | **Main Thread Blocking** | Demuestra el bloqueo de la UI al ejecutar cálculos pesados en el hilo principal. |
+| 01 | **SetInterval Counter** | How the event loop works and why setInterval runs on the main thread. |
+| 02 | **Main Thread Blocking** | Demonstrates UI blocking when running heavy computations on the main thread. |
 
-### Comunicación
+### Communication
 
-| # | Ejemplo | Descripción |
+| # | Example | Description |
 |---|---------|-------------|
-| 03 | **Basic Communication** | Primeros pasos: enviar y recibir mensajes entre el hilo principal y un Worker. |
-| 04 | **Offloading Computation** | Mover cálculos pesados a un Worker para mantener la UI fluida. |
+| 03 | **Basic Communication** | First steps: send and receive messages between the main thread and a Worker. |
+| 04 | **Offloading Computation** | Move heavy computations to a Worker to keep the UI responsive. |
 
-### Gestión
+### Management
 
-| # | Ejemplo | Descripción |
+| # | Example | Description |
 |---|---------|-------------|
-| 05 | **Error Handling** | Capturar y manejar errores que ocurren dentro de los Workers. |
-| 06 | **Lifecycle & Termination** | Crear, ejecutar y terminar Workers de forma controlada. |
+| 05 | **Error Handling** | Catch and handle errors that occur inside Workers. |
+| 06 | **Lifecycle & Termination** | Create, run, and terminate Workers in a controlled manner. |
 
-### Optimización
+### Optimization
 
-| # | Ejemplo | Descripción |
+| # | Example | Description |
 |---|---------|-------------|
-| 07 | **Transferable Objects** | Transferir datos en memoria sin copiarlos usando `ArrayBuffer`. |
+| 07 | **Transferable Objects** | Transfer data in memory without copying using `ArrayBuffer`. |
 
-### Avanzado
+### Advanced
 
-| # | Ejemplo | Descripción |
+| # | Example | Description |
 |---|---------|-------------|
-| 08 | **Shared Worker** | Compartir un Worker entre múltiples pestañas del navegador. |
-| 09 | **Worker Limits** | Descubrir los límites de hardware y cuántos Workers soporta el navegador. |
-| 10 | **Worker Pool** | Patrón de pool: gestionar un conjunto fijo de Workers con una cola de tareas. |
+| 08 | **Shared Worker** | Share a Worker across multiple browser tabs. |
+| 09 | **Worker Limits** | Discover hardware limits and how many Workers the browser supports. |
+| 10 | **Worker Pool** | Pool pattern: manage a fixed set of Workers with a task queue. |
 
-## Arquitectura del proyecto
+## Project Architecture
 
 ```
 src/app/
 ├── core/
-│   ├── components/          # Componentes reutilizables (InfoBox, CodeSection, LogPanel, etc.)
+│   ├── components/          # Reusable components (InfoBox, CodeSection, LogPanel, etc.)
 │   ├── layout/              # Header, Sidebar, Footer
-│   ├── models/              # ExampleManifest, tipos compartidos
+│   ├── models/              # ExampleManifest, shared types
 │   ├── services/            # LanguageService, NavigationService
-│   ├── styles/              # SCSS compartidos (_buttons, _containers, _shared)
-│   ├── translations/        # Traducciones UI + contenido por ejemplo
+│   ├── styles/              # Shared SCSS (_buttons, _containers, _shared)
+│   ├── translations/        # UI translations + per-example content
 │   └── utils/               # Helpers (code-snippet.helper)
 ├── examples/
 │   ├── 01-setinterval-counter/
-│   │   ├── manifest.ts                        # Metadata declarativa del ejemplo
-│   │   ├── setinterval-counter.component.ts   # Lógica del componente
+│   │   ├── manifest.ts                        # Declarative example metadata
+│   │   ├── setinterval-counter.component.ts   # Component logic
 │   │   ├── setinterval-counter.component.html # Template
-│   │   ├── setinterval-counter.component.scss # Estilos
-│   │   └── setinterval-counter.snippets.ts    # Code snippets para visualización
+│   │   ├── setinterval-counter.component.scss # Styles
+│   │   └── setinterval-counter.snippets.ts    # Code snippets for display
 │   ├── 02-main-thread/
 │   ├── ...
-│   └── examples.registry.ts  # Registro central de todos los ejemplos
-├── home/                      # Página principal con tarjetas de ejemplo
-├── app.routes.ts              # Rutas generadas dinámicamente desde el registry
-└── app.ts                     # Componente raíz
+│   └── examples.registry.ts  # Central registry of all examples
+├── home/                      # Home page with example cards
+├── app.routes.ts              # Routes dynamically generated from the registry
+└── app.ts                     # Root component
 ```
 
-### Agregar un nuevo ejemplo
+### Adding a New Example
 
-1. Crear una carpeta bajo `src/app/examples/` (ej: `11-mi-ejemplo/`)
-2. Crear `manifest.ts` con la metadata del ejemplo (id, categoría, traducciones, `loadComponent`)
-3. Crear el componente, template, estilos y archivo de snippets
-4. Importar el `MANIFEST` en `examples.registry.ts` y agregarlo al array
+1. Create a folder under `src/app/examples/` (e.g., `11-my-example/`)
+2. Create `manifest.ts` with the example metadata (id, category, translations, `loadComponent`)
+3. Create the component, template, styles, and snippets file
+4. Import the `MANIFEST` in `examples.registry.ts` and append it to the array
 
-Las rutas, la navegación del sidebar y la página home se actualizan automáticamente.
+Routes, sidebar navigation, and the home page update automatically.
 
-## Stack técnico
+## Tech Stack
 
 - **Angular 19** — Standalone Components, Signals
-- **SCSS** — Design tokens, tema cyberpunk con variables CSS
-- **highlight.js** — Syntax highlighting para los bloques de código
+- **SCSS** — Design tokens, cyberpunk theme with CSS custom properties
+- **highlight.js** — Syntax highlighting for code blocks
 - **Web Workers API** — Dedicated Workers, Shared Workers, Transferable Objects
 
-## Scripts disponibles
+## Available Scripts
 
 ```bash
-npm start       # Servidor de desarrollo en localhost:4200
-npm run build   # Build de producción
-npm test        # Tests unitarios
+npm start       # Dev server at localhost:4200
+npm run build   # Production build
+npm test        # Unit tests
 ```
 
-## Soporte multiidioma
+## Multi-language Support
 
-La aplicación soporta Español, Inglés y Portugués. Las traducciones se gestionan en:
+The application supports English, Spanish, and Portuguese. Translations are managed in:
 
-- `src/app/core/translations/translations.ts` — Textos de UI (sidebar, header, home)
-- `src/app/core/translations/examples/*.content.ts` — Contenido educativo por ejemplo
+- `src/app/core/translations/translations.ts` — UI text (sidebar, header, home)
+- `src/app/core/translations/examples/*.content.ts` — Educational content per example
 
-El idioma se cambia desde el selector en el sidebar.
+Switch languages from the selector in the sidebar.
 
-## Licencia
+## Documentation
+
+- [Docker Guide](DOCKER.md) — Run the project with Docker
+- [Docker Guide (ES)](docs/DOCKER.es.md) | [Docker Guide (PT)](docs/DOCKER.pt.md)
+
+## License
 
 MIT
