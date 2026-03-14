@@ -37,6 +37,15 @@ export const lifecycleTerminationContent = {
       workerError: 'Error en worker: {{message}}',
       workerTerminated: 'Worker terminado',
       logsCleared: 'Logs limpiados'
+    },
+    takeaways: {
+      title: 'Puntos Clave',
+      items: [
+        'terminate() detiene inmediatamente al worker y libera recursos',
+        'Los workers no terminados consumen memoria indefinidamente',
+        'Implementa siempre limpieza en ngOnDestroy'
+      ],
+      tip: 'Monitorea el número de workers activos para detectar fugas de memoria temprano.'
     }
   },
   en: {
@@ -77,6 +86,15 @@ export const lifecycleTerminationContent = {
       workerError: 'Worker error: {{message}}',
       workerTerminated: 'Worker terminated',
       logsCleared: 'Logs cleared'
+    },
+    takeaways: {
+      title: 'Key Takeaways',
+      items: [
+        'terminate() immediately stops the worker and frees resources',
+        'Unterminated workers consume memory indefinitely',
+        'Always implement cleanup in ngOnDestroy'
+      ],
+      tip: 'Monitor active worker count to detect memory leaks early.'
     }
   },
   pt: {
@@ -117,6 +135,15 @@ export const lifecycleTerminationContent = {
       workerError: 'Erro no worker: {{message}}',
       workerTerminated: 'Worker terminado',
       logsCleared: 'Logs limpos'
+    },
+    takeaways: {
+      title: 'Pontos-Chave',
+      items: [
+        'terminate() para imediatamente o worker e libera recursos',
+        'Workers não terminados consomem memória indefinidamente',
+        'Implemente sempre limpeza no ngOnDestroy'
+      ],
+      tip: 'Monitore a contagem de workers ativos para detectar vazamentos de memória cedo.'
     }
   }
 };

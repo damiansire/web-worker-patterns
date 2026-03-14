@@ -48,6 +48,15 @@ export const mainThreadContent = {
       mainStart: '🔒 Iniciando cálculo de {{count}} números primos en el Main Thread...',
       mainWarning: '⚠️ ADVERTENCIA: La UI se congelará durante el cálculo',
       mainComplete: '✅ Cálculo en Main Thread completado'
+    },
+    takeaways: {
+      title: 'Puntos Clave',
+      items: [
+        'Los cálculos pesados bloquean completamente la interfaz',
+        'El usuario no puede interactuar mientras el hilo principal trabaja',
+        'Los Web Workers permiten mover este trabajo a un hilo separado'
+      ],
+      tip: 'Cualquier operación que tarde más de 50ms debería considerarse para un Web Worker.'
     }
   },
   en: {
@@ -99,6 +108,15 @@ export const mainThreadContent = {
       mainStart: '🔒 Starting calculation of {{count}} prime numbers on the Main Thread...',
       mainWarning: '⚠️ WARNING: The UI will freeze during this calculation',
       mainComplete: '✅ Main Thread calculation completed'
+    },
+    takeaways: {
+      title: 'Key Takeaways',
+      items: [
+        'Heavy computations completely block the interface',
+        'Users cannot interact while the main thread is working',
+        'Web Workers allow moving this work to a separate thread'
+      ],
+      tip: 'Any operation taking longer than 50ms should be considered for a Web Worker.'
     }
   },
   pt: {
@@ -150,6 +168,15 @@ export const mainThreadContent = {
       mainStart: '🔒 Iniciando o cálculo de {{count}} números primos na Thread Principal...',
       mainWarning: '⚠️ AVISO: A interface ficará congelada durante o cálculo',
       mainComplete: '✅ Cálculo na Thread Principal concluído'
+    },
+    takeaways: {
+      title: 'Pontos-Chave',
+      items: [
+        'Cálculos pesados bloqueiam completamente a interface',
+        'O usuário não pode interagir enquanto a thread principal trabalha',
+        'Web Workers permitem mover este trabalho para uma thread separada'
+      ],
+      tip: 'Qualquer operação que demore mais de 50ms deve ser considerada para um Web Worker.'
     }
   }
 };

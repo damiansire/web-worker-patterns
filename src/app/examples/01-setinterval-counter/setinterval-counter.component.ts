@@ -7,10 +7,11 @@ import { CodeSectionComponent } from '../../core/components/code-section/code-se
 import { LanguageService } from '../../core/services/language.service';
 import { SETINTERVAL_COUNTER_SNIPPETS } from './setinterval-counter.snippets';
 import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
+import { KeyTakeawaysComponent } from '../../core/components/key-takeaways/key-takeaways.component';
 
 @Component({
   selector: 'app-setinterval-counter',
-  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, ExampleNavComponent],
+  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, ExampleNavComponent, KeyTakeawaysComponent],
   templateUrl: './setinterval-counter.component.html',
   styleUrl: './setinterval-counter.component.scss',
   standalone: true

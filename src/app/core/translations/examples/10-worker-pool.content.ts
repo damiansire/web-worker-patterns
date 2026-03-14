@@ -66,6 +66,15 @@ export const workerPoolContent = {
       workerProcessing: 'Worker #{{id}} procesando {{task}}',
       workerCompleted: 'Worker #{{id}} completó {{task}} en {{time}}ms',
       workerError: 'Error en Worker #{{id}}: {{message}}'
+    },
+    takeaways: {
+      title: 'Puntos Clave',
+      items: [
+        'Un pool reutiliza workers en lugar de crear y destruir constantemente',
+        'La cola de tareas garantiza que ningún worker se sobrecargue',
+        'Es el patrón más usado en aplicaciones de producción'
+      ],
+      tip: 'Dimensiona el pool según navigator.hardwareConcurrency para rendimiento óptimo.'
     }
   },
   en: {
@@ -135,6 +144,15 @@ export const workerPoolContent = {
       workerProcessing: 'Worker #{{id}} processing {{task}}',
       workerCompleted: 'Worker #{{id}} completed {{task}} in {{time}}ms',
       workerError: 'Error in Worker #{{id}}: {{message}}'
+    },
+    takeaways: {
+      title: 'Key Takeaways',
+      items: [
+        'A pool reuses workers instead of constantly creating and destroying them',
+        'The task queue ensures no worker gets overloaded',
+        'This is the most common pattern in production applications'
+      ],
+      tip: 'Size the pool based on navigator.hardwareConcurrency for optimal performance.'
     }
   },
   pt: {
@@ -204,6 +222,15 @@ export const workerPoolContent = {
       workerProcessing: 'Worker #{{id}} processando {{task}}',
       workerCompleted: 'Worker #{{id}} concluiu {{task}} em {{time}}ms',
       workerError: 'Erro no Worker #{{id}}: {{message}}'
+    },
+    takeaways: {
+      title: 'Pontos-Chave',
+      items: [
+        'Um pool reutiliza workers em vez de criar e destruir constantemente',
+        'A fila de tarefas garante que nenhum worker fique sobrecarregado',
+        'Este é o padrão mais usado em aplicações de produção'
+      ],
+      tip: 'Dimensione o pool com base em navigator.hardwareConcurrency para desempenho ótimo.'
     }
   }
 };

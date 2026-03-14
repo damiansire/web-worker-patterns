@@ -8,6 +8,7 @@ import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log
 import { LanguageService } from '../../core/services/language.service';
 import { BASIC_COMMUNICATION_SNIPPETS } from './basic-communication.snippets';
 import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
+import { KeyTakeawaysComponent } from '../../core/components/key-takeaways/key-takeaways.component';
 
 interface Message {
   text: string;
@@ -16,7 +17,7 @@ interface Message {
 
 @Component({
   selector: 'app-basic-communication',
-  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, ExampleNavComponent],
+  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, ExampleNavComponent, KeyTakeawaysComponent],
   templateUrl: './basic-communication.component.html',
   styleUrl: './basic-communication.component.scss',
   standalone: true

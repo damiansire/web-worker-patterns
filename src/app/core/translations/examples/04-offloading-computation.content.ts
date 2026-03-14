@@ -46,6 +46,15 @@ export const offloadingComputationContent = {
       mainStart: '🐌 Iniciando cálculo de {{count}} números primos en el hilo principal...',
       mainWarning: '⚠️ La UI se congelará durante el cálculo',
       mainComplete: '✅ Cálculo en hilo principal completado'
+    },
+    takeaways: {
+      title: 'Puntos Clave',
+      items: [
+        'Mover cálculos al worker mantiene la UI completamente fluida',
+        'El mismo algoritmo produce los mismos resultados en ambos hilos',
+        'El worker no tiene acceso al DOM ni a window'
+      ],
+      tip: 'Compara siempre el rendimiento con y sin worker para justificar la complejidad adicional.'
     }
   },
   en: {
@@ -95,6 +104,15 @@ export const offloadingComputationContent = {
       mainStart: '🐌 Starting calculation of {{count}} prime numbers on the main thread...',
       mainWarning: '⚠️ The UI will freeze during this calculation',
       mainComplete: '✅ Main thread calculation completed'
+    },
+    takeaways: {
+      title: 'Key Takeaways',
+      items: [
+        'Moving computations to the worker keeps the UI fully responsive',
+        'The same algorithm produces identical results on both threads',
+        'Workers have no access to the DOM or window'
+      ],
+      tip: 'Always compare performance with and without a worker to justify the added complexity.'
     }
   },
   pt: {
@@ -144,6 +162,15 @@ export const offloadingComputationContent = {
       mainStart: '🐌 Iniciando o cálculo de {{count}} números primos na thread principal...',
       mainWarning: '⚠️ A UI ficará congelada durante o cálculo',
       mainComplete: '✅ Cálculo na thread principal concluído'
+    },
+    takeaways: {
+      title: 'Pontos-Chave',
+      items: [
+        'Mover cálculos para o worker mantém a UI completamente fluida',
+        'O mesmo algoritmo produz resultados idênticos em ambas as threads',
+        'O worker não tem acesso ao DOM nem ao window'
+      ],
+      tip: 'Compare sempre o desempenho com e sem worker para justificar a complexidade adicional.'
     }
   }
 };

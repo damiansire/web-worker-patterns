@@ -8,6 +8,7 @@ import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log
 import { LanguageService } from '../../core/services/language.service';
 import { OFFLOADING_COMPUTATION_SNIPPETS } from './offloading-computation.snippets';
 import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
+import { KeyTakeawaysComponent } from '../../core/components/key-takeaways/key-takeaways.component';
 
 interface PrimeResult {
   primes: number[];
@@ -17,7 +18,7 @@ interface PrimeResult {
 
 @Component({
   selector: 'app-offloading-computation',
-  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, ExampleNavComponent],
+  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, ExampleNavComponent, KeyTakeawaysComponent],
   templateUrl: './offloading-computation.component.html',
   styleUrl: './offloading-computation.component.scss',
   standalone: true

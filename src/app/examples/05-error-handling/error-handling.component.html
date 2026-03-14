@@ -41,5 +41,10 @@
     [emptyMessage]="texts().logPanel?.empty"
     (clear)="clearLogs()">
   </app-log-panel>
+  <app-key-takeaways
+    [title]="texts().takeaways?.title"
+    [items]="texts().takeaways?.items || []"
+    [tip]="texts().takeaways?.tip"
+  />
   <app-example-nav [currentNumber]="'05'" />
 </div>

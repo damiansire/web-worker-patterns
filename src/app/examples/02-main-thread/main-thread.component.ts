@@ -8,6 +8,7 @@ import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log
 import { LanguageService } from '../../core/services/language.service';
 import { MAIN_THREAD_SNIPPETS } from './main-thread.snippets';
 import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
+import { KeyTakeawaysComponent } from '../../core/components/key-takeaways/key-takeaways.component';
 
 interface PrimeResult {
   primes: number[];
@@ -21,7 +22,7 @@ interface NumberEvaluation {
 
 @Component({
   selector: 'app-main-thread',
-  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, ExampleNavComponent],
+  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, ExampleNavComponent, KeyTakeawaysComponent],
   templateUrl: './main-thread.component.html',
   styleUrl: './main-thread.component.scss',
   standalone: true

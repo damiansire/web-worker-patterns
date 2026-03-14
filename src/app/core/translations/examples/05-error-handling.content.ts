@@ -56,7 +56,16 @@ export const errorHandlingContent = {
       triggerError: '🎯 Provocando error de tipo: "{{type}}"',
       consoleCleared: 'Consola limpiada'
     },
-    alerts: { unsupported: 'Tu navegador no soporta Web Workers' }
+    alerts: { unsupported: 'Tu navegador no soporta Web Workers' },
+    takeaways: {
+      title: 'Puntos Clave',
+      items: [
+        'Los errores en workers no crashean la aplicación principal',
+        'El evento onerror proporciona mensaje, archivo y número de línea',
+        'Siempre recrea el worker después de un error fatal'
+      ],
+      tip: 'Usa e.preventDefault() en onerror para evitar que el error se propague a la consola.'
+    }
   },
   en: {
     title: '⚠️ Error Handling in Workers',
@@ -115,7 +124,16 @@ export const errorHandlingContent = {
       triggerError: '🎯 Triggering error type: "{{type}}"',
       consoleCleared: 'Console cleared'
     },
-    alerts: { unsupported: 'Your browser does not support Web Workers' }
+    alerts: { unsupported: 'Your browser does not support Web Workers' },
+    takeaways: {
+      title: 'Key Takeaways',
+      items: [
+        'Errors in workers don\'t crash the main application',
+        'The onerror event provides message, file, and line number',
+        'Always recreate the worker after a fatal error'
+      ],
+      tip: 'Use e.preventDefault() in onerror to prevent the error from propagating to the console.'
+    }
   },
   pt: {
     title: '⚠️ Tratamento de Erros em Workers',
@@ -174,6 +192,15 @@ export const errorHandlingContent = {
       triggerError: '🎯 Provocando erro do tipo: "{{type}}"',
       consoleCleared: 'Console limpo'
     },
-    alerts: { unsupported: 'Seu navegador não suporta Web Workers' }
+    alerts: { unsupported: 'Seu navegador não suporta Web Workers' },
+    takeaways: {
+      title: 'Pontos-Chave',
+      items: [
+        'Erros nos workers não crasham a aplicação principal',
+        'O evento onerror fornece mensagem, arquivo e número de linha',
+        'Sempre recrie o worker após um erro fatal'
+      ],
+      tip: 'Use e.preventDefault() em onerror para evitar que o erro se propague ao console.'
+    }
   }
 };

@@ -34,7 +34,16 @@ export const sharedWorkerContent = {
         tabDisconnected: 'Pestaña desconectada'
       }
     },
-    alerts: { unsupported: 'SharedWorker no está soportado en este navegador' }
+    alerts: { unsupported: 'SharedWorker no está soportado en este navegador' },
+    takeaways: {
+      title: 'Puntos Clave',
+      items: [
+        'Un Shared Worker es compartido entre todas las pestañas del mismo origen',
+        'Usa MessagePort para la comunicación con cada cliente',
+        'Ideal para sincronizar estado o mantener una sola conexión WebSocket'
+      ],
+      tip: 'Verifica la compatibilidad del navegador: Safari no soporta Shared Workers.'
+    }
   },
   en: {
     title: '🌐 Shared Worker',
@@ -71,7 +80,16 @@ export const sharedWorkerContent = {
         tabDisconnected: 'Tab disconnected'
       }
     },
-    alerts: { unsupported: 'SharedWorker is not supported in this browser' }
+    alerts: { unsupported: 'SharedWorker is not supported in this browser' },
+    takeaways: {
+      title: 'Key Takeaways',
+      items: [
+        'A Shared Worker is shared across all tabs from the same origin',
+        'Uses MessagePort for communication with each client',
+        'Ideal for syncing state or maintaining a single WebSocket connection'
+      ],
+      tip: 'Check browser compatibility: Safari does not support Shared Workers.'
+    }
   },
   pt: {
     title: '🌐 Shared Worker',
@@ -108,6 +126,15 @@ export const sharedWorkerContent = {
         tabDisconnected: 'Aba desconectada'
       }
     },
-    alerts: { unsupported: 'SharedWorker não é suportado neste navegador' }
+    alerts: { unsupported: 'SharedWorker não é suportado neste navegador' },
+    takeaways: {
+      title: 'Pontos-Chave',
+      items: [
+        'Um Shared Worker é compartilhado entre todas as abas da mesma origem',
+        'Usa MessagePort para comunicação com cada cliente',
+        'Ideal para sincronizar estado ou manter uma única conexão WebSocket'
+      ],
+      tip: 'Verifique a compatibilidade do navegador: Safari não suporta Shared Workers.'
+    }
   }
 };

@@ -7,12 +7,13 @@ import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log
 import { LanguageService } from '../../core/services/language.service';
 import { ERROR_HANDLING_SNIPPETS } from './error-handling.snippets';
 import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
+import { KeyTakeawaysComponent } from '../../core/components/key-takeaways/key-takeaways.component';
 
 type ErrorKey = 'reference' | 'type' | 'math' | 'custom' | 'success';
 
 @Component({
   selector: 'app-error-handling',
-  imports: [CommonModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, ExampleNavComponent],
+  imports: [CommonModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, ExampleNavComponent, KeyTakeawaysComponent],
   templateUrl: './error-handling.component.html',
   styleUrl: './error-handling.component.scss',
   standalone: true

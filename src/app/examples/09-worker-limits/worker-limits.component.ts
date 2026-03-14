@@ -9,6 +9,7 @@ import { StatsPanelComponent, StatCard } from '../../core/components/stats-panel
 import { LanguageService } from '../../core/services/language.service';
 import { WORKER_LIMITS_SNIPPETS } from './worker-limits.snippets';
 import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
+import { KeyTakeawaysComponent } from '../../core/components/key-takeaways/key-takeaways.component';
 
 interface WorkerData {
   id: number;
@@ -19,7 +20,7 @@ interface WorkerData {
 
 @Component({
   selector: 'app-worker-limits',
-  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, StatsPanelComponent, ExampleNavComponent],
+  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, StatsPanelComponent, ExampleNavComponent, KeyTakeawaysComponent],
   templateUrl: './worker-limits.component.html',
   styleUrl: './worker-limits.component.scss',
   standalone: true

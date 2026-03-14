@@ -38,7 +38,16 @@ export const transferableObjectsContent = {
       differenceSuffix: 'ms ahorrados'
     },
     canvasLabels: { original: 'Original', transfer: 'Con Transferencia', clone: 'Con Clonación' },
-    logs: { workerError: 'Error en el worker' }
+    logs: { workerError: 'Error en el worker' },
+    takeaways: {
+      title: 'Puntos Clave',
+      items: [
+        'Transferir es instantáneo; clonar crece linealmente con el tamaño',
+        'Después de transferir, el buffer original queda inutilizable',
+        'Ideal para imágenes, audio y datos binarios grandes'
+      ],
+      tip: 'Si necesitas mantener los datos originales, usa clone. Si no los necesitas más, usa transfer.'
+    }
   },
   en: {
     title: '🚀 Transferable Objects',
@@ -75,7 +84,16 @@ export const transferableObjectsContent = {
       differenceSuffix: 'ms saved'
     },
     canvasLabels: { original: 'Original', transfer: 'With Transfer', clone: 'With Cloning' },
-    logs: { workerError: 'Worker error' }
+    logs: { workerError: 'Worker error' },
+    takeaways: {
+      title: 'Key Takeaways',
+      items: [
+        'Transferring is instant; cloning grows linearly with size',
+        'After transfer, the original buffer becomes unusable',
+        'Ideal for images, audio, and large binary data'
+      ],
+      tip: 'If you need to keep the original data, use clone. If you don\'t need it anymore, use transfer.'
+    }
   },
   pt: {
     title: '🚀 Objetos Transferíveis',
@@ -120,6 +138,15 @@ export const transferableObjectsContent = {
       transfer: 'Com Transferência',
       clone: 'Com Clonagem'
     },
-    logs: { workerError: 'Erro no worker' }
+    logs: { workerError: 'Erro no worker' },
+    takeaways: {
+      title: 'Pontos-Chave',
+      items: [
+        'Transferir é instantâneo; clonar cresce linearmente com o tamanho',
+        'Após a transferência, o buffer original fica inutilizável',
+        'Ideal para imagens, áudio e dados binários grandes'
+      ],
+      tip: 'Se precisar manter os dados originais, use clone. Se não precisar mais, use transfer.'
+    }
   }
 };

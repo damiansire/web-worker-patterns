@@ -20,7 +20,16 @@ export const basicCommunicationContent = {
     sendButton: 'Enviar Mensaje al Worker',
     emptyState: 'Los mensajes aparecerán aquí...',
     senderMain: '📤 Hilo Principal',
-    senderWorker: '📥 Worker'
+    senderWorker: '📥 Worker',
+    takeaways: {
+      title: 'Puntos Clave',
+      items: [
+        'postMessage() envía datos del hilo principal al worker y viceversa',
+        'Los datos se clonan automáticamente (structured clone)',
+        'onmessage recibe los mensajes en ambos lados'
+      ],
+      tip: 'Siempre maneja el evento onerror para capturar errores silenciosos del worker.'
+    }
   },
   en: {
     title: '🚀 Basic Communication with Web Workers',
@@ -43,7 +52,16 @@ export const basicCommunicationContent = {
     sendButton: 'Send Message to Worker',
     emptyState: 'Messages will appear here...',
     senderMain: '📤 Main Thread',
-    senderWorker: '📥 Worker'
+    senderWorker: '📥 Worker',
+    takeaways: {
+      title: 'Key Takeaways',
+      items: [
+        'postMessage() sends data from main thread to worker and vice versa',
+        'Data is automatically cloned (structured clone)',
+        'onmessage receives messages on both sides'
+      ],
+      tip: 'Always handle the onerror event to catch silent worker failures.'
+    }
   },
   pt: {
     title: '🚀 Comunicação Básica com Web Workers',
@@ -72,6 +90,15 @@ export const basicCommunicationContent = {
     sendButton: 'Enviar Mensagem para o Worker',
     emptyState: 'As mensagens aparecerão aqui...',
     senderMain: '📤 Thread Principal',
-    senderWorker: '📥 Worker'
+    senderWorker: '📥 Worker',
+    takeaways: {
+      title: 'Pontos-Chave',
+      items: [
+        'postMessage() envia dados da thread principal ao worker e vice-versa',
+        'Os dados são clonados automaticamente (structured clone)',
+        'onmessage recebe as mensagens em ambos os lados'
+      ],
+      tip: 'Sempre trate o evento onerror para capturar falhas silenciosas do worker.'
+    }
   }
 };

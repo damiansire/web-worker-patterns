@@ -86,5 +86,10 @@
     [emptyMessage]="texts().logEmpty || 'Waiting for events...'"
     (clear)="clearLogs()">
   </app-log-panel>
+  <app-key-takeaways
+    [title]="texts().takeaways?.title"
+    [items]="texts().takeaways?.items || []"
+    [tip]="texts().takeaways?.tip"
+  />
   <app-example-nav [currentNumber]="'07'" />
 </div>

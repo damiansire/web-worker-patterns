@@ -8,6 +8,7 @@ import { StatsPanelComponent, StatCard } from '../../core/components/stats-panel
 import { LanguageService } from '../../core/services/language.service';
 import { LIFECYCLE_TERMINATION_SNIPPETS } from './lifecycle-termination.snippets';
 import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
+import { KeyTakeawaysComponent } from '../../core/components/key-takeaways/key-takeaways.component';
 
 @Component({
   selector: 'app-lifecycle-termination',
@@ -18,7 +19,8 @@ import { ExampleNavComponent } from '../../core/components/example-nav/example-n
     CodeSectionComponent,
     LogPanelComponent,
     StatsPanelComponent,
-    ExampleNavComponent
+    ExampleNavComponent,
+    KeyTakeawaysComponent
   ],
   templateUrl: './lifecycle-termination.component.html',
   styleUrl: './lifecycle-termination.component.scss',

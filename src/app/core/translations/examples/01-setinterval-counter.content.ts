@@ -38,7 +38,16 @@ export const setIntervalCounterContent = {
     },
     noteTitle: '📝 Nota',
     noteDescription:
-      'Este contador funciona perfectamente porque el hilo principal está libre. En el siguiente ejemplo (Bloqueo del Main Thread) verás qué pasa cuando el hilo principal está ocupado con cálculos pesados.'
+      'Este contador funciona perfectamente porque el hilo principal está libre. En el siguiente ejemplo (Bloqueo del Main Thread) verás qué pasa cuando el hilo principal está ocupado con cálculos pesados.',
+    takeaways: {
+      title: 'Puntos Clave',
+      items: [
+        'setInterval ejecuta callbacks en el hilo principal',
+        'Si el hilo principal está ocupado, los intervalos se retrasan',
+        'Este es el problema fundamental que los Web Workers resuelven'
+      ],
+      tip: 'Usa requestAnimationFrame en lugar de setInterval para animaciones más suaves.'
+    }
   },
   en: {
     title: '⏱️ Counter with setInterval',
@@ -79,7 +88,16 @@ export const setIntervalCounterContent = {
     },
     noteTitle: '📝 Note',
     noteDescription:
-      "This counter works perfectly because the main thread is free. In the next example (Main Thread Blocking) you'll see what happens when the main thread is busy with heavy calculations."
+      "This counter works perfectly because the main thread is free. In the next example (Main Thread Blocking) you'll see what happens when the main thread is busy with heavy calculations.",
+    takeaways: {
+      title: 'Key Takeaways',
+      items: [
+        'setInterval runs callbacks on the main thread',
+        'If the main thread is busy, intervals get delayed',
+        'This is the fundamental problem Web Workers solve'
+      ],
+      tip: 'Use requestAnimationFrame instead of setInterval for smoother animations.'
+    }
   },
   pt: {
     title: '⏱️ Contador com setInterval',
@@ -120,6 +138,15 @@ export const setIntervalCounterContent = {
     },
     noteTitle: '📝 Nota',
     noteDescription:
-      'Este contador funciona perfeitamente porque a thread principal está livre. No próximo exemplo (Bloqueio da Thread Principal) você verá o que acontece quando a thread principal está ocupada com cálculos pesados.'
+      'Este contador funciona perfeitamente porque a thread principal está livre. No próximo exemplo (Bloqueio da Thread Principal) você verá o que acontece quando a thread principal está ocupada com cálculos pesados.',
+    takeaways: {
+      title: 'Pontos-Chave',
+      items: [
+        'setInterval executa callbacks na thread principal',
+        'Se a thread principal estiver ocupada, os intervalos atrasam',
+        'Este é o problema fundamental que os Web Workers resolvem'
+      ],
+      tip: 'Use requestAnimationFrame em vez de setInterval para animações mais suaves.'
+    }
   }
 };

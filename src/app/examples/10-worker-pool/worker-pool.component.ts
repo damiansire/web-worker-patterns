@@ -9,6 +9,7 @@ import { StatsPanelComponent, StatCard } from '../../core/components/stats-panel
 import { LanguageService } from '../../core/services/language.service';
 import { WORKER_POOL_SNIPPETS } from './worker-pool.snippets';
 import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
+import { KeyTakeawaysComponent } from '../../core/components/key-takeaways/key-takeaways.component';
 
 interface Task {
   id: string;
@@ -36,7 +37,7 @@ interface PoolStats {
 
 @Component({
   selector: 'app-worker-pool',
-  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, StatsPanelComponent, ExampleNavComponent],
+  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, StatsPanelComponent, ExampleNavComponent, KeyTakeawaysComponent],
   templateUrl: './worker-pool.component.html',
   styleUrl: './worker-pool.component.scss',
   standalone: true

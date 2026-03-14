@@ -1,0 +1,13 @@
+<div class="takeaways-box">
+  <h3 class="takeaways-title">✓ {{ title() }}</h3>
+  <ul class="takeaways-list">
+    @for (item of items(); track item) {
+      <li>{{ item }}</li>
+    }
+  </ul>
+  @if (tip(); as tipText) {
+    <div class="takeaways-tip">
+      <span class="tip-label">💡 Tip:</span> {{ tipText }}
+    </div>
+  }
+</div>

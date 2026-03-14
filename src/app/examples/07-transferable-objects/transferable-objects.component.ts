@@ -8,6 +8,7 @@ import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log
 import { LanguageService } from '../../core/services/language.service';
 import { TRANSFERABLE_OBJECTS_SNIPPETS } from './transferable-objects.snippets';
 import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
+import { KeyTakeawaysComponent } from '../../core/components/key-takeaways/key-takeaways.component';
 
 interface ImageData {
   buffer: ArrayBuffer;
@@ -24,7 +25,7 @@ interface ProcessResult {
 
 @Component({
   selector: 'app-transferable-objects',
-  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, ExampleNavComponent],
+  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, ExampleNavComponent, KeyTakeawaysComponent],
   templateUrl: './transferable-objects.component.html',
   styleUrl: './transferable-objects.component.scss',
   standalone: true

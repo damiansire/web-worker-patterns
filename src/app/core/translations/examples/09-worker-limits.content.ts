@@ -68,6 +68,15 @@ export const workerLimitsContent = {
       autodetectStopped: 'Detección detenida por el usuario',
       terminateAll: 'Todos los workers terminados ({{count}} workers)',
       logsCleared: 'Logs limpiados'
+    },
+    takeaways: {
+      title: 'Puntos Clave',
+      items: [
+        'navigator.hardwareConcurrency indica los núcleos de CPU disponibles',
+        'Crear más workers que núcleos degrada el rendimiento',
+        'El límite real varía por navegador y sistema operativo'
+      ],
+      tip: 'En producción, usa navigator.hardwareConcurrency - 1 para dejar un núcleo libre para la UI.'
     }
   },
   en: {
@@ -139,6 +148,15 @@ export const workerLimitsContent = {
       autodetectStopped: 'Detection stopped by the user',
       terminateAll: 'All workers terminated ({{count}} workers)',
       logsCleared: 'Logs cleared'
+    },
+    takeaways: {
+      title: 'Key Takeaways',
+      items: [
+        'navigator.hardwareConcurrency indicates available CPU cores',
+        'Creating more workers than cores degrades performance',
+        'The actual limit varies by browser and operating system'
+      ],
+      tip: 'In production, use navigator.hardwareConcurrency - 1 to leave a core free for the UI.'
     }
   },
   pt: {
@@ -210,6 +228,15 @@ export const workerLimitsContent = {
       autodetectStopped: 'Detecção interrompida pelo usuário',
       terminateAll: 'Todos os workers terminados ({{count}} workers)',
       logsCleared: 'Logs limpos'
+    },
+    takeaways: {
+      title: 'Pontos-Chave',
+      items: [
+        'navigator.hardwareConcurrency indica os núcleos de CPU disponíveis',
+        'Criar mais workers que núcleos degrada o desempenho',
+        'O limite real varia por navegador e sistema operacional'
+      ],
+      tip: 'Em produção, use navigator.hardwareConcurrency - 1 para deixar um núcleo livre para a UI.'
     }
   }
 };
