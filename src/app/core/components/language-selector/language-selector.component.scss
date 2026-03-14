@@ -1,8 +1,55 @@
+// ─── Language Selector (Cyberpunk) ────────────────────────────────────────────
+
+.language-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #000;
+  padding: 3px;
+  border-radius: 8px;
+  border: 1px solid #1e293b;
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 4px 8px;
+    background: transparent;
+    color: #475569;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    transition: all 0.15s ease;
+
+    &:hover {
+      color: var(--text-secondary);
+      background: rgba(30, 41, 59, 0.8);
+      transform: none;
+      box-shadow: none;
+    }
+
+    &.active {
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--cyan-400);
+      border-color: rgba(6, 182, 212, 0.4);
+      box-shadow: none;
+    }
+  }
+
+  .flag { font-size: 13px; }
+  .code { font-size: 10px; }
+}
+
+// ─── Language Overlay (modal) ──────────────────────────────────────────────────
 .language-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(10, 12, 20, 0.85);
-  backdrop-filter: blur(6px);
+  background: rgba(2, 6, 23, 0.85);
+  backdrop-filter: blur(8px);
   display: grid;
   place-items: center;
   z-index: 9999;
@@ -10,127 +57,94 @@
 }
 
 .language-dialog {
-  background: #ffffff;
-  border-radius: 16px;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
   padding: 32px;
   max-width: 360px;
   width: 100%;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), var(--glow-cyan);
   text-align: center;
-}
 
-.language-dialog h2 {
-  margin: 0 0 8px;
-  font-size: 24px;
-}
+  h2 {
+    margin: 0 0 8px;
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-primary);
+  }
 
-.language-dialog p {
-  margin: 0 0 24px;
-  color: #555;
+  p {
+    margin: 0 0 24px;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-family: var(--font-mono);
+  }
 }
 
 .language-options {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
+  gap: 8px;
 
-.language-options button {
-  border: none;
-  border-radius: 12px;
-  padding: 16px;
-  cursor: pointer;
-  background: #f5f6ff;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: center;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-  font-size: 16px;
-}
+  button {
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 14px 16px;
+    cursor: pointer;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+    transition: all 0.15s ease;
+    font-size: 14px;
+    color: var(--text-secondary);
 
-.language-options button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(102, 126, 234, 0.2);
-}
+    &:hover {
+      border-color: rgba(6, 182, 212, 0.4);
+      background: rgba(6, 182, 212, 0.06);
+      color: var(--cyan-400);
+      transform: none;
+      box-shadow: none;
+    }
+  }
 
-.language-options .native {
-  font-weight: 600;
-  color: #333;
-}
+  .native {
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: 0.05em;
+  }
 
-.language-options .label {
-  font-size: 14px;
-  color: #667;
+  .label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
 }
 
 .close-button {
-  margin-top: 24px;
-  border: none;
-  border-radius: 999px;
-  padding: 10px 20px;
-  background: #ecefff;
-  color: #4654c3;
+  margin-top: 20px;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 10px 24px;
+  background: #1e293b;
+  color: var(--text-secondary);
   cursor: pointer;
-  font-weight: 600;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.close-button:hover {
-  background: #4654c3;
-  color: #fff;
-}
-
-.language-inline {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.language-inline button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border: none;
-  border-radius: 999px;
-  padding: 6px 10px;
-  background: rgba(255, 255, 255, 0.6);
-  color: #2f3542;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 12px;
-  letter-spacing: 0.5px;
+  font-weight: 700;
+  font-size: 11px;
   text-transform: uppercase;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
-}
+  letter-spacing: 0.1em;
+  transition: all 0.15s ease;
 
-.language-inline button:hover {
-  transform: translateY(-1px);
-  background: rgba(102, 126, 234, 0.15);
-  color: #2a3d82;
-}
-
-.language-inline button.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
-  box-shadow: 0 8px 18px rgba(102, 126, 234, 0.35);
-}
-
-.language-inline .flag {
-  font-size: 16px;
-}
-
-.language-inline .code {
-  font-size: 12px;
-}
-
-@media (max-width: 600px) {
-  .language-inline {
-    gap: 6px;
-  }
-
-  .language-inline button {
-    padding: 5px 8px;
+  &:hover {
+    background: var(--bg-800);
+    border-color: var(--cyan-500);
+    color: var(--cyan-400);
+    transform: none;
+    box-shadow: none;
   }
 }
-
