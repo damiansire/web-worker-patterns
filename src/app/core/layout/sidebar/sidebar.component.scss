@@ -241,6 +241,33 @@
   }
 }
 
+// ─── Sidebar Difficulty Badge ──────────────────────────────────────────────────
+.sidebar-difficulty {
+  margin-left: auto;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+  flex-shrink: 0;
+
+  &[data-difficulty="beginner"] {
+    color: var(--emerald-400);
+    background: rgba(52, 211, 153, 0.1);
+  }
+
+  &[data-difficulty="intermediate"] {
+    color: var(--amber-400);
+    background: rgba(251, 191, 36, 0.1);
+  }
+
+  &[data-difficulty="advanced"] {
+    color: var(--rose-400);
+    background: rgba(251, 113, 133, 0.1);
+  }
+}
+
 // ─── Empty state ───────────────────────────────────────────────────────────────
 .search-empty {
   color: #334155;

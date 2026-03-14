@@ -272,6 +272,38 @@
   user-select: none;
 }
 
+// ─── Difficulty Badge ────────────────────────────────────────────────────────
+.difficulty-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 3px;
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 1;
+
+  &[data-difficulty="beginner"] {
+    color: var(--emerald-400);
+    background: rgba(52, 211, 153, 0.1);
+    border: 1px solid rgba(52, 211, 153, 0.3);
+  }
+
+  &[data-difficulty="intermediate"] {
+    color: var(--amber-400);
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+  }
+
+  &[data-difficulty="advanced"] {
+    color: var(--rose-400);
+    background: rgba(251, 113, 133, 0.1);
+    border: 1px solid rgba(251, 113, 133, 0.3);
+  }
+}
+
 // ─── Tags ──────────────────────────────────────────────────────────────────────
 .tags {
   display: flex;

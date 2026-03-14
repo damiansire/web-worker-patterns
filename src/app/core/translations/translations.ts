@@ -41,6 +41,11 @@ export const translations = {
         javascript: 'Aún no hay código JavaScript disponible para este ejemplo.'
       }
     },
+    difficulty: {
+      beginner: 'Básico',
+      intermediate: 'Intermedio',
+      advanced: 'Avanzado'
+    },
     sidebar: {
       title: '📚 Ejemplos',
       searchPlaceholder: 'Buscar ejemplos...'
@@ -113,6 +118,11 @@ export const translations = {
         javascript: 'JavaScript code is not available for this example yet.'
       }
     },
+    difficulty: {
+      beginner: 'Beginner',
+      intermediate: 'Intermediate',
+      advanced: 'Advanced'
+    },
     sidebar: {
       title: '📚 Examples',
       searchPlaceholder: 'Search examples...'
@@ -184,6 +194,11 @@ export const translations = {
         angular: 'Ainda não há código Angular disponível para este exemplo.',
         javascript: 'Ainda não há código JavaScript disponível para este exemplo.'
       }
+    },
+    difficulty: {
+      beginner: 'Básico',
+      intermediate: 'Intermediário',
+      advanced: 'Avançado'
     },
     sidebar: {
       title: '📚 Exemplos',

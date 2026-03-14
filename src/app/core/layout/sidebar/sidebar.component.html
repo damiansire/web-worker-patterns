@@ -41,6 +41,9 @@
               <a [routerLink]="example.route" class="sidebar-link" routerLinkActive="active">
                 <span class="number">{{ example.number }}</span>
                 <span class="title">{{ example.title }}</span>
+                <span class="sidebar-difficulty" [attr.data-difficulty]="example.difficulty">
+                  {{ language.t('difficulty.' + example.difficulty) }}
+                </span>
               </a>
             }
           </div>

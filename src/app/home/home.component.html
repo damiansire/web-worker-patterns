@@ -44,6 +44,9 @@
           @for (example of category.examples; track example.number) {
             <a [routerLink]="example.route" class="example-card" [attr.data-category]="category.id">
               <span class="card-number">{{ example.number }}</span>
+              <span class="difficulty-badge" [attr.data-difficulty]="example.difficulty">
+                {{ language.t('difficulty.' + example.difficulty) }}
+              </span>
               <h3>{{ example.title }}</h3>
               <p>{{ example.description }}</p>
               <div class="tags">
