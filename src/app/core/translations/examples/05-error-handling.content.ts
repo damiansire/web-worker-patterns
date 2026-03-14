@@ -5,6 +5,8 @@ export const errorHandlingContent = {
     infoTitle: '💡 ¿Qué demuestra este ejemplo?',
     infoDescription:
       'Los errores que ocurren dentro de un Web Worker deben manejarse correctamente para evitar que la aplicación falle. Este ejemplo muestra distintos tipos de errores y cómo capturarlos.',
+    prerequisite:
+      '💡 Ya sabes crear workers y enviar mensajes. Ahora aprenderás qué pasa cuando algo sale mal dentro de un worker.',
     codeSummary: '📖 Ver Código - ¿Cómo funciona?',
     codeSections: {
       configureHandler: '1️⃣ Configurar el manejador de errores',
@@ -73,6 +75,8 @@ export const errorHandlingContent = {
     infoTitle: '💡 What does this example show?',
     infoDescription:
       'Errors thrown inside a Web Worker must be handled correctly to keep the app stable. This example walks through different error types and how to capture them.',
+    prerequisite:
+      '💡 You already know how to create workers and send messages. Now you\'ll learn what happens when something goes wrong inside a worker.',
     codeSummary: '📖 View Code - How does it work?',
     codeSections: {
       configureHandler: '1️⃣ Set up the error handler',
@@ -141,6 +145,8 @@ export const errorHandlingContent = {
     infoTitle: '💡 O que este exemplo mostra?',
     infoDescription:
       'Erros lançados dentro de um Web Worker precisam ser tratados corretamente para manter a aplicação estável. Este exemplo apresenta diferentes tipos de erro e como capturá-los.',
+    prerequisite:
+      '💡 Você já sabe criar workers e enviar mensagens. Agora aprenderá o que acontece quando algo dá errado dentro de um worker.',
     codeSummary: '📖 Ver Código - Como funciona?',
     codeSections: {
       configureHandler: '1️⃣ Configurar o handler de erros',

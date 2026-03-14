@@ -2,6 +2,10 @@
   <h1>{{ texts().title }}</h1>
   <p class="subtitle">{{ texts().subtitle }}</p>
 
+  @if (texts().prerequisite) {
+    <div class="prerequisite-banner">{{ texts().prerequisite }}</div>
+  }
+
   <app-info-box [title]="texts().infoTitle">
     {{ texts().infoDescription }}
   </app-info-box>

@@ -5,6 +5,8 @@ export const basicCommunicationContent = {
     infoTitle: '💡 ¿Qué hace este ejemplo?',
     infoDescription:
       'Este es el "Hola Mundo" de los Web Workers. Escribe un mensaje y envíalo al worker. El worker lo recibirá, lo procesará y te responderá de vuelta.',
+    prerequisite:
+      '💡 ¿Recuerdas cómo la UI se congelaba en el Ejemplo 02? Los Web Workers son la solución. Aquí aprenderás el mecanismo básico de comunicación.',
     codeSummary: '📖 Ver Código - ¿Cómo funciona?',
     codeSections: {
       createWorker: '1️⃣ Crear el Worker',
@@ -37,6 +39,8 @@ export const basicCommunicationContent = {
     infoTitle: '💡 What does this example do?',
     infoDescription:
       'This is the "Hello World" of Web Workers. Type a message and send it to the worker. The worker receives it, processes it, and sends a response back.',
+    prerequisite:
+      '💡 Remember how the UI froze in Example 02? Web Workers are the solution. Here you\'ll learn the basic communication mechanism.',
     codeSummary: '📖 View Code - How does it work?',
     codeSections: {
       createWorker: '1️⃣ Create the Worker',
@@ -69,6 +73,8 @@ export const basicCommunicationContent = {
     infoTitle: '💡 O que este exemplo faz?',
     infoDescription:
       'Este é o "Olá Mundo" dos Web Workers. Escreva uma mensagem e envie para o worker. O worker a recebe, processa e responde de volta.',
+    prerequisite:
+      '💡 Lembra como a UI congelou no Exemplo 02? Web Workers são a solução. Aqui você aprenderá o mecanismo básico de comunicação.',
     codeSummary: '📖 Ver Código - Como funciona?',
     codeSections: {
       createWorker: '1️⃣ Criar o Worker',

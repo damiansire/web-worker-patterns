@@ -5,6 +5,8 @@ export const workerPoolContent = {
     infoTitle: '💡 ¿Qué demuestra este ejemplo?',
     infoDescription:
       'En lugar de crear un worker por tarea, un Worker Pool reutiliza un número fijo de workers para procesar múltiples tareas en cola. Este es el patrón usado en producción.',
+    prerequisite:
+      '💡 En el Ejemplo 09 descubriste los límites de hardware. Ahora aprenderás el patrón más usado en producción para manejar muchas tareas con pocos workers.',
     comparison: {
       badTitle: '❌ Enfoque Malo',
       badItems: [
@@ -83,6 +85,8 @@ export const workerPoolContent = {
     infoTitle: '💡 What does this example illustrate?',
     infoDescription:
       'Instead of creating one worker per task, a Worker Pool reuses a fixed number of workers to process a queue of tasks. This is the production-ready pattern.',
+    prerequisite:
+      '💡 In Example 09 you discovered hardware limits. Now you\'ll learn the most common production pattern for handling many tasks with few workers.',
     comparison: {
       badTitle: '❌ Bad Approach',
       badItems: [
@@ -161,6 +165,8 @@ export const workerPoolContent = {
     infoTitle: '💡 O que este exemplo ilustra?',
     infoDescription:
       'Em vez de criar um worker por tarefa, um Worker Pool reutiliza um número fixo de workers para processar uma fila de tarefas. Este é o padrão usado em produção.',
+    prerequisite:
+      '💡 No Exemplo 09 você descobriu os limites de hardware. Agora aprenderá o padrão mais usado em produção para lidar com muitas tarefas com poucos workers.',
     comparison: {
       badTitle: '❌ Abordagem Ruim',
       badItems: [

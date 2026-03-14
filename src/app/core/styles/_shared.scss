@@ -22,3 +22,16 @@
   0%, 100% { opacity: 1; transform: scale(1); }
   50%       { opacity: 0.5; transform: scale(0.85); }
 }
+
+// ─── Prerequisite banner (contextual learning hints) ─────────────────────────
+.prerequisite-banner {
+  background: rgba(6, 182, 212, 0.06);
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  border-left: 3px solid var(--cyan-400);
+  border-radius: 0 8px 8px 0;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}

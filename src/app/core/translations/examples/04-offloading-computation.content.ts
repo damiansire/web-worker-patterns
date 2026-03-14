@@ -5,6 +5,8 @@ export const offloadingComputationContent = {
     infoTitle: '💡 ¿Qué demuestra este ejemplo?',
     infoDescription:
       'Calcula números primos de forma intensiva. Prueba ambos botones y observa cómo el contador y la animación se comportan diferente cuando el cálculo se hace en el hilo principal vs. en un worker.',
+    prerequisite:
+      '💡 En el Ejemplo 02 viste el problema. En el 03 aprendiste a comunicarte con un worker. Ahora combinarás ambos para resolver el bloqueo de la UI.',
     codeSummary: '📖 Ver Código - ¿Cómo funciona?',
     codeSections: {
       createWorker: '1️⃣ Crear Worker para Cómputo',
@@ -63,6 +65,8 @@ export const offloadingComputationContent = {
     infoTitle: '💡 What does this example show?',
     infoDescription:
       'It calculates prime numbers intensively. Try both buttons and see how the counter and animation behave differently when the calculation runs on the main thread versus a worker.',
+    prerequisite:
+      '💡 In Example 02 you saw the problem. In 03 you learned to communicate with a worker. Now you\'ll combine both to solve UI blocking.',
     codeSummary: '📖 View Code - How does it work?',
     codeSections: {
       createWorker: '1️⃣ Create Worker for Computation',
@@ -121,6 +125,8 @@ export const offloadingComputationContent = {
     infoTitle: '💡 O que este exemplo demonstra?',
     infoDescription:
       'Calcula números primos de forma intensiva. Experimente ambos os botões e observe como o contador e a animação se comportam de maneira diferente quando o cálculo ocorre na thread principal ou em um worker.',
+    prerequisite:
+      '💡 No Exemplo 02 você viu o problema. No 03 aprendeu a se comunicar com um worker. Agora combinará ambos para resolver o bloqueio da UI.',
     codeSummary: '📖 Ver Código - Como funciona?',
     codeSections: {
       createWorker: '1️⃣ Criar Worker para Cálculo',

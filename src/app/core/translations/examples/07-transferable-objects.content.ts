@@ -5,6 +5,8 @@ export const transferableObjectsContent = {
     infoTitle: '💡 ¿Qué demuestra este ejemplo?',
     infoDescription:
       'Los objetos transferibles (como ArrayBuffer) pueden "transferir" su propiedad al worker en lugar de ser clonados. Esto es muchísimo más rápido para grandes volúmenes de datos.',
+    prerequisite:
+      '💡 Hasta ahora, los datos se clonaban al enviarlos al worker. En este ejemplo verás cómo transferir la propiedad para evitar copias costosas.',
     codeSummary: '📖 Ver Código - ¿Cómo funciona?',
     codeSections: {
       createBuffer: '1️⃣ Crear ArrayBuffer',
@@ -55,6 +57,8 @@ export const transferableObjectsContent = {
     infoTitle: '💡 What does this example demonstrate?',
     infoDescription:
       'Transferable objects (like ArrayBuffer) can transfer their ownership to the worker instead of being cloned. This is far faster for large data volumes.',
+    prerequisite:
+      '💡 Until now, data was cloned when sent to the worker. In this example you\'ll see how to transfer ownership to avoid expensive copies.',
     codeSummary: '📖 View Code - How does it work?',
     codeSections: {
       createBuffer: '1️⃣ Create ArrayBuffer',
@@ -101,6 +105,8 @@ export const transferableObjectsContent = {
     infoTitle: '💡 O que este exemplo demonstra?',
     infoDescription:
       'Objetos transferíveis (como ArrayBuffer) podem transferir sua propriedade para o worker em vez de serem clonados. Isso é muito mais rápido para grandes volumes de dados.',
+    prerequisite:
+      '💡 Até agora, os dados eram clonados ao enviá-los ao worker. Neste exemplo verá como transferir a propriedade para evitar cópias custosas.',
     codeSummary: '📖 Ver Código - Como funciona?',
     codeSections: {
       createBuffer: '1️⃣ Criar ArrayBuffer',
