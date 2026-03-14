@@ -1,55 +1,78 @@
-// Shared container styles (for example pages)
-// Note: The main app container is in app.scss
-// Example pages now use natural flow without internal scrolling
+// ─── Shared Container & Form Styles ───────────────────────────────────────────
 
 h1 {
-  color: #333;
-  margin-bottom: 10px;
-  font-size: 32px;
-  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.2), 0 0 20px rgba(6, 182, 212, 0.2);
 }
 
 .subtitle {
-  color: #666;
-  margin-bottom: 30px;
-  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
 }
 
 h3 {
-  color: #555;
-  margin-bottom: 15px;
-  font-size: 18px;
+  color: var(--text-secondary);
+  margin-bottom: 14px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
 }
 
+// ─── Control Panel ─────────────────────────────────────────────────────────────
 .control-panel {
-  background: #f8f9fa;
-  border-radius: 10px;
-  padding: 25px;
-  margin-bottom: 25px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
 }
 
+// ─── Input Groups ──────────────────────────────────────────────────────────────
 .input-row {
-  margin-bottom: 15px;
+  margin-bottom: 16px;
 
   label {
     display: block;
     margin-bottom: 8px;
-    color: #555;
-    font-weight: 500;
+    color: var(--text-muted);
+    font-weight: 700;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
   }
 
   input[type="number"],
   input[type="text"] {
     width: 100%;
-    padding: 12px;
-    border: 2px solid #e0e0e0;
+    padding: 12px 14px;
+    background: #000;
+    border: 1px solid #334155;
     border-radius: 8px;
     font-size: 16px;
+    font-family: var(--font-mono);
+    color: var(--cyan-400);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
 
     &:focus {
-      outline: none;
-      border-color: #fc5c7d;
+      border-color: var(--cyan-500);
+      box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
     }
+
+    &::placeholder { color: #334155; }
   }
 }
 
@@ -59,21 +82,152 @@ h3 {
   label {
     display: block;
     margin-bottom: 8px;
-    color: #555;
-    font-weight: 500;
+    color: var(--text-muted);
+    font-weight: 700;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
   }
 
-  input {
+  input,
+  select {
     width: 100%;
-    padding: 12px;
-    border: 2px solid #e0e0e0;
+    padding: 12px 14px;
+    background: #000;
+    border: 1px solid #334155;
     border-radius: 8px;
-    font-size: 16px;
+    font-size: 15px;
+    font-family: var(--font-mono);
+    color: var(--cyan-400);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
 
     &:focus {
+      border-color: var(--cyan-500);
+      box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    &::placeholder { color: #334155; }
+  }
+}
+
+// ─── Form Row ──────────────────────────────────────────────────────────────────
+.form-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    label {
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+    }
+
+    small {
+      color: var(--text-dim);
+      font-size: 11px;
+      font-family: var(--font-mono);
+    }
+
+    input[type="number"] {
+      padding: 10px 14px;
+      background: #000;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      font-size: 15px;
+      font-family: var(--font-mono);
+      color: var(--cyan-400);
       outline: none;
-      border-color: #fc5c7d;
+      transition: border-color 0.2s;
+      width: 120px;
+
+      &:focus {
+        border-color: var(--cyan-500);
+        box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+      }
     }
   }
 }
 
+// ─── Result / Warning boxes ────────────────────────────────────────────────────
+.result {
+  background: rgba(6, 182, 212, 0.06);
+  border: 1px solid rgba(6, 182, 212, 0.25);
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-top: 20px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text-secondary);
+
+  strong { color: var(--cyan-400); }
+}
+
+.warning {
+  background: rgba(251, 191, 36, 0.07);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-top: 16px;
+  font-size: 13px;
+  color: #fbbf24;
+
+  strong { color: #fde68a; }
+}
+
+// ─── Spinner ───────────────────────────────────────────────────────────────────
+.spinner {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border: 3px solid #1e293b;
+  border-top-color: var(--cyan-400);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 16px auto;
+  box-shadow: var(--glow-cyan);
+
+  &.active { display: block; }
+}
+
+// ─── Progress bar (shared) ─────────────────────────────────────────────────────
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #1e293b;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid #334155;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan-900), var(--cyan-400));
+  transition: width 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 8px;
+  color: white;
+  font-weight: 700;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  position: relative;
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.6);
+}

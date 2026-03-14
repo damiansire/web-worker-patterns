@@ -5,16 +5,105 @@
 // Syntax highlighting theme
 @import 'highlight.js/styles/github-dark.css';
 
-* {
+// ─── Design Tokens ────────────────────────────────────────────────────────────
+:root {
+  // Backgrounds
+  --bg-base:    #020617;
+  --bg-900:     #0f172a;
+  --bg-800:     #1e293b;
+  --bg-700:     #334155;
+
+  // Accent colors
+  --cyan-400:   #22d3ee;
+  --cyan-500:   #06b6d4;
+  --cyan-900:   #164e63;
+  --emerald-400: #34d399;
+  --emerald-500: #10b981;
+  --rose-400:   #fb7185;
+  --rose-500:   #f43f5e;
+  --amber-400:  #fbbf24;
+  --fuchsia-400: #e879f9;
+
+  // Text
+  --text-primary:   #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted:     #64748b;
+  --text-dim:       #475569;
+
+  // Glow
+  --glow-cyan:    0 0 15px rgba(6, 182, 212, 0.35);
+  --glow-cyan-lg: 0 0 30px rgba(6, 182, 212, 0.25);
+  --glow-rose:    0 0 15px rgba(244, 63, 94, 0.35);
+
+  // Font
+  --font-mono: 'Courier New', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  --font-ui:   'Segoe UI', system-ui, sans-serif;
+}
+
+// ─── Reset ────────────────────────────────────────────────────────────────────
+*, *::before, *::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-body {
-  margin: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
+html {
+  height: 100%;
 }
 
+body {
+  font-family: var(--font-ui);
+  background-color: var(--bg-base);
+  color: var(--text-secondary);
+  min-height: 100vh;
+  overflow-x: hidden;
+
+  // Custom scrollbar
+  &::-webkit-scrollbar { width: 8px; }
+  &::-webkit-scrollbar-track { background: #020617; border-left: 1px solid #1e293b; }
+  &::-webkit-scrollbar-thumb { background: #334155; border-radius: 0; }
+  &::-webkit-scrollbar-thumb:hover { background: #475569; }
+}
+
+// ─── Utility Classes ──────────────────────────────────────────────────────────
+
+// Cyber grid background
+.cyber-grid {
+  background-image:
+    linear-gradient(to right,  rgba(6, 182, 212, 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(6, 182, 212, 0.12) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+// Scrollbar utility class (apply to scrollable containers)
+.custom-scrollbar {
+  &::-webkit-scrollbar { width: 8px; }
+  &::-webkit-scrollbar-track { background: #020617; border-left: 1px solid #1e293b; }
+  &::-webkit-scrollbar-thumb { background: #334155; }
+  &::-webkit-scrollbar-thumb:hover { background: #475569; }
+}
+
+// Neon text glow
+.neon-text {
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.25), 0 0 20px rgba(6, 182, 212, 0.3);
+}
+
+// ─── Shared animations ────────────────────────────────────────────────────────
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes ping {
+  75%, 100% { transform: scale(2); opacity: 0; }
+}
+
+@keyframes slide-in-bottom {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
