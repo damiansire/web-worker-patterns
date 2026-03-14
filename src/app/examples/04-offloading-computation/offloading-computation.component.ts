@@ -10,6 +10,7 @@ import { ProgressService } from '../../core/services/progress.service';
 import { OFFLOADING_COMPUTATION_SNIPPETS } from './offloading-computation.snippets';
 import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
 import { KeyTakeawaysComponent } from '../../core/components/key-takeaways/key-takeaways.component';
+import { ThreadDiagramComponent, ThreadDiagramConfig } from '../../core/components/thread-diagram/thread-diagram.component';
 
 interface PrimeResult {
   primes: number[];
@@ -19,7 +20,7 @@ interface PrimeResult {
 
 @Component({
   selector: 'app-offloading-computation',
-  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, ExampleNavComponent, KeyTakeawaysComponent],
+  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, ExampleNavComponent, KeyTakeawaysComponent, ThreadDiagramComponent],
   templateUrl: './offloading-computation.component.html',
   styleUrl: './offloading-computation.component.scss',
   standalone: true
@@ -30,6 +31,11 @@ export class OffloadingComputationComponent implements OnInit, OnDestroy {
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.offloadingComputation'));
   readonly codeSnippets = OFFLOADING_COMPUTATION_SNIPPETS;
+
+  readonly threadDiagramConfig: ThreadDiagramConfig = {
+    workers: 1,
+    messageFlow: 'sequential'
+  };
 
   readonly logs = signal<LogEntry[]>([]);
 

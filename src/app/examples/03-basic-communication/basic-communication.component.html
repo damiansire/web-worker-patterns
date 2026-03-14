@@ -47,6 +47,11 @@
         />
       </app-code-explanation>
 
+      <div class="diagram-section">
+        <h4 class="diagram-title">{{ texts().flowTitle || 'Architecture' }}</h4>
+        <app-thread-diagram [config]="threadDiagramConfig" [animated]="true" />
+      </div>
+
       <div class="input-group">
         <label for="messageInput">{{ texts().messageLabel }}</label>
         <input

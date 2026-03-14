@@ -35,3 +35,17 @@
   color: var(--text-secondary);
   line-height: 1.6;
 }
+
+// ─── Thread diagram section ─────────────────────────────────────────────────
+.diagram-section {
+  margin: 24px 0;
+}
+
+.diagram-title {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  margin: 0 0 12px;
+}

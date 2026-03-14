@@ -58,6 +58,11 @@
     />
   </app-code-explanation>
 
+  <div class="diagram-section">
+    <h4 class="diagram-title">{{ texts().flowTitle || 'Pool Architecture' }}</h4>
+    <app-thread-diagram [config]="threadDiagramConfig()" [animated]="poolInitialized()" [queueLabel]="texts().queueLabel || 'Task Queue'" />
+  </div>
+
   <app-stats-panel [title]="texts().statsPanel?.title" [stats]="getStats()"></app-stats-panel>
 
   <div class="control-panel">

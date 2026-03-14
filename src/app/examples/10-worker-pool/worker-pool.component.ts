@@ -11,6 +11,7 @@ import { ProgressService } from '../../core/services/progress.service';
 import { WORKER_POOL_SNIPPETS } from './worker-pool.snippets';
 import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
 import { KeyTakeawaysComponent } from '../../core/components/key-takeaways/key-takeaways.component';
+import { ThreadDiagramComponent, ThreadDiagramConfig } from '../../core/components/thread-diagram/thread-diagram.component';
 
 interface Task {
   id: string;
@@ -38,7 +39,7 @@ interface PoolStats {
 
 @Component({
   selector: 'app-worker-pool',
-  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, StatsPanelComponent, ExampleNavComponent, KeyTakeawaysComponent],
+  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, StatsPanelComponent, ExampleNavComponent, KeyTakeawaysComponent, ThreadDiagramComponent],
   templateUrl: './worker-pool.component.html',
   styleUrl: './worker-pool.component.scss',
   standalone: true
@@ -49,6 +50,12 @@ export class WorkerPoolComponent implements OnInit, OnDestroy {
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.workerPool'));
   readonly codeSnippets = WORKER_POOL_SNIPPETS;
+
+  readonly threadDiagramConfig = computed<ThreadDiagramConfig>(() => ({
+    workers: this.poolSize() || 4,
+    showQueue: true,
+    messageFlow: 'parallel' as const
+  }));
 
   poolSizeInput = signal(4);
   taskCount = signal(20);
