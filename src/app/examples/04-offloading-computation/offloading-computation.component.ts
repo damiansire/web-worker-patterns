@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { InfoBoxComponent } from '../../core/components/info-box/info-box.component';
 import { CodeExplanationComponent } from '../../core/components/code-explanation/code-explanation.component';
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
+import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log-panel.component';
 import { LanguageService } from '../../core/services/language.service';
 import { OFFLOADING_COMPUTATION_SNIPPETS } from './offloading-computation.snippets';
 import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
@@ -16,7 +17,7 @@ interface PrimeResult {
 
 @Component({
   selector: 'app-offloading-computation',
-  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, ExampleNavComponent],
+  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, ExampleNavComponent],
   templateUrl: './offloading-computation.component.html',
   styleUrl: './offloading-computation.component.scss',
   standalone: true
@@ -26,6 +27,8 @@ export class OffloadingComputationComponent implements OnInit, OnDestroy {
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.offloadingComputation'));
   readonly codeSnippets = OFFLOADING_COMPUTATION_SNIPPETS;
+
+  readonly logs = signal<LogEntry[]>([]);
 
   count = signal(50000);
   isLoading = signal(false);
@@ -43,6 +46,7 @@ export class OffloadingComputationComponent implements OnInit, OnDestroy {
         const duration = Math.round(endTime - (this.startTime || 0));
 
         console.log(this.texts().logs.workerComplete);
+        this.addLog(`Worker completed: ${e.data.primes.length} primes in ${duration}ms`, 'success');
 
         this.isLoading.set(false);
         this.result.set({
@@ -83,6 +87,7 @@ export class OffloadingComputationComponent implements OnInit, OnDestroy {
 
     const count = this.count();
     console.log(this.format(this.texts().logs.workerStart, { count }));
+    this.addLog('Delegating computation to worker...', 'info');
     this.isLoading.set(true);
     this.result.set(null);
     this.startTime = performance.now();
@@ -95,10 +100,10 @@ export class OffloadingComputationComponent implements OnInit, OnDestroy {
     console.log(this.format(this.texts().logs.mainStart, { count }));
     console.warn(this.texts().logs.mainWarning);
 
+    this.addLog('Running on main thread...', 'warning');
     this.isLoading.set(true);
     this.result.set(null);
 
-    // Dar tiempo a que se actualice la UI antes de bloquear
     setTimeout(() => {
       const startTime = performance.now();
       const primes = this.calculatePrimes(count);
@@ -106,6 +111,7 @@ export class OffloadingComputationComponent implements OnInit, OnDestroy {
       const duration = Math.round(endTime - startTime);
 
       console.log(this.texts().logs.mainComplete);
+      this.addLog(`Main thread completed: ${primes.length} primes in ${duration}ms`, 'info');
 
       this.isLoading.set(false);
       this.result.set({
@@ -135,6 +141,15 @@ export class OffloadingComputationComponent implements OnInit, OnDestroy {
     }
     
     return primes;
+  }
+
+  private addLog(message: string, type: LogEntry['type'] = 'info') {
+    const timestamp = new Date().toLocaleTimeString('es-ES', { hour12: false });
+    this.logs.update(l => [{ timestamp, message, type }, ...l]);
+  }
+
+  clearLogs() {
+    this.logs.set([]);
   }
 
   private format(template: string, params: Record<string, string | number>): string {

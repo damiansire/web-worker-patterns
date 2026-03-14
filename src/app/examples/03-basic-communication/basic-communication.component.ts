@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { InfoBoxComponent } from '../../core/components/info-box/info-box.component';
 import { CodeExplanationComponent } from '../../core/components/code-explanation/code-explanation.component';
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
+import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log-panel.component';
 import { LanguageService } from '../../core/services/language.service';
 import { BASIC_COMMUNICATION_SNIPPETS } from './basic-communication.snippets';
 import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
@@ -15,7 +16,7 @@ interface Message {
 
 @Component({
   selector: 'app-basic-communication',
-  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, ExampleNavComponent],
+  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, ExampleNavComponent],
   templateUrl: './basic-communication.component.html',
   styleUrl: './basic-communication.component.scss',
   standalone: true
@@ -25,6 +26,8 @@ export class BasicCommunicationComponent implements OnInit, OnDestroy {
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.basicCommunication'));
   readonly codeSnippets = BASIC_COMMUNICATION_SNIPPETS;
+
+  readonly logs = signal<LogEntry[]>([]);
 
   messageText = signal('');
   messages = signal<Message[]>([]);
@@ -37,18 +40,19 @@ export class BasicCommunicationComponent implements OnInit, OnDestroy {
       // Crear una nueva instancia del worker
       this.worker = new Worker(new URL('./basic-communication.worker', import.meta.url), { type: 'module' });
 
-      // Escuchar mensajes del worker
       this.worker.onmessage = (e: MessageEvent) => {
         console.log('✅ Mensaje recibido del worker:', e.data);
         this.addMessage(e.data, 'worker');
+        this.addLog(`Received: ${e.data}`, 'success');
       };
 
-      // Manejar errores del worker
       this.worker.onerror = (error: ErrorEvent) => {
         console.error('❌ Error en el worker:', error);
         this.addMessage(`Error: ${error.message}`, 'worker');
+        this.addLog(`Error: ${error.message}`, 'error');
       };
 
+      this.addLog('Worker created successfully', 'info');
       console.log('🎬 Worker creado y listo para recibir mensajes');
     } else {
       alert('❌ Tu navegador no soporta Web Workers. Por favor, usa un navegador moderno.');
@@ -73,15 +77,22 @@ export class BasicCommunicationComponent implements OnInit, OnDestroy {
     if (message && this.worker) {
       console.log('📤 Enviando mensaje al worker:', message);
 
-      // Agregar el mensaje enviado a la interfaz
       this.addMessage(message, 'main');
+      this.addLog(`Sent: ${message}`, 'info');
 
-      // Enviar el mensaje al worker usando postMessage
       this.worker.postMessage(message);
 
-      // Limpiar el input
       this.messageText.set('');
     }
+  }
+
+  private addLog(message: string, type: LogEntry['type'] = 'info') {
+    const timestamp = new Date().toLocaleTimeString('es-ES', { hour12: false });
+    this.logs.update(l => [{ timestamp, message, type }, ...l]);
+  }
+
+  clearLogs() {
+    this.logs.set([]);
   }
 
   onKeyPress(event: KeyboardEvent) {

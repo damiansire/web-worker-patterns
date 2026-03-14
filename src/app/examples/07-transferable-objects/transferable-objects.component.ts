@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { InfoBoxComponent } from '../../core/components/info-box/info-box.component';
 import { CodeExplanationComponent } from '../../core/components/code-explanation/code-explanation.component';
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
+import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log-panel.component';
 import { LanguageService } from '../../core/services/language.service';
 import { TRANSFERABLE_OBJECTS_SNIPPETS } from './transferable-objects.snippets';
 import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
@@ -23,7 +24,7 @@ interface ProcessResult {
 
 @Component({
   selector: 'app-transferable-objects',
-  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, ExampleNavComponent],
+  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, ExampleNavComponent],
   templateUrl: './transferable-objects.component.html',
   styleUrl: './transferable-objects.component.scss',
   standalone: true
@@ -40,6 +41,8 @@ export class TransferableObjectsComponent implements OnInit, OnDestroy {
 
   @ViewChild('canvasContainer', { static: false }) canvasContainer!: ElementRef<HTMLDivElement>;
   
+  readonly logs = signal<LogEntry[]>([]);
+
   sizeMB = signal(16);
   isLoading = signal(false);
   transferTime = signal(0);
@@ -59,9 +62,11 @@ export class TransferableObjectsComponent implements OnInit, OnDestroy {
           if (e.data.transferable) {
             this.transferTime.set(totalTime);
             this.displayImage(e.data.imageData, 'transfer');
+            this.addLog(`Transfer completed in ${totalTime}ms`, 'success');
           } else {
             this.cloneTime.set(totalTime);
             this.displayImage(e.data.imageData, 'clone');
+            this.addLog(`Clone completed in ${totalTime}ms`, 'info');
           }
 
           this.isLoading.set(false);
@@ -139,6 +144,7 @@ export class TransferableObjectsComponent implements OnInit, OnDestroy {
 
   processWithTransfer() {
     const sizeMB = this.sizeMB();
+    this.addLog(`Transferring ${sizeMB}mb buffer (zero-copy)...`, 'info');
     this.isLoading.set(true);
     if (this.canvasContainer) {
       this.canvasContainer.nativeElement.innerHTML = '';
@@ -159,6 +165,7 @@ export class TransferableObjectsComponent implements OnInit, OnDestroy {
 
   processWithClone() {
     const sizeMB = this.sizeMB();
+    this.addLog(`Cloning ${sizeMB}mb buffer (deep copy)...`, 'info');
     this.isLoading.set(true);
     if (this.canvasContainer) {
       this.canvasContainer.nativeElement.innerHTML = '';
@@ -175,5 +182,14 @@ export class TransferableObjectsComponent implements OnInit, OnDestroy {
         transferable: false
       });
     }
+  }
+
+  private addLog(message: string, type: LogEntry['type'] = 'info') {
+    const timestamp = new Date().toLocaleTimeString('es-ES', { hour12: false });
+    this.logs.update(l => [{ timestamp, message, type }, ...l]);
+  }
+
+  clearLogs() {
+    this.logs.set([]);
   }
 }

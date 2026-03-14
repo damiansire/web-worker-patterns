@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { InfoBoxComponent } from '../../core/components/info-box/info-box.component';
 import { CodeExplanationComponent } from '../../core/components/code-explanation/code-explanation.component';
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
+import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log-panel.component';
 import { LanguageService } from '../../core/services/language.service';
 import { MAIN_THREAD_SNIPPETS } from './main-thread.snippets';
 import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
@@ -20,7 +21,7 @@ interface NumberEvaluation {
 
 @Component({
   selector: 'app-main-thread',
-  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, ExampleNavComponent],
+  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, ExampleNavComponent],
   templateUrl: './main-thread.component.html',
   styleUrl: './main-thread.component.scss',
   standalone: true
@@ -32,6 +33,8 @@ export class MainThreadComponent implements OnInit, OnDestroy, AfterViewInit {
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.mainThread'));
   readonly codeSnippets = MAIN_THREAD_SNIPPETS;
+
+  readonly logs = signal<LogEntry[]>([]);
 
   count = signal(50000);
   isLoading = signal(false);
@@ -64,13 +67,15 @@ export class MainThreadComponent implements OnInit, OnDestroy, AfterViewInit {
     console.log(this.format(this.texts().logs.mainStart, { count }));
     console.warn(this.texts().logs.mainWarning);
 
+    this.addLog('Starting prime calculation...', 'info');
+    this.addLog('Warning: Running on main thread - UI will freeze', 'warning');
+
     this.isLoading.set(true);
     this.result.set(null);
     this.showProcessorView.set(true);
     this.evaluatedNumbers.set([]);
     this.processingIndex.set(-1);
 
-    // Dar tiempo a que se actualice la UI antes de bloquear
     setTimeout(async () => {
       const startTime = performance.now();
       const primes = await this.calculatePrimesWithProgress(count);
@@ -80,6 +85,8 @@ export class MainThreadComponent implements OnInit, OnDestroy, AfterViewInit {
       console.log(this.texts().logs.mainComplete);
       console.log(`Tiempo total: ${duration}ms`);
       console.warn('⚠️ Durante ese tiempo, la UI estuvo congelada');
+
+      this.addLog(`Found ${primes.length} primes in ${duration}ms`, 'success');
 
       this.isLoading.set(false);
       this.result.set({
@@ -161,6 +168,15 @@ export class MainThreadComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     
     return primes;
+  }
+
+  private addLog(message: string, type: LogEntry['type'] = 'info') {
+    const timestamp = new Date().toLocaleTimeString('es-ES', { hour12: false });
+    this.logs.update(l => [{ timestamp, message, type }, ...l]);
+  }
+
+  clearLogs() {
+    this.logs.set([]);
   }
 
   private format(template: string, params: Record<string, string | number>): string {

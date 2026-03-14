@@ -80,5 +80,11 @@
       </p>
     </div>
   }
+  <app-log-panel
+    [logs]="logs()"
+    [title]="texts().logTitle || 'Event Log'"
+    [emptyMessage]="texts().logEmpty || 'Waiting for events...'"
+    (clear)="clearLogs()">
+  </app-log-panel>
   <app-example-nav [currentNumber]="'07'" />
 </div>
