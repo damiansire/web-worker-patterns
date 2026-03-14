@@ -32,35 +32,35 @@
   <app-code-explanation [summaryText]="texts().codeSummary">
     <app-code-section
       [title]="texts().codeSections?.createPool"
-      [code]="codeSnippets.vanillaCreatePool"
+      [code]="codeSnippets().vanillaCreatePool"
       languageClass="language-javascript"
     />
     <app-code-section
       [title]="texts().codeSections?.addTask"
-      [code]="codeSnippets.vanillaAddTask"
+      [code]="codeSnippets().vanillaAddTask"
       languageClass="language-javascript"
     />
     <app-code-section
       [title]="texts().codeSections?.assignTask"
-      [code]="codeSnippets.vanillaProcessQueue"
+      [code]="codeSnippets().vanillaProcessQueue"
       languageClass="language-javascript"
     />
     <app-code-section
       [title]="texts().codeSections?.receiveResult"
-      [code]="codeSnippets.vanillaHandleResult"
+      [code]="codeSnippets().vanillaHandleResult"
       languageClass="language-javascript"
     />
     <app-code-section
       tech="angular"
       [title]="texts().codeSections?.createPool"
-      [code]="codeSnippets.angularPoolClass"
+      [code]="codeSnippets().angularPoolClass"
       languageClass="language-typescript"
     />
   </app-code-explanation>
 
   <div class="diagram-section">
-    <h4 class="diagram-title">{{ texts().flowTitle || 'Pool Architecture' }}</h4>
-    <app-thread-diagram [config]="threadDiagramConfig()" [animated]="poolInitialized()" [queueLabel]="texts().queueLabel || 'Task Queue'" />
+    <h4 class="diagram-title">{{ texts().flowTitle || language.t('diagram.defaultFlowTitle') }}</h4>
+    <app-thread-diagram [config]="threadDiagramConfig()" [animated]="poolInitialized()" [queueLabel]="texts().queueLabel || language.t('diagram.defaultQueueLabel')" />
   </div>
 
   <app-stats-panel [title]="texts().statsPanel?.title" [stats]="getStats()"></app-stats-panel>
@@ -101,8 +101,8 @@
 
   <app-log-panel 
     [logs]="logs()" 
-    [title]="texts().logPanel?.title"
-    [emptyMessage]="texts().logPanel?.empty"
+    [title]="texts().logPanel?.title || language.t('logPanel.defaultTitle')"
+    [emptyMessage]="texts().logPanel?.empty || language.t('logPanel.defaultEmpty')"
     (clear)="clearLogs()">
   </app-log-panel>
   <app-key-takeaways

@@ -20,11 +20,13 @@ type ErrorKey = 'reference' | 'type' | 'math' | 'custom' | 'success';
   standalone: true
 })
 export class ErrorHandlingComponent implements OnInit, OnDestroy {
-  private readonly language = inject(LanguageService);
+  protected readonly language = inject(LanguageService);
   private readonly progress = inject(ProgressService);
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.errorHandling'));
-  readonly codeSnippets = ERROR_HANDLING_SNIPPETS;
+  readonly codeSnippets = computed(() =>
+    ERROR_HANDLING_SNIPPETS[this.language.currentLanguage()] ?? ERROR_HANDLING_SNIPPETS.en
+  );
 
   readonly errorKeys: ErrorKey[] = ['reference', 'type', 'math', 'custom', 'success'];
 

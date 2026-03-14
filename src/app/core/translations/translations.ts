@@ -40,6 +40,7 @@ export const translations = {
     codeExplanation: {
       angularButton: 'Angular',
       javascriptButton: 'JavaScript',
+      defaultSummary: '📖 Ver Código - ¿Cómo funciona?',
       emptyState: {
         angular: 'Aún no hay código Angular disponible para este ejemplo.',
         javascript: 'Aún no hay código JavaScript disponible para este ejemplo.'
@@ -52,7 +53,22 @@ export const translations = {
     },
     sidebar: {
       title: '📚 Ejemplos',
-      searchPlaceholder: 'Buscar ejemplos...'
+      searchPlaceholder: 'Buscar ejemplos...',
+      noResults: 'No se encontraron ejemplos para',
+      clearSearch: 'Borrar búsqueda'
+    },
+    exampleNav: {
+      previous: 'Anterior',
+      next: 'Siguiente',
+      allExamples: 'Todos los ejemplos'
+    },
+    logPanel: {
+      defaultTitle: 'Registro de eventos',
+      defaultEmpty: 'Esperando eventos...'
+    },
+    diagram: {
+      defaultFlowTitle: 'Arquitectura',
+      defaultQueueLabel: 'Cola de tareas'
     },
     categories: {
       understanding: 'Entendiendo por qué las necesitamos',
@@ -62,6 +78,7 @@ export const translations = {
       advanced: 'Workers Avanzados'
     },
     home: {
+      progressLabel: 'Progreso',
       heroTitle: 'Worker Lab',
       heroSubtitle: 'Plataforma de simulación para computación paralela. Manipula hilos secundarios, optimiza recursos y rompe los límites del navegador.',
       learnTitle: '💡 ¿Qué aprenderás?',
@@ -123,6 +140,7 @@ export const translations = {
     codeExplanation: {
       angularButton: 'Angular',
       javascriptButton: 'JavaScript',
+      defaultSummary: '📖 View Code - How does it work?',
       emptyState: {
         angular: 'Angular code is not available for this example yet.',
         javascript: 'JavaScript code is not available for this example yet.'
@@ -135,7 +153,22 @@ export const translations = {
     },
     sidebar: {
       title: '📚 Examples',
-      searchPlaceholder: 'Search examples...'
+      searchPlaceholder: 'Search examples...',
+      noResults: 'No examples found for',
+      clearSearch: 'Clear search'
+    },
+    exampleNav: {
+      previous: 'Previous',
+      next: 'Next',
+      allExamples: 'All examples'
+    },
+    logPanel: {
+      defaultTitle: 'Event Log',
+      defaultEmpty: 'Waiting for events...'
+    },
+    diagram: {
+      defaultFlowTitle: 'Architecture',
+      defaultQueueLabel: 'Task Queue'
     },
     categories: {
       understanding: 'Understanding Why We Need Them',
@@ -145,6 +178,7 @@ export const translations = {
       advanced: 'Advanced Workers'
     },
     home: {
+      progressLabel: 'Progress',
       heroTitle: 'Worker Lab',
       heroSubtitle: 'Parallel computing simulation platform. Manipulate background threads, optimize resources, and push the limits of the browser.',
       learnTitle: '💡 What will you learn?',
@@ -206,6 +240,7 @@ export const translations = {
     codeExplanation: {
       angularButton: 'Angular',
       javascriptButton: 'JavaScript',
+      defaultSummary: '📖 Ver Código - Como funciona?',
       emptyState: {
         angular: 'Ainda não há código Angular disponível para este exemplo.',
         javascript: 'Ainda não há código JavaScript disponível para este exemplo.'
@@ -218,7 +253,22 @@ export const translations = {
     },
     sidebar: {
       title: '📚 Exemplos',
-      searchPlaceholder: 'Buscar exemplos...'
+      searchPlaceholder: 'Buscar exemplos...',
+      noResults: 'Nenhum exemplo encontrado para',
+      clearSearch: 'Limpar busca'
+    },
+    exampleNav: {
+      previous: 'Anterior',
+      next: 'Próximo',
+      allExamples: 'Todos os exemplos'
+    },
+    logPanel: {
+      defaultTitle: 'Registro de eventos',
+      defaultEmpty: 'Aguardando eventos...'
+    },
+    diagram: {
+      defaultFlowTitle: 'Arquitetura',
+      defaultQueueLabel: 'Fila de tarefas'
     },
     categories: {
       understanding: 'Entendendo Por Que Precisamos Deles',
@@ -228,6 +278,7 @@ export const translations = {
       advanced: 'Workers Avançados'
     },
     home: {
+      progressLabel: 'Progresso',
       heroTitle: 'Worker Lab',
       heroSubtitle: 'Plataforma de simulação para computação paralela. Manipule threads secundárias, otimize recursos e ultrapasse os limites do navegador.',
       learnTitle: '💡 O que você vai aprender?',

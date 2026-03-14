@@ -25,11 +25,13 @@ interface Message {
   standalone: true
 })
 export class BasicCommunicationComponent implements OnInit, OnDestroy {
-  private readonly language = inject(LanguageService);
+  protected readonly language = inject(LanguageService);
   private readonly progress = inject(ProgressService);
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.basicCommunication'));
-  readonly codeSnippets = BASIC_COMMUNICATION_SNIPPETS;
+  readonly codeSnippets = computed(() =>
+    BASIC_COMMUNICATION_SNIPPETS[this.language.currentLanguage()] ?? BASIC_COMMUNICATION_SNIPPETS.en
+  );
 
   readonly threadDiagramConfig: ThreadDiagramConfig = {
     workers: 1,

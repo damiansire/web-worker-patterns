@@ -28,11 +28,13 @@ import { KeyTakeawaysComponent } from '../../core/components/key-takeaways/key-t
   standalone: true
 })
 export class LifecycleTerminationComponent implements OnInit, OnDestroy {
-  private readonly language = inject(LanguageService);
+  protected readonly language = inject(LanguageService);
   private readonly progressService = inject(ProgressService);
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.lifecycleTermination'));
-  readonly codeSnippets = LIFECYCLE_TERMINATION_SNIPPETS;
+  readonly codeSnippets = computed(() =>
+    LIFECYCLE_TERMINATION_SNIPPETS[this.language.currentLanguage()] ?? LIFECYCLE_TERMINATION_SNIPPETS.en
+  );
 
   logs = signal<LogEntry[]>([]);
   workerStatus = signal<'none' | 'created' | 'working' | 'completed'>('none');

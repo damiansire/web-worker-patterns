@@ -9,18 +9,18 @@
   <app-code-explanation [summaryText]="texts().codeSummary">
     <app-code-section
       [title]="texts().codeSections?.systemInfo"
-      [code]="codeSnippets.vanillaSystemInfo"
+      [code]="codeSnippets().vanillaSystemInfo"
       languageClass="language-javascript"
     />
     <app-code-section
       [title]="texts().codeSections?.createMultiple"
-      [code]="codeSnippets.vanillaCreateMultiple"
+      [code]="codeSnippets().vanillaCreateMultiple"
       languageClass="language-javascript"
     />
     <app-code-section
       tech="angular"
       [title]="texts().codeSections?.systemInfo"
-      [code]="codeSnippets.angularComponent"
+      [code]="codeSnippets().angularComponent"
       languageClass="language-typescript"
     />
   </app-code-explanation>
@@ -135,8 +135,8 @@
 
   <app-log-panel 
     [logs]="logs()" 
-    [title]="texts().logPanel?.title"
-    [emptyMessage]="texts().logPanel?.empty"
+    [title]="texts().logPanel?.title || language.t('logPanel.defaultTitle')"
+    [emptyMessage]="texts().logPanel?.empty || language.t('logPanel.defaultEmpty')"
     (clear)="clearLogs()">
   </app-log-panel>
   <app-key-takeaways

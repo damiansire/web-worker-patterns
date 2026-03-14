@@ -16,7 +16,7 @@
         autocomplete="off"
       />
       @if (searchQuery()) {
-        <button class="search-clear" (click)="clearSearch()" aria-label="Clear search">✕</button>
+        <button class="search-clear" (click)="clearSearch()" [attr.aria-label]="language.t('sidebar.clearSearch')">✕</button>
       }
     </div>
   </div>

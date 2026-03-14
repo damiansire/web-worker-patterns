@@ -9,23 +9,23 @@
   <app-code-explanation [summaryText]="texts().codeSummary">
     <app-code-section
       [title]="texts().codeSections.calculatePrimes"
-      [code]="codeSnippets.vanillaCalculatePrimes"
+      [code]="codeSnippets().vanillaCalculatePrimes"
       languageClass="language-javascript"
     />
     <app-code-section
       [title]="texts().codeSections.executeInMain"
-      [code]="codeSnippets.vanillaExecuteInMain"
+      [code]="codeSnippets().vanillaExecuteInMain"
       languageClass="language-javascript"
     />
     <app-code-section
       [title]="texts().codeSections.problem"
-      [code]="codeSnippets.vanillaProblem"
+      [code]="codeSnippets().vanillaProblem"
       languageClass="language-javascript"
     />
     <app-code-section
       tech="angular"
       [title]="texts().codeSections.executeInMain"
-      [code]="codeSnippets.angularComponent"
+      [code]="codeSnippets().angularComponent"
       languageClass="language-typescript"
     />
   </app-code-explanation>
@@ -104,15 +104,15 @@
     <p style="font-size: 12px; opacity: 0.8;">
       {{ texts().uiTest.note }}
     </p>
-    <div class="warning" style="margin-top: 15px; padding: 15px; background: rgba(255, 255, 255, 0.2); border-left: 4px solid #ffc107; border-radius: 8px;">
+    <div class="warning warning-box">
       <strong>{{ texts().uiTest.testTitle }}</strong>
       {{ texts().uiTest.testDescription }}
     </div>
   </div>
   <app-log-panel
     [logs]="logs()"
-    [title]="texts().logTitle || 'Event Log'"
-    [emptyMessage]="texts().logEmpty || 'Waiting for events...'"
+    [title]="texts().logTitle || language.t('logPanel.defaultTitle')"
+    [emptyMessage]="texts().logEmpty || language.t('logPanel.defaultEmpty')"
     (clear)="clearLogs()">
   </app-log-panel>
   <app-key-takeaways

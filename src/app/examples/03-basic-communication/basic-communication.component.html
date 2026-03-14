@@ -15,40 +15,40 @@
       <app-code-explanation [summaryText]="texts().codeSummary">
         <app-code-section
           [title]="texts().codeSections.createWorker"
-          [code]="codeSnippets.vanillaCreateWorker"
+          [code]="codeSnippets().vanillaCreateWorker"
           languageClass="language-javascript"
         />
         <app-code-section
           [title]="texts().codeSections.sendToWorker"
-          [code]="codeSnippets.vanillaSendMessage"
+          [code]="codeSnippets().vanillaSendMessage"
           languageClass="language-javascript"
         />
         <app-code-section
           [title]="texts().codeSections.receiveInWorker"
-          [code]="codeSnippets.vanillaReceiveInWorker"
+          [code]="codeSnippets().vanillaReceiveInWorker"
           languageClass="language-javascript"
         />
         <app-code-section
           [title]="texts().codeSections.receiveInMain"
-          [code]="codeSnippets.vanillaReceiveInMain"
+          [code]="codeSnippets().vanillaReceiveInMain"
           languageClass="language-javascript"
         />
         <app-code-section
           tech="angular"
           [title]="texts().codeSections.receiveInWorker"
-          [code]="codeSnippets.workerTsFile"
+          [code]="codeSnippets().workerTsFile"
           languageClass="language-typescript"
         />
         <app-code-section
           tech="angular"
           [title]="texts().codeSections.receiveInMain"
-          [code]="codeSnippets.angularComponent"
+          [code]="codeSnippets().angularComponent"
           languageClass="language-typescript"
         />
       </app-code-explanation>
 
       <div class="diagram-section">
-        <h4 class="diagram-title">{{ texts().flowTitle || 'Architecture' }}</h4>
+        <h4 class="diagram-title">{{ texts().flowTitle || language.t('diagram.defaultFlowTitle') }}</h4>
         <app-thread-diagram [config]="threadDiagramConfig" [animated]="true" />
       </div>
 
@@ -68,9 +68,7 @@
 
       <div class="messages">
         @if (messages().length === 0) {
-          <p style="color: #999; text-align: center; font-style: italic;">
-            {{ texts().emptyState }}
-          </p>
+          <p class="messages-empty">{{ texts().emptyState }}</p>
         } @else {
           @for (msg of messages(); track $index) {
             <div class="message" [class.from-main]="msg.sender === 'main'" [class.from-worker]="msg.sender === 'worker'">
@@ -97,8 +95,8 @@
   </div>
   <app-log-panel
     [logs]="logs()"
-    [title]="texts().logTitle || 'Event Log'"
-    [emptyMessage]="texts().logEmpty || 'Waiting for events...'"
+    [title]="texts().logTitle || language.t('logPanel.defaultTitle')"
+    [emptyMessage]="texts().logEmpty || language.t('logPanel.defaultEmpty')"
     (clear)="clearLogs()">
   </app-log-panel>
   <app-key-takeaways

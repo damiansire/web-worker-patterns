@@ -12,7 +12,7 @@ import { LanguageService } from '../../services/language.service';
   standalone: true
 })
 export class CodeExplanationComponent implements AfterContentInit {
-  @Input() summaryText: string = '📖 Ver Código - ¿Cómo funciona?';
+  @Input() summaryText: string = '';
   @ContentChildren(CodeSectionComponent) private readonly sections?: QueryList<CodeSectionComponent>;
 
   readonly selectedVariant: WritableSignal<CodeVariant> = signal<CodeVariant>('javascript');
@@ -22,7 +22,7 @@ export class CodeExplanationComponent implements AfterContentInit {
   readonly javascriptLabel: Signal<string>;
   readonly emptyStateMessage: Signal<string>;
 
-  constructor(private readonly language: LanguageService) {
+  constructor(protected readonly language: LanguageService) {
     this.angularLabel = computed(() => this.language.t('codeExplanation.angularButton', 'Angular'));
     this.javascriptLabel = computed(() => this.language.t('codeExplanation.javascriptButton', 'JavaScript'));
     this.emptyStateMessage = computed(() =>

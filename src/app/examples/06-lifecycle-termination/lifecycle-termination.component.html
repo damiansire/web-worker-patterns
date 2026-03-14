@@ -9,18 +9,18 @@
   <app-code-explanation [summaryText]="texts().codeSummary">
     <app-code-section
       [title]="texts().codeSections?.createWorker"
-      [code]="codeSnippets.basicCreate"
+      [code]="codeSnippets().basicCreate"
       languageClass="language-javascript"
     />
     <app-code-section
       [title]="texts().codeSections?.terminateWorker"
-      [code]="codeSnippets.basicTerminate"
+      [code]="codeSnippets().basicTerminate"
       languageClass="language-javascript"
     />
     <app-code-section
       tech="angular"
       [title]="texts().codeSections?.createWorker"
-      [code]="codeSnippets.angularComponent"
+      [code]="codeSnippets().angularComponent"
       languageClass="language-typescript"
     />
   </app-code-explanation>
@@ -55,8 +55,8 @@
 
   <app-log-panel 
     [logs]="logs()" 
-    [title]="texts().logPanel?.title"
-    [emptyMessage]="texts().logPanel?.empty"
+    [title]="texts().logPanel?.title || language.t('logPanel.defaultTitle')"
+    [emptyMessage]="texts().logPanel?.empty || language.t('logPanel.defaultEmpty')"
     (clear)="clearLogs()">
   </app-log-panel>
   <app-key-takeaways

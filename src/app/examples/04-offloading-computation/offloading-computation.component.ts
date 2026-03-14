@@ -26,11 +26,13 @@ interface PrimeResult {
   standalone: true
 })
 export class OffloadingComputationComponent implements OnInit, OnDestroy {
-  private readonly language = inject(LanguageService);
+  protected readonly language = inject(LanguageService);
   private readonly progress = inject(ProgressService);
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.offloadingComputation'));
-  readonly codeSnippets = OFFLOADING_COMPUTATION_SNIPPETS;
+  readonly codeSnippets = computed(() =>
+    OFFLOADING_COMPUTATION_SNIPPETS[this.language.currentLanguage()] ?? OFFLOADING_COMPUTATION_SNIPPETS.en
+  );
 
   readonly threadDiagramConfig: ThreadDiagramConfig = {
     workers: 1,

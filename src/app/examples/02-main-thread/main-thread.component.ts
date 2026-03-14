@@ -29,13 +29,15 @@ interface NumberEvaluation {
   standalone: true
 })
 export class MainThreadComponent implements OnInit, OnDestroy, AfterViewInit {
-  private readonly language = inject(LanguageService);
+  protected readonly language = inject(LanguageService);
   private readonly progress = inject(ProgressService);
 
   @ViewChild('numbersContainer', { static: false }) numbersContainerRef?: ElementRef<HTMLElement>;
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.mainThread'));
-  readonly codeSnippets = MAIN_THREAD_SNIPPETS;
+  readonly codeSnippets = computed(() =>
+    MAIN_THREAD_SNIPPETS[this.language.currentLanguage()] ?? MAIN_THREAD_SNIPPETS.en
+  );
 
   readonly logs = signal<LogEntry[]>([]);
 

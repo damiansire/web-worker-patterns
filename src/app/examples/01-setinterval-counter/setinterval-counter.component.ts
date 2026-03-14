@@ -18,11 +18,13 @@ import { KeyTakeawaysComponent } from '../../core/components/key-takeaways/key-t
   standalone: true
 })
 export class SetIntervalCounterComponent implements OnInit, OnDestroy {
-  private readonly language = inject(LanguageService);
+  protected readonly language = inject(LanguageService);
   private readonly progress = inject(ProgressService);
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.setIntervalCounter'));
-  readonly codeSnippets = SETINTERVAL_COUNTER_SNIPPETS;
+  readonly codeSnippets = computed(() =>
+    SETINTERVAL_COUNTER_SNIPPETS[this.language.currentLanguage()] ?? SETINTERVAL_COUNTER_SNIPPETS.en
+  );
 
   counter = signal(0);
   speed = signal(1000);

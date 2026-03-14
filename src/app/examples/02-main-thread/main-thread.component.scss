@@ -43,6 +43,14 @@
   line-height: 1.6;
 }
 
+.warning-box {
+  margin-top: 15px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.2);
+  border-left: 4px solid var(--amber-500, #f59e0b);
+  border-radius: 8px;
+}
+
 .numbers-container {
   position: relative;
   overflow: hidden;

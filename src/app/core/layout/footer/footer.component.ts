@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { LanguageService } from '../../services/language.service';
 
 @Component({
@@ -10,5 +10,11 @@ import { LanguageService } from '../../services/language.service';
 })
 export class FooterComponent {
   protected readonly language = inject(LanguageService);
+  private readonly mdnPaths: Record<string, string> = { es: 'es', en: 'en-US', pt: 'pt-BR' };
+  readonly mdnHref = computed(() => {
+    const lang = this.language.currentLanguage();
+    const segment = this.mdnPaths[lang] ?? 'en-US';
+    return `https://developer.mozilla.org/${segment}/docs/Web/API/Web_Workers_API`;
+  });
 }
 

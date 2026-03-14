@@ -28,11 +28,13 @@ type SharedWorkerEvent = 'connected' | 'broadcast' | 'tabConnected' | 'tabDiscon
   standalone: true
 })
 export class SharedWorkerComponent implements OnInit, OnDestroy {
-  private readonly language = inject(LanguageService);
+  protected readonly language = inject(LanguageService);
   private readonly progress = inject(ProgressService);
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.sharedWorker'));
-  readonly codeSnippets = SHARED_WORKER_SNIPPETS;
+  readonly codeSnippets = computed(() =>
+    SHARED_WORKER_SNIPPETS[this.language.currentLanguage()] ?? SHARED_WORKER_SNIPPETS.en
+  );
 
   tabId = signal('');
   messageText = signal('');

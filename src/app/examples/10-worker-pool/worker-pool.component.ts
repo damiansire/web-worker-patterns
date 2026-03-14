@@ -45,11 +45,13 @@ interface PoolStats {
   standalone: true
 })
 export class WorkerPoolComponent implements OnInit, OnDestroy {
-  private readonly language = inject(LanguageService);
+  protected readonly language = inject(LanguageService);
   private readonly progress = inject(ProgressService);
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.workerPool'));
-  readonly codeSnippets = WORKER_POOL_SNIPPETS;
+  readonly codeSnippets = computed(() =>
+    WORKER_POOL_SNIPPETS[this.language.currentLanguage()] ?? WORKER_POOL_SNIPPETS.en
+  );
 
   readonly threadDiagramConfig = computed<ThreadDiagramConfig>(() => ({
     workers: this.poolSize() || 4,

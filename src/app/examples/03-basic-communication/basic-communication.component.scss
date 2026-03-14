@@ -65,6 +65,13 @@ button {
   &::-webkit-scrollbar-thumb { background: #1e293b; }
 }
 
+.messages-empty {
+  color: var(--text-muted, #94a3b8);
+  text-align: center;
+  font-style: italic;
+  margin: 0;
+}
+
 .message {
   padding: 14px 16px;
   border-radius: 8px;

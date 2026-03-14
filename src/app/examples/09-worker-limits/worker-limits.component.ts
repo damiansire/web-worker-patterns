@@ -27,11 +27,13 @@ interface WorkerData {
   standalone: true
 })
 export class WorkerLimitsComponent implements OnInit, OnDestroy {
-  private readonly language = inject(LanguageService);
+  protected readonly language = inject(LanguageService);
   private readonly progress = inject(ProgressService);
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.workerLimits'));
-  readonly codeSnippets = WORKER_LIMITS_SNIPPETS;
+  readonly codeSnippets = computed(() =>
+    WORKER_LIMITS_SNIPPETS[this.language.currentLanguage()] ?? WORKER_LIMITS_SNIPPETS.en
+  );
 
   workerCount = signal(10);
   activeCount = signal(0);

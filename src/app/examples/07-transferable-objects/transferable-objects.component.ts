@@ -32,11 +32,13 @@ interface ProcessResult {
   standalone: true
 })
 export class TransferableObjectsComponent implements OnInit, OnDestroy {
-  private readonly language = inject(LanguageService);
+  protected readonly language = inject(LanguageService);
   private readonly progress = inject(ProgressService);
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.transferableObjects'));
-  readonly codeSnippets = TRANSFERABLE_OBJECTS_SNIPPETS;
+  readonly codeSnippets = computed(() =>
+    TRANSFERABLE_OBJECTS_SNIPPETS[this.language.currentLanguage()] ?? TRANSFERABLE_OBJECTS_SNIPPETS.en
+  );
 
   readonly sizeOptions = computed(() =>
     (this.texts().demo?.sizeOptions ?? []) as { value: number; label: string }[]
