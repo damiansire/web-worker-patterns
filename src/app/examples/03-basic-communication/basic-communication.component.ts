@@ -5,9 +5,7 @@ import { InfoBoxComponent } from '../../core/components/info-box/info-box.compon
 import { CodeExplanationComponent } from '../../core/components/code-explanation/code-explanation.component';
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
 import { LanguageService } from '../../core/services/language.service';
-
-const code = (strings: TemplateStringsArray, ...values: unknown[]) =>
-  `${String.raw(strings, ...values).trim()}` + '\n';
+import { BASIC_COMMUNICATION_SNIPPETS } from './basic-communication.snippets';
 
 interface Message {
   text: string;
@@ -25,65 +23,7 @@ export class BasicCommunicationComponent implements OnInit, OnDestroy {
   private readonly language = inject(LanguageService);
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.basicCommunication'));
-  readonly codeSnippets = {
-    vanillaCreateWorker: code`
-const myWorker = new Worker('worker.js');
-`,
-    vanillaSendMessage: code`
-myWorker.postMessage('¡Hola Worker!');
-`,
-    vanillaReceiveInWorker: code`
-self.onmessage = function (e) {
-  const mensaje = e.data;
-  const respuesta = 'Procesé tu mensaje: ' + mensaje;
-  self.postMessage(respuesta);
-};
-`,
-    vanillaReceiveInMain: code`
-myWorker.onmessage = function (e) {
-  const respuesta = e.data;
-  console.log('Hilo principal recibió:', respuesta);
-};
-`,
-    angularComponent: code`
-ngOnInit() {
-  if (typeof Worker !== 'undefined') {
-    this.worker = new Worker(
-      new URL('./basic-communication.worker', import.meta.url),
-      { type: 'module' }
-    );
-
-    this.worker.onmessage = (event: MessageEvent) => {
-      this.addMessage(event.data, 'worker');
-    };
-
-    this.worker.onerror = (error: ErrorEvent) => {
-      this.addMessage('Error: ' + error.message, 'worker');
-    };
-  } else {
-    alert('❌ Tu navegador no soporta Web Workers.');
-  }
-}
-
-sendMessage() {
-  const message = this.messageText().trim();
-  if (!message || !this.worker) {
-    return;
-  }
-
-  this.addMessage(message, 'main');
-  this.worker.postMessage(message);
-  this.messageText.set('');
-}
-`,
-    workerTsFile: code`
-/// basic-communication.worker.ts
-addEventListener('message', ({ data }) => {
-  const response = 'Procesé tu mensaje: ' + data;
-  postMessage(response);
-});
-`
-  };
+  readonly codeSnippets = BASIC_COMMUNICATION_SNIPPETS;
 
   messageText = signal('');
   messages = signal<Message[]>([]);
