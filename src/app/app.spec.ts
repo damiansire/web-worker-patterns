@@ -14,10 +14,12 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render title', async () => {
+  it('should render main layout', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, web-worker-patterns');
+    const main = compiled.querySelector('main.main-grid');
+    expect(main).toBeTruthy();
+    expect(compiled.querySelector('.content')).toBeTruthy();
   });
 });
