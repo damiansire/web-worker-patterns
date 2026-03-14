@@ -3,6 +3,13 @@ import { Injectable, computed, effect, signal } from '@angular/core';
 export type LanguageCode = 'es' | 'en' | 'pt';
 
 const LANGUAGE_STORAGE_KEY = 'wwp-language';
+const GEO_API_URL = 'https://ipapi.co/json/?fields=country_code';
+
+/** Country codes where we default to Spanish (Spain + Latin America except Brazil). */
+const SPANISH_COUNTRY_CODES = new Set([
+  'ES', 'MX', 'AR', 'CO', 'CL', 'PE', 'VE', 'EC', 'GT', 'CU', 'BO', 'DO', 'HN',
+  'PY', 'SV', 'NI', 'CR', 'PA', 'UY', 'PR', 'GQ'
+]);
 
 type TranslationTree = Record<string, any>;
 
@@ -18,7 +25,7 @@ export class LanguageService {
 
   private readonly translations = signal<TranslationTree>({});
   private readonly language = signal<LanguageCode | null>(null);
-  readonly currentLanguage = computed<LanguageCode>(() => this.language() ?? 'es');
+  readonly currentLanguage = computed<LanguageCode>(() => this.language() ?? 'en');
 
   constructor() {
     this.loadTranslations();
@@ -26,6 +33,8 @@ export class LanguageService {
     const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY) as LanguageCode | null;
     if (stored && this.isSupported(stored)) {
       this.language.set(stored);
+    } else {
+      this.detectLanguageByGeo();
     }
 
     effect(() => {
@@ -34,6 +43,28 @@ export class LanguageService {
         localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
       }
     });
+  }
+
+  /**
+   * Detects language from geolocation (country via IP).
+   * Brazil → Portuguese; Spain / Latin America → Spanish; rest → English.
+   */
+  private detectLanguageByGeo(): void {
+    fetch(GEO_API_URL, { mode: 'cors' })
+      .then(res => res.json())
+      .then((data: { country_code?: string }) => {
+        const code = (data?.country_code ?? '').toUpperCase();
+        let lang: LanguageCode = 'en';
+        if (code === 'BR') {
+          lang = 'pt';
+        } else if (SPANISH_COUNTRY_CODES.has(code)) {
+          lang = 'es';
+        }
+        this.language.set(lang);
+      })
+      .catch(() => {
+        this.language.set('en');
+      });
   }
 
   setLanguage(code: LanguageCode) {
