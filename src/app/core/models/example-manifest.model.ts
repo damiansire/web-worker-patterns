@@ -16,6 +16,6 @@ export interface ExampleManifest {
   route: string;
   category: CategoryId;
   difficulty: DifficultyLevel;
-  loadComponent: () => Promise<{ [key: string]: Type<any> }>;
+  loadComponent: () => Promise<Type<any>>;
   translations: Record<LanguageCode, ExampleMetaTranslations>;
 }
