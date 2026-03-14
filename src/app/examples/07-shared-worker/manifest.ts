@@ -4,7 +4,7 @@ export const MANIFEST: ExampleManifest = {
   id: 'shared-worker',
   number: '07',
   route: '/examples/07-shared-worker',
-  category: 'advanced',
+  category: 'management',
   difficulty: 'advanced',
   loadComponent: () =>
     import('./shared-worker.component').then(m => m.SharedWorkerComponent),

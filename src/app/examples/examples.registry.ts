@@ -19,12 +19,12 @@ import { MANIFEST as M10 } from './10-worker-pool/manifest';
 export const EXAMPLES_REGISTRY: ExampleManifest[] = [
   M01,
   M02,
-  M04,
   M03,
+  M04,
   M05,
   M06,
-  M08,
   M07,
+  M08,
   M09,
   M10
 ];

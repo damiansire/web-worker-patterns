@@ -4,7 +4,7 @@ export const MANIFEST: ExampleManifest = {
   id: 'offloading-computation',
   number: '04',
   route: '/examples/04-offloading-computation',
-  category: 'understanding',
+  category: 'fundamentals',
   difficulty: 'beginner',
   loadComponent: () =>
     import('./offloading-computation.component').then(m => m.OffloadingComputationComponent),
