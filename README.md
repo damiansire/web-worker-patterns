@@ -109,6 +109,8 @@ Routes, sidebar navigation, and the home page update automatically.
 - **Vitest** — Unit tests
 - **Web Workers API** — Dedicated Workers, Shared Workers, Transferable Objects
 
+This project uses Angular's built-in worker support (Vite/esbuild). Other setups use [worker-plugin](https://github.com/GoogleChromeLabs/worker-plugin) (webpack), [rollup-plugin-off-main-thread](https://github.com/surma/rollup-plugin-off-main-thread), or Parcel's native worker support.
+
 ## Upgrading from Angular 19
 
 This project targets **Angular 21**. If you are on an older major version, use the official migrator and then fix any breaking changes:
@@ -148,6 +150,12 @@ Switch languages from the selector in the sidebar.
 
 - [Docker Guide](DOCKER.md) — Run the project with Docker
 - [Docker Guide (ES)](docs/DOCKER.es.md) | [Docker Guide (PT)](docs/DOCKER.pt.md)
+
+### Further reading
+
+- [Use web workers to run JavaScript off the browser's main thread](https://web.dev/articles/off-main-thread) (web.dev) — Why off-main-thread architecture helps Core Web Vitals (INP, LCP) and reduces main-thread contention.
+- [Comlink](https://github.com/GoogleChromeLabs/comlink) — Use workers without writing `postMessage` by hand; expose an API that returns promises. This repo uses the native API to teach the fundamentals.
+- [PROXX](https://github.com/GoogleChromeLabs/proxx) — Case study: Minesweeper clone with game logic in a worker and rendering on the main thread; see the web.dev article for the tradeoffs (reducing risk and improving UX rather than raw speed).
 
 ## License
 

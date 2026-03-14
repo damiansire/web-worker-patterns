@@ -28,6 +28,7 @@ export const basicCommunicationContent = {
       items: [
         'postMessage() envía datos del hilo principal al worker y viceversa',
         'Los datos se clonan automáticamente (structured clone)',
+        'Para mensajes pequeños (< ~10 KB en JSON) la clonación es suficiente; para datos grandes usa transferibles (ejemplo 07)',
         'onmessage recibe los mensajes en ambos lados'
       ],
       tip: 'Siempre maneja el evento onerror para capturar errores silenciosos del worker.'
@@ -62,6 +63,7 @@ export const basicCommunicationContent = {
       items: [
         'postMessage() sends data from main thread to worker and vice versa',
         'Data is automatically cloned (structured clone)',
+        'For small messages (< ~10 KB in JSON) cloning is fine; for large data use transferables (example 07)',
         'onmessage receives messages on both sides'
       ],
       tip: 'Always handle the onerror event to catch silent worker failures.'
@@ -102,6 +104,7 @@ export const basicCommunicationContent = {
       items: [
         'postMessage() envia dados da thread principal ao worker e vice-versa',
         'Os dados são clonados automaticamente (structured clone)',
+        'Para mensagens pequenas (< ~10 KB em JSON) a clonagem basta; para dados grandes use transferíveis (exemplo 07)',
         'onmessage recebe as mensagens em ambos os lados'
       ],
       tip: 'Sempre trate o evento onerror para capturar falhas silenciosas do worker.'
