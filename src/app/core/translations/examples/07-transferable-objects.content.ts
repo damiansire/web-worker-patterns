@@ -45,6 +45,7 @@ export const transferableObjectsContent = {
       title: 'Puntos Clave',
       items: [
         'Transferir es instantáneo; clonar crece linealmente con el tamaño',
+        'Para datos grandes la transferencia evita copia costosa; para < ~10 KB suele bastar postMessage normal',
         'Después de transferir, el buffer original queda inutilizable',
         'Ideal para imágenes, audio y datos binarios grandes'
       ],
@@ -93,6 +94,7 @@ export const transferableObjectsContent = {
       title: 'Key Takeaways',
       items: [
         'Transferring is instant; cloning grows linearly with size',
+        'For large data, transfer avoids expensive copy; for < ~10 KB plain postMessage is often enough',
         'After transfer, the original buffer becomes unusable',
         'Ideal for images, audio, and large binary data'
       ],
@@ -149,6 +151,7 @@ export const transferableObjectsContent = {
       title: 'Pontos-Chave',
       items: [
         'Transferir é instantâneo; clonar cresce linearmente com o tamanho',
+        'Para dados grandes a transferência evita cópia custosa; para < ~10 KB postMessage normal costuma bastar',
         'Após a transferência, o buffer original fica inutilizável',
         'Ideal para imagens, áudio e dados binários grandes'
       ],

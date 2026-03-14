@@ -85,6 +85,7 @@ export const translations = {
       learnItems: [
         'Cómo ejecutar código JavaScript en hilos de fondo',
         'Evitar que la interfaz de usuario se congele con tareas pesadas',
+        'Cómo descargar trabajo ayuda a Core Web Vitals (INP, LCP)',
         'Optimizar el rendimiento con transferencia de datos',
         'Manejar errores correctamente en workers',
         'Compartir workers entre múltiples pestañas',
@@ -185,6 +186,7 @@ export const translations = {
       learnItems: [
         'How to run JavaScript code in background threads',
         'Keep the user interface responsive during heavy tasks',
+        'How offloading helps Core Web Vitals (INP, LCP)',
         'Optimize performance by transferring data efficiently',
         'Handle errors correctly inside workers',
         'Share workers between multiple tabs',
@@ -285,6 +287,7 @@ export const translations = {
       learnItems: [
         'Como executar código JavaScript em threads de fundo',
         'Evitar que a interface congele em tarefas pesadas',
+        'Como descarregar trabalho ajuda as Core Web Vitals (INP, LCP)',
         'Otimizar o desempenho com transferência eficiente de dados',
         'Tratar erros corretamente dentro dos workers',
         'Compartilhar workers entre várias abas',

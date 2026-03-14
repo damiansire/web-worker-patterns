@@ -53,10 +53,11 @@ export const offloadingComputationContent = {
       title: 'Puntos Clave',
       items: [
         'Mover cálculos al worker mantiene la UI completamente fluida',
+        'Descargar trabajo mejora la respuesta (INP) y puede ayudar al LCP al reducir long tasks en el hilo principal',
         'El mismo algoritmo produce los mismos resultados en ambos hilos',
         'El worker no tiene acceso al DOM ni a window'
       ],
-      tip: 'Compara siempre el rendimiento con y sin worker para justificar la complejidad adicional.'
+      tip: 'OMT reduce riesgo y mejora la fluidez percibida; el tiempo total puede ser similar o algo mayor por el paso de mensajes. Compara siempre con y sin worker para justificar la complejidad.'
     }
   },
   en: {
@@ -113,10 +114,11 @@ export const offloadingComputationContent = {
       title: 'Key Takeaways',
       items: [
         'Moving computations to the worker keeps the UI fully responsive',
+        'Offloading improves responsiveness (INP) and can help LCP by reducing long tasks on the main thread',
         'The same algorithm produces identical results on both threads',
         'Workers have no access to the DOM or window'
       ],
-      tip: 'Always compare performance with and without a worker to justify the added complexity.'
+      tip: 'OMT reduces risk and improves perceived responsiveness; total time may be similar or slightly higher due to message passing. Always compare with and without a worker to justify the complexity.'
     }
   },
   pt: {
@@ -173,10 +175,11 @@ export const offloadingComputationContent = {
       title: 'Pontos-Chave',
       items: [
         'Mover cálculos para o worker mantém a UI completamente fluida',
+        'Descarregar trabalho melhora a responsividade (INP) e pode ajudar o LCP ao reduzir long tasks na thread principal',
         'O mesmo algoritmo produz resultados idênticos em ambas as threads',
         'O worker não tem acesso ao DOM nem ao window'
       ],
-      tip: 'Compare sempre o desempenho com e sem worker para justificar a complexidade adicional.'
+      tip: 'OMT reduz risco e melhora a fluidez percebida; o tempo total pode ser similar ou um pouco maior devido à troca de mensagens. Compare sempre com e sem worker para justificar a complexidade.'
     }
   }
 };
