@@ -2,8 +2,8 @@ import { ExampleManifest } from '../../core/models/example-manifest.model';
 
 export const MANIFEST: ExampleManifest = {
   id: 'lifecycle-termination',
-  number: '08',
-  route: '/examples/08-lifecycle-termination',
+  number: '06',
+  route: '/examples/06-lifecycle-termination',
   category: 'management',
   difficulty: 'intermediate',
   loadComponent: () =>

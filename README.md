@@ -35,24 +35,24 @@ La aplicación organiza los ejemplos en 5 categorías por nivel de complejidad:
 | 03 | **Basic Communication** | Primeros pasos: enviar y recibir mensajes entre el hilo principal y un Worker. |
 | 04 | **Offloading Computation** | Mover cálculos pesados a un Worker para mantener la UI fluida. |
 
-### Optimización
-
-| # | Ejemplo | Descripción |
-|---|---------|-------------|
-| 05 | **Transferable Objects** | Transferir datos en memoria sin copiarlos usando `ArrayBuffer`. |
-
 ### Gestión
 
 | # | Ejemplo | Descripción |
 |---|---------|-------------|
-| 06 | **Error Handling** | Capturar y manejar errores que ocurren dentro de los Workers. |
-| 07 | **Shared Worker** | Compartir un Worker entre múltiples pestañas del navegador. |
-| 08 | **Lifecycle & Termination** | Crear, ejecutar y terminar Workers de forma controlada. |
+| 05 | **Error Handling** | Capturar y manejar errores que ocurren dentro de los Workers. |
+| 06 | **Lifecycle & Termination** | Crear, ejecutar y terminar Workers de forma controlada. |
+
+### Optimización
+
+| # | Ejemplo | Descripción |
+|---|---------|-------------|
+| 07 | **Transferable Objects** | Transferir datos en memoria sin copiarlos usando `ArrayBuffer`. |
 
 ### Avanzado
 
 | # | Ejemplo | Descripción |
 |---|---------|-------------|
+| 08 | **Shared Worker** | Compartir un Worker entre múltiples pestañas del navegador. |
 | 09 | **Worker Limits** | Descubrir los límites de hardware y cuántos Workers soporta el navegador. |
 | 10 | **Worker Pool** | Patrón de pool: gestionar un conjunto fijo de Workers con una cola de tareas. |
 

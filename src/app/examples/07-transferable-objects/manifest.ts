@@ -2,8 +2,8 @@ import { ExampleManifest } from '../../core/models/example-manifest.model';
 
 export const MANIFEST: ExampleManifest = {
   id: 'transferable-objects',
-  number: '05',
-  route: '/examples/05-transferable-objects',
+  number: '07',
+  route: '/examples/07-transferable-objects',
   category: 'optimization',
   difficulty: 'intermediate',
   loadComponent: () =>

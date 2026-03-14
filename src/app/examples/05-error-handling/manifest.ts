@@ -2,8 +2,8 @@ import { ExampleManifest } from '../../core/models/example-manifest.model';
 
 export const MANIFEST: ExampleManifest = {
   id: 'error-handling',
-  number: '06',
-  route: '/examples/06-error-handling',
+  number: '05',
+  route: '/examples/05-error-handling',
   category: 'management',
   difficulty: 'intermediate',
   loadComponent: () =>

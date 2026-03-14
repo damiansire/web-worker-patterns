@@ -2,10 +2,10 @@ import { setIntervalCounterContent } from './examples/01-setinterval-counter.con
 import { mainThreadContent } from './examples/02-main-thread.content';
 import { basicCommunicationContent } from './examples/03-basic-communication.content';
 import { offloadingComputationContent } from './examples/04-offloading-computation.content';
-import { transferableObjectsContent } from './examples/05-transferable-objects.content';
-import { errorHandlingContent } from './examples/06-error-handling.content';
-import { sharedWorkerContent } from './examples/07-shared-worker.content';
-import { lifecycleTerminationContent } from './examples/08-lifecycle-termination.content';
+import { errorHandlingContent } from './examples/05-error-handling.content';
+import { lifecycleTerminationContent } from './examples/06-lifecycle-termination.content';
+import { transferableObjectsContent } from './examples/07-transferable-objects.content';
+import { sharedWorkerContent } from './examples/08-shared-worker.content';
 import { workerLimitsContent } from './examples/09-worker-limits.content';
 import { workerPoolContent } from './examples/10-worker-pool.content';
 
