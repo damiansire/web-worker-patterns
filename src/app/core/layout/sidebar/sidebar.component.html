@@ -3,20 +3,53 @@
     <h3>{{ language.t('sidebar.title') }}</h3>
     <app-language-selector class="sidebar-language-selector" />
   </div>
+
+  <div class="sidebar-search">
+    <div class="search-input-wrapper">
+      <span class="search-icon">🔍</span>
+      <input
+        type="text"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+        [placeholder]="language.t('sidebar.searchPlaceholder')"
+        class="search-input"
+        autocomplete="off"
+      />
+      @if (searchQuery()) {
+        <button class="search-clear" (click)="clearSearch()" aria-label="Clear search">✕</button>
+      }
+    </div>
+  </div>
+
   <div class="sidebar-content">
-    @for (category of categories(); track category.id) {
-      <div class="category-group">
-        <h4 class="category-header">{{ category.title }}</h4>
-        <div class="examples-list">
-          @for (example of category.examples; track example.number) {
-            <a [routerLink]="example.route" class="sidebar-link" routerLinkActive="active">
-              <span class="number">{{ example.number }}</span>
-              <span class="title">{{ example.title }}</span>
-            </a>
-          }
-        </div>
+    @for (category of filteredCategories(); track category.id) {
+      <div class="category-group" [class.is-expanded]="isCategoryExpanded(category.id)">
+        <button
+          class="category-header"
+          (click)="toggleCategory(category.id)"
+          [attr.aria-expanded]="isCategoryExpanded(category.id)"
+        >
+          <span class="category-title">{{ category.title }}</span>
+          <span class="category-chevron" aria-hidden="true">
+            {{ isCategoryExpanded(category.id) ? '▾' : '▸' }}
+          </span>
+        </button>
+
+        @if (isCategoryExpanded(category.id)) {
+          <div class="examples-list">
+            @for (example of category.examples; track example.number) {
+              <a [routerLink]="example.route" class="sidebar-link" routerLinkActive="active">
+                <span class="number">{{ example.number }}</span>
+                <span class="title">{{ example.title }}</span>
+              </a>
+            }
+          </div>
+        }
       </div>
+    }
+
+    @if (filteredCategories().length === 0) {
+      <p class="search-empty">No se encontraron ejemplos para "{{ searchQuery() }}"</p>
     }
   </div>
 </nav>
-
