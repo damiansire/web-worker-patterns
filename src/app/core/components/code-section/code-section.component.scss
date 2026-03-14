@@ -1,14 +1,34 @@
+// ─── Code Section (Cyberpunk) ──────────────────────────────────────────────────
+
 .code-section {
-  background: white;
+  background: #000;
   border-radius: 8px;
-  padding: 15px;
-  border-left: 4px solid #fc5c7d;
-  margin-bottom: 15px;
+  padding: 0;
+  border: 1px solid #1e293b;
+  overflow: hidden;
+  position: relative;
+
+  // Cyan left accent bar
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 3px;
+    height: 100%;
+    background: rgba(6, 182, 212, 0.4);
+  }
 
   h3 {
-    color: #495057;
-    font-size: 16px;
-    margin-bottom: 12px;
+    color: #475569;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    padding: 12px 16px 10px 20px;
+    margin: 0;
+    border-bottom: 1px solid #0f172a;
+    font-family: var(--font-mono);
   }
 
   .code-slot {
@@ -16,35 +36,39 @@
   }
 
   pre {
-    background: #1e1e1e;
-    border-radius: 6px;
-    padding: 15px;
+    background: #000;
+    border-radius: 0;
+    padding: 16px 16px 16px 20px;
     overflow-x: auto;
     margin: 0;
     white-space: pre;
-    word-wrap: break-word;
+
+    &::-webkit-scrollbar { height: 4px; }
+    &::-webkit-scrollbar-track { background: #000; }
+    &::-webkit-scrollbar-thumb { background: #1e293b; }
 
     code {
-      color: #d4d4d4;
-      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-      font-size: 14px;
+      color: var(--emerald-400);
+      font-family: var(--font-mono);
+      font-size: 13px;
       line-height: 1.8;
       white-space: pre;
       display: block;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
     }
   }
 }
 
-.code-section.angular-block pre {
-  margin-left: 16px;
-  padding-left: 20px;
-  border-left: 4px solid #764ba2;
-}
+// Angular variant — purple left accent
+.code-section.angular-block {
+  &::before {
+    background: rgba(192, 132, 252, 0.4);
+  }
 
+  h3 {
+    color: rgba(192, 132, 252, 0.6);
+  }
+}
 
 :host(.is-hidden) {
   display: none;
 }
-

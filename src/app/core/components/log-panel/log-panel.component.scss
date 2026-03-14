@@ -1,81 +1,136 @@
+// ─── Log Panel (Terminal Aesthetic) ───────────────────────────────────────────
+
 .log-panel {
-  background: #1e1e1e;
-  border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 25px;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  overflow: hidden;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+  position: relative;
+
+  // Top glow bar
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(16, 185, 129, 0.6), transparent);
+  }
 }
 
 .log-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  padding: 14px 20px;
+  border-bottom: 1px solid #0f172a;
+  background: rgba(15, 23, 42, 0.6);
+}
 
-  .title {
-    color: #fff;
-    font-size: 18px;
-    font-weight: 600;
-  }
+.log-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-  button {
-    background: #333;
-    color: #fff;
-    border: 1px solid #555;
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 13px;
-    transition: background 0.2s;
+.log-icon {
+  font-size: 14px;
+  color: var(--emerald-500);
+}
 
-    &:hover {
-      background: #444;
-    }
+.title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+.clear-btn {
+  background: #1e293b;
+  color: #475569;
+  border: 1px solid #334155;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  transition: all 0.15s;
+
+  &:hover {
+    color: var(--rose-400);
+    border-color: var(--rose-500);
+    background: rgba(244, 63, 94, 0.08);
+    transform: none;
+    box-shadow: none;
   }
 }
 
 .log-container {
-  max-height: 300px;
+  max-height: 280px;
   overflow-y: auto;
-  font-family: 'Courier New', monospace;
-  font-size: 13px;
+  padding: 16px 20px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.log-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px;
+  text-align: center;
+  color: #334155;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+
+  .empty-icon {
+    font-size: 28px;
+    opacity: 0.3;
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
 }
 
 .log-entry {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
   margin-bottom: 8px;
-  padding: 6px;
-  border-radius: 4px;
-  animation: slideIn 0.3s ease-out;
+  animation: slideIn 0.25s ease-out;
+  line-height: 1.5;
 
-  &.info {
-    color: #64b5f6;
-  }
+  &:last-child { margin-bottom: 0; }
 
-  &.success {
-    color: #4caf50;
-  }
-
-  &.error {
-    color: #f44336;
-  }
-
-  &.warning {
-    color: #ff9800;
-  }
+  &.info    { color: var(--cyan-400); }
+  &.success { color: var(--emerald-400); }
+  &.error   { color: var(--rose-400); }
+  &.warning { color: var(--amber-400); }
 
   .timestamp {
+    color: #475569;
+    opacity: 0.8;
+    flex-shrink: 0;
+    font-size: 11px;
+  }
+
+  .prefix {
     opacity: 0.5;
-    margin-right: 8px;
+    flex-shrink: 0;
+  }
+
+  .message {
+    flex: 1;
+    font-weight: 500;
   }
 }
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-

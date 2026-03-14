@@ -1,25 +1,29 @@
 <div class="log-panel">
   <div class="log-header">
-    <span class="title">{{ title }}</span>
-    <button (click)="onClear()">Limpiar</button>
+    <div class="log-title">
+      <span class="log-icon">⬡</span>
+      <span class="title">{{ title }}</span>
+    </div>
+    <button class="clear-btn" (click)="onClear()">⌫ Limpiar</button>
   </div>
-  <div class="log-container" #logContainer>
+  <div class="log-container custom-scrollbar" #logContainer>
     @if (logs.length === 0) {
-      <div class="log-entry info">
-        <span class="timestamp">{{ emptyMessage }}</span>
+      <div class="log-empty">
+        <span class="empty-icon">◌</span>
+        <span>{{ emptyMessage }}</span>
       </div>
     } @else {
       @for (log of logs; track $index) {
-        <div class="log-entry" 
-             [class.info]="log.type === 'info'" 
-             [class.success]="log.type === 'success'" 
-             [class.error]="log.type === 'error'" 
+        <div class="log-entry"
+             [class.info]="log.type === 'info'"
+             [class.success]="log.type === 'success'"
+             [class.error]="log.type === 'error'"
              [class.warning]="log.type === 'warning'">
           <span class="timestamp">[{{ log.timestamp }}]</span>
+          <span class="prefix">›</span>
           <span class="message">{{ log.message }}</span>
         </div>
       }
     }
   </div>
 </div>
-
