@@ -1,0 +1,49 @@
+<div class="thread-diagram" [class.animated]="animated" [class.compact]="isCompact()">
+
+  <!-- Main Thread node -->
+  <div class="node node--main">
+    <div class="node-icon">🧵</div>
+    <div class="node-label">{{ mainThreadLabel }}</div>
+  </div>
+
+  <!-- Arrows: main → queue or main → workers -->
+  <div class="arrows arrows--out">
+    <div class="arrow" [class.arrow--animated]="animated">
+      <span class="arrow-label">postMessage()</span>
+      <span class="arrow-shaft">──────▶</span>
+    </div>
+  </div>
+
+  <!-- Optional queue node -->
+  @if (showQueue()) {
+    <div class="node node--queue">
+      <div class="node-icon">📋</div>
+      <div class="node-label">{{ queueLabel }}</div>
+    </div>
+    <div class="arrows arrows--out">
+      <div class="arrow" [class.arrow--animated]="animated">
+        <span class="arrow-shaft">──────▶</span>
+      </div>
+    </div>
+  }
+
+  <!-- Worker nodes -->
+  <div class="workers-column" [class.workers-column--grid]="isCompact()">
+    @for (worker of workerNodes(); track worker.index) {
+      <div class="node node--worker" [ngClass]="workerStateClass(worker.state)">
+        <div class="node-icon">{{ workerStateIcon(worker.state) }}</div>
+        <div class="node-label">{{ worker.label }}</div>
+        <div class="node-state-badge">{{ worker.state }}</div>
+      </div>
+    }
+  </div>
+
+  <!-- Return arrows: workers → main -->
+  <div class="arrows arrows--in">
+    <div class="arrow arrow--return" [class.arrow--animated]="animated">
+      <span class="arrow-shaft">◀──────</span>
+      <span class="arrow-label">postMessage()</span>
+    </div>
+  </div>
+
+</div>
