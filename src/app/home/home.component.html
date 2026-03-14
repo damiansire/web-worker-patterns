@@ -7,6 +7,19 @@
     <p class="hero-subtitle">{{ language.t('home.heroSubtitle') }}</p>
   </div>
 
+  <!-- Progress bar -->
+  @if (progress.visitedCount() > 0) {
+    <div class="progress-bar-container">
+      <div class="progress-info">
+        <span class="progress-label">{{ language.t('home.progressLabel', 'Progress') }}</span>
+        <span class="progress-count">{{ progress.visitedCount() }}/{{ progress.totalCount }}</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" [style.width.%]="progress.progressPercent()"></div>
+      </div>
+    </div>
+  }
+
   <!-- What you'll learn + Recommended order -->
   <div class="learning-overview">
     <div class="learn-section">
@@ -39,7 +52,10 @@
 
         <div class="examples-grid">
           @for (example of category.examples; track example.number) {
-            <a [routerLink]="example.route" class="example-card" [attr.data-category]="category.id">
+            <a [routerLink]="example.route" class="example-card" [attr.data-category]="category.id" [class.visited]="progress.isVisited(example.number)">
+              @if (progress.isVisited(example.number)) {
+                <span class="visited-check">✓</span>
+              }
               <span class="card-number">{{ example.number }}</span>
               <span class="difficulty-badge" [attr.data-difficulty]="example.difficulty">
                 {{ language.t('difficulty.' + example.difficulty) }}

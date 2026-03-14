@@ -6,6 +6,7 @@ import { CodeExplanationComponent } from '../../core/components/code-explanation
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
 import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log-panel.component';
 import { LanguageService } from '../../core/services/language.service';
+import { ProgressService } from '../../core/services/progress.service';
 import { MAIN_THREAD_SNIPPETS } from './main-thread.snippets';
 import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
 import { KeyTakeawaysComponent } from '../../core/components/key-takeaways/key-takeaways.component';
@@ -29,6 +30,7 @@ interface NumberEvaluation {
 })
 export class MainThreadComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly language = inject(LanguageService);
+  private readonly progress = inject(ProgressService);
 
   @ViewChild('numbersContainer', { static: false }) numbersContainerRef?: ElementRef<HTMLElement>;
 
@@ -47,6 +49,7 @@ export class MainThreadComponent implements OnInit, OnDestroy, AfterViewInit {
   private counterInterval?: ReturnType<typeof setInterval>;
 
   ngOnInit() {
+    this.progress.markVisited('02');
     // Contador para demostrar que la UI se congela
     this.counterInterval = setInterval(() => {
       this.counter.update(c => c + 1);

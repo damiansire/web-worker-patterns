@@ -6,6 +6,7 @@ import { CodeSectionComponent } from '../../core/components/code-section/code-se
 import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log-panel.component';
 import { StatsPanelComponent, StatCard } from '../../core/components/stats-panel/stats-panel.component';
 import { LanguageService } from '../../core/services/language.service';
+import { ProgressService } from '../../core/services/progress.service';
 import { LIFECYCLE_TERMINATION_SNIPPETS } from './lifecycle-termination.snippets';
 import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
 import { KeyTakeawaysComponent } from '../../core/components/key-takeaways/key-takeaways.component';
@@ -28,6 +29,7 @@ import { KeyTakeawaysComponent } from '../../core/components/key-takeaways/key-t
 })
 export class LifecycleTerminationComponent implements OnInit, OnDestroy {
   private readonly language = inject(LanguageService);
+  private readonly progressService = inject(ProgressService);
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.lifecycleTermination'));
   readonly codeSnippets = LIFECYCLE_TERMINATION_SNIPPETS;
@@ -41,6 +43,7 @@ export class LifecycleTerminationComponent implements OnInit, OnDestroy {
   private worker?: Worker;
 
   ngOnInit() {
+    this.progressService.markVisited('06');
     this.addLog(this.texts().logs?.systemReady ?? 'System ready', 'info');
   }
 

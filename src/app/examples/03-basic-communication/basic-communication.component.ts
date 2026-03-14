@@ -6,6 +6,7 @@ import { CodeExplanationComponent } from '../../core/components/code-explanation
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
 import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log-panel.component';
 import { LanguageService } from '../../core/services/language.service';
+import { ProgressService } from '../../core/services/progress.service';
 import { BASIC_COMMUNICATION_SNIPPETS } from './basic-communication.snippets';
 import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
 import { KeyTakeawaysComponent } from '../../core/components/key-takeaways/key-takeaways.component';
@@ -24,6 +25,7 @@ interface Message {
 })
 export class BasicCommunicationComponent implements OnInit, OnDestroy {
   private readonly language = inject(LanguageService);
+  private readonly progress = inject(ProgressService);
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.basicCommunication'));
   readonly codeSnippets = BASIC_COMMUNICATION_SNIPPETS;
@@ -35,6 +37,7 @@ export class BasicCommunicationComponent implements OnInit, OnDestroy {
   private worker?: Worker;
 
   ngOnInit() {
+    this.progress.markVisited('03');
     this.messageText.set(this.texts().defaultMessage);
 
     if (typeof Worker !== 'undefined') {

@@ -5,6 +5,7 @@ import { InfoBoxComponent } from '../../core/components/info-box/info-box.compon
 import { CodeExplanationComponent } from '../../core/components/code-explanation/code-explanation.component';
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
 import { LanguageService } from '../../core/services/language.service';
+import { ProgressService } from '../../core/services/progress.service';
 import { SETINTERVAL_COUNTER_SNIPPETS } from './setinterval-counter.snippets';
 import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
 import { KeyTakeawaysComponent } from '../../core/components/key-takeaways/key-takeaways.component';
@@ -18,6 +19,7 @@ import { KeyTakeawaysComponent } from '../../core/components/key-takeaways/key-t
 })
 export class SetIntervalCounterComponent implements OnInit, OnDestroy {
   private readonly language = inject(LanguageService);
+  private readonly progress = inject(ProgressService);
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.setIntervalCounter'));
   readonly codeSnippets = SETINTERVAL_COUNTER_SNIPPETS;
@@ -33,6 +35,7 @@ export class SetIntervalCounterComponent implements OnInit, OnDestroy {
   private queueInterval?: ReturnType<typeof setInterval>;
 
   ngOnInit() {
+    this.progress.markVisited('01');
     // El contador no se inicia automáticamente
     // Iniciar visualización del hilo principal
     this.startThreadVisualization();

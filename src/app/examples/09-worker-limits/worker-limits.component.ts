@@ -7,6 +7,7 @@ import { CodeSectionComponent } from '../../core/components/code-section/code-se
 import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log-panel.component';
 import { StatsPanelComponent, StatCard } from '../../core/components/stats-panel/stats-panel.component';
 import { LanguageService } from '../../core/services/language.service';
+import { ProgressService } from '../../core/services/progress.service';
 import { WORKER_LIMITS_SNIPPETS } from './worker-limits.snippets';
 import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
 import { KeyTakeawaysComponent } from '../../core/components/key-takeaways/key-takeaways.component';
@@ -27,6 +28,7 @@ interface WorkerData {
 })
 export class WorkerLimitsComponent implements OnInit, OnDestroy {
   private readonly language = inject(LanguageService);
+  private readonly progress = inject(ProgressService);
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.workerLimits'));
   readonly codeSnippets = WORKER_LIMITS_SNIPPETS;
@@ -57,6 +59,7 @@ export class WorkerLimitsComponent implements OnInit, OnDestroy {
   private memoryInterval?: any;
 
   constructor() {
+    this.progress.markVisited('09');
   }
 
   ngOnInit() {

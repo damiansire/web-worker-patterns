@@ -5,6 +5,7 @@ import { CodeExplanationComponent } from '../../core/components/code-explanation
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
 import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log-panel.component';
 import { LanguageService } from '../../core/services/language.service';
+import { ProgressService } from '../../core/services/progress.service';
 import { ERROR_HANDLING_SNIPPETS } from './error-handling.snippets';
 import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
 import { KeyTakeawaysComponent } from '../../core/components/key-takeaways/key-takeaways.component';
@@ -20,6 +21,7 @@ type ErrorKey = 'reference' | 'type' | 'math' | 'custom' | 'success';
 })
 export class ErrorHandlingComponent implements OnInit, OnDestroy {
   private readonly language = inject(LanguageService);
+  private readonly progress = inject(ProgressService);
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.errorHandling'));
   readonly codeSnippets = ERROR_HANDLING_SNIPPETS;
@@ -30,6 +32,7 @@ export class ErrorHandlingComponent implements OnInit, OnDestroy {
   private worker?: Worker;
 
   ngOnInit() {
+    this.progress.markVisited('05');
     this.createWorker();
   }
 

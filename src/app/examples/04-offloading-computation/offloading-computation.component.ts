@@ -6,6 +6,7 @@ import { CodeExplanationComponent } from '../../core/components/code-explanation
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
 import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log-panel.component';
 import { LanguageService } from '../../core/services/language.service';
+import { ProgressService } from '../../core/services/progress.service';
 import { OFFLOADING_COMPUTATION_SNIPPETS } from './offloading-computation.snippets';
 import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
 import { KeyTakeawaysComponent } from '../../core/components/key-takeaways/key-takeaways.component';
@@ -25,6 +26,7 @@ interface PrimeResult {
 })
 export class OffloadingComputationComponent implements OnInit, OnDestroy {
   private readonly language = inject(LanguageService);
+  private readonly progress = inject(ProgressService);
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.offloadingComputation'));
   readonly codeSnippets = OFFLOADING_COMPUTATION_SNIPPETS;
@@ -39,6 +41,7 @@ export class OffloadingComputationComponent implements OnInit, OnDestroy {
   private counterInterval?: ReturnType<typeof setInterval>;
 
   ngOnInit() {
+    this.progress.markVisited('04');
     if (typeof Worker !== 'undefined') {
       this.worker = new Worker(new URL('./offloading-computation.worker', import.meta.url), { type: 'module' });
 

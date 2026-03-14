@@ -5,6 +5,7 @@ import { InfoBoxComponent } from '../../core/components/info-box/info-box.compon
 import { CodeExplanationComponent } from '../../core/components/code-explanation/code-explanation.component';
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
 import { LanguageService } from '../../core/services/language.service';
+import { ProgressService } from '../../core/services/progress.service';
 import { SHARED_WORKER_SNIPPETS } from './shared-worker.snippets';
 import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
 import { KeyTakeawaysComponent } from '../../core/components/key-takeaways/key-takeaways.component';
@@ -28,6 +29,7 @@ type SharedWorkerEvent = 'connected' | 'broadcast' | 'tabConnected' | 'tabDiscon
 })
 export class SharedWorkerComponent implements OnInit, OnDestroy {
   private readonly language = inject(LanguageService);
+  private readonly progress = inject(ProgressService);
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.sharedWorker'));
   readonly codeSnippets = SHARED_WORKER_SNIPPETS;
@@ -40,6 +42,7 @@ export class SharedWorkerComponent implements OnInit, OnDestroy {
   private worker?: any;
 
   ngOnInit() {
+    this.progress.markVisited('08');
     if (typeof SharedWorker !== 'undefined') {
       const uniqueId = 'Tab-' + Math.random().toString(36).substr(2, 9);
       this.tabId.set(uniqueId);

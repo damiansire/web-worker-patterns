@@ -6,6 +6,7 @@ import { CodeExplanationComponent } from '../../core/components/code-explanation
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
 import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log-panel.component';
 import { LanguageService } from '../../core/services/language.service';
+import { ProgressService } from '../../core/services/progress.service';
 import { TRANSFERABLE_OBJECTS_SNIPPETS } from './transferable-objects.snippets';
 import { ExampleNavComponent } from '../../core/components/example-nav/example-nav.component';
 import { KeyTakeawaysComponent } from '../../core/components/key-takeaways/key-takeaways.component';
@@ -32,6 +33,7 @@ interface ProcessResult {
 })
 export class TransferableObjectsComponent implements OnInit, OnDestroy {
   private readonly language = inject(LanguageService);
+  private readonly progress = inject(ProgressService);
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.transferableObjects'));
   readonly codeSnippets = TRANSFERABLE_OBJECTS_SNIPPETS;
@@ -52,6 +54,7 @@ export class TransferableObjectsComponent implements OnInit, OnDestroy {
   private processingStartTime?: number;
 
   ngOnInit() {
+    this.progress.markVisited('07');
     if (typeof Worker !== 'undefined') {
       this.worker = new Worker(new URL('./transferable-objects.worker', import.meta.url), { type: 'module' });
 

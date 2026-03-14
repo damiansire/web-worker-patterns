@@ -76,6 +76,71 @@
   z-index: 1;
 }
 
+// ─── Progress Bar ─────────────────────────────────────────────────────────────
+.progress-bar-container {
+  margin-bottom: 32px;
+  position: relative;
+  z-index: 1;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.progress-label {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+}
+
+.progress-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--emerald-400);
+  font-family: var(--font-mono);
+}
+
+.progress-track {
+  height: 4px;
+  background: #1e293b;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(to right, var(--emerald-400), var(--cyan-400));
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+// ─── Visited Check ────────────────────────────────────────────────────────────
+.visited-check {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--emerald-400);
+  background: rgba(52, 211, 153, 0.1);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.example-card.visited {
+  border-color: rgba(52, 211, 153, 0.15);
+}
+
 // ─── Learning Overview ────────────────────────────────────────────────────────
 .learning-overview {
   display: grid;
