@@ -1,3 +1,12 @@
+@if (geoMessage(); as message) {
+  <div class="geo-notification">
+    <p class="geo-notification-text">{{ message }}</p>
+    <button type="button" class="geo-notification-dismiss" (click)="language.dismissGeoNotification()">
+      {{ language.t('geoNotification.dismiss') }}
+    </button>
+  </div>
+}
+
 <main class="main-grid" [class.no-sidebar]="isHomePage()">
   @if (!isHomePage()) {
     <app-sidebar class="sidebar"></app-sidebar>

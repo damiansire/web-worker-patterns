@@ -3,7 +3,12 @@ import { Injectable, computed, effect, signal } from '@angular/core';
 export type LanguageCode = 'es' | 'en' | 'pt';
 
 const LANGUAGE_STORAGE_KEY = 'wwp-language';
-const GEO_API_URL = 'https://ipapi.co/json/?fields=country_code';
+const GEO_API_URL = 'https://ipapi.co/json/?fields=country_code,country_name';
+
+export interface GeoNotification {
+  countryName: string;
+  languageCode: LanguageCode;
+}
 
 /** Country codes where we default to Spanish (Spain + Latin America except Brazil). */
 const SPANISH_COUNTRY_CODES = new Set([
@@ -26,6 +31,9 @@ export class LanguageService {
   private readonly translations = signal<TranslationTree>({});
   private readonly language = signal<LanguageCode | null>(null);
   readonly currentLanguage = computed<LanguageCode>(() => this.language() ?? 'en');
+
+  /** Set when language was chosen by geolocation; show once then dismiss. */
+  readonly geoNotification = signal<GeoNotification | null>(null);
 
   constructor() {
     this.loadTranslations();
@@ -52,8 +60,9 @@ export class LanguageService {
   private detectLanguageByGeo(): void {
     fetch(GEO_API_URL, { mode: 'cors' })
       .then(res => res.json())
-      .then((data: { country_code?: string }) => {
+      .then((data: { country_code?: string; country_name?: string }) => {
         const code = (data?.country_code ?? '').toUpperCase();
+        const countryName = (data?.country_name ?? code) || '?';
         let lang: LanguageCode = 'en';
         if (code === 'BR') {
           lang = 'pt';
@@ -61,10 +70,15 @@ export class LanguageService {
           lang = 'es';
         }
         this.language.set(lang);
+        this.geoNotification.set({ countryName, languageCode: lang });
       })
       .catch(() => {
         this.language.set('en');
       });
+  }
+
+  dismissGeoNotification(): void {
+    this.geoNotification.set(null);
   }
 
   setLanguage(code: LanguageCode) {

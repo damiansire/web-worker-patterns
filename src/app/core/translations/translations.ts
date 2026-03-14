@@ -24,6 +24,10 @@ export const translations = {
       footerMadeWithLove: 'Hecho con ❤️ para la comunidad de desarrolladores',
       footerMdnLink: 'Documentación de MDN'
     },
+    geoNotification: {
+      message: 'Tu navegador indica que estás en {country}. Hemos configurado el idioma en {language}.',
+      dismiss: 'Entendido'
+    },
     language: {
       selectorTitle: 'Selecciona tu idioma',
       selectorDescription: 'Elige el idioma para la experiencia completa de la aplicación.',
@@ -103,6 +107,10 @@ export const translations = {
       footerMadeWithLove: 'Made with ❤️ for the developer community',
       footerMdnLink: 'MDN Documentation'
     },
+    geoNotification: {
+      message: 'Your browser reports you are in {country}. We have set your language to {language}.',
+      dismiss: 'Got it'
+    },
     language: {
       selectorTitle: 'Choose your language',
       selectorDescription: 'Pick the language for the full application experience.',
@@ -181,6 +189,10 @@ export const translations = {
       appSubtitle: 'Aprenda a usar Web Workers com exemplos práticos e interativos',
       footerMadeWithLove: 'Feito com ❤️ para a comunidade de desenvolvedores',
       footerMdnLink: 'Documentação da MDN'
+    },
+    geoNotification: {
+      message: 'Seu navegador indica que você está em {country}. Configuramos o idioma em {language}.',
+      dismiss: 'Entendi'
     },
     language: {
       selectorTitle: 'Selecione seu idioma',
