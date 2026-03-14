@@ -10,6 +10,26 @@
     </p>
   </div>
 
+  <!-- What you'll learn + Recommended order -->
+  <div class="learning-overview">
+    <div class="learn-section">
+      <h2 class="section-title">{{ learnTitle() }}</h2>
+      <ul class="learn-list">
+        @for (item of learnItems(); track item) {
+          <li>{{ item }}</li>
+        }
+      </ul>
+    </div>
+    <div class="order-section">
+      <h2 class="section-title">{{ orderTitle() }}</h2>
+      <ol class="order-list">
+        @for (item of orderItems(); track item) {
+          <li>{{ item }}</li>
+        }
+      </ol>
+    </div>
+  </div>
+
   <!-- Categories -->
   <div class="categories">
     @for (category of categories(); track category.id) {

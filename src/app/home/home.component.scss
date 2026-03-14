@@ -76,6 +76,69 @@
   z-index: 1;
 }
 
+// ─── Learning Overview ────────────────────────────────────────────────────────
+.learning-overview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 80px;
+  position: relative;
+  z-index: 1;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.learn-section,
+.order-section {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  padding: 28px;
+}
+
+.learn-section {
+  border-left: 3px solid var(--cyan-400);
+}
+
+.order-section {
+  border-left: 3px solid var(--emerald-400);
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: var(--text-primary);
+  margin: 0 0 20px;
+}
+
+.learn-list,
+.order-list {
+  margin: 0;
+  padding: 0 0 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  li {
+    font-size: 13px;
+    font-family: var(--font-mono);
+    color: var(--text-secondary);
+    line-height: 1.6;
+
+    &::marker {
+      color: var(--cyan-400);
+    }
+  }
+}
+
+.order-list li::marker {
+  color: var(--emerald-400);
+}
+
 // ─── Category Sections ─────────────────────────────────────────────────────────
 .categories {
   display: flex;

@@ -1,5 +1,6 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { LanguageService } from '../core/services/language.service';
 import { NavigationService } from '../core/services/navigation.service';
 
 @Component({
@@ -11,7 +12,12 @@ import { NavigationService } from '../core/services/navigation.service';
 })
 export class HomeComponent {
   protected readonly navigation = inject(NavigationService);
+  protected readonly language = inject(LanguageService);
 
   readonly categories = this.navigation.categories;
+  readonly learnTitle = computed(() => this.language.t<string>('home.learnTitle'));
+  readonly learnItems = computed(() => this.language.t<string[]>('home.learnItems', []));
+  readonly orderTitle = computed(() => this.language.t<string>('home.orderTitle'));
+  readonly orderItems = computed(() => this.language.t<string[]>('home.orderItems', []));
 }
 
