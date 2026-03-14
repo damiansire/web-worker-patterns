@@ -5,8 +5,7 @@ import { InfoBoxComponent } from '../../core/components/info-box/info-box.compon
 import { CodeExplanationComponent } from '../../core/components/code-explanation/code-explanation.component';
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
 import { LanguageService } from '../../core/services/language.service';
-
-const block = (...lines: string[]) => lines.join('\n') + '\n';
+import { SETINTERVAL_COUNTER_SNIPPETS } from './setinterval-counter.snippets';
 
 @Component({
   selector: 'app-setinterval-counter',
@@ -19,57 +18,7 @@ export class SetIntervalCounterComponent implements OnInit, OnDestroy {
   private readonly language = inject(LanguageService);
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.setIntervalCounter'));
-  readonly codeSnippets = {
-    vanillaCreateCounter: block(
-      '// Variable para almacenar el valor del contador',
-      'let contador = 0;'
-    ),
-    vanillaSetInterval: block(
-      '// setInterval ejecuta una función cada cierto tiempo (en milisegundos)',
-      'const intervalId = setInterval(function() {',
-      '  contador++;',
-      '  document.getElementById(\'contador\').textContent = contador;',
-      '}, 1000); // Cada 1000ms (1 segundo)'
-    ),
-    vanillaClearInterval: block(
-      '// Para detener el intervalo, usamos clearInterval',
-      'clearInterval(intervalId);'
-    ),
-    vanillaWhyImportant: block(
-      '// setInterval ejecuta código en el HILO PRINCIPAL',
-      '// Si el hilo principal está ocupado con cálculos pesados,',
-      '// el contador se congelará y no se actualizará.',
-      '// Esto es exactamente el problema que resuelven los Web Workers.'
-    ),
-    angularComponent: block(
-      'counter = signal(0);',
-      'intervalId?: ReturnType<typeof setInterval>;',
-      '',
-      'ngOnInit() {',
-      '  // Iniciar contador automáticamente',
-      '  this.startCounter();',
-      '}',
-      '',
-      'startCounter() {',
-      '  if (this.intervalId) return;',
-      '  ',
-      '  this.intervalId = setInterval(() => {',
-      '    this.counter.update(c => c + 1);',
-      '  }, this.speed());',
-      '}',
-      '',
-      'stopCounter() {',
-      '  if (this.intervalId) {',
-      '    clearInterval(this.intervalId);',
-      '    this.intervalId = undefined;',
-      '  }',
-      '}',
-      '',
-      'ngOnDestroy() {',
-      '  this.stopCounter();',
-      '}'
-    )
-  };
+  readonly codeSnippets = SETINTERVAL_COUNTER_SNIPPETS;
 
   counter = signal(0);
   speed = signal(1000);

@@ -5,6 +5,7 @@ import { InfoBoxComponent } from '../../core/components/info-box/info-box.compon
 import { CodeExplanationComponent } from '../../core/components/code-explanation/code-explanation.component';
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
 import { LanguageService } from '../../core/services/language.service';
+import { SHARED_WORKER_SNIPPETS } from './shared-worker.snippets';
 
 interface Message {
   sender: string;
@@ -15,9 +16,6 @@ interface Message {
 
 type WorkerStatus = 'disconnected' | 'connected' | 'unsupported';
 type SharedWorkerEvent = 'connected' | 'broadcast' | 'tabConnected' | 'tabDisconnected';
-
-const code = (strings: TemplateStringsArray, ...values: unknown[]) =>
-  `${String.raw(strings, ...values).trim()}` + '\n';
 
 @Component({
   selector: 'app-shared-worker',
@@ -30,69 +28,7 @@ export class SharedWorkerComponent implements OnInit, OnDestroy {
   private readonly language = inject(LanguageService);
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.sharedWorker'));
-  readonly codeSnippets = {
-    createSharedWorker: code`
-const sharedWorker = new SharedWorker('shared_worker.js');
-const port = sharedWorker.port;
-port.start();
-`,
-    basicMessage: code`
-port.postMessage({
-  type: 'message',
-  tabId: 'tab-123',
-  message: 'Hola desde pestaña 1'
-});
-`,
-    angularComponent: code`
-ngOnInit() {
-  if (typeof SharedWorker === 'undefined') {
-    this.workerStatus.set('unsupported');
-    alert(this.texts().alerts?.unsupported ?? 'SharedWorker not supported');
-    return;
-  }
-
-  const tabId = 'Tab-' + Math.random().toString(36).slice(2, 11);
-  this.tabId.set(tabId);
-
-  this.worker = new SharedWorker(
-    new URL('./shared-worker.worker', import.meta.url),
-    { type: 'module' }
-  );
-  this.worker.port.start();
-
-  this.worker.port.postMessage({
-    type: 'connect',
-    tabId
-  });
-
-  this.worker.port.onmessage = (event: MessageEvent<any>) => {
-    const { type, tabId: senderTabId, message, connectedCount } = event.data;
-
-    if (type === 'connected') {
-      this.workerStatus.set('connected');
-      this.connectedTabs.set(connectedCount);
-    } else if (type === 'broadcast') {
-      this.addMessage(senderTabId, message, senderTabId === tabId ? 'self' : 'other');
-    }
-  };
-}
-
-sendMessage() {
-  const message = this.messageText().trim();
-  if (!message || !this.worker) {
-    return;
-  }
-
-  this.worker.port.postMessage({
-    type: 'message',
-    tabId: this.tabId(),
-    message
-  });
-
-  this.messageText.set('');
-}
-`
-  };
+  readonly codeSnippets = SHARED_WORKER_SNIPPETS;
 
   tabId = signal('');
   messageText = signal('');

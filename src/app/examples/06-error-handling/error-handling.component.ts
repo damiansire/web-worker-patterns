@@ -5,9 +5,7 @@ import { CodeExplanationComponent } from '../../core/components/code-explanation
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
 import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log-panel.component';
 import { LanguageService } from '../../core/services/language.service';
-
-const code = (strings: TemplateStringsArray, ...values: unknown[]) =>
-  `${String.raw(strings, ...values).trim()}` + '\n';
+import { ERROR_HANDLING_SNIPPETS } from './error-handling.snippets';
 
 type ErrorKey = 'reference' | 'type' | 'math' | 'custom' | 'success';
 
@@ -22,54 +20,7 @@ export class ErrorHandlingComponent implements OnInit, OnDestroy {
   private readonly language = inject(LanguageService);
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.errorHandling'));
-  readonly codeSnippets = {
-    vanillaConfigure: code`
-worker.onerror = function (error) {
-  console.error('Error:', error.message);
-  error.preventDefault();
-};
-`,
-    vanillaThrow: code`
-// Esto causará un ReferenceError
-funcionQueNoExiste();
-
-// O lanzar error personalizado
-throw new Error('Error personalizado');
-`,
-    angularComponent: code`
-this.worker.onerror = (event: ErrorEvent) => {
-  event.preventDefault();
-
-  this.addLog(this.texts().logs?.errorCaptured ?? 'Error captured in worker', 'error');
-  this.addLog(this.format(this.texts().logs?.errorMessage, { message: event.message }), 'error');
-  this.addLog(this.format(this.texts().logs?.errorFile, { file: event.filename }), 'error');
-  this.addLog(
-    this.format(this.texts().logs?.errorLine, { line: event.lineno, column: event.colno }),
-    'error'
-  );
-
-  this.addLog(this.texts().logs?.recreatingWorker ?? 'Recreating worker...', 'warning');
-  setTimeout(() => {
-    this.worker?.terminate();
-    this.createWorker();
-  }, 100);
-};
-
-triggerError(type: string) {
-  this.addLog(
-    this.format(this.texts().logs?.triggerError, {
-      type: this.getErrorTypeLabel(type as any)
-    }),
-    'info'
-  );
-
-  this.worker?.postMessage({
-    action: 'triggerError',
-    errorType: type
-  });
-}
-`
-  };
+  readonly codeSnippets = ERROR_HANDLING_SNIPPETS;
 
   readonly errorKeys: ErrorKey[] = ['reference', 'type', 'math', 'custom', 'success'];
 
