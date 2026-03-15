@@ -15,7 +15,8 @@ export const mainThreadContent = {
       title: '🔢 Calculadora de Números Primos (Main Thread)',
       countLabel: '¿Cuántos números primos calcular?',
       button: '🔒 Calcular en Main Thread',
-      note: '(La UI se bloqueará)'
+      note: '(La UI se bloqueará)',
+      calculating: 'Calculando...'
     },
     result: {
       completedPrefix: '✅ Cálculo completado',
@@ -77,7 +78,8 @@ export const mainThreadContent = {
       title: '🔢 Prime Number Calculator (Main Thread)',
       countLabel: 'How many prime numbers to calculate?',
       button: '🔒 Calculate on Main Thread',
-      note: '(The UI will freeze)'
+      note: '(The UI will freeze)',
+      calculating: 'Calculating...'
     },
     result: {
       completedPrefix: '✅ Calculation completed',
@@ -139,7 +141,8 @@ export const mainThreadContent = {
       title: '🔢 Calculadora de Números Primos (Thread Principal)',
       countLabel: 'Quantos números primos calcular?',
       button: '🔒 Calcular na Thread Principal',
-      note: '(A interface será bloqueada)'
+      note: '(A interface será bloqueada)',
+      calculating: 'Calculando...'
     },
     result: {
       completedPrefix: '✅ Cálculo concluído',

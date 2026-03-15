@@ -47,11 +47,14 @@
     </div>
 
     <button class="btn-main" (click)="calculateInMainThread()" [disabled]="isLoading()">
-      {{ texts().demo.button }}<br>
-      <small style="font-size: 11px; font-weight: normal;">{{ texts().demo.note }}</small>
+      @if (isLoading()) {
+        <span class="btn-spinner"></span>
+        <span class="btn-loading-text">{{ texts().demo.calculating }}</span>
+      } @else {
+        {{ texts().demo.button }}<br>
+        <small style="font-size: 11px; font-weight: normal;">{{ texts().demo.note }}</small>
+      }
     </button>
-
-    <div class="spinner" [class.active]="isLoading()"></div>
     
     @if (result(); as res) {
       <div class="result">
