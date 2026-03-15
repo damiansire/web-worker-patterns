@@ -1,32 +1,24 @@
-<details class="code-explanation">
-  <summary>
-    <div class="summary-content">
-      <span class="summary-text">{{ summaryText || language.t('codeExplanation.defaultSummary') }}</span>
-      <div class="variant-buttons">
-        <button
-          type="button"
-          [class.active]="isSelected('javascript')"
-          (click)="selectVariant('javascript')"
-        >
-          {{ javascriptLabel() }}
-        </button>
-        <button
-          type="button"
-          [class.active]="isSelected('angular')"
-          (click)="selectVariant('angular')"
-        >
-          {{ angularLabel() }}
-        </button>
-      </div>
+<div class="code-explanation" [class.open]="isOpen()">
+  <div class="summary-content" (click)="onComponentClick($event)" role="button" tabindex="0" (keydown.enter)="onComponentClick($event)" (keydown.space)="$event.preventDefault(); onComponentClick($event)">
+    <span class="summary-text">{{ summaryText || language.t('codeExplanation.defaultSummary') }}</span>
+    <div class="variant-buttons">
+      <button type="button" data-code-variant="javascript" [class.active]="isSelected('javascript')">
+        {{ javascriptLabel() }}
+      </button>
+      <button type="button" data-code-variant="angular" [class.active]="isSelected('angular')">
+        {{ angularLabel() }}
+      </button>
     </div>
-  </summary>
-  <div class="code-sections-list">
-    <ng-content></ng-content>
-    @if (showEmptyState()) {
-      <p class="empty-state">
-        {{ emptyStateMessage() }}
-      </p>
-    }
   </div>
-</details>
+  @if (isOpen()) {
+    <div class="code-sections-list">
+      <ng-content></ng-content>
+      @if (showEmptyState()) {
+        <p class="empty-state">
+          {{ emptyStateMessage() }}
+        </p>
+      }
+    </div>
+  }
+</div>
 
