@@ -1,9 +1,23 @@
-@if (geoMessage(); as message) {
+@if (language.geoNotification(); as notification) {
   <div class="geo-notification">
-    <p class="geo-notification-text">{{ message }}</p>
-    <button type="button" class="geo-notification-dismiss" (click)="language.dismissGeoNotification()">
-      {{ language.t('geoNotification.dismiss') }}
-    </button>
+    <p class="geo-notification-text">
+      @if (notification.unknownCountry) {
+        {{ language.t('geoNotification.unknownMessage') }}
+      } @else {
+        {{ geoMessage() }}
+      }
+    </p>
+    <div class="geo-notification-actions">
+      @if (notification.unknownCountry) {
+        <span class="geo-notification-or-choose">{{ language.t('geoNotification.orChoose') }}</span>
+        <button type="button" class="geo-notification-lang" (click)="language.setLanguage('es'); language.dismissGeoNotification()">Español</button>
+        <span class="geo-notification-sep">|</span>
+        <button type="button" class="geo-notification-lang" (click)="language.setLanguage('pt'); language.dismissGeoNotification()">Português</button>
+      }
+      <button type="button" class="geo-notification-dismiss" (click)="language.dismissGeoNotification()">
+        {{ language.t('geoNotification.dismiss') }}
+      </button>
+    </div>
   </div>
 }
 

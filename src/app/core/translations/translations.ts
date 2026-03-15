@@ -26,6 +26,8 @@ export const translations = {
     },
     geoNotification: {
       message: 'Tu navegador indica que estás en {country}. Hemos configurado el idioma en {language}.',
+      unknownMessage: 'Tu navegador no nos indica tu ubicación, así que hemos configurado el idioma en inglés.',
+      orChoose: 'O elige: ',
       dismiss: 'Entendido'
     },
     language: {
@@ -127,6 +129,8 @@ export const translations = {
     },
     geoNotification: {
       message: 'Your browser reports you are in {country}. We have set your language to {language}.',
+      unknownMessage: "Your browser doesn't tell us where you are, so we've set the language to English.",
+      orChoose: 'Or choose: ',
       dismiss: 'Got it'
     },
     language: {
@@ -228,6 +232,8 @@ export const translations = {
     },
     geoNotification: {
       message: 'Seu navegador indica que você está em {country}. Configuramos o idioma em {language}.',
+      unknownMessage: 'Seu navegador não nos informa onde você está, então definimos o idioma para inglês.',
+      orChoose: 'Ou escolha: ',
       dismiss: 'Entendi'
     },
     language: {
