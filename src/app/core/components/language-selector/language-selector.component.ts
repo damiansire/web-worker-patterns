@@ -12,6 +12,7 @@ import { LanguageService, LanguageCode } from '../../services/language.service';
 export class LanguageSelectorComponent {
   protected readonly language = inject(LanguageService);
   protected readonly selectorOpen = signal(!this.language.isLanguageSelected());
+  protected readonly dropdownOpen = signal(false);
   protected readonly currentLanguage = computed(() =>
     this.language.languages.find(lang => lang.code === this.language.currentLanguage())
   );
@@ -49,6 +50,7 @@ export class LanguageSelectorComponent {
   selectLanguage(code: LanguageCode) {
     this.language.setLanguage(code);
     this.selectorOpen.set(false);
+    this.dropdownOpen.set(false);
   }
 
   protected isSelected(code: LanguageCode): boolean {
