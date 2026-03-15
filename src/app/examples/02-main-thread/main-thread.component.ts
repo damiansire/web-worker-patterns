@@ -1,10 +1,11 @@
-import { Component, OnInit, OnDestroy, signal, computed, inject, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InfoBoxComponent } from '../../core/components/info-box/info-box.component';
 import { CodeExplanationComponent } from '../../core/components/code-explanation/code-explanation.component';
 import { CodeSectionComponent } from '../../core/components/code-section/code-section.component';
 import { LogPanelComponent, LogEntry } from '../../core/components/log-panel/log-panel.component';
+import { ProcessorNumbersViewComponent } from '../../core/components/processor-numbers-view/processor-numbers-view.component';
 import { LanguageService } from '../../core/services/language.service';
 import { ProgressService } from '../../core/services/progress.service';
 import { MAIN_THREAD_SNIPPETS } from './main-thread.snippets';
@@ -16,23 +17,21 @@ interface PrimeResult {
   duration: number;
 }
 
-interface NumberEvaluation {
+export interface NumberEvaluation {
   number: number;
   isPrime: boolean;
 }
 
 @Component({
   selector: 'app-main-thread',
-  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, ExampleNavComponent, KeyTakeawaysComponent],
+  imports: [CommonModule, FormsModule, InfoBoxComponent, CodeExplanationComponent, CodeSectionComponent, LogPanelComponent, ProcessorNumbersViewComponent, ExampleNavComponent, KeyTakeawaysComponent],
   templateUrl: './main-thread.component.html',
   styleUrl: './main-thread.component.scss',
   standalone: true
 })
-export class MainThreadComponent implements OnInit, OnDestroy, AfterViewInit {
+export class MainThreadComponent implements OnInit, OnDestroy {
   protected readonly language = inject(LanguageService);
   private readonly progress = inject(ProgressService);
-
-  @ViewChild('numbersContainer', { static: false }) numbersContainerRef?: ElementRef<HTMLElement>;
 
   readonly texts = computed(() => this.language.t<any>('examplesContent.mainThread'));
   readonly codeSnippets = computed(() =>
@@ -47,7 +46,7 @@ export class MainThreadComponent implements OnInit, OnDestroy, AfterViewInit {
   counter = signal(0);
   evaluatedNumbers = signal<NumberEvaluation[]>([]);
   showProcessorView = signal(false);
-  processingIndex = signal(-1); // Índice del número actualmente siendo procesado
+  processingIndex = signal(-1);
   private counterInterval?: ReturnType<typeof setInterval>;
 
   ngOnInit() {
@@ -56,10 +55,6 @@ export class MainThreadComponent implements OnInit, OnDestroy, AfterViewInit {
     this.counterInterval = setInterval(() => {
       this.counter.update(c => c + 1);
     }, 100);
-  }
-
-  ngAfterViewInit() {
-    // Inicialización después de que la vista esté lista
   }
 
   ngOnDestroy() {
@@ -125,49 +120,42 @@ export class MainThreadComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private async calculatePrimesWithProgress(max: number): Promise<number[]> {
     const primes: number[] = [];
-    const maxNumbersToShow = Math.min(max * 10, 1000); // Mostrar hasta 1000 números
-    
-    // Primero agregar todos los números como "no evaluados"
+    const maxNumbersToShow = Math.min(max, 2500); // 0..count, cap 2500 para rendimiento
+
     const initialNumbers: NumberEvaluation[] = [];
-    for (let i = 2; i <= maxNumbersToShow; i++) {
+    for (let i = 0; i <= maxNumbersToShow; i++) {
       initialNumbers.push({ number: i, isPrime: false });
     }
     this.evaluatedNumbers.set(initialNumbers);
-    
-    // Luego evaluar cada número uno por uno
-    let index = 0;
-    for (let i = 2; primes.length < max; i++) {
-      let isPrime = true;
-      
-      // Verificar si es primo
-      for (let j = 2; j <= Math.sqrt(i); j++) {
-        if (i % j === 0) {
-          isPrime = false;
-          break;
+
+    for (let i = 0; primes.length < max; i++) {
+      let isPrime = false;
+      if (i >= 2) {
+        isPrime = true;
+        for (let j = 2; j <= Math.sqrt(i); j++) {
+          if (i % j === 0) {
+            isPrime = false;
+            break;
+          }
         }
       }
-      
-      // Actualizar el número en la lista si está dentro del rango a mostrar
+
       if (i <= maxNumbersToShow) {
-        this.processingIndex.set(index);
-        
-        // Dar tiempo para que la animación sea visible
-        await new Promise(resolve => setTimeout(resolve, 30));
-        
-        // Actualizar el número evaluado
+        this.processingIndex.set(i);
+
+        await new Promise(resolve => setTimeout(resolve, 40));
+
         const current = this.evaluatedNumbers();
-        if (current[index]) {
-          current[index] = { number: i, isPrime };
+        if (current[i]) {
+          current[i] = { number: i, isPrime };
           this.evaluatedNumbers.set([...current]);
         }
-        
-        // Dar un poco más de tiempo para ver el resultado
+
         await new Promise(resolve => setTimeout(resolve, 15));
-        
+
         this.processingIndex.set(-1);
-        index++;
       }
-      
+
       if (isPrime) {
         primes.push(i);
       }
@@ -192,53 +180,5 @@ export class MainThreadComponent implements OnInit, OnDestroy, AfterViewInit {
     );
   }
 
-  getScrollOffset(): number {
-    const index = this.processingIndex();
-    
-    // Obtener el ancho real del contenedor
-    let containerWidth = 800; // Valor por defecto
-    if (this.numbersContainerRef?.nativeElement) {
-      containerWidth = this.numbersContainerRef.nativeElement.clientWidth;
-    }
-    
-    const containerCenter = containerWidth / 2;
-    const numberWidth = 40; // Cada número tiene aproximadamente 40px de ancho
-    
-    if (index < 0) {
-      // Estado inicial: centrar el primer número
-      return containerCenter - (numberWidth / 2);
-    }
-    
-    // Calcular la posición del centro del número actual sin desplazamiento
-    // El primer número (index 0) tiene su centro en numberWidth / 2 desde el inicio del grid
-    // Cada número adicional está separado por numberWidth
-    const numberCenterPosition = index * numberWidth + (numberWidth / 2);
-    
-    // Calcular el offset necesario para centrar el número actual
-    // Si el número está a la izquierda del centro, offset será positivo (desplazar a la derecha)
-    // Si el número está a la derecha del centro, offset será negativo (desplazar a la izquierda)
-    const offset = containerCenter - numberCenterPosition;
-    
-    // Para los primeros números, empezar desde el inicio pero ajustar gradualmente
-    // Esto evita que se corra demasiado a la derecha al inicio
-    if (index === 0) {
-      // Primer número: centrar exactamente
-      return containerCenter - (numberWidth / 2);
-    }
-    
-    // Para números subsecuentes, centrar progresivamente
-    // Usar el offset calculado pero suavizar para los primeros números
-    if (index < 5) {
-      // Para los primeros 5 números, ajustar gradualmente desde el centro inicial
-      const initialOffset = containerCenter - (numberWidth / 2);
-      const currentOffset = containerCenter - numberCenterPosition;
-      // Interpolar entre el offset inicial y el actual
-      const progress = index / 5;
-      return initialOffset + (currentOffset - initialOffset) * progress;
-    }
-    
-    // Para números posteriores, siempre centrar exactamente
-    return offset;
-  }
 }
 

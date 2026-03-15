@@ -34,7 +34,9 @@ export const mainThreadContent = {
       description:
         'Observa cómo el procesador evalúa cada número en tiempo real. Los números verdes son primos y los rojos no lo son. Nota cómo se van agregando mientras el hilo principal está bloqueado.',
       processing: 'Procesando...',
-      numbersEvaluated: 'números evaluados'
+      numbersEvaluated: 'números evaluados',
+      currentNumberLabel: 'Revisando:',
+      binaryLabel: 'binario'
     },
     uiTest: {
       title: '🎯 Prueba de Respuesta de la UI',
@@ -94,7 +96,9 @@ export const mainThreadContent = {
       description:
         'Watch how the processor evaluates each number in real time. Green numbers are primes and red ones are not. Notice how they are added while the main thread is blocked.',
       processing: 'Processing...',
-      numbersEvaluated: 'numbers evaluated'
+      numbersEvaluated: 'numbers evaluated',
+      currentNumberLabel: 'Reviewing:',
+      binaryLabel: 'binary'
     },
     uiTest: {
       title: '🎯 UI Responsiveness Test',
@@ -154,7 +158,9 @@ export const mainThreadContent = {
       description:
         'Observe como o processador avalia cada número em tempo real. Os números verdes são primos e os vermelhos não são. Note como eles são adicionados enquanto a thread principal está bloqueada.',
       processing: 'Processando...',
-      numbersEvaluated: 'números avaliados'
+      numbersEvaluated: 'números avaliados',
+      currentNumberLabel: 'Revisando:',
+      binaryLabel: 'binário'
     },
     uiTest: {
       title: '🎯 Teste de Responsividade da Interface',
