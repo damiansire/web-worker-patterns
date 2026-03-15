@@ -32,8 +32,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Node (si en el futuro se agrega)
+# Node (node_modules not sent; we run npm ci in the image)
 node_modules
-package-lock.json
 yarn.lock
 

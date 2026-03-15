@@ -18,7 +18,7 @@ Docker provides:
 - **Portability**: Works the same on macOS, Windows, and Linux
 - **Isolation**: Does not interfere with other services on your system
 - **Reproducibility**: Everyone uses exactly the same environment
-- **Hot-reload**: File changes are reflected immediately
+- **Production-like**: Serves the built Angular app (multi-stage build); no Node required on the host
 
 ## Installing Docker
 
@@ -65,34 +65,20 @@ docker --version
 
 ## Quick Usage
 
-### Option 1: Automatic Scripts
-
-The project includes scripts that verify and start Docker automatically:
-
-**macOS/Linux:**
-
-```bash
-./start.sh
-```
-
-**Windows:**
-
-```bash
-start.bat
-```
-
-### Option 2: Manual Commands
+Docker builds the Angular app and serves it with nginx (no Node.js on the host). After code changes, rebuild the image.
 
 ```bash
 # 1. Verify Docker is running
 docker ps
 
-# 2. Start the project
-docker-compose up -d
+# 2. Build and start
+docker-compose up -d --build
 
 # 3. Open in the browser
 # http://localhost:9000
 ```
+
+For local development with hot-reload, use `npm start` or the project scripts `start.sh` / `start.bat` (see README).
 
 ## Troubleshooting
 
@@ -290,21 +276,22 @@ docker system prune -a --volumes
          │
          ▼
 ┌──────────────────┐
-│   Docker Host    │  Port 3000 → Port 80
+│   Docker Host    │  Port 9000 → 80
 │  (Your machine)  │
 └────────┬─────────┘
          │
          ▼
 ┌──────────────────┐
 │   Container      │  Nginx Alpine
-│   web-worker-    │
-│   patterns       │  - Serves static files
-└────────┬─────────┘  - CORS headers configured
-         │            - Hot-reload enabled
+│   web-worker-    │  - Serves built Angular app
+│   patterns       │  - SPA routing (try_files)
+└────────┬─────────┘
+         │
          ▼
 ┌──────────────────┐
-│  Project Files   │  Mounted from your machine
-│                  │  /usr/share/nginx/html/
+│  Built app       │  From image (dist/ in build stage)
+│  /usr/share/     │  Rebuild with --build after changes
+│  nginx/html/     │
 └──────────────────┘
 ```
 
@@ -312,20 +299,19 @@ docker system prune -a --volumes
 
 ### `Dockerfile`
 
-Defines how the image is built:
+Multi-stage build:
 
-- Uses nginx:alpine (lightweight and fast)
-- Copies project files
-- Configures nginx to serve static content
+- **Stage 1 (build)**: Node 20 runs `npm ci` and `npm run build` to produce the Angular app in `dist/`
+- **Stage 2 (serve)**: nginx:alpine serves only the built static files from `dist/web-worker-patterns/browser/`
+- Nginx is configured for SPA routing (`try_files` to `index.html`)
 
 ### `docker-compose.yml`
 
-Defines the complete service:
+Defines the service:
 
-- Ports (9000:80 by default, you can change it)
-- Volumes (hot-reload)
-- Healthcheck
-- Container name
+- Ports (9000:80 by default; change if needed)
+- No volume: the image contains the built app; run `docker-compose up -d --build` after code changes
+- Healthcheck and container name
 
 ### `.dockerignore`
 
@@ -339,8 +325,8 @@ Files that are NOT copied to the container:
 
 ### Development
 
-- **Hot-reload is enabled**: Changes are reflected automatically
-- **Use port 3000**: Already configured
+- **No hot-reload in Docker**: The image serves a built snapshot. For live reload, use `npm start` or `start.sh` / `start.bat` on the host.
+- **Rebuild after changes**: `docker-compose up -d --build`
 - **Check the logs**: `docker-compose logs -f` is your friend
 
 ### Production
