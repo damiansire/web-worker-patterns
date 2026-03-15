@@ -4,10 +4,8 @@ services:
     container_name: web-worker-patterns
     ports:
       - "9000:80"
-    volumes:
-      # Montar el directorio actual para desarrollo en vivo
-      # Los cambios se reflejan inmediatamente sin rebuild
-      - ./:/usr/share/nginx/html/:ro
+    # No volume: the image serves the built app from the multi-stage build.
+    # Rebuild after code changes: docker-compose up -d --build
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
