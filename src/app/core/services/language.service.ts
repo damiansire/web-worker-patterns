@@ -8,6 +8,8 @@ const GEO_API_URL = 'https://ipapi.co/json/?fields=country_code,country_name';
 export interface GeoNotification {
   countryName: string;
   languageCode: LanguageCode;
+  /** When true, we could not detect country; show "browser doesn't tell us where you are" + language links */
+  unknownCountry?: boolean;
 }
 
 /** Country codes where we default to Spanish (Spain + Latin America except Brazil). */
@@ -62,7 +64,7 @@ export class LanguageService {
       .then(res => res.json())
       .then((data: { country_code?: string; country_name?: string }) => {
         const code = (data?.country_code ?? '').toUpperCase();
-        const countryName = (data?.country_name ?? code) || '?';
+        const countryName = (data?.country_name ?? code).trim() || null;
         let lang: LanguageCode = 'en';
         if (code === 'BR') {
           lang = 'pt';
@@ -70,10 +72,16 @@ export class LanguageService {
           lang = 'es';
         }
         this.language.set(lang);
-        this.geoNotification.set({ countryName, languageCode: lang });
+        if (countryName) {
+          this.geoNotification.set({ countryName, languageCode: lang });
+        } else {
+          this.language.set('en');
+          this.geoNotification.set({ countryName: '', languageCode: 'en', unknownCountry: true });
+        }
       })
       .catch(() => {
         this.language.set('en');
+        this.geoNotification.set({ countryName: '', languageCode: 'en', unknownCountry: true });
       });
   }
 

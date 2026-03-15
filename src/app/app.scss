@@ -21,6 +21,40 @@
   flex: 1;
 }
 
+.geo-notification-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.geo-notification-or-choose {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.geo-notification-lang {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cyan-400);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover {
+    color: var(--cyan-300);
+  }
+}
+
+.geo-notification-sep {
+  font-size: 11px;
+  color: var(--text-muted);
+  user-select: none;
+}
+
 .geo-notification-dismiss {
   flex-shrink: 0;
   padding: 6px 14px;
