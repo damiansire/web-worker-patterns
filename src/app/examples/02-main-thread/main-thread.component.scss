@@ -23,6 +23,29 @@
   border: 1px solid #1e293b;
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+  .btn-main {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 48px;
+  }
+
+  .btn-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #1e293b;
+    border-top-color: var(--cyan-400);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+
+  .btn-loading-text {
+    font-size: 13px;
+    font-weight: 700;
+  }
 }
 
 .warning-box {
