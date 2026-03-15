@@ -75,13 +75,13 @@ O projeto inclui scripts que verificam e iniciam o Docker automaticamente:
 **macOS/Linux:**
 
 ```bash
-./start.sh
+./scripts/start/start.sh
 ```
 
 **Windows:**
 
 ```bash
-start.bat
+scripts\start\start.bat
 ```
 
 ### Opção 2: Comandos Manuais
@@ -367,7 +367,7 @@ O container usa:
 
 ### Preciso saber Docker para usar isso?
 
-Não. Os scripts automáticos (`start.sh` e `start.bat`) fazem tudo por você.
+Não. Os scripts automáticos em `scripts/start/` fazem tudo por você.
 
 ### Posso alterar a porta?
 
