@@ -1,9 +1,9 @@
 # Mastering Web Workers
 
-| | |
-|---|---|
-| **Estado** | Work in progress |
-| **Última actualización** | Domingo 15 de marzo de 2026 |
+| Field | Value |
+|-------|-------|
+| **Status** | In progress |
+| **Last updated** | Sunday, 15 March 2026 |
 
 [![Angular](https://img.shields.io/badge/Angular-21-DD0031?style=flat&logo=angular&logoColor=white)](https://angular.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
