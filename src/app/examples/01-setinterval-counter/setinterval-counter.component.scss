@@ -142,6 +142,9 @@
 .thread-visualization {
   margin: 28px 0;
   padding: 28px;
+  height: 401px;
+  display: flex;
+  flex-direction: column;
   background: rgba(0, 0, 0, 0.7);
   border: 1px solid #1e293b;
   border-radius: 12px;
@@ -162,6 +165,7 @@
   }
 
   .visualization-header {
+    flex-shrink: 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -221,6 +225,7 @@
   }
 
   .thread-description {
+    flex-shrink: 0;
     text-align: center;
     margin-bottom: 24px;
     color: var(--text-muted);
@@ -230,17 +235,18 @@
     position: relative;
     z-index: 1;
   }
-}
 
-.thread-diagram {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  justify-content: center;
-  min-height: 180px;
-  position: relative;
-  z-index: 1;
+  .thread-diagram {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    z-index: 1;
+  }
 }
 
 .task-queue-section,

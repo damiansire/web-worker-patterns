@@ -52,9 +52,9 @@ export class SetIntervalCounterComponent implements OnInit, OnDestroy {
     // Obtener intervalos según el modo
     const getIntervals = () => {
       const mode = this.visualizationMode();
-      return mode === 'real' 
+      return mode === 'real'
         ? { queueCheck: 150, processing: 80 }
-        : { queueCheck: 500, processing: 300 };
+        : { queueCheck: 1400, processing: 900 };
     };
 
     // Función para procesar una iteración
