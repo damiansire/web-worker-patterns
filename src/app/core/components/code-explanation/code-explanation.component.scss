@@ -9,25 +9,18 @@
   overflow: hidden;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 
-  summary {
-    display: block;
+  .summary-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
     padding: 20px 24px;
     cursor: pointer;
     transition: background 0.2s;
-    list-style: none;
 
     &:hover {
       background: rgba(30, 41, 59, 0.6);
-    }
-
-    &::-webkit-details-marker { display: none; }
-
-    .summary-content {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      width: 100%;
     }
 
     .summary-text {
@@ -95,9 +88,8 @@
     }
   }
 
-  &[open] summary {
+  &.open .summary-content {
     border-bottom: 1px solid #1e293b;
-    margin-bottom: 0;
   }
 
   .code-sections-list {

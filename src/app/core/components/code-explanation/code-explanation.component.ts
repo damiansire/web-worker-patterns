@@ -16,6 +16,7 @@ export class CodeExplanationComponent implements AfterContentInit {
   @ContentChildren(CodeSectionComponent) private readonly sections?: QueryList<CodeSectionComponent>;
 
   readonly selectedVariant: WritableSignal<CodeVariant> = signal<CodeVariant>('javascript');
+  readonly isOpen: WritableSignal<boolean> = signal<boolean>(false);
   readonly showEmptyState: WritableSignal<boolean> = signal<boolean>(false);
 
   readonly angularLabel: Signal<string>;
@@ -46,6 +47,23 @@ export class CodeExplanationComponent implements AfterContentInit {
     }
     this.selectedVariant.set(variant);
     this.updateVisibility();
+  }
+
+  /**
+   * Handles click (or Enter/Space) anywhere on the component: open with Angular/JS if a variant
+   * button was clicked, otherwise open (or toggle) with the current/last selected variant.
+   */
+  onComponentClick(event: Event) {
+    const variantButton = (event.target as Element).closest?.('[data-code-variant]');
+    if (variantButton) {
+      const v = variantButton.getAttribute('data-code-variant') as CodeVariant | null;
+      if (v === 'angular' || v === 'javascript') {
+        this.selectVariant(v);
+        this.isOpen.set(true);
+        return;
+      }
+    }
+    this.isOpen.update(open => !open);
   }
 
   isSelected(variant: CodeVariant): boolean {
