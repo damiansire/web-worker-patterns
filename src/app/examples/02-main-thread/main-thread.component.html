@@ -69,31 +69,16 @@
   </div>
 
   @if (showProcessorView()) {
-    <div class="processor-view">
-      <h3>{{ texts().processorView.title }}</h3>
-      <p class="processor-description">{{ texts().processorView.description }}</p>
-      <div class="numbers-container" #numbersContainer>
-        <div class="numbers-grid" [style.transform]="'translateX(' + getScrollOffset() + 'px)'">
-          @for (item of evaluatedNumbers(); track item.number; let i = $index) {
-            <span 
-              class="number-item" 
-              [class.prime]="item.isPrime && i <= processingIndex()"
-              [class.not-prime]="!item.isPrime && i <= processingIndex()"
-              [class.evaluating]="i === processingIndex()"
-              [class.pending]="i > processingIndex()"
-            >
-              {{ item.number }}
-            </span>
-          }
-        </div>
-        <div class="processor-line"></div>
-      </div>
-      @if (isLoading() && evaluatedNumbers().length > 0) {
-        <p class="processing-indicator">
-          {{ texts().processorView.processing }} ({{ processingIndex() + 1 }} / {{ evaluatedNumbers().length }})
-        </p>
-      }
-    </div>
+    <app-processor-numbers-view
+      [evaluatedNumbers]="evaluatedNumbers()"
+      [processingIndex]="processingIndex()"
+      [isLoading]="isLoading()"
+      [title]="texts().processorView.title"
+      [description]="texts().processorView.description"
+      [processingText]="texts().processorView.processing"
+      [currentNumberLabel]="texts().processorView.currentNumberLabel"
+      [binaryLabel]="texts().processorView.binaryLabel"
+    />
   }
 
   <div class="ui-test">

@@ -1,0 +1,124 @@
+.processor-view {
+  margin: 28px 0;
+  padding: 28px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.processor-description {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-family: var(--font-mono);
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.numbers-container {
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  background: #000;
+  padding: 16px;
+  margin-bottom: 12px;
+  /* 7 lines: 7 * 28px + 6 * 4px gap = 220px content + 32px padding */
+  max-height: 252px;
+}
+
+.numbers-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.number-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 28px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  transition: all 0.15s;
+  border: 1px solid transparent;
+
+  &.prime {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--emerald-400);
+    border-color: rgba(16, 185, 129, 0.3);
+  }
+
+  &.not-prime {
+    background: rgba(244, 63, 94, 0.08);
+    color: #334155;
+    border-color: transparent;
+  }
+
+  &.evaluating {
+    background: rgba(251, 191, 36, 0.2);
+    color: var(--amber-400);
+    border-color: rgba(251, 191, 36, 0.5);
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.3);
+    transform: scale(1.1);
+    animation: pulse-dot 0.8s ease-in-out infinite;
+  }
+
+  &.pending {
+    background: rgba(30, 41, 59, 0.4);
+    color: #334155;
+  }
+}
+
+.processor-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  margin-left: -1px;
+  width: 2px;
+  background: rgba(6, 182, 212, 0.3);
+  pointer-events: none;
+}
+
+.processing-indicator {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 8px;
+}
+
+.current-number-display {
+  margin: 8px 0 0;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+
+  .current-label {
+    color: var(--text-muted);
+    margin-right: 6px;
+  }
+
+  .current-decimal {
+    color: var(--cyan-400);
+    font-weight: 700;
+    margin-right: 8px;
+  }
+
+  .binary-prefix,
+  .binary-suffix {
+    color: var(--text-muted);
+    font-size: 11px;
+  }
+
+  .current-binary {
+    color: var(--emerald-400);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+}

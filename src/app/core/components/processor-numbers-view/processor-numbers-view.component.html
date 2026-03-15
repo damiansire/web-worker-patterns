@@ -1,0 +1,37 @@
+<div class="processor-view">
+  <h3>{{ title() }}</h3>
+  <p class="processor-description">{{ description() }}</p>
+  <div class="numbers-container" #numbersContainer>
+    <div class="numbers-grid">
+      @for (item of evaluatedNumbers(); track item.number; let i = $index) {
+        <span
+          #numberItem
+          class="number-item"
+          [class.prime]="item.isPrime && (i <= processingIndex() || !isLoading())"
+          [class.not-prime]="!item.isPrime && (i <= processingIndex() || !isLoading())"
+          [class.evaluating]="isLoading() && i === processingIndex()"
+          [class.pending]="isLoading() && i > processingIndex()"
+        >
+          {{ item.number }}
+        </span>
+      }
+    </div>
+    @if (processorLineLeft() >= 0) {
+      <div class="processor-line" [style.left.px]="processorLineLeft()"></div>
+    }
+  </div>
+  @if (isLoading() && evaluatedNumbers().length > 0) {
+    <p class="processing-indicator">
+      {{ processingText() }} ({{ processingIndex() + 1 }} / {{ evaluatedNumbers().length }})
+    </p>
+    @if (processingIndex() >= 0 && evaluatedNumbers()[processingIndex()]) {
+      <p class="current-number-display">
+        <span class="current-label">{{ currentNumberLabel() }}</span>
+        <span class="current-decimal">{{ evaluatedNumbers()[processingIndex()].number }}</span>
+        <span class="binary-prefix">({{ binaryLabel() }}</span>
+        <span class="current-binary">{{ toBinary(evaluatedNumbers()[processingIndex()].number) }}</span>
+        <span class="binary-suffix">)</span>
+      </p>
+    }
+  }
+</div>
