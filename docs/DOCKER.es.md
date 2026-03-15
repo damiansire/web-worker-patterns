@@ -75,13 +75,13 @@ El proyecto incluye scripts que verifican y levantan Docker automáticamente:
 **macOS/Linux:**
 
 ```bash
-./start.sh
+./scripts/start/start.sh
 ```
 
 **Windows:**
 
 ```bash
-start.bat
+scripts\start\start.bat
 ```
 
 ### Opción 2: Comandos Manuales
@@ -367,7 +367,7 @@ El contenedor usa:
 
 ### ¿Necesito saber Docker para usar esto?
 
-No. Los scripts automáticos (`start.sh` y `start.bat`) hacen todo por ti.
+No. Los scripts automáticos en `scripts/start/` hacen todo por ti.
 
 ### ¿Puedo cambiar el puerto?
 

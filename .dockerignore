@@ -8,8 +8,7 @@ docker-compose.yml
 .dockerignore
 
 # Scripts de inicio (no necesarios dentro del contenedor)
-start.sh
-start.bat
+scripts/start/
 
 # Documentación (ya se copia con todo)
 # README.md

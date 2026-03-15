@@ -16,14 +16,22 @@ Interactive educational platform about **Web Workers** built with **Angular 21**
 
 ## Quick Start
 
+**En cualquier sistema (Windows, macOS, Linux):**
+
 ```bash
 git clone https://github.com/damiansire/web-worker-patterns.git
 cd web-worker-patterns
-npm install
-npm start
+npm run dev
 ```
 
-Open `http://localhost:4200` in your browser.
+`npm run dev` comprueba Node.js (≥18) y npm (≥9), instala dependencias si hace falta y arranca el servidor en `http://localhost:4200`.
+
+Alternativas:
+- **Solo arrancar** (si ya hiciste `npm install`): `npm start`
+- **Windows:** doble clic en `scripts/start/start.bat` o en una terminal: `npm run dev`
+- **macOS/Linux:** en una terminal: `./scripts/start/start.sh` o `npm run dev`
+
+Abre `http://localhost:4200` en el navegador.
 
 ## Included Examples
 
@@ -132,9 +140,10 @@ Then:
 ## Available Scripts
 
 ```bash
-npm start       # Dev server at localhost:4200
-npm run build   # Production build
-npm test        # Unit tests
+npm run dev     # Comprueba Node/npm, instala deps si hace falta y arranca el servidor (todas las plataformas)
+npm start       # Dev server en localhost:4200 (requiere npm install previo)
+npm run build   # Build de producción
+npm test        # Tests unitarios
 ```
 
 ## Multi-language Support

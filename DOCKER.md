@@ -78,7 +78,7 @@ docker-compose up -d --build
 # http://localhost:9000
 ```
 
-For local development with hot-reload, use `npm start` or the project scripts `start.sh` / `start.bat` (see README).
+For local development with hot-reload, use `npm start` or the project scripts in `scripts/start/` (see README).
 
 ## Troubleshooting
 
@@ -325,7 +325,7 @@ Files that are NOT copied to the container:
 
 ### Development
 
-- **No hot-reload in Docker**: The image serves a built snapshot. For live reload, use `npm start` or `start.sh` / `start.bat` on the host.
+- **No hot-reload in Docker**: The image serves a built snapshot. For live reload, use `npm start` or the scripts in `scripts/start/` on the host.
 - **Rebuild after changes**: `docker-compose up -d --build`
 - **Check the logs**: `docker-compose logs -f` is your friend
 
@@ -350,7 +350,7 @@ The container uses:
 
 ### Do I need to know Docker to use this?
 
-No. The automatic scripts (`start.sh` and `start.bat`) do everything for you.
+No. The automatic scripts in `scripts/start/` do everything for you.
 
 ### Can I change the port?
 
