@@ -1,20 +1,41 @@
 <div
-  class="language-inline"
+  class="language-dropdown"
   role="group"
   [attr.aria-label]="language.t('language.selectorTitle')"
+  (mouseenter)="dropdownOpen.set(true)"
+  (mouseleave)="dropdownOpen.set(false)"
 >
-  @for (lang of orderedLanguages(); track lang.code) {
-    <button
-      type="button"
-      (click)="selectLanguage(lang.code)"
-      [class.active]="isSelected(lang.code)"
-      [attr.aria-pressed]="isSelected(lang.code)"
-      [attr.aria-label]="language.t(`language.${lang.code === 'es' ? 'spanish' : lang.code === 'en' ? 'english' : 'portuguese'}`)"
-    >
-      <span class="flag" aria-hidden="true">{{ flagEmoji[lang.code] }}</span>
-      <span class="code">{{ codeLabel(lang.code) }}</span>
-    </button>
-  }
+  <button
+    type="button"
+    class="dropdown-trigger"
+    (click)="dropdownOpen.update(v => !v)"
+    [attr.aria-expanded]="dropdownOpen()"
+    [attr.aria-haspopup]="true"
+    [attr.aria-label]="language.t('language.selectorTitle')"
+  >
+    <span class="trigger-flag" aria-hidden="true">{{ flagEmoji[currentLanguage()?.code ?? 'en'] }}</span>
+    <span class="trigger-code">{{ currentLanguage() ? codeLabel(currentLanguage()!.code) : 'EN' }}</span>
+    <span class="trigger-chevron" aria-hidden="true">▾</span>
+  </button>
+  <div
+    class="dropdown-menu"
+    [class.is-open]="dropdownOpen()"
+    role="menu"
+  >
+    @for (lang of orderedLanguages(); track lang.code) {
+      @if (!isSelected(lang.code)) {
+        <button
+          type="button"
+          role="menuitem"
+          class="dropdown-item"
+          (click)="selectLanguage(lang.code)"
+          [attr.aria-label]="language.t(`language.${lang.code === 'es' ? 'spanish' : lang.code === 'en' ? 'english' : 'portuguese'}`)"
+        >
+          {{ flagEmoji[lang.code] }} {{ codeLabel(lang.code) }}
+        </button>
+      }
+    }
+  </div>
 </div>
 
 <div class="language-overlay" *ngIf="selectorOpen()">
