@@ -69,12 +69,21 @@ export class ProcessorNumbersViewComponent {
     this.processorLineLeft.set(left);
   }
 
+  /** Scroll only within the numbers container so the page scroll is not affected. */
   private scrollCurrentIntoView(): void {
     const index = this.processingIndex();
     if (index < 0) return;
+    const container = this.numbersContainerRef?.nativeElement;
     const refs = this.numberItemRefs?.toArray() ?? [];
-    const itemRef = refs[index];
-    itemRef?.nativeElement?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    const itemEl = refs[index]?.nativeElement;
+    if (!container || !itemEl) return;
+    const cr = container.getBoundingClientRect();
+    const ir = itemEl.getBoundingClientRect();
+    const itemTopRelative = ir.top - cr.top + container.scrollTop;
+    const containerHeight = container.clientHeight;
+    const itemHeight = ir.height;
+    const targetScroll = itemTopRelative - containerHeight / 2 + itemHeight / 2;
+    container.scrollTop = Math.max(0, Math.min(targetScroll, container.scrollHeight - containerHeight));
   }
 
   toBinary(n: number): string {
