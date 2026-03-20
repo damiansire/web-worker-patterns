@@ -18,7 +18,9 @@ export class SidebarComponent {
 
   readonly searchQuery = signal('');
 
-  readonly expandedCategories = signal<Set<string>>(new Set(['understanding']));
+  readonly expandedCategories = signal<Set<string>>(
+    new Set(this.navigation.categories().map(c => c.id))
+  );
 
   readonly filteredCategories = computed<CategoryView[]>(() => {
     const query = this.searchQuery().toLowerCase().trim();
