@@ -10,4 +10,5 @@ export class KeyTakeawaysComponent {
   readonly title = input<string>('Key Takeaways');
   readonly items = input.required<string[]>();
   readonly tip = input<string>();
+  readonly usedBy = input<{ title: string; items: string[] }>();
 }

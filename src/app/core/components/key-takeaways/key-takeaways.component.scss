@@ -49,3 +49,36 @@
   font-weight: 800;
   color: var(--amber-400);
 }
+
+.takeaways-used-by {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: rgba(139, 92, 246, 0.06);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 8px;
+}
+
+.used-by-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--violet-400, #a78bfa);
+  margin: 0 0 8px;
+}
+
+.used-by-list {
+  margin: 0;
+  padding: 0 0 0 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  li {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+
+    &::marker {
+      color: var(--violet-400, #a78bfa);
+    }
+  }
+}

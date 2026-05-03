@@ -10,4 +10,14 @@
       <span class="tip-label">💡 Tip:</span> {{ tipText }}
     </div>
   }
+  @if (usedBy(); as usedByData) {
+    <div class="takeaways-used-by">
+      <h4 class="used-by-title">{{ usedByData.title }}</h4>
+      <ul class="used-by-list">
+        @for (project of usedByData.items; track project) {
+          <li>{{ project }}</li>
+        }
+      </ul>
+    </div>
+  }
 </div>
