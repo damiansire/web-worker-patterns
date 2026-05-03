@@ -9,6 +9,9 @@ import { MANIFEST as M07 } from './07-transferable-objects/manifest';
 import { MANIFEST as M08 } from './08-shared-worker/manifest';
 import { MANIFEST as M09 } from './09-worker-limits/manifest';
 import { MANIFEST as M10 } from './10-worker-pool/manifest';
+import { MANIFEST as M12 } from './12-backpressure-scheduling/manifest';
+import { MANIFEST as M13 } from './13-shared-array-buffer/manifest';
+import { MANIFEST as M14 } from './14-graceful-degradation/manifest';
 
 /**
  * Central registry of all examples. To add a new example:
@@ -26,5 +29,8 @@ export const EXAMPLES_REGISTRY: ExampleManifest[] = [
   M07,
   M08,
   M09,
-  M10
+  M10,
+  M12,
+  M13,
+  M14
 ];

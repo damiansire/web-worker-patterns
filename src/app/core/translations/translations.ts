@@ -8,6 +8,9 @@ import { transferableObjectsContent } from './examples/07-transferable-objects.c
 import { sharedWorkerContent } from './examples/08-shared-worker.content';
 import { workerLimitsContent } from './examples/09-worker-limits.content';
 import { workerPoolContent } from './examples/10-worker-pool.content';
+import { backpressureSchedulingContent } from './examples/12-backpressure-scheduling.content';
+import { sharedArrayBufferContent } from './examples/13-shared-array-buffer.content';
+import { gracefulDegradationContent } from './examples/14-graceful-degradation.content';
 
 /**
  * UI-level translations only: labels, navigation, chrome.
@@ -116,7 +119,10 @@ export const translations = {
       sharedWorker: sharedWorkerContent.es,
       lifecycleTermination: lifecycleTerminationContent.es,
       workerLimits: workerLimitsContent.es,
-      workerPool: workerPoolContent.es
+      workerPool: workerPoolContent.es,
+      backpressureScheduling: backpressureSchedulingContent.es,
+      sharedArrayBuffer: sharedArrayBufferContent.es,
+      gracefulDegradation: gracefulDegradationContent.es
     }
   },
 
@@ -219,7 +225,10 @@ export const translations = {
       sharedWorker: sharedWorkerContent.en,
       lifecycleTermination: lifecycleTerminationContent.en,
       workerLimits: workerLimitsContent.en,
-      workerPool: workerPoolContent.en
+      workerPool: workerPoolContent.en,
+      backpressureScheduling: backpressureSchedulingContent.en,
+      sharedArrayBuffer: sharedArrayBufferContent.en,
+      gracefulDegradation: gracefulDegradationContent.en
     }
   },
 
@@ -322,7 +331,10 @@ export const translations = {
       sharedWorker: sharedWorkerContent.pt,
       lifecycleTermination: lifecycleTerminationContent.pt,
       workerLimits: workerLimitsContent.pt,
-      workerPool: workerPoolContent.pt
+      workerPool: workerPoolContent.pt,
+      backpressureScheduling: backpressureSchedulingContent.pt,
+      sharedArrayBuffer: sharedArrayBufferContent.pt,
+      gracefulDegradation: gracefulDegradationContent.pt
     }
   }
 };
