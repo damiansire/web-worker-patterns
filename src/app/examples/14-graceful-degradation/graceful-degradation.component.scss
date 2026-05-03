@@ -1,0 +1,51 @@
+@use '../../core/styles/shared' as *;
+@use '../../core/styles/containers' as *;
+@use '../../core/styles/buttons' as *;
+@use '../../core/styles/example-layout' as *;
+
+.capability-matrix {
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  h4 {
+    margin: 0 0 1rem;
+    font-size: 1.1rem;
+  }
+}
+
+.capability-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.capability-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: transform 0.15s ease;
+
+  &.supported {
+    background: rgba(76, 175, 80, 0.1);
+    border: 1px solid rgba(76, 175, 80, 0.25);
+  }
+
+  &.unsupported {
+    background: rgba(244, 67, 54, 0.1);
+    border: 1px solid rgba(244, 67, 54, 0.25);
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+.capability-icon {
+  font-size: 1.1rem;
+}
