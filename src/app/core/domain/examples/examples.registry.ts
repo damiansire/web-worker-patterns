@@ -5,6 +5,7 @@ import { PRIMES_SNIPPETS } from './snippets/primes.snippets';
 import { RISKY_SNIPPETS } from './snippets/risky.snippets';
 import { LIFECYCLE_SNIPPETS } from './snippets/lifecycle.snippets';
 import { TRANSFER_SNIPPETS } from './snippets/transfer.snippets';
+import { SHARED_WORKER_SNIPPETS } from './snippets/shared-worker.snippets';
 
 /**
  * Registry neutral de ejemplos (ARQUITECTURA §3.1).
@@ -80,7 +81,18 @@ export const EXAMPLES: WorkerExample[] = [
       new Worker(new URL('../workers/transfer.worker', import.meta.url), { type: 'module' }),
     snippets: TRANSFER_SNIPPETS,
   },
-  { id: '08-shared-worker', order: 8, category: 'communication', i18nKey: 'examples.08-shared-worker', snippets: {} },
+  {
+    id: '08-shared-worker',
+    order: 8,
+    category: 'communication',
+    i18nKey: 'examples.08-shared-worker',
+    demo: 'shared-worker',
+    sharedWorkerFactory: () =>
+      new SharedWorker(new URL('../workers/shared-counter.worker', import.meta.url), {
+        type: 'module',
+      }),
+    snippets: SHARED_WORKER_SNIPPETS,
+  },
   { id: '09-worker-limits', order: 9, category: 'management', i18nKey: 'examples.09-worker-limits', snippets: {} },
   { id: '10-worker-pool', order: 10, category: 'optimization', i18nKey: 'examples.10-worker-pool', snippets: {} },
   { id: '11-backpressure-scheduling', order: 11, category: 'advanced', i18nKey: 'examples.11-backpressure-scheduling', snippets: {} },

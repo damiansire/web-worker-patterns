@@ -11,6 +11,7 @@ import { ComputeDemoService } from '../../../core/services/compute-demo.service'
 import { ErrorDemoService } from '../../../core/services/error-demo.service';
 import { LifecycleDemoService } from '../../../core/services/lifecycle-demo.service';
 import { TransferDemoService } from '../../../core/services/transfer-demo.service';
+import { SharedWorkerDemoService } from '../../../core/services/shared-worker-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { FullBrutalistButton } from '../primitives/fb-button.component';
 import { FullBrutalistCard } from '../primitives/fb-card.component';
@@ -47,7 +48,7 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
             <p class="b-summary">{{ summary }}</p>
           }
 
-          @if (ex.workerFactory) {
+          @if (ex.workerFactory || ex.sharedWorkerFactory) {
             @switch (ex.demo) {
               @case ('thread-block') {
                 <fb-card title="Worker vs Main thread">
@@ -287,6 +288,53 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
                       }
                     </div>
                   </div>
+                </fb-card>
+              }
+
+              @case ('shared-worker') {
+                <fb-card title="Un worker, varias conexiones">
+                  <p class="b-lead">
+                    {{ content()?.whatToWatch ?? 'El mismo contador en los dos paneles: es UNA variable adentro del worker.' }}
+                  </p>
+
+                  <div class="b-sw-banner">
+                    <span class="b-sw-id">⬡ SharedWorker {{ swInstanceId() || '…' }}</span>
+                    <span class="b-sw-clients">clientes conectados: {{ swClients() }}</span>
+                    @if (!swSupported()) {
+                      <span class="b-sw-sim">backend simulado · tu navegador no soporta SharedWorker</span>
+                    }
+                  </div>
+
+                  <div class="b-cmp b-sw-cmp">
+                    @for (panel of swPanels(); track panel.label) {
+                      <div class="b-col">
+                        <h3>conexión {{ panel.label }}</h3>
+                        <p class="b-col-sub">puerto {{ panel.label }} · mismo worker</p>
+                        <div class="b-sw-count">{{ swCount() }}</div>
+                        <div class="b-send">
+                          <fb-button variant="solid" (pressed)="swInc(panel.label)">+1</fb-button>
+                          <fb-button (pressed)="swReset(panel.label)">reset</fb-button>
+                          @if (swPanels().length > 1) {
+                            <fb-button (pressed)="swClose(panel.label)">cerrar</fb-button>
+                          }
+                        </div>
+                        @if (panel.logs.length) {
+                          <div class="b-flow">
+                            @for (log of panel.logs.slice(-4); track log.id) {
+                              <div class="b-evt" data-status="ok">
+                                <span class="b-evt-in">{{ log.by }}</span>
+                                <span class="b-evt-text">sumó → {{ log.count }}</span>
+                              </div>
+                            }
+                          </div>
+                        } @else {
+                          <p class="b-hint">Tocá +1: el número salta en los DOS paneles. Es el mismo contador, no dos copias.</p>
+                        }
+                      </div>
+                    }
+                  </div>
+
+                  <fb-button (pressed)="swAdd()">+ abrir otra conexión</fb-button>
                 </fb-card>
               }
             }
@@ -557,6 +605,44 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
         word-break: break-word;
       }
 
+      /* ── shared-worker (ej. 08): banner + contador ── */
+      .b-sw-banner {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px 18px;
+        padding: 12px 14px;
+        margin-bottom: 18px;
+        background: var(--ink);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .b-sw-clients {
+        padding: 2px 8px;
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .b-sw-sim {
+        font-weight: 400;
+        font-size: 11px;
+        color: var(--thread-blocked);
+        background: var(--surface);
+        padding: 2px 8px;
+      }
+      .b-sw-cmp {
+        margin-bottom: 16px;
+      }
+      .b-sw-count {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: clamp(48px, 9vw, 80px);
+        line-height: 1;
+        margin: 4px 0 12px;
+        color: var(--ink);
+      }
+
       /* ── lifecycle (ej. 06): barra de progreso ── */
       .b-bar {
         height: 22px;
@@ -676,6 +762,7 @@ export class FullBrutalistExampleLayoutComponent {
   private readonly errors = inject(ErrorDemoService);
   private readonly lifecycle = inject(LifecycleDemoService);
   private readonly transfer = inject(TransferDemoService);
+  private readonly shared = inject(SharedWorkerDemoService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
   private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
@@ -732,6 +819,13 @@ export class FullBrutalistExampleLayoutComponent {
   protected readonly cloneResult = this.transfer.cloneResult;
   protected readonly transferBusy = this.transfer.busy;
 
+  // shared-worker (08)
+  protected readonly swInstanceId = this.shared.instanceId;
+  protected readonly swClients = this.shared.clients;
+  protected readonly swCount = this.shared.count;
+  protected readonly swPanels = this.shared.panels;
+  protected readonly swSupported = this.shared.supported;
+
   constructor() {
     effect(() => {
       const ex = this.example();
@@ -739,6 +833,8 @@ export class FullBrutalistExampleLayoutComponent {
         this.exchange.open(ex);
       } else if (ex?.demo === 'error-handling') {
         this.errors.open(ex);
+      } else if (ex?.demo === 'shared-worker') {
+        this.shared.open(ex);
       }
     });
   }
@@ -813,6 +909,22 @@ export class FullBrutalistExampleLayoutComponent {
     if (ex) {
       this.transfer.runClone(ex, this.transferMb);
     }
+  }
+
+  swInc(label: string): void {
+    this.shared.inc(label);
+  }
+
+  swReset(label: string): void {
+    this.shared.reset(label);
+  }
+
+  swAdd(): void {
+    this.shared.addPanel();
+  }
+
+  swClose(label: string): void {
+    this.shared.closePanel(label);
   }
 
   send(text: string): void {

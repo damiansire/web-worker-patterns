@@ -97,6 +97,22 @@
         ],
         "tip": "Si después de mandar el buffer no lo vas a volver a tocar, transferilo: misma data, sin el costo de la copia."
       }
+    },
+    "08-shared-worker": {
+      "title": "SharedWorker",
+      "summary": "Un Worker normal pertenece a quien lo creó. Un SharedWorker es UNO solo, compartido por varias conexiones — varias pestañas, o como acá, varios paneles. Todos hablan con la misma instancia y ven el mismo estado: el contador no vive en cada panel, vive en el worker.",
+      "whatToWatch": "El mismo número en los dos paneles, y el mismo id de worker arriba. Sumá en uno y mirá saltar al otro: no son dos copias sincronizadas, es UNA sola variable adentro del worker. Sumá una tercera conexión y vas a ver que hereda el valor actual.",
+      "note": "Cada conexión llega por onconnect y trae su propio MessagePort; hay que llamar port.start() para recibir. El estado vive en el worker, no en las páginas, por eso la conexión nueva hereda el contador. A diferencia del ejemplo 03 (main↔worker, 1 a 1), acá es N a 1. Lo inspeccionás en chrome://inspect/#workers. Si el navegador no soporta SharedWorker, esta demo cae a un backend simulado (lo verás rotulado).",
+      "takeaways": {
+        "title": "Puntos clave",
+        "items": [
+          "Un SharedWorker es UNA instancia compartida por varias conexiones (N a 1)",
+          "Se conecta vía onconnect y un MessagePort por cliente (acordate de port.start())",
+          "El estado vive en el worker, no en cada página: una conexión nueva lo hereda",
+          "Sirve para coordinar pestañas del mismo origen sin un servidor de por medio"
+        ],
+        "tip": "El SharedWorker sigue vivo mientras haya al menos una conexión abierta; se cierra cuando se va la última."
+      }
     }
   }
 }

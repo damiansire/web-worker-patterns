@@ -23,6 +23,7 @@ export type Category =
  *   - error-handling:   un error dentro del worker se captura con onerror y la app sigue viva (ej. 05)
  *   - lifecycle:        ciclo de vida del worker: arrancar una tarea larga y terminarla a mitad (ej. 06)
  *   - transferable:     transferir un ArrayBuffer (zero-copy, deja el buffer detached) vs clonarlo (ej. 07)
+ *   - shared-worker:    un SharedWorker compartido por varias conexiones: un solo estado, N clientes (ej. 08)
  */
 export type DemoKind =
   | 'thread-block'
@@ -30,7 +31,8 @@ export type DemoKind =
   | 'offload'
   | 'error-handling'
   | 'lifecycle'
-  | 'transferable';
+  | 'transferable'
+  | 'shared-worker';
 
 export interface WorkerExample {
   /** Slug estable, ej. '01-setinterval-counter'. */
@@ -44,6 +46,8 @@ export interface WorkerExample {
   demo?: DemoKind;
   /** El worker real, si el ejemplo usa uno. Cada theme lo corre vía el runner. */
   workerFactory?: () => Worker;
+  /** Fábrica de SharedWorker (ej. 08): se llama una vez por cada conexión/panel. */
+  sharedWorkerFactory?: () => SharedWorker;
   /** Tabs de código a mostrar (component.ts, worker.ts, ...). */
   snippets: Record<string, string>;
 }

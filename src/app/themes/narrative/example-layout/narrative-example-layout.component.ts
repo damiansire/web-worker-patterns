@@ -11,6 +11,7 @@ import { ComputeDemoService } from '../../../core/services/compute-demo.service'
 import { ErrorDemoService } from '../../../core/services/error-demo.service';
 import { LifecycleDemoService } from '../../../core/services/lifecycle-demo.service';
 import { TransferDemoService } from '../../../core/services/transfer-demo.service';
+import { SharedWorkerDemoService } from '../../../core/services/shared-worker-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { NarrativeButton } from '../primitives/narrative-button.component';
 import { NarrativeCodeBlock } from '../primitives/narrative-code-block.component';
@@ -30,7 +31,7 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
         <p class="n-chap">Capítulo {{ ex.order }} · {{ ex.category }}</p>
         <h1>{{ content()?.title ?? ex.id }}</h1>
 
-        @if (ex.workerFactory) {
+        @if (ex.workerFactory || ex.sharedWorkerFactory) {
           @if (content()?.summary; as summary) {
             <p class="n-lead">{{ summary }}</p>
           }
@@ -242,6 +243,44 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                   }
                 </section>
               </div>
+            }
+
+            @case ('shared-worker') {
+              <div class="n-sw-banner">
+                <span class="n-sw-id">SharedWorker {{ swInstanceId() || '…' }}</span>
+                <span class="n-sw-clients">clientes conectados: {{ swClients() }}</span>
+                @if (!swSupported()) {
+                  <span class="n-sw-sim">backend simulado · el navegador no soporta SharedWorker</span>
+                }
+              </div>
+              <div class="n-cmp">
+                @for (panel of swPanels(); track panel.label) {
+                  <section class="n-col">
+                    <h2>Conexión {{ panel.label }}</h2>
+                    <p class="n-sub">puerto {{ panel.label }} · mismo worker</p>
+                    <div class="n-sw-count">{{ swCount() }}</div>
+                    <div class="n-send">
+                      <narrative-button variant="solid" (pressed)="swInc(panel.label)">+1</narrative-button>
+                      <narrative-button (pressed)="swReset(panel.label)">Reset</narrative-button>
+                      @if (swPanels().length > 1) {
+                        <narrative-button (pressed)="swClose(panel.label)">Cerrar</narrative-button>
+                      }
+                    </div>
+                    @if (panel.logs.length) {
+                      <div class="n-dialogue">
+                        @for (log of panel.logs.slice(-4); track log.id) {
+                          <div class="n-evt" data-status="ok">
+                            <p class="n-evt-line"><span class="n-evt-in">{{ log.by }}</span> sumó → {{ log.count }}</p>
+                          </div>
+                        }
+                      </div>
+                    } @else {
+                      <p class="n-hint">Sumá acá: el número salta en los dos paneles. Es el mismo contador, no dos copias.</p>
+                    }
+                  </section>
+                }
+              </div>
+              <narrative-button (pressed)="swAdd()">Abrir otra conexión</narrative-button>
             }
           }
 
@@ -575,6 +614,40 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
         word-break: break-word;
       }
 
+      /* ── shared-worker (ej. 08): banner + contador ── */
+      .n-sw-banner {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 8px 18px;
+        padding: 12px 16px;
+        margin-bottom: 24px;
+        border: var(--border-width) solid var(--accent);
+        border-radius: var(--radius);
+        font-family: var(--font-display);
+        font-style: italic;
+        font-size: 15px;
+      }
+      .n-sw-id {
+        font-weight: 600;
+        font-style: normal;
+      }
+      .n-sw-clients {
+        color: var(--accent);
+      }
+      .n-sw-sim {
+        font-size: 12px;
+        color: var(--thread-blocked);
+      }
+      .n-sw-count {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        font-size: clamp(52px, 9vw, 88px);
+        line-height: 1;
+        margin: 4px 0 14px;
+        color: var(--ink);
+      }
+
       /* ── lifecycle (ej. 06): barra de progreso ── */
       .n-bar {
         height: 20px;
@@ -616,6 +689,7 @@ export class NarrativeExampleLayoutComponent {
   private readonly errors = inject(ErrorDemoService);
   private readonly lifecycle = inject(LifecycleDemoService);
   private readonly transfer = inject(TransferDemoService);
+  private readonly shared = inject(SharedWorkerDemoService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
   private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
@@ -671,6 +745,13 @@ export class NarrativeExampleLayoutComponent {
   protected readonly cloneResult = this.transfer.cloneResult;
   protected readonly transferBusy = this.transfer.busy;
 
+  // shared-worker (08)
+  protected readonly swInstanceId = this.shared.instanceId;
+  protected readonly swClients = this.shared.clients;
+  protected readonly swCount = this.shared.count;
+  protected readonly swPanels = this.shared.panels;
+  protected readonly swSupported = this.shared.supported;
+
   constructor() {
     effect(() => {
       const ex = this.example();
@@ -678,6 +759,8 @@ export class NarrativeExampleLayoutComponent {
         this.exchange.open(ex);
       } else if (ex?.demo === 'error-handling') {
         this.errors.open(ex);
+      } else if (ex?.demo === 'shared-worker') {
+        this.shared.open(ex);
       }
     });
   }
@@ -752,6 +835,22 @@ export class NarrativeExampleLayoutComponent {
     if (ex) {
       this.transfer.runClone(ex, this.transferMb);
     }
+  }
+
+  swInc(label: string): void {
+    this.shared.inc(label);
+  }
+
+  swReset(label: string): void {
+    this.shared.reset(label);
+  }
+
+  swAdd(): void {
+    this.shared.addPanel();
+  }
+
+  swClose(label: string): void {
+    this.shared.closePanel(label);
   }
 
   send(text: string): void {

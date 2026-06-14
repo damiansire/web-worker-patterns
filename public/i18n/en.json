@@ -97,6 +97,22 @@
         ],
         "tip": "If you won't touch the buffer again after sending it, transfer it: same data, without the cost of the copy."
       }
+    },
+    "08-shared-worker": {
+      "title": "SharedWorker",
+      "summary": "A regular Worker belongs to whoever created it. A SharedWorker is ONE, shared by several connections — several tabs, or here, several panels. They all talk to the same instance and see the same state: the counter doesn't live in each panel, it lives in the worker.",
+      "whatToWatch": "The same number in both panels, and the same worker id up top. Add in one and watch it jump in the other: they're not two synced copies, it's ONE variable inside the worker. Add a third connection and you'll see it inherit the current value.",
+      "note": "Each connection arrives via onconnect and brings its own MessagePort; you must call port.start() to receive. State lives in the worker, not the pages, which is why a new connection inherits the counter. Unlike example 03 (main↔worker, 1 to 1), here it's N to 1. Inspect it at chrome://inspect/#workers. If the browser doesn't support SharedWorker, this demo falls back to a simulated backend (you'll see it labeled).",
+      "takeaways": {
+        "title": "Key takeaways",
+        "items": [
+          "A SharedWorker is ONE instance shared by several connections (N to 1)",
+          "You connect via onconnect and one MessagePort per client (remember port.start())",
+          "State lives in the worker, not each page: a new connection inherits it",
+          "Useful to coordinate same-origin tabs without a server in between"
+        ],
+        "tip": "A SharedWorker stays alive as long as at least one connection is open; it closes when the last one leaves."
+      }
     }
   }
 }

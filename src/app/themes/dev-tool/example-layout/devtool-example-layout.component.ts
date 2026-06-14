@@ -11,6 +11,7 @@ import { ComputeDemoService } from '../../../core/services/compute-demo.service'
 import { ErrorDemoService } from '../../../core/services/error-demo.service';
 import { LifecycleDemoService } from '../../../core/services/lifecycle-demo.service';
 import { TransferDemoService } from '../../../core/services/transfer-demo.service';
+import { SharedWorkerDemoService } from '../../../core/services/shared-worker-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { DevToolButton } from '../primitives/devtool-button.component';
 import { DevToolCodeBlock } from '../primitives/devtool-code-block.component';
@@ -39,7 +40,7 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
           <p class="dt-summary">{{ summary }}</p>
         }
 
-        @if (ex.workerFactory) {
+        @if (ex.workerFactory || ex.sharedWorkerFactory) {
           @switch (ex.demo) {
             @case ('thread-block') {
               <section class="dt-panel">
@@ -278,6 +279,48 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                       <p class="dt-hint">// postMessage(msg) · copia el buffer entero (cuesta para datos grandes)</p>
                     }
                   </div>
+                </div>
+              </section>
+            }
+
+            @case ('shared-worker') {
+              <section class="dt-panel">
+                <header class="dt-panel-h">
+                  // shared-worker · {{ swInstanceId() || '…' }} · clients: {{ swClients() }}{{ swSupported() ? '' : ' (simulado)' }}
+                </header>
+                @if (content()?.whatToWatch; as ww) {
+                  <p class="dt-panel-b dt-watch">{{ ww }}</p>
+                }
+                <div class="dt-panel-b dt-cmp">
+                  @for (panel of swPanels(); track panel.label) {
+                    <div class="dt-col">
+                      <h3>conn {{ panel.label }}</h3>
+                      <p class="dt-sub">puerto {{ panel.label }} · mismo worker</p>
+                      <div class="dt-sw-count">{{ swCount() }}</div>
+                      <div class="dt-send">
+                        <devtool-button variant="solid" (pressed)="swInc(panel.label)">+1</devtool-button>
+                        <devtool-button (pressed)="swReset(panel.label)">reset</devtool-button>
+                        @if (swPanels().length > 1) {
+                          <devtool-button (pressed)="swClose(panel.label)">close</devtool-button>
+                        }
+                      </div>
+                      @if (panel.logs.length) {
+                        <div class="dt-log">
+                          @for (log of panel.logs.slice(-4); track log.id) {
+                            <div class="dt-evt" data-status="ok">
+                              <span class="dt-evt-in">{{ log.by }}</span>
+                              <span class="dt-evt-text">++ → {{ log.count }}</span>
+                            </div>
+                          }
+                        </div>
+                      } @else {
+                        <p class="dt-hint">// +1 en un panel salta en TODOS: es la misma variable del worker</p>
+                      }
+                    </div>
+                  }
+                </div>
+                <div class="dt-panel-b">
+                  <devtool-button (pressed)="swAdd()">+ abrir conexión</devtool-button>
                 </div>
               </section>
             }
@@ -589,6 +632,16 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
         word-break: break-word;
       }
 
+      /* ── shared-worker (ej. 08): contador ── */
+      .dt-sw-count {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        font-size: clamp(40px, 7vw, 64px);
+        line-height: 1;
+        margin: 6px 0 12px;
+        color: var(--accent);
+      }
+
       /* ── lifecycle (ej. 06): barra de progreso ── */
       .dt-bar {
         height: 18px;
@@ -629,6 +682,7 @@ export class DevToolExampleLayoutComponent {
   private readonly errors = inject(ErrorDemoService);
   private readonly lifecycle = inject(LifecycleDemoService);
   private readonly transfer = inject(TransferDemoService);
+  private readonly shared = inject(SharedWorkerDemoService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
   private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
@@ -684,6 +738,13 @@ export class DevToolExampleLayoutComponent {
   protected readonly cloneResult = this.transfer.cloneResult;
   protected readonly transferBusy = this.transfer.busy;
 
+  // shared-worker (08)
+  protected readonly swInstanceId = this.shared.instanceId;
+  protected readonly swClients = this.shared.clients;
+  protected readonly swCount = this.shared.count;
+  protected readonly swPanels = this.shared.panels;
+  protected readonly swSupported = this.shared.supported;
+
   constructor() {
     effect(() => {
       const ex = this.example();
@@ -691,6 +752,8 @@ export class DevToolExampleLayoutComponent {
         this.exchange.open(ex);
       } else if (ex?.demo === 'error-handling') {
         this.errors.open(ex);
+      } else if (ex?.demo === 'shared-worker') {
+        this.shared.open(ex);
       }
     });
   }
@@ -765,6 +828,22 @@ export class DevToolExampleLayoutComponent {
     if (ex) {
       this.transfer.runClone(ex, this.transferMb);
     }
+  }
+
+  swInc(label: string): void {
+    this.shared.inc(label);
+  }
+
+  swReset(label: string): void {
+    this.shared.reset(label);
+  }
+
+  swAdd(): void {
+    this.shared.addPanel();
+  }
+
+  swClose(label: string): void {
+    this.shared.closePanel(label);
   }
 
   send(text: string): void {

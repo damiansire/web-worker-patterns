@@ -13,12 +13,14 @@ const dir04 = `${dir}/04-offloading-computation`;
 const dir05 = `${dir}/05-error-handling`;
 const dir06 = `${dir}/06-lifecycle-termination`;
 const dir07 = `${dir}/07-transferable-objects`;
+const dir08 = `${dir}/08-shared-worker`;
 await rm(dir, { recursive: true, force: true });
 await mkdir(dir03, { recursive: true });
 await mkdir(dir04, { recursive: true });
 await mkdir(dir05, { recursive: true });
 await mkdir(dir06, { recursive: true });
 await mkdir(dir07, { recursive: true });
+await mkdir(dir08, { recursive: true });
 
 const browser = await chromium.launch();
 // Fijamos idioma para capturas consistentes (el usuario escribe en español).
@@ -101,6 +103,23 @@ for (const t of themes) {
   await page.getByRole('button', { name: /clonar/i }).first().click();
   await page.waitForTimeout(900);
   await page.screenshot({ path: `${dir07}/${t}.png`, fullPage: true });
+  await page.close();
+
+  // Ejemplo 08: SharedWorker. Sumamos en un panel para mostrar el contador
+  // idéntico en los dos (un solo estado, varias conexiones).
+  page = await ctx.newPage();
+  // El SharedWorker mantiene conexiones vivas, así que 'networkidle' nunca llega:
+  // usamos 'domcontentloaded' + una espera fija a que monte la demo.
+  await page.goto(`${base}/t/${t}/example/08-shared-worker`, { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(1400);
+  const plus = page.getByRole('button', { name: '+1', exact: true }).first();
+  await plus.click();
+  await page.waitForTimeout(250);
+  await plus.click();
+  await page.waitForTimeout(250);
+  await plus.click();
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: `${dir08}/${t}.png`, fullPage: true });
   await page.close();
   console.log('done', t);
 }

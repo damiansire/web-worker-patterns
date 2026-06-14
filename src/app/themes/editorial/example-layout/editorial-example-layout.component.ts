@@ -11,6 +11,7 @@ import { ComputeDemoService } from '../../../core/services/compute-demo.service'
 import { ErrorDemoService } from '../../../core/services/error-demo.service';
 import { LifecycleDemoService } from '../../../core/services/lifecycle-demo.service';
 import { TransferDemoService } from '../../../core/services/transfer-demo.service';
+import { SharedWorkerDemoService } from '../../../core/services/shared-worker-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { EditorialButton } from '../primitives/editorial-button.component';
 import { EditorialCodeBlock } from '../primitives/editorial-code-block.component';
@@ -30,7 +31,7 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
         <p class="e-kicker">{{ ex.category }} · nº {{ ex.order.toString().padStart(2, '0') }}</p>
         <h1>{{ content()?.title ?? ex.id }}</h1>
 
-        @if (ex.workerFactory) {
+        @if (ex.workerFactory || ex.sharedWorkerFactory) {
           @if (content()?.summary; as summary) {
             <p class="e-lead">{{ summary }}</p>
           }
@@ -242,6 +243,44 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
                   }
                 </section>
               </div>
+            }
+
+            @case ('shared-worker') {
+              <div class="e-sw-banner">
+                <span class="e-sw-id">SharedWorker {{ swInstanceId() || '…' }}</span>
+                <span class="e-sw-clients">clientes conectados: {{ swClients() }}</span>
+                @if (!swSupported()) {
+                  <span class="e-sw-sim">backend simulado · el navegador no soporta SharedWorker</span>
+                }
+              </div>
+              <div class="e-cmp">
+                @for (panel of swPanels(); track panel.label) {
+                  <section class="e-col">
+                    <h2>Conexión {{ panel.label }}</h2>
+                    <p class="e-sub">puerto {{ panel.label }} · mismo worker</p>
+                    <div class="e-sw-count">{{ swCount() }}</div>
+                    <div class="e-send">
+                      <editorial-button variant="solid" (pressed)="swInc(panel.label)">+1</editorial-button>
+                      <editorial-button (pressed)="swReset(panel.label)">Reset</editorial-button>
+                      @if (swPanels().length > 1) {
+                        <editorial-button (pressed)="swClose(panel.label)">Cerrar</editorial-button>
+                      }
+                    </div>
+                    @if (panel.logs.length) {
+                      <div class="e-dialogue">
+                        @for (log of panel.logs.slice(-4); track log.id) {
+                          <div class="e-evt" data-status="ok">
+                            <p class="e-evt-line"><span class="e-evt-in">{{ log.by }}</span> sumó → {{ log.count }}</p>
+                          </div>
+                        }
+                      </div>
+                    } @else {
+                      <p class="e-hint">Sumá acá: el número salta en los dos paneles. Es el mismo contador, no dos copias.</p>
+                    }
+                  </section>
+                }
+              </div>
+              <editorial-button (pressed)="swAdd()">Abrir otra conexión</editorial-button>
             }
           }
 
@@ -576,6 +615,40 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
         word-break: break-word;
       }
 
+      /* ── shared-worker (ej. 08): banner + contador ── */
+      .e-sw-banner {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 8px 18px;
+        padding: 12px 16px;
+        margin-bottom: 24px;
+        border: var(--border-width) solid var(--accent);
+        border-radius: var(--radius);
+        font-family: var(--font-display);
+        font-style: italic;
+        font-size: 15px;
+      }
+      .e-sw-id {
+        font-weight: 800;
+        font-style: normal;
+      }
+      .e-sw-clients {
+        color: var(--accent);
+      }
+      .e-sw-sim {
+        font-size: 12px;
+        color: var(--thread-blocked);
+      }
+      .e-sw-count {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        font-size: clamp(52px, 9vw, 88px);
+        line-height: 1;
+        margin: 4px 0 14px;
+        color: var(--ink);
+      }
+
       /* ── lifecycle (ej. 06): barra de progreso ── */
       .e-bar {
         height: 20px;
@@ -617,6 +690,7 @@ export class EditorialExampleLayoutComponent {
   private readonly errors = inject(ErrorDemoService);
   private readonly lifecycle = inject(LifecycleDemoService);
   private readonly transfer = inject(TransferDemoService);
+  private readonly shared = inject(SharedWorkerDemoService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
   private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
@@ -672,6 +746,13 @@ export class EditorialExampleLayoutComponent {
   protected readonly cloneResult = this.transfer.cloneResult;
   protected readonly transferBusy = this.transfer.busy;
 
+  // shared-worker (08)
+  protected readonly swInstanceId = this.shared.instanceId;
+  protected readonly swClients = this.shared.clients;
+  protected readonly swCount = this.shared.count;
+  protected readonly swPanels = this.shared.panels;
+  protected readonly swSupported = this.shared.supported;
+
   constructor() {
     effect(() => {
       const ex = this.example();
@@ -679,6 +760,8 @@ export class EditorialExampleLayoutComponent {
         this.exchange.open(ex);
       } else if (ex?.demo === 'error-handling') {
         this.errors.open(ex);
+      } else if (ex?.demo === 'shared-worker') {
+        this.shared.open(ex);
       }
     });
   }
@@ -753,6 +836,22 @@ export class EditorialExampleLayoutComponent {
     if (ex) {
       this.transfer.runClone(ex, this.transferMb);
     }
+  }
+
+  swInc(label: string): void {
+    this.shared.inc(label);
+  }
+
+  swReset(label: string): void {
+    this.shared.reset(label);
+  }
+
+  swAdd(): void {
+    this.shared.addPanel();
+  }
+
+  swClose(label: string): void {
+    this.shared.closePanel(label);
   }
 
   send(text: string): void {
