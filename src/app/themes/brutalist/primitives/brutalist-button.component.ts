@@ -35,7 +35,9 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
         box-shadow: 0 0 0 var(--border);
       }
       .b-btn:disabled {
-        opacity: 0.4;
+        background: var(--surface-raised);
+        color: var(--ink-muted);
+        box-shadow: none;
         cursor: not-allowed;
       }
     `,

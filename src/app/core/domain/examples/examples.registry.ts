@@ -32,9 +32,9 @@ export const EXAMPLES: WorkerExample[] = [
   { id: '08-shared-worker', order: 8, category: 'communication', i18nKey: 'examples.08-shared-worker', snippets: {} },
   { id: '09-worker-limits', order: 9, category: 'management', i18nKey: 'examples.09-worker-limits', snippets: {} },
   { id: '10-worker-pool', order: 10, category: 'optimization', i18nKey: 'examples.10-worker-pool', snippets: {} },
-  { id: '12-backpressure-scheduling', order: 11, category: 'advanced', i18nKey: 'examples.12-backpressure-scheduling', snippets: {} },
-  { id: '13-shared-array-buffer', order: 12, category: 'advanced', i18nKey: 'examples.13-shared-array-buffer', snippets: {} },
-  { id: '14-graceful-degradation', order: 13, category: 'advanced', i18nKey: 'examples.14-graceful-degradation', snippets: {} },
+  { id: '11-backpressure-scheduling', order: 11, category: 'advanced', i18nKey: 'examples.11-backpressure-scheduling', snippets: {} },
+  { id: '12-shared-array-buffer', order: 12, category: 'advanced', i18nKey: 'examples.12-shared-array-buffer', snippets: {} },
+  { id: '13-graceful-degradation', order: 13, category: 'advanced', i18nKey: 'examples.13-graceful-degradation', snippets: {} },
 ];
 
 /** Acceso por id. */

@@ -33,7 +33,10 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
         transform: translateY(-1px);
       }
       .n-btn:disabled {
-        opacity: 0.4;
+        background: var(--surface-raised);
+        color: var(--ink-muted);
+        border-color: var(--ink-muted);
+        box-shadow: none;
         cursor: not-allowed;
       }
     `,

@@ -38,7 +38,9 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
         border-color: var(--ink);
       }
       .e-btn:disabled {
-        opacity: 0.4;
+        background: transparent;
+        color: var(--ink-muted);
+        border-color: var(--ink-muted);
         cursor: not-allowed;
       }
     `,
