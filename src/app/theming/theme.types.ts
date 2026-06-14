@@ -6,7 +6,13 @@ import { Provider, Type } from '@angular/core';
  * `skeleton` es un theme gris transitorio que envuelve la app actual y valida
  * el motor punta a punta antes de implementar los 4 themes reales.
  */
-export type ThemeId = 'skeleton' | 'brutalist' | 'dev-tool' | 'narrative' | 'editorial';
+export type ThemeId =
+  | 'skeleton'
+  | 'brutalist'
+  | 'full-brutalist'
+  | 'dev-tool'
+  | 'narrative'
+  | 'editorial';
 
 export interface ThemePack {
   id: ThemeId;
