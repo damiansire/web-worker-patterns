@@ -195,10 +195,13 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
         margin-bottom: 16px;
       }
       .e-hint {
-        font-family: var(--font-body);
-        font-size: 14px;
+        font-family: var(--font-display);
+        font-style: italic;
+        font-size: 15px;
         line-height: 1.6;
         color: var(--ink-muted);
+        border-left: 3px solid var(--border);
+        padding: 4px 0 4px 14px;
       }
       .e-foot {
         font-family: var(--font-display);

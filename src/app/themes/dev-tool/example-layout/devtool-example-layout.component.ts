@@ -225,6 +225,10 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
         font-size: 12px;
         line-height: 1.5;
         color: var(--ink-muted);
+        border: 1px dashed var(--border);
+        border-radius: var(--radius);
+        padding: 16px 14px;
+        min-height: 48px;
       }
       .dt-ok,
       .dt-bad {
