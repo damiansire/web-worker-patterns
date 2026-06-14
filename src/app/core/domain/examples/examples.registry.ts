@@ -1,6 +1,7 @@
 import { WorkerExample } from './example.model';
 import { COUNTER_SNIPPETS } from './snippets/counter.snippets';
 import { ECHO_SNIPPETS } from './snippets/echo.snippets';
+import { PRIMES_SNIPPETS } from './snippets/primes.snippets';
 
 /**
  * Registry neutral de ejemplos (ARQUITECTURA §3.1).
@@ -36,7 +37,16 @@ export const EXAMPLES: WorkerExample[] = [
       new Worker(new URL('../workers/echo.worker', import.meta.url), { type: 'module' }),
     snippets: ECHO_SNIPPETS,
   },
-  { id: '04-offloading-computation', order: 4, category: 'optimization', i18nKey: 'examples.04-offloading-computation', snippets: {} },
+  {
+    id: '04-offloading-computation',
+    order: 4,
+    category: 'optimization',
+    i18nKey: 'examples.04-offloading-computation',
+    demo: 'offload',
+    workerFactory: () =>
+      new Worker(new URL('../workers/primes.worker', import.meta.url), { type: 'module' }),
+    snippets: PRIMES_SNIPPETS,
+  },
   { id: '05-error-handling', order: 5, category: 'management', i18nKey: 'examples.05-error-handling', snippets: {} },
   { id: '06-lifecycle-termination', order: 6, category: 'management', i18nKey: 'examples.06-lifecycle-termination', snippets: {} },
   { id: '07-transferable-objects', order: 7, category: 'optimization', i18nKey: 'examples.07-transferable-objects', snippets: {} },

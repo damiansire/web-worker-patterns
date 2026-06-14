@@ -33,6 +33,22 @@
         ],
         "tip": "Sempre trate o evento onerror para capturar falhas silenciosas do worker."
       }
+    },
+    "04-offloading-computation": {
+      "title": "Descarregar cómputo pesado",
+      "summary": "Aqui está o ganho dos Web Workers: tirar trabalho pesado da thread principal. Calculamos números primos —um cálculo deliberadamente intensivo— e o rodamos nos dois lados para você sentir a diferença.",
+      "whatToWatch": "Rode em um worker: o cronômetro continua subindo ao vivo e você pode interagir — a UI nunca trava. Rode o MESMO cálculo na thread principal: a página inteira congela (não repinta, não responde) até terminar.",
+      "note": "Qualquer trabalho que leve mais de ~16ms bloqueia um frame e aparece. Um worker roda em paralelo real em outra thread: o cálculo leva o mesmo tempo, mas a thread principal fica livre para responder. O resultado volta por postMessage (clonado).",
+      "takeaways": {
+        "title": "Pontos-chave",
+        "items": [
+          "Trabalho pesado na thread principal congela toda a UI enquanto roda",
+          "Um worker roda em paralelo real: a thread principal fica responsiva",
+          "O cálculo não é mais rápido no worker — mas a UI não trava",
+          "O resultado volta por postMessage (structured clone); para dados grandes, transferables (exemplo 07)"
+        ],
+        "tip": "Regra prática: se uma tarefa pode levar mais de um frame (~16ms), mande-a para um worker."
+      }
     }
   }
 }

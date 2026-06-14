@@ -19,8 +19,9 @@ export type Category =
  * comparten una sola demo.
  *   - thread-block:     worker vs main bloqueado (ej. 01)
  *   - message-exchange: ida y vuelta de mensajes main <-> worker (ej. 03)
+ *   - offload:          cómputo pesado en el worker (UI fluida) vs en el main (UI congelada) (ej. 04)
  */
-export type DemoKind = 'thread-block' | 'message-exchange';
+export type DemoKind = 'thread-block' | 'message-exchange' | 'offload';
 
 export interface WorkerExample {
   /** Slug estable, ej. '01-setinterval-counter'. */

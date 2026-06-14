@@ -33,6 +33,22 @@
         ],
         "tip": "Always handle the onerror event to catch silent worker failures."
       }
+    },
+    "04-offloading-computation": {
+      "title": "Offload heavy work",
+      "summary": "Here's the payoff of Web Workers: getting heavy work off the main thread. We count prime numbers — a deliberately intensive computation — and run it on both sides so you feel the difference.",
+      "whatToWatch": "Run it in a worker: the live timer keeps ticking and you can still interact — the UI never janks. Run the SAME computation on the main thread: the whole page freezes (no repaint, no clicks) until it's done.",
+      "note": "Any work that takes more than ~16ms blocks a frame and shows. A worker runs in true parallel on another thread: the computation takes the same time, but the main thread stays free to respond. The result comes back via postMessage (cloned).",
+      "takeaways": {
+        "title": "Key takeaways",
+        "items": [
+          "Heavy work on the main thread freezes the whole UI while it runs",
+          "A worker runs in real parallel: the main thread stays responsive",
+          "The computation isn't faster in the worker — but the UI doesn't jank",
+          "The result returns via postMessage (structured clone); for large data, transferables (example 07)"
+        ],
+        "tip": "Rule of thumb: if a task can take longer than one frame (~16ms), send it to a worker."
+      }
     }
   }
 }

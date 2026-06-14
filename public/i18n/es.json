@@ -33,6 +33,22 @@
         ],
         "tip": "Siempre manejá el evento onerror para capturar errores silenciosos del worker."
       }
+    },
+    "04-offloading-computation": {
+      "title": "Descargar cómputo pesado",
+      "summary": "Acá está el pago de los Web Workers: sacar trabajo pesado del hilo principal. Calculamos números primos —un cálculo deliberadamente intensivo— y lo corremos en los dos lados para que sientas la diferencia.",
+      "whatToWatch": "Corré el cálculo en un worker: el cronómetro sigue subiendo en vivo y podés interactuar — la UI nunca se traba. Corré el MISMO cálculo en el main: la página entera se congela (no repinta, no responde) hasta que termina.",
+      "note": "Cualquier trabajo que tarde más de ~16ms bloquea un frame y se nota. Un worker corre en paralelo de verdad, en otro hilo: el cálculo tarda lo mismo, pero el main queda libre para responder. El resultado vuelve por postMessage (clonado).",
+      "takeaways": {
+        "title": "Puntos clave",
+        "items": [
+          "Un cálculo pesado en el hilo principal congela toda la UI mientras corre",
+          "Un worker corre en paralelo real: el main queda libre para responder",
+          "El cálculo no es más rápido en el worker — pero la UI no se traba",
+          "El resultado vuelve por postMessage (structured clone); para datos grandes, transferables (ejemplo 07)"
+        ],
+        "tip": "Regla práctica: si una tarea puede tardar más de un frame (~16ms), mandala a un worker."
+      }
     }
   }
 }
