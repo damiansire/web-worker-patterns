@@ -1,4 +1,5 @@
 import { WorkerExample } from './example.model';
+import { COUNTER_SNIPPETS } from './snippets/counter.snippets';
 
 /**
  * Registry neutral de ejemplos (ARQUITECTURA §3.1).
@@ -20,7 +21,7 @@ export const EXAMPLES: WorkerExample[] = [
     i18nKey: 'examples.01-setinterval-counter',
     workerFactory: () =>
       new Worker(new URL('../workers/counter.worker', import.meta.url), { type: 'module' }),
-    snippets: {},
+    snippets: COUNTER_SNIPPETS,
   },
   { id: '02-main-thread', order: 2, category: 'understanding', i18nKey: 'examples.02-main-thread', snippets: {} },
   { id: '03-basic-communication', order: 3, category: 'communication', i18nKey: 'examples.03-basic-communication', snippets: {} },

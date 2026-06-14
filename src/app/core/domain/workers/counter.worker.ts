@@ -1,46 +1,28 @@
 /// <reference lib="webworker" />
+import { createCounter } from './counter.worker.logic';
 
 /**
- * Worker canónico del contador (ARQUITECTURA §3.1).
+ * Worker canónico del contador (ARQUITECTURA §3.1). Cablea la lógica pura
+ * (`counter.worker.logic.ts`) a `postMessage`. Valida el pipeline
+ * worker -> runner -> thread-monitor: un worker emite ticks en un hilo separado
+ * y el monitor los registra.
  *
- * Emite un `tick` periódico en un hilo separado. Es la pieza más simple del
- * dominio y la que valida el pipeline worker -> runner -> thread-monitor: un
- * worker emite ticks y el monitor los registra.
- *
- * Protocolo neutral (compartido por todos los themes):
+ * Protocolo neutral:
  *   in:  { command: 'start', intervalMs?: number } | { command: 'stop' } | { command: 'reset' }
  *   out: { type: 'tick', tick: number, at: number }
  */
-
-let count = 0;
-let timer: ReturnType<typeof setInterval> | undefined;
-
-function stop(): void {
-  if (timer !== undefined) {
-    clearInterval(timer);
-    timer = undefined;
-  }
-}
+const counter = createCounter((tick) => postMessage(tick));
 
 addEventListener('message', ({ data }: MessageEvent) => {
-  const command = data?.command as 'start' | 'stop' | 'reset' | undefined;
-
-  switch (command) {
-    case 'start': {
-      stop();
-      const intervalMs = typeof data.intervalMs === 'number' ? data.intervalMs : 1000;
-      timer = setInterval(() => {
-        count += 1;
-        postMessage({ type: 'tick', tick: count, at: performance.now() });
-      }, intervalMs);
+  switch (data?.command) {
+    case 'start':
+      counter.start(typeof data.intervalMs === 'number' ? data.intervalMs : 1000);
       break;
-    }
     case 'stop':
-      stop();
+      counter.stop();
       break;
     case 'reset':
-      stop();
-      count = 0;
+      counter.reset();
       break;
   }
 });

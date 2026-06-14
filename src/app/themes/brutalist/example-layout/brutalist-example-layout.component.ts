@@ -8,18 +8,22 @@ import { ExampleRunnerService } from '../../../core/services/example-runner.serv
 import { ThreadMonitorService } from '../../../core/services/thread-monitor.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { BrutalistButton } from '../primitives/brutalist-button.component';
+import { BrutalistCard } from '../primitives/brutalist-card.component';
+import { BrutalistCodeBlock } from '../primitives/brutalist-code-block.component';
 import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
 
 /**
- * Example-layout brutalista. Resuelve el ThreadVisualizer por el token
- * `THREAD_VISUALIZER` (provisto por BRUTALIST_PROVIDERS) y lo monta con
- * `ngComponentOutlet`, pasándole los `lanes`/`elapsedMs` neutrales del monitor:
- * exactamente el patrón contrato + DI de la §5. Corre el worker vía el runner.
+ * Example-layout brutalista — la vertical completa del ejemplo:
+ *   1. corre el worker real vía el ExampleRunnerService;
+ *   2. visualiza los hilos resolviendo THREAD_VISUALIZER por DI (§5) y montándolo
+ *      con ngComponentOutlet sobre los `lanes`/`elapsedMs` neutrales del monitor;
+ *   3. muestra el código (snippets del registry) en el code-block del theme.
+ * Todo dentro de cards brutalistas.
  */
 @Component({
   selector: 'brutalist-example-layout',
   standalone: true,
-  imports: [NgComponentOutlet, RouterLink, BrutalistButton],
+  imports: [NgComponentOutlet, RouterLink, BrutalistButton, BrutalistCard, BrutalistCodeBlock],
   providers: [BRUTALIST_PROVIDERS],
   template: `
     <section class="b-ex">
@@ -30,15 +34,26 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
         <p class="b-cat">{{ ex.category }}</p>
 
         @if (ex.workerFactory) {
-          <div class="b-controls">
-            <brutalist-button variant="solid" [disabled]="running()" (pressed)="start()">START</brutalist-button>
-            <brutalist-button [disabled]="!running()" (pressed)="stop()">STOP</brutalist-button>
-            <span class="b-tick">{{ running() ? '● RUNNING' : '○ IDLE' }} · TICK {{ lastTick() }}</span>
-          </div>
+          <brutalist-card title="Hilos">
+            <div class="b-controls">
+              <brutalist-button variant="solid" [disabled]="running()" (pressed)="start()">START</brutalist-button>
+              <brutalist-button [disabled]="!running()" (pressed)="stop()">STOP</brutalist-button>
+              <span class="b-status">{{ running() ? '● RUNNING' : '○ IDLE' }} · TICK {{ lastTick() }}</span>
+            </div>
+            <ng-container
+              *ngComponentOutlet="visualizer; inputs: { lanes: lanes(), elapsedMs: elapsedMs() }"
+            />
+          </brutalist-card>
 
-          <ng-container
-            *ngComponentOutlet="visualizer; inputs: { lanes: lanes(), elapsedMs: elapsedMs() }"
-          />
+          @if (snippets().length) {
+            <brutalist-card title="Código">
+              @for (snip of snippets(); track snip.label) {
+                <div class="b-snippet">
+                  <brutalist-code-block [label]="snip.label" [code]="snip.code" />
+                </div>
+              }
+            </brutalist-card>
+          }
         } @else {
           <p class="b-note">Este ejemplo todavía no expone un worker neutral.</p>
         }
@@ -79,11 +94,15 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
         display: flex;
         align-items: center;
         gap: 12px;
-        margin-bottom: 24px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
       }
-      .b-tick {
+      .b-status {
         font-family: var(--font-mono);
         font-weight: 700;
+      }
+      .b-snippet + .b-snippet {
+        margin-top: 14px;
       }
       .b-note {
         font-family: var(--font-mono);
@@ -104,10 +123,12 @@ export class BrutalistExampleLayoutComponent {
     initialValue: '',
   });
   protected readonly example = computed(() => findExample(this.id()));
+  protected readonly snippets = computed(() =>
+    Object.entries(this.example()?.snippets ?? {}).map(([label, code]) => ({ label, code })),
+  );
   protected readonly lanes = this.monitor.lanes;
   protected readonly elapsedMs = this.monitor.elapsedMs;
   protected readonly lastTick = this.runner.lastTick;
-  /** ¿Este ejemplo está corriendo? Persiste al cambiar de theme (§10.9). */
   protected readonly running = computed(() => this.runner.runningId() === this.example()?.id);
 
   start(): void {

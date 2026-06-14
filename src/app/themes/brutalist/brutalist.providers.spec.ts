@@ -3,9 +3,11 @@ import { BRUTALIST_PROVIDERS } from './brutalist.providers';
 import { THREAD_VISUALIZER } from '../../ui-contracts/thread-visualizer.contract';
 import { BUTTON } from '../../ui-contracts/button.contract';
 import { CODE_BLOCK } from '../../ui-contracts/code-block.contract';
+import { CARD } from '../../ui-contracts/card.contract';
 import { BrutalistThreadVisualizer } from './primitives/brutalist-thread-visualizer.component';
 import { BrutalistButton } from './primitives/brutalist-button.component';
 import { BrutalistCodeBlock } from './primitives/brutalist-code-block.component';
+import { BrutalistCard } from './primitives/brutalist-card.component';
 
 describe('BRUTALIST_PROVIDERS', () => {
   beforeEach(() => TestBed.configureTestingModule({ providers: [BRUTALIST_PROVIDERS] }));
@@ -14,5 +16,6 @@ describe('BRUTALIST_PROVIDERS', () => {
     expect(TestBed.inject(THREAD_VISUALIZER)).toBe(BrutalistThreadVisualizer);
     expect(TestBed.inject(BUTTON)).toBe(BrutalistButton);
     expect(TestBed.inject(CODE_BLOCK)).toBe(BrutalistCodeBlock);
+    expect(TestBed.inject(CARD)).toBe(BrutalistCard);
   });
 });

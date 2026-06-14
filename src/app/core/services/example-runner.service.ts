@@ -47,6 +47,9 @@ export class ExampleRunnerService {
   private handleMessage(data: { type?: string; tick?: number }): void {
     if (data?.type === 'tick') {
       this.lastTick.set(data.tick ?? this.lastTick());
+      // Cada tick: el worker hizo trabajo; el main thread quedó libre. Así el
+      // monitor muestra el contraste (worker activo · main responsivo).
+      this.monitor.push('main', 'idle');
       this.monitor.push('worker', 'worker');
     }
   }
