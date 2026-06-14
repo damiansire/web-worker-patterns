@@ -88,6 +88,9 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                       <p class="n-msg-line">
                         <span class="n-msg-who">{{ m.direction === 'out' ? 'Main →' : '← Worker' }}</span>
                         <span class="n-msg-text">{{ m.text }}</span>
+                        @if (m.meta) {
+                          <span class="n-msg-meta"> · {{ m.meta }}</span>
+                        }
                       </p>
                       @if (m.roundTripMs != null) {
                         <p class="n-msg-rt">ida y vuelta · {{ m.roundTripMs }} ms</p>
@@ -311,6 +314,10 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
       .n-msg[data-dir='in'] {
         margin-left: auto;
         border-color: var(--accent);
+      }
+      .n-msg-meta {
+        color: var(--ink-muted);
+        font-style: italic;
       }
       .n-msg-line {
         margin: 0;

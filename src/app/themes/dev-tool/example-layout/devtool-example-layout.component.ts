@@ -101,6 +101,9 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                         <div class="dt-line" [attr.data-dir]="m.direction">
                           <span class="dt-line-tag">{{ m.direction === 'out' ? 'main →' : '← worker' }}</span>
                           <span class="dt-line-text">{{ m.text }}</span>
+                          @if (m.meta) {
+                            <span class="dt-line-meta">· {{ m.meta }}</span>
+                          }
                           @if (m.roundTripMs != null) {
                             <span class="dt-line-rt">{{ m.roundTripMs }}ms</span>
                           }
@@ -356,6 +359,10 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
       }
       .dt-line-text {
         word-break: break-word;
+      }
+      .dt-line-meta {
+        color: var(--ink-muted);
+        white-space: nowrap;
       }
       .dt-line-rt {
         margin-left: auto;

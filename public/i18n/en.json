@@ -21,7 +21,7 @@
     "03-basic-communication": {
       "title": "Basic communication",
       "summary": "The \"Hello World\" of Web Workers: you type a message and send it to the worker. The worker receives it, processes it, and replies back. That's how threads talk to each other — postMessage in both directions.",
-      "whatToWatch": "Send a message and watch the round-trip: → leaves the main thread toward the worker, ← the processed reply comes back. The round-trip time shows how long the whole journey took.",
+      "whatToWatch": "→ leaves the main thread toward the worker, ← the processed reply comes back. The ms number is the round-trip: how long the whole journey took.",
       "note": "postMessage CLONES the data (structured clone): the worker gets a copy, not the reference. That's fine for small messages; for large data, prefer transferables (example 07).",
       "takeaways": {
         "title": "Key takeaways",

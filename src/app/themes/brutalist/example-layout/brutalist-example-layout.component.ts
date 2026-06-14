@@ -104,6 +104,9 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
                       <div class="b-msg" [attr.data-dir]="m.direction">
                         <span class="b-msg-tag">{{ m.direction === 'out' ? 'MAIN →' : '← WORKER' }}</span>
                         <span class="b-msg-text">{{ m.text }}</span>
+                        @if (m.meta) {
+                          <span class="b-msg-meta">· {{ m.meta }}</span>
+                        }
                         @if (m.roundTripMs != null) {
                           <span class="b-msg-rt">{{ m.roundTripMs }} ms</span>
                         }
@@ -326,6 +329,10 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
       }
       .b-msg-text {
         word-break: break-word;
+      }
+      .b-msg-meta {
+        opacity: 0.6;
+        white-space: nowrap;
       }
       .b-msg-rt {
         margin-left: auto;

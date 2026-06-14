@@ -21,7 +21,7 @@
     "03-basic-communication": {
       "title": "Comunicação básica",
       "summary": "O \"Olá Mundo\" dos Web Workers: você escreve uma mensagem e a envia ao worker. O worker a recebe, processa e responde de volta. É assim que as threads se comunicam — postMessage nas duas direções.",
-      "whatToWatch": "Envie uma mensagem e observe o ida e volta: → sai da thread principal para o worker, ← a resposta processada volta. O tempo de round-trip mostra quanto durou a viagem completa.",
+      "whatToWatch": "→ sai da thread principal para o worker, ← a resposta processada volta. O número em ms é o round-trip: quanto durou a viagem.",
       "note": "postMessage CLONA os dados (structured clone): o worker recebe uma cópia, não a referência. Para mensagens pequenas basta; para dados grandes, prefira transferables (exemplo 07).",
       "takeaways": {
         "title": "Pontos-chave",

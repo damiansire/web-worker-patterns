@@ -9,6 +9,8 @@ export interface ExchangeMessage {
   id: number;
   direction: MsgDirection;
   text: string;
+  /** Metadato de la respuesta (ej. "4 chars"); se dibuja apagado, no es contenido. */
+  meta?: string;
   atMs: number;
   /** Solo en mensajes entrantes: ida + vuelta en ms. */
   roundTripMs?: number;

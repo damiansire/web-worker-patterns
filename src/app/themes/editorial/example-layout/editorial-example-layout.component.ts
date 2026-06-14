@@ -88,6 +88,9 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
                       <p class="e-msg-line">
                         <span class="e-msg-who">{{ m.direction === 'out' ? 'Main →' : '← Worker' }}</span>
                         <span class="e-msg-text">{{ m.text }}</span>
+                        @if (m.meta) {
+                          <span class="e-msg-meta"> · {{ m.meta }}</span>
+                        }
                       </p>
                       @if (m.roundTripMs != null) {
                         <p class="e-msg-rt">ida y vuelta · {{ m.roundTripMs }} ms</p>
@@ -313,6 +316,10 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
       .e-msg[data-dir='in'] {
         margin-left: auto;
         border-color: var(--accent);
+      }
+      .e-msg-meta {
+        color: var(--ink-muted);
+        font-style: italic;
       }
       .e-msg-line {
         margin: 0;
