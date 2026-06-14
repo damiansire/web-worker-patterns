@@ -10,9 +10,11 @@ const themes = ['brutalist', 'full-brutalist', 'dev-tool', 'editorial', 'narrati
 const dir = 'docs/screenshots';
 const dir03 = `${dir}/03-basic-communication`;
 const dir04 = `${dir}/04-offloading-computation`;
+const dir05 = `${dir}/05-error-handling`;
 await rm(dir, { recursive: true, force: true });
 await mkdir(dir03, { recursive: true });
 await mkdir(dir04, { recursive: true });
+await mkdir(dir05, { recursive: true });
 
 const browser = await chromium.launch();
 // Fijamos idioma para capturas consistentes (el usuario escribe en español).
@@ -57,6 +59,20 @@ for (const t of themes) {
   await page.getByRole('button', { name: /(calcular en el main|bloquear main)/i }).first().click();
   await page.waitForTimeout(1200); // el main congela y termina; el screenshot va después
   await page.screenshot({ path: `${dir04}/${t}.png`, fullPage: true });
+  await page.close();
+
+  // Ejemplo 05: manejo de errores (un error en el worker no rompe la app).
+  // Corremos OK → falla → OK de nuevo para mostrar que el worker sobrevive.
+  page = await ctx.newPage();
+  await page.goto(`${base}/t/${t}/example/05-error-handling`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(700);
+  await page.getByRole('button', { name: /json válido/i }).first().click();
+  await page.waitForTimeout(500);
+  await page.getByRole('button', { name: /json roto/i }).first().click();
+  await page.waitForTimeout(600);
+  await page.getByRole('button', { name: /json válido/i }).first().click();
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: `${dir05}/${t}.png`, fullPage: true });
   await page.close();
   console.log('done', t);
 }

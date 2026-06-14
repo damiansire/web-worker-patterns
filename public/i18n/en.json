@@ -49,6 +49,22 @@
         ],
         "tip": "Rule of thumb: if a task can take longer than one frame (~16ms), send it to a worker."
       }
+    },
+    "05-error-handling": {
+      "title": "Error handling",
+      "summary": "An error inside a worker doesn't crash your page. The task here parses JSON: a valid payload returns its key count; a broken one makes JSON.parse throw a real SyntaxError. The worker lets that error propagate and the main thread catches it.",
+      "whatToWatch": "Send a valid JSON (✓ the result is logged) and then a broken one (✗ the main thread catches the error via onerror). Notice the app stays responsive: you can keep running tasks after the error — the worker didn't die.",
+      "note": "An uncaught error inside the worker fires the onerror event on the main thread's Worker object; it does NOT crash the page or kill the worker. For more control, catch the error INSIDE the worker (try/catch) and report it as a normal postMessage: that way you can type the error and add context.",
+      "takeaways": {
+        "title": "Key takeaways",
+        "items": [
+          "An uncaught error in the worker reaches the main thread as worker.onerror",
+          "The page doesn't crash: the worker stays alive and you can run more tasks",
+          "ErrorEvent carries message, filename and lineno to diagnose",
+          "For more control, use try/catch inside the worker and report the error via postMessage"
+        ],
+        "tip": "Call event.preventDefault() in onerror to silence the red console log if you already surface the error in your UI."
+      }
     }
   }
 }

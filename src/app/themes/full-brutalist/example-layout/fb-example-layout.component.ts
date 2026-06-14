@@ -8,6 +8,7 @@ import { ExampleRunnerService } from '../../../core/services/example-runner.serv
 import { ExampleContentService } from '../../../core/services/example-content.service';
 import { MessageExchangeService } from '../../../core/services/message-exchange.service';
 import { ComputeDemoService } from '../../../core/services/compute-demo.service';
+import { ErrorDemoService } from '../../../core/services/error-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { FullBrutalistButton } from '../primitives/fb-button.component';
 import { FullBrutalistCard } from '../primitives/fb-card.component';
@@ -168,6 +169,45 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
                       }
                     </div>
                   </div>
+                </fb-card>
+              }
+
+              @case ('error-handling') {
+                <fb-card title="Errores que no rompen">
+                  <p class="b-lead">
+                    {{ content()?.whatToWatch ?? 'Tirá una tarea que falla y mirá cómo el main captura el error sin romperse.' }}
+                  </p>
+
+                  <div class="b-send">
+                    <fb-button variant="solid" [disabled]="errorBusy()" (pressed)="sendOk()">
+                      Enviar JSON válido
+                    </fb-button>
+                    <fb-button [disabled]="errorBusy()" (pressed)="sendFail()">
+                      Enviar JSON roto
+                    </fb-button>
+                    @if (errorEvents().length) {
+                      <fb-button (pressed)="resetErrors()">Reset</fb-button>
+                    }
+                  </div>
+
+                  @if (errorEvents().length) {
+                    <div class="b-flow">
+                      @for (ev of errorEvents(); track ev.id) {
+                        <div class="b-evt" [attr.data-status]="ev.status">
+                          <span class="b-evt-mark">{{ ev.status === 'ok' ? '✓' : '✗' }}</span>
+                          <code class="b-evt-in">{{ ev.input }}</code>
+                          @if (ev.status === 'ok') {
+                            <span class="b-evt-text">{{ ev.keys }} claves parseadas</span>
+                          } @else {
+                            <span class="b-evt-text">{{ ev.message }}</span>
+                          }
+                        </div>
+                      }
+                    </div>
+                    <p class="b-foot">▸ La app sigue viva: el worker no se murió, seguí tirando tareas.</p>
+                  } @else {
+                    <p class="b-hint">Probá el JSON válido (✓ devuelve las claves) y después el roto (✗ el main lo captura con onerror). La página no se rompe.</p>
+                  }
                 </fb-card>
               }
             }
@@ -404,6 +444,39 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
         flex-direction: column;
         gap: 8px;
       }
+
+      /* ── error-handling (ej. 05): log de eventos ── */
+      .b-evt {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 8px 12px;
+        border: var(--border-width) solid var(--border);
+        background: var(--surface-raised);
+        font-family: var(--font-mono);
+        font-size: 13px;
+        line-height: 1.5;
+        animation: wwp-seg-in 0.18s ease-out;
+      }
+      .b-evt-mark {
+        font-weight: 700;
+      }
+      .b-evt[data-status='ok'] .b-evt-mark {
+        color: var(--thread-worker);
+      }
+      .b-evt[data-status='error'] {
+        border-color: var(--thread-blocked);
+      }
+      .b-evt[data-status='error'] .b-evt-mark {
+        color: var(--thread-blocked);
+      }
+      .b-evt-in {
+        color: var(--ink-muted);
+        white-space: nowrap;
+      }
+      .b-evt-text {
+        word-break: break-word;
+      }
       .b-msg {
         display: flex;
         align-items: baseline;
@@ -496,6 +569,11 @@ export class FullBrutalistExampleLayoutComponent {
   private readonly runner = inject(ExampleRunnerService);
   private readonly exchange = inject(MessageExchangeService);
   private readonly compute = inject(ComputeDemoService);
+  private readonly errors = inject(ErrorDemoService);
+
+  /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
+  private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
+  private readonly BROKEN_PAYLOAD = '{user: ada, role}';
 
   /** Implementación del ThreadVisualizer del theme activo, resuelta por DI. */
   protected readonly visualizer = inject(THREAD_VISUALIZER);
@@ -526,11 +604,17 @@ export class FullBrutalistExampleLayoutComponent {
   protected readonly liveMs = this.compute.liveMs;
   protected readonly computePhase = this.compute.phase;
 
+  // error-handling (05)
+  protected readonly errorEvents = this.errors.events;
+  protected readonly errorBusy = this.errors.busy;
+
   constructor() {
     effect(() => {
       const ex = this.example();
       if (ex?.demo === 'message-exchange') {
         this.exchange.open(ex);
+      } else if (ex?.demo === 'error-handling') {
+        this.errors.open(ex);
       }
     });
   }
@@ -560,6 +644,22 @@ export class FullBrutalistExampleLayoutComponent {
   private parseN(value: string): number {
     const n = Number(value);
     return Number.isFinite(n) && n > 0 ? Math.min(n, 5_000_000) : 500_000;
+  }
+
+  sendOk(): void {
+    this.errors.run(this.VALID_PAYLOAD);
+  }
+
+  sendFail(): void {
+    this.errors.run(this.BROKEN_PAYLOAD);
+  }
+
+  resetErrors(): void {
+    const ex = this.example();
+    this.errors.reset();
+    if (ex?.demo === 'error-handling') {
+      this.errors.open(ex);
+    }
   }
 
   send(text: string): void {

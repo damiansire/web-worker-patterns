@@ -8,6 +8,7 @@ import { ExampleRunnerService } from '../../../core/services/example-runner.serv
 import { ExampleContentService } from '../../../core/services/example-content.service';
 import { MessageExchangeService } from '../../../core/services/message-exchange.service';
 import { ComputeDemoService } from '../../../core/services/compute-demo.service';
+import { ErrorDemoService } from '../../../core/services/error-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { DevToolButton } from '../primitives/devtool-button.component';
 import { DevToolCodeBlock } from '../primitives/devtool-code-block.component';
@@ -162,6 +163,44 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                       <p class="dt-hint">// la página entera se congela hasta terminar: ni scroll</p>
                     }
                   </div>
+                </div>
+              </section>
+            }
+
+            @case ('error-handling') {
+              <section class="dt-panel">
+                <header class="dt-panel-h">// errores que no rompen · worker.onerror</header>
+                @if (content()?.whatToWatch; as ww) {
+                  <p class="dt-panel-b dt-watch">{{ ww }}</p>
+                }
+                <div class="dt-panel-b">
+                  <div class="dt-send">
+                    <devtool-button variant="solid" [disabled]="errorBusy()" (pressed)="sendOk()">
+                      ▶ json válido
+                    </devtool-button>
+                    <devtool-button [disabled]="errorBusy()" (pressed)="sendFail()">▶ json roto</devtool-button>
+                    @if (errorEvents().length) {
+                      <devtool-button (pressed)="resetErrors()">clear</devtool-button>
+                    }
+                  </div>
+                  @if (errorEvents().length) {
+                    <div class="dt-log">
+                      @for (ev of errorEvents(); track ev.id) {
+                        <div class="dt-evt" [attr.data-status]="ev.status">
+                          <span class="dt-evt-mark">{{ ev.status === 'ok' ? '✓' : '✗' }}</span>
+                          <span class="dt-evt-in">{{ ev.input }}</span>
+                          @if (ev.status === 'ok') {
+                            <span class="dt-evt-text">→ {{ ev.keys }} claves</span>
+                          } @else {
+                            <span class="dt-evt-text">→ {{ ev.message }}</span>
+                          }
+                        </div>
+                      }
+                    </div>
+                    <p class="dt-ok">// la app sigue viva: el worker no se murió, seguí mandando tareas</p>
+                  } @else {
+                    <p class="dt-hint">// mandá un json válido (✓ claves) y después uno roto (✗ onerror lo captura). la página no se rompe</p>
+                  }
                 </div>
               </section>
             }
@@ -438,6 +477,41 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
         color: var(--ink-muted);
       }
 
+      /* ── error-handling (ej. 05): log de eventos ── */
+      .dt-evt {
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+        padding: 4px 10px;
+        border-left: 2px solid transparent;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        animation: wwp-seg-in 0.18s ease-out;
+      }
+      .dt-evt[data-status='ok'] {
+        border-left-color: var(--accent);
+      }
+      .dt-evt[data-status='error'] {
+        border-left-color: var(--thread-blocked);
+        background: var(--surface-raised);
+      }
+      .dt-evt-mark {
+        font-weight: 700;
+      }
+      .dt-evt[data-status='ok'] .dt-evt-mark {
+        color: var(--accent);
+      }
+      .dt-evt[data-status='error'] .dt-evt-mark {
+        color: var(--thread-blocked);
+      }
+      .dt-evt-in {
+        color: var(--ink-muted);
+        white-space: nowrap;
+      }
+      .dt-evt-text {
+        word-break: break-word;
+      }
+
       .dt-note {
         font-family: var(--font-mono);
         color: var(--ink-muted);
@@ -450,6 +524,11 @@ export class DevToolExampleLayoutComponent {
   private readonly runner = inject(ExampleRunnerService);
   private readonly exchange = inject(MessageExchangeService);
   private readonly compute = inject(ComputeDemoService);
+  private readonly errors = inject(ErrorDemoService);
+
+  /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
+  private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
+  private readonly BROKEN_PAYLOAD = '{user: ada, role}';
 
   protected readonly visualizer = inject(THREAD_VISUALIZER);
 
@@ -479,11 +558,17 @@ export class DevToolExampleLayoutComponent {
   protected readonly liveMs = this.compute.liveMs;
   protected readonly computePhase = this.compute.phase;
 
+  // error-handling (05)
+  protected readonly errorEvents = this.errors.events;
+  protected readonly errorBusy = this.errors.busy;
+
   constructor() {
     effect(() => {
       const ex = this.example();
       if (ex?.demo === 'message-exchange') {
         this.exchange.open(ex);
+      } else if (ex?.demo === 'error-handling') {
+        this.errors.open(ex);
       }
     });
   }
@@ -513,6 +598,22 @@ export class DevToolExampleLayoutComponent {
   private parseN(value: string): number {
     const n = Number(value);
     return Number.isFinite(n) && n > 0 ? Math.min(n, 5_000_000) : 500_000;
+  }
+
+  sendOk(): void {
+    this.errors.run(this.VALID_PAYLOAD);
+  }
+
+  sendFail(): void {
+    this.errors.run(this.BROKEN_PAYLOAD);
+  }
+
+  resetErrors(): void {
+    const ex = this.example();
+    this.errors.reset();
+    if (ex?.demo === 'error-handling') {
+      this.errors.open(ex);
+    }
   }
 
   send(text: string): void {

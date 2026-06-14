@@ -8,6 +8,7 @@ import { ExampleRunnerService } from '../../../core/services/example-runner.serv
 import { ExampleContentService } from '../../../core/services/example-content.service';
 import { MessageExchangeService } from '../../../core/services/message-exchange.service';
 import { ComputeDemoService } from '../../../core/services/compute-demo.service';
+import { ErrorDemoService } from '../../../core/services/error-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { EditorialButton } from '../primitives/editorial-button.component';
 import { EditorialCodeBlock } from '../primitives/editorial-code-block.component';
@@ -142,6 +143,38 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
                   }
                 </section>
               </div>
+            }
+
+            @case ('error-handling') {
+              <div class="e-send">
+                <editorial-button variant="solid" [disabled]="errorBusy()" (pressed)="sendOk()">
+                  Enviar JSON válido
+                </editorial-button>
+                <editorial-button [disabled]="errorBusy()" (pressed)="sendFail()">Enviar JSON roto</editorial-button>
+                @if (errorEvents().length) {
+                  <editorial-button (pressed)="resetErrors()">Reiniciar</editorial-button>
+                }
+              </div>
+              @if (errorEvents().length) {
+                <div class="e-dialogue">
+                  @for (ev of errorEvents(); track ev.id) {
+                    <div class="e-evt" [attr.data-status]="ev.status">
+                      <p class="e-evt-line">
+                        <span class="e-evt-mark">{{ ev.status === 'ok' ? '✓' : '✗' }}</span>
+                        <code class="e-evt-in">{{ ev.input }}</code>
+                      </p>
+                      @if (ev.status === 'ok') {
+                        <p class="e-evt-text">Parseado: {{ ev.keys }} claves de primer nivel.</p>
+                      } @else {
+                        <p class="e-evt-text e-evt-err">{{ ev.message }}</p>
+                      }
+                    </div>
+                  }
+                </div>
+                <p class="e-foot">La app sigue viva: el worker no se murió, podés seguir corriendo tareas.</p>
+              } @else {
+                <p class="e-hint">Enviá un JSON válido (✓ devuelve sus claves) y después uno roto (✗ el main lo captura con onerror). La página no se rompe.</p>
+              }
             }
           }
 
@@ -427,6 +460,55 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
         color: var(--ink-muted);
       }
 
+      /* ── error-handling (ej. 05): bitácora de corridas ── */
+      .e-evt {
+        padding: 12px 18px;
+        border: var(--border-width) solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-raised);
+        animation: wwp-seg-in 0.18s ease-out;
+      }
+      .e-evt[data-status='error'] {
+        border-color: var(--thread-blocked);
+      }
+      .e-evt-line {
+        margin: 0;
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        font-family: var(--font-body);
+        font-size: 16px;
+      }
+      .e-evt-mark {
+        font-weight: 700;
+      }
+      .e-evt[data-status='ok'] .e-evt-mark {
+        color: var(--thread-worker);
+      }
+      .e-evt[data-status='error'] .e-evt-mark {
+        color: var(--thread-blocked);
+      }
+      .e-evt-in {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        color: var(--ink-muted);
+        word-break: break-all;
+      }
+      .e-evt-text {
+        margin: 6px 0 0;
+        font-family: var(--font-display);
+        font-style: italic;
+        font-size: 14px;
+        color: var(--ink-muted);
+      }
+      .e-evt-err {
+        font-family: var(--font-mono);
+        font-style: normal;
+        font-size: 13px;
+        color: var(--thread-blocked);
+        word-break: break-word;
+      }
+
       .e-note {
         font-family: var(--font-display);
         font-style: italic;
@@ -440,6 +522,11 @@ export class EditorialExampleLayoutComponent {
   private readonly runner = inject(ExampleRunnerService);
   private readonly exchange = inject(MessageExchangeService);
   private readonly compute = inject(ComputeDemoService);
+  private readonly errors = inject(ErrorDemoService);
+
+  /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
+  private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
+  private readonly BROKEN_PAYLOAD = '{user: ada, role}';
 
   protected readonly visualizer = inject(THREAD_VISUALIZER);
 
@@ -469,11 +556,17 @@ export class EditorialExampleLayoutComponent {
   protected readonly liveMs = this.compute.liveMs;
   protected readonly computePhase = this.compute.phase;
 
+  // error-handling (05)
+  protected readonly errorEvents = this.errors.events;
+  protected readonly errorBusy = this.errors.busy;
+
   constructor() {
     effect(() => {
       const ex = this.example();
       if (ex?.demo === 'message-exchange') {
         this.exchange.open(ex);
+      } else if (ex?.demo === 'error-handling') {
+        this.errors.open(ex);
       }
     });
   }
@@ -503,6 +596,22 @@ export class EditorialExampleLayoutComponent {
   private parseN(value: string): number {
     const n = Number(value);
     return Number.isFinite(n) && n > 0 ? Math.min(n, 5_000_000) : 500_000;
+  }
+
+  sendOk(): void {
+    this.errors.run(this.VALID_PAYLOAD);
+  }
+
+  sendFail(): void {
+    this.errors.run(this.BROKEN_PAYLOAD);
+  }
+
+  resetErrors(): void {
+    const ex = this.example();
+    this.errors.reset();
+    if (ex?.demo === 'error-handling') {
+      this.errors.open(ex);
+    }
   }
 
   send(text: string): void {

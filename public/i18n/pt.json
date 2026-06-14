@@ -49,6 +49,22 @@
         ],
         "tip": "Regra prática: se uma tarefa pode levar mais de um frame (~16ms), mande-a para um worker."
       }
+    },
+    "05-error-handling": {
+      "title": "Tratamento de erros",
+      "summary": "Um erro dentro de um worker não quebra sua página. A tarefa aqui faz parse de JSON: com um payload válido retorna a quantidade de chaves; com um quebrado, JSON.parse lança um SyntaxError real. O worker deixa esse erro propagar e a thread principal o captura.",
+      "whatToWatch": "Envie um JSON válido (✓ o resultado é registrado) e depois um quebrado (✗ a thread principal captura o erro via onerror). Repare que a app continua respondendo: você pode seguir rodando tarefas após o erro — o worker não morreu.",
+      "note": "Um erro não tratado dentro do worker dispara o evento onerror no objeto Worker da thread principal; NÃO quebra a página nem mata o worker. Para mais controle, capture o erro DENTRO do worker (try/catch) e reporte-o como um postMessage normal: assim você pode tipar o erro e adicionar contexto.",
+      "takeaways": {
+        "title": "Pontos-chave",
+        "items": [
+          "Um erro não tratado no worker chega à thread principal como worker.onerror",
+          "A página não quebra: o worker continua vivo e você pode rodar mais tarefas",
+          "ErrorEvent traz message, filename e lineno para diagnosticar",
+          "Para mais controle, use try/catch dentro do worker e reporte o erro via postMessage"
+        ],
+        "tip": "Chame event.preventDefault() no onerror para silenciar o log vermelho do console se você já mostra o erro na sua UI."
+      }
     }
   }
 }

@@ -8,6 +8,7 @@ import { ExampleRunnerService } from '../../../core/services/example-runner.serv
 import { ExampleContentService } from '../../../core/services/example-content.service';
 import { MessageExchangeService } from '../../../core/services/message-exchange.service';
 import { ComputeDemoService } from '../../../core/services/compute-demo.service';
+import { ErrorDemoService } from '../../../core/services/error-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { NarrativeButton } from '../primitives/narrative-button.component';
 import { NarrativeCodeBlock } from '../primitives/narrative-code-block.component';
@@ -142,6 +143,38 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                   }
                 </section>
               </div>
+            }
+
+            @case ('error-handling') {
+              <div class="n-send">
+                <narrative-button variant="solid" [disabled]="errorBusy()" (pressed)="sendOk()">
+                  Enviar JSON válido
+                </narrative-button>
+                <narrative-button [disabled]="errorBusy()" (pressed)="sendFail()">Enviar JSON roto</narrative-button>
+                @if (errorEvents().length) {
+                  <narrative-button (pressed)="resetErrors()">Reiniciar</narrative-button>
+                }
+              </div>
+              @if (errorEvents().length) {
+                <div class="n-dialogue">
+                  @for (ev of errorEvents(); track ev.id) {
+                    <div class="n-evt" [attr.data-status]="ev.status">
+                      <p class="n-evt-line">
+                        <span class="n-evt-mark">{{ ev.status === 'ok' ? '✓' : '✗' }}</span>
+                        <code class="n-evt-in">{{ ev.input }}</code>
+                      </p>
+                      @if (ev.status === 'ok') {
+                        <p class="n-evt-text">Parseado: {{ ev.keys }} claves de primer nivel.</p>
+                      } @else {
+                        <p class="n-evt-text n-evt-err">{{ ev.message }}</p>
+                      }
+                    </div>
+                  }
+                </div>
+                <p class="n-foot">La app sigue viva: el worker no se murió, podés seguir corriendo tareas.</p>
+              } @else {
+                <p class="n-hint">Enviá un JSON válido (✓ devuelve sus claves) y después uno roto (✗ el main lo captura con onerror). La página no se rompe.</p>
+              }
             }
           }
 
@@ -425,6 +458,56 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
         color: var(--ink-muted);
       }
 
+      /* ── error-handling (ej. 05): bitácora de corridas ── */
+      .n-evt {
+        padding: 12px 18px;
+        border: var(--border-width) solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-raised);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+        animation: wwp-seg-in 0.18s ease-out;
+      }
+      .n-evt[data-status='error'] {
+        border-color: var(--thread-blocked);
+      }
+      .n-evt-line {
+        margin: 0;
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        font-family: var(--font-body);
+        font-size: 16px;
+      }
+      .n-evt-mark {
+        font-weight: 700;
+      }
+      .n-evt[data-status='ok'] .n-evt-mark {
+        color: var(--thread-worker);
+      }
+      .n-evt[data-status='error'] .n-evt-mark {
+        color: var(--thread-blocked);
+      }
+      .n-evt-in {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        color: var(--ink-muted);
+        word-break: break-all;
+      }
+      .n-evt-text {
+        margin: 6px 0 0;
+        font-family: var(--font-display);
+        font-style: italic;
+        font-size: 14px;
+        color: var(--ink-muted);
+      }
+      .n-evt-err {
+        font-family: var(--font-mono);
+        font-style: normal;
+        font-size: 13px;
+        color: var(--thread-blocked);
+        word-break: break-word;
+      }
+
       .n-note {
         font-family: var(--font-display);
         font-style: italic;
@@ -438,6 +521,11 @@ export class NarrativeExampleLayoutComponent {
   private readonly runner = inject(ExampleRunnerService);
   private readonly exchange = inject(MessageExchangeService);
   private readonly compute = inject(ComputeDemoService);
+  private readonly errors = inject(ErrorDemoService);
+
+  /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
+  private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
+  private readonly BROKEN_PAYLOAD = '{user: ada, role}';
 
   protected readonly visualizer = inject(THREAD_VISUALIZER);
 
@@ -467,11 +555,17 @@ export class NarrativeExampleLayoutComponent {
   protected readonly liveMs = this.compute.liveMs;
   protected readonly computePhase = this.compute.phase;
 
+  // error-handling (05)
+  protected readonly errorEvents = this.errors.events;
+  protected readonly errorBusy = this.errors.busy;
+
   constructor() {
     effect(() => {
       const ex = this.example();
       if (ex?.demo === 'message-exchange') {
         this.exchange.open(ex);
+      } else if (ex?.demo === 'error-handling') {
+        this.errors.open(ex);
       }
     });
   }
@@ -501,6 +595,22 @@ export class NarrativeExampleLayoutComponent {
   private parseN(value: string): number {
     const n = Number(value);
     return Number.isFinite(n) && n > 0 ? Math.min(n, 5_000_000) : 500_000;
+  }
+
+  sendOk(): void {
+    this.errors.run(this.VALID_PAYLOAD);
+  }
+
+  sendFail(): void {
+    this.errors.run(this.BROKEN_PAYLOAD);
+  }
+
+  resetErrors(): void {
+    const ex = this.example();
+    this.errors.reset();
+    if (ex?.demo === 'error-handling') {
+      this.errors.open(ex);
+    }
   }
 
   send(text: string): void {

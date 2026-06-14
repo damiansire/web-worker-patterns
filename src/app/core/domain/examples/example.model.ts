@@ -20,8 +20,9 @@ export type Category =
  *   - thread-block:     worker vs main bloqueado (ej. 01)
  *   - message-exchange: ida y vuelta de mensajes main <-> worker (ej. 03)
  *   - offload:          cómputo pesado en el worker (UI fluida) vs en el main (UI congelada) (ej. 04)
+ *   - error-handling:   un error dentro del worker se captura con onerror y la app sigue viva (ej. 05)
  */
-export type DemoKind = 'thread-block' | 'message-exchange' | 'offload';
+export type DemoKind = 'thread-block' | 'message-exchange' | 'offload' | 'error-handling';
 
 export interface WorkerExample {
   /** Slug estable, ej. '01-setinterval-counter'. */
