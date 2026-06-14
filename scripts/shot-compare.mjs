@@ -6,7 +6,7 @@ for (const t of themes) {
   const page = await browser.newPage({ viewport: { width: 1100, height: 1100 } });
   await page.goto(`${base}/t/${t}/example/01-setinterval-counter`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(600);
-  await page.getByRole('button', { name: /correr en worker/i }).click();
+  await page.getByRole('button', { name: /(correr|ejecutar).*en worker/i }).click();
   await page.waitForTimeout(3200); // worker run completes
   await page.getByRole('button', { name: /bloquear main/i }).click().catch(() => {});
   await page.waitForTimeout(800); // after the freeze

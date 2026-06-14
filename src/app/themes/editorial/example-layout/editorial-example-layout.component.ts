@@ -5,16 +5,16 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 import { findExample } from '../../../core/domain/examples/examples.registry';
 import { ExampleRunnerService } from '../../../core/services/example-runner.service';
-import { ThreadMonitorService } from '../../../core/services/thread-monitor.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { EditorialButton } from '../primitives/editorial-button.component';
+import { EditorialCodeBlock } from '../primitives/editorial-code-block.component';
 import { EDITORIAL_PROVIDERS } from '../editorial.providers';
 
-/** Example-layout editorial. Patrón contrato + DI para el ThreadVisualizer (§5). */
+/** Example-layout editorial. Hilos como contraste worker-vs-main (#2) + código. */
 @Component({
   selector: 'editorial-example-layout',
   standalone: true,
-  imports: [NgComponentOutlet, RouterLink, EditorialButton],
+  imports: [NgComponentOutlet, RouterLink, EditorialButton, EditorialCodeBlock],
   providers: [EDITORIAL_PROVIDERS],
   template: `
     <article class="e-ex">
@@ -25,15 +25,47 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
         <h1>{{ ex.id }}</h1>
 
         @if (ex.workerFactory) {
-          <div class="e-controls">
-            <editorial-button variant="solid" [disabled]="running()" (pressed)="start()">Ejecutar</editorial-button>
-            <editorial-button [disabled]="!running()" (pressed)="stop()">Detener</editorial-button>
-            <span class="e-tick">{{ running() ? '● corriendo' : '○ detenido' }} · tick {{ lastTick() }}</span>
+          <p class="e-lead">
+            La misma cuenta, dos hilos. En un worker el main queda libre; en el main thread, todo
+            se congela. Corré los dos y sentí la diferencia.
+          </p>
+
+          <div class="e-cmp">
+            <section class="e-col">
+              <h2>En un Worker</h2>
+              <p class="e-sub">el main queda libre · la UI sigue fluida</p>
+              <editorial-button variant="solid" [disabled]="phase() === 'worker'" (pressed)="runWorker()">
+                Ejecutar en worker
+              </editorial-button>
+              @if (workerLanes(); as wl) {
+                <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: wl, elapsedMs: 0 }" />
+                <p class="e-foot">{{ workerTicks() }} ticks · la UI nunca se trabó</p>
+              } @else {
+                <p class="e-hint">Tocá para ver el worker emitir ticks mientras el main queda libre.</p>
+              }
+            </section>
+
+            <section class="e-col">
+              <h2>En el Main thread</h2>
+              <p class="e-sub">el main se bloquea · la UI se congela ~2,5s</p>
+              <editorial-button [disabled]="phase() === 'main'" (pressed)="runMain()">Bloquear main</editorial-button>
+              @if (mainLanes(); as ml) {
+                <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: ml, elapsedMs: 0 }" />
+                <p class="e-foot e-danger">se congeló · {{ mainTicks() }} ticks que no se pintaron</p>
+              } @else {
+                <p class="e-hint">Tocá y la página se congela: el contador no actualiza, los clicks mueren.</p>
+              }
+            </section>
           </div>
 
-          <ng-container
-            *ngComponentOutlet="visualizer; inputs: { lanes: lanes(), elapsedMs: elapsedMs() }"
-          />
+          @if (snippets().length) {
+            <h2 class="e-code-title">El código</h2>
+            <div class="e-code">
+              @for (snip of snippets(); track snip.label) {
+                <editorial-code-block [label]="snip.label" [code]="snip.code" />
+              }
+            </div>
+          }
         } @else {
           <p class="e-note">Este ejemplo todavía no expone un worker neutral.</p>
         }
@@ -61,23 +93,70 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
         font-size: 14px;
         color: var(--accent);
         margin: 18px 0 4px;
-        text-transform: lowercase;
       }
       h1 {
         font-family: var(--font-mono);
         font-size: clamp(22px, 4vw, 34px);
-        margin: 0 0 28px;
+        margin: 0 0 20px;
         word-break: break-all;
       }
-      .e-controls {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        margin-bottom: 32px;
+      .e-lead {
+        font-family: var(--font-body);
+        font-size: 17px;
+        line-height: 1.6;
+        margin: 0 0 28px;
+        max-width: 60ch;
       }
-      .e-tick {
-        font-family: var(--font-mono);
+      .e-cmp {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+        margin-bottom: 40px;
+      }
+      .e-col h2 {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 20px;
+        margin: 0 0 2px;
+      }
+      .e-sub {
+        font-family: var(--font-display);
+        font-style: italic;
+        font-size: 13px;
         color: var(--ink-muted);
+        margin: 0 0 14px;
+      }
+      .e-col editorial-button {
+        display: inline-block;
+        margin-bottom: 16px;
+      }
+      .e-hint {
+        font-family: var(--font-body);
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--ink-muted);
+      }
+      .e-foot {
+        font-family: var(--font-display);
+        font-style: italic;
+        font-size: 14px;
+        margin: 12px 0 0;
+        color: var(--ink-muted);
+      }
+      .e-danger {
+        color: var(--thread-blocked);
+        font-style: normal;
+        font-weight: 600;
+      }
+      .e-code-title {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 22px;
+        margin: 0 0 16px;
+      }
+      .e-code {
+        display: grid;
+        gap: 16px;
       }
       .e-note {
         font-family: var(--font-display);
@@ -90,7 +169,6 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
 export class EditorialExampleLayoutComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly runner = inject(ExampleRunnerService);
-  private readonly monitor = inject(ThreadMonitorService);
 
   protected readonly visualizer = inject(THREAD_VISUALIZER);
 
@@ -98,19 +176,24 @@ export class EditorialExampleLayoutComponent {
     initialValue: '',
   });
   protected readonly example = computed(() => findExample(this.id()));
-  protected readonly lanes = this.monitor.lanes;
-  protected readonly elapsedMs = this.monitor.elapsedMs;
-  protected readonly lastTick = this.runner.lastTick;
-  protected readonly running = computed(() => this.runner.runningId() === this.example()?.id);
+  protected readonly snippets = computed(() =>
+    Object.entries(this.example()?.snippets ?? {}).map(([label, code]) => ({ label, code })),
+  );
 
-  start(): void {
+  protected readonly workerLanes = this.runner.workerLanes;
+  protected readonly mainLanes = this.runner.mainLanes;
+  protected readonly workerTicks = this.runner.workerTicks;
+  protected readonly mainTicks = this.runner.mainTicks;
+  protected readonly phase = this.runner.phase;
+
+  runWorker(): void {
     const ex = this.example();
     if (ex) {
-      this.runner.start(ex, { intervalMs: 500 });
+      this.runner.runWorkerDemo(ex);
     }
   }
 
-  stop(): void {
-    this.runner.stop();
+  runMain(): void {
+    this.runner.runMainBlockingDemo();
   }
 }
