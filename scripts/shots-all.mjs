@@ -6,9 +6,11 @@ const themes = ['brutalist', 'full-brutalist', 'dev-tool', 'editorial', 'narrati
 
 // Reemplazo limpio: borrar las capturas viejas y recrear la carpeta desde cero,
 // así no quedan archivos huérfanos si cambian los themes/nombres.
+// El ejemplo 03 va en su propia subcarpeta.
 const dir = 'docs/screenshots';
+const dir03 = `${dir}/03-basic-communication`;
 await rm(dir, { recursive: true, force: true });
-await mkdir(dir, { recursive: true });
+await mkdir(dir03, { recursive: true });
 
 const browser = await chromium.launch();
 // Fijamos idioma para capturas consistentes (el usuario escribe en español).
@@ -40,7 +42,7 @@ for (const t of themes) {
     await page.getByRole('button', { name: /enviar/i }).first().click();
     await page.waitForTimeout(650);
   }
-  await page.screenshot({ path: `docs/screenshots/${t}-03-communication.png`, fullPage: true });
+  await page.screenshot({ path: `${dir03}/${t}.png`, fullPage: true });
   await page.close();
   console.log('done', t);
 }
