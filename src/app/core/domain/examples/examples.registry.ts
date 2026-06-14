@@ -1,5 +1,6 @@
 import { WorkerExample } from './example.model';
 import { COUNTER_SNIPPETS } from './snippets/counter.snippets';
+import { ECHO_SNIPPETS } from './snippets/echo.snippets';
 
 /**
  * Registry neutral de ejemplos (ARQUITECTURA §3.1).
@@ -19,12 +20,22 @@ export const EXAMPLES: WorkerExample[] = [
     order: 1,
     category: 'understanding',
     i18nKey: 'examples.01-setinterval-counter',
+    demo: 'thread-block',
     workerFactory: () =>
       new Worker(new URL('../workers/counter.worker', import.meta.url), { type: 'module' }),
     snippets: COUNTER_SNIPPETS,
   },
   { id: '02-main-thread', order: 2, category: 'understanding', i18nKey: 'examples.02-main-thread', snippets: {} },
-  { id: '03-basic-communication', order: 3, category: 'communication', i18nKey: 'examples.03-basic-communication', snippets: {} },
+  {
+    id: '03-basic-communication',
+    order: 3,
+    category: 'communication',
+    i18nKey: 'examples.03-basic-communication',
+    demo: 'message-exchange',
+    workerFactory: () =>
+      new Worker(new URL('../workers/echo.worker', import.meta.url), { type: 'module' }),
+    snippets: ECHO_SNIPPETS,
+  },
   { id: '04-offloading-computation', order: 4, category: 'optimization', i18nKey: 'examples.04-offloading-computation', snippets: {} },
   { id: '05-error-handling', order: 5, category: 'management', i18nKey: 'examples.05-error-handling', snippets: {} },
   { id: '06-lifecycle-termination', order: 6, category: 'management', i18nKey: 'examples.06-lifecycle-termination', snippets: {} },

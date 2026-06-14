@@ -17,6 +17,22 @@
         ],
         "tip": "Usá requestAnimationFrame en lugar de setInterval para animaciones más suaves."
       }
+    },
+    "03-basic-communication": {
+      "title": "Comunicación básica",
+      "summary": "El \"Hola Mundo\" de los Web Workers: escribís un mensaje y se lo mandás al worker. El worker lo recibe, lo procesa y te responde de vuelta. Así funciona la comunicación entre hilos — postMessage en las dos direcciones.",
+      "whatToWatch": "Enviá un mensaje y mirá el ida y vuelta: → sale del main hacia el worker, ← vuelve la respuesta procesada. El tiempo de round-trip muestra cuánto tardó el viaje completo.",
+      "note": "postMessage CLONA los datos (structured clone): el worker recibe una copia, no la referencia. Para mensajes chicos alcanza; para datos grandes conviene usar transferables (ejemplo 07).",
+      "takeaways": {
+        "title": "Puntos clave",
+        "items": [
+          "postMessage() envía datos del main al worker y también al revés",
+          "Los datos se clonan automáticamente (structured clone)",
+          "onmessage recibe los mensajes en ambos lados",
+          "La comunicación es asíncrona: el main no se bloquea esperando la respuesta"
+        ],
+        "tip": "Siempre manejá el evento onerror para capturar errores silenciosos del worker."
+      }
     }
   }
 }
