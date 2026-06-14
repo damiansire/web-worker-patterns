@@ -1,16 +1,20 @@
 import { Component } from '@angular/core';
 import { RouterOutlet, RouterLink } from '@angular/router';
+import { ThemeSelectorComponent } from '../../../theming/theme-selector.component';
 
 /** Shell editorial: cabecera tipo portada de revista de arte. */
 @Component({
   selector: 'editorial-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink],
+  imports: [RouterOutlet, RouterLink, ThemeSelectorComponent],
   template: `
     <div class="e-shell">
       <header class="e-masthead">
         <a class="e-logo" routerLink="/t/editorial">Web Worker Patterns</a>
-        <span class="e-issue">an essay on concurrency · nº 01</span>
+        <div class="e-mast-right">
+          <span class="e-issue">an essay on concurrency · nº 01</span>
+          <theme-selector />
+        </div>
       </header>
       <main class="e-main">
         <router-outlet />
@@ -41,6 +45,11 @@ import { RouterOutlet, RouterLink } from '@angular/router';
         letter-spacing: -0.01em;
         color: var(--ink);
         text-decoration: none;
+      }
+      .e-mast-right {
+        display: flex;
+        align-items: center;
+        gap: 16px;
       }
       .e-issue {
         font-family: var(--font-display);

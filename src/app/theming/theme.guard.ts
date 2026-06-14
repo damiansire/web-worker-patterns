@@ -22,3 +22,17 @@ export const themeGuard: CanActivateFn = (route) => {
   }
   return router.createUrlTree(['/t', theme.activeId()]);
 };
+
+/**
+ * Redirige la raíz al theme persistido (o a un theme de muestra en la primera
+ * visita) para que la app entre en la estructura theme-aware (§9 / §10.8).
+ */
+export const rootThemeRedirect: CanActivateFn = () => {
+  const registry = inject(THEME_REGISTRY);
+  const theme = inject(ThemeService);
+  const router = inject(Router);
+
+  const stored = theme.activeId();
+  const target = registry.has(stored) && stored !== 'skeleton' ? stored : 'editorial';
+  return router.createUrlTree(['/t', target]);
+};

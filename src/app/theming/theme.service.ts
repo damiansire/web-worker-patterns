@@ -2,6 +2,13 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { THEME_REGISTRY } from './theme.tokens';
 import { ThemeId, ThemePack } from './theme.types';
 
+const THEME_STORAGE_KEY = 'wwp-theme';
+
+function readStoredTheme(): ThemeId | null {
+  if (typeof localStorage === 'undefined') return null;
+  return localStorage.getItem(THEME_STORAGE_KEY) as ThemeId | null;
+}
+
 /**
  * ThemeService (ARQUITECTURA §4.2).
  *
@@ -17,7 +24,9 @@ import { ThemeId, ThemePack } from './theme.types';
 export class ThemeService {
   private readonly registry = inject(THEME_REGISTRY);
 
-  readonly activeId = signal<ThemeId>('skeleton');
+  // El theme persistido (localStorage) tiene prioridad como valor inicial; la URL
+  // lo sobreescribe vía el guard al navegar. Default skeleton (siempre presente).
+  readonly activeId = signal<ThemeId>(readStoredTheme() ?? 'skeleton');
   readonly active = computed<ThemePack>(
     () => this.registry.get(this.activeId()) ?? this.registry.values().next().value!,
   );
@@ -34,6 +43,9 @@ export class ThemeService {
     this.purgeOtherStylesheets(id);
     if (typeof document !== 'undefined') {
       document.documentElement.dataset['theme'] = id;
+    }
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(THEME_STORAGE_KEY, id);
     }
   }
 

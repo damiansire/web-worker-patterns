@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterOutlet, RouterLink } from '@angular/router';
+import { ThemeSelectorComponent } from '../../../theming/theme-selector.component';
 
 /**
  * Shell brutalista: header stark de borde negro grueso sobre fondo amarillo, con
@@ -8,12 +9,12 @@ import { RouterOutlet, RouterLink } from '@angular/router';
 @Component({
   selector: 'brutalist-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink],
+  imports: [RouterOutlet, RouterLink, ThemeSelectorComponent],
   template: `
     <div class="b-shell">
       <header class="b-header">
         <a class="b-brand" routerLink="/t/brutalist">WEB·WORKER<br />PATTERNS</a>
-        <span class="b-tag">brutalist</span>
+        <theme-selector />
       </header>
       <main class="b-main">
         <router-outlet />

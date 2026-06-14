@@ -3,6 +3,7 @@ import { RouterOutlet, RouterLink } from '@angular/router';
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
 import { DevToolCommandPaletteComponent } from '../command-palette/devtool-command-palette.component';
+import { ThemeSelectorComponent } from '../../../theming/theme-selector.component';
 
 /**
  * Shell dev-tool: barra superior tipo IDE con disparador del command palette
@@ -12,16 +13,19 @@ import { DevToolCommandPaletteComponent } from '../command-palette/devtool-comma
 @Component({
   selector: 'devtool-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink],
+  imports: [RouterOutlet, RouterLink, ThemeSelectorComponent],
   template: `
     <div class="dt-shell">
       <header class="dt-titlebar">
         <a class="dt-brand" routerLink="/t/dev-tool">
           <span class="dt-prompt">▍</span> web-worker-patterns
         </a>
-        <button type="button" class="dt-kbd" (click)="openPalette()">
-          <kbd>⌘</kbd><kbd>K</kbd> <span>command palette</span>
-        </button>
+        <div class="dt-actions">
+          <button type="button" class="dt-kbd" (click)="openPalette()">
+            <kbd>⌘</kbd><kbd>K</kbd> <span>command palette</span>
+          </button>
+          <theme-selector />
+        </div>
       </header>
       <main class="dt-main">
         <router-outlet />
@@ -49,6 +53,11 @@ import { DevToolCommandPaletteComponent } from '../command-palette/devtool-comma
         font-size: 13px;
         color: var(--ink);
         text-decoration: none;
+      }
+      .dt-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
       }
       .dt-prompt {
         color: var(--accent);

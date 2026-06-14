@@ -31,6 +31,25 @@ describe('ThemeService', () => {
     expect(svc.activeId()).toBe('skeleton');
   });
 
+  it('persists the active theme to localStorage', () => {
+    const store = new Map<string, string>();
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      value: {
+        getItem: (k: string) => store.get(k) ?? null,
+        setItem: (k: string, v: string) => store.set(k, v),
+        removeItem: (k: string) => store.delete(k),
+      },
+    });
+    try {
+      const svc = makeService([pack('skeleton'), pack('brutalist')]);
+      svc.setTheme('brutalist');
+      expect(store.get('wwp-theme')).toBe('brutalist');
+    } finally {
+      delete (globalThis as { localStorage?: unknown }).localStorage;
+    }
+  });
+
   it('injects the active theme stylesheets and purges the previous ones', () => {
     const svc = makeService([
       pack('skeleton'),

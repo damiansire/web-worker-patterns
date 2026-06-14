@@ -1,16 +1,18 @@
 import { Component } from '@angular/core';
 import { RouterOutlet, RouterLink } from '@angular/router';
+import { ThemeSelectorComponent } from '../../../theming/theme-selector.component';
 
 /** Shell narrative: cabecera de revista, mucho aire, serif. */
 @Component({
   selector: 'narrative-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink],
+  imports: [RouterOutlet, RouterLink, ThemeSelectorComponent],
   template: `
     <div class="n-shell">
       <header class="n-head">
         <a class="n-title" routerLink="/t/narrative">Web&nbsp;Worker&nbsp;Patterns</a>
         <span class="n-strap">una lectura sobre concurrencia en el navegador</span>
+        <div class="n-switch"><theme-selector /></div>
       </header>
       <main class="n-main">
         <router-outlet />
@@ -46,6 +48,11 @@ import { RouterOutlet, RouterLink } from '@angular/router';
         font-style: italic;
         font-size: 16px;
         color: var(--ink-muted);
+      }
+      .n-switch {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
       }
       .n-main {
         padding: 48px 24px;
