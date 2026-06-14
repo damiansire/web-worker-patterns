@@ -1,9 +1,10 @@
-import { Component, HostListener, OnDestroy, inject } from '@angular/core';
+import { Component, HostListener, OnDestroy, computed, inject } from '@angular/core';
 import { RouterOutlet, RouterLink } from '@angular/router';
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
 import { DevToolCommandPaletteComponent } from '../command-palette/devtool-command-palette.component';
 import { ThemeSelectorComponent } from '../../../theming/theme-selector.component';
+import { ExampleRunnerService } from '../../../core/services/example-runner.service';
 
 /**
  * Shell dev-tool: barra superior tipo IDE con disparador del command palette
@@ -30,11 +31,27 @@ import { ThemeSelectorComponent } from '../../../theming/theme-selector.componen
       <main class="dt-main">
         <router-outlet />
       </main>
+      <footer class="dt-statusbar">
+        <span
+          class="dt-stat dt-status"
+          [class.is-on]="phase() === 'worker'"
+          [class.is-block]="phase() === 'main'"
+        >
+          ● {{ statusLabel() }}
+        </span>
+        <span class="dt-stat">1 worker thread</span>
+        <span class="dt-grow"></span>
+        <span class="dt-stat">UTF-8</span>
+        <span class="dt-stat">TypeScript</span>
+        <span class="dt-stat">⌘K</span>
+      </footer>
     </div>
   `,
   styles: [
     `
       .dt-shell {
+        display: flex;
+        flex-direction: column;
         min-height: 100vh;
         background: var(--surface);
         color: var(--ink);
@@ -83,14 +100,50 @@ import { ThemeSelectorComponent } from '../../../theming/theme-selector.componen
         font-family: var(--font-mono);
       }
       .dt-main {
+        flex: 1;
         padding: 24px 20px;
+      }
+      .dt-statusbar {
+        position: sticky;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 5px 16px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--ink-muted);
+        background: var(--surface-raised);
+        border-top: var(--border-width) solid var(--border);
+      }
+      .dt-grow {
+        flex: 1;
+      }
+      .dt-status.is-on {
+        color: var(--accent);
+      }
+      .dt-status.is-block {
+        color: var(--thread-blocked);
       }
     `,
   ],
 })
 export class DevToolShellComponent implements OnDestroy {
   private readonly overlay = inject(Overlay);
+  private readonly runner = inject(ExampleRunnerService);
   private overlayRef?: OverlayRef;
+
+  protected readonly phase = this.runner.phase;
+  protected readonly statusLabel = computed(() => {
+    switch (this.phase()) {
+      case 'worker':
+        return 'worker activo';
+      case 'main':
+        return 'main bloqueado';
+      default:
+        return 'idle';
+    }
+  });
 
   @HostListener('document:keydown', ['$event'])
   protected onKeydown(event: KeyboardEvent): void {
