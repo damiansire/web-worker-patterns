@@ -2,6 +2,10 @@
 
 @use './app/core/styles/_shared' as *;
 
+// Contrato de tokens semánticos + skeleton gris (ARQUITECTURA §6).
+// Los themes reales sobreescriben estos nombres bajo [data-theme='<id>'].
+@use './app/theming/styles/tokens-contract';
+
 // Syntax highlighting theme
 @import 'highlight.js/styles/github-dark.css';
 

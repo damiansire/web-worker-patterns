@@ -1,0 +1,46 @@
+/**
+ * Contrato de tokens semánticos + theme "skeleton" gris (ARQUITECTURA §6 / §10.3).
+ *
+ * `:root` declara TODOS los tokens con un skin gris neutro. Esto garantiza que
+ * cualquier primitivo o `ThreadVisualizer` que lea estos tokens funcione aunque
+ * todavía no haya un theme real activo: el "puente" dominio -> presentación
+ * queda validado con el skeleton antes de implementar ningún theme con librería.
+ *
+ * Cada theme real sobreescribe estos MISMOS nombres bajo `[data-theme='<id>']`
+ * (ver `themes/<id>/styles/_tokens.scss`). El `data-theme` lo setea el
+ * ThemeService en `<html>`.
+ */
+
+@mixin skeleton-tokens {
+  // Superficies
+  --surface: #e8e8ea;
+  --surface-raised: #f6f6f7;
+
+  // Tinta / texto
+  --ink: #1c1c1f;
+  --ink-muted: #6b6b72;
+
+  // Acento
+  --accent: #6366f1;
+
+  // Carriles del monitor de hilos
+  --thread-main: #52525b;
+  --thread-worker: #8b8b94;
+  --thread-blocked: #c0504d;
+  --thread-idle: rgba(0, 0, 0, 0.08);
+
+  // Bordes / forma
+  --border: rgba(0, 0, 0, 0.16);
+  --border-width: 1px;
+  --radius: 8px;
+
+  // Tipografía
+  --font-display: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Consolas, monospace;
+}
+
+:root,
+[data-theme='skeleton'] {
+  @include skeleton-tokens;
+}
