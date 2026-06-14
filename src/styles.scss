@@ -19,6 +19,15 @@
 @use './app/themes/narrative/styles/tokens' as narrative-tokens;
 @use './app/themes/narrative/styles/theme' as narrative-theme;
 
+// Fix de herencia de color: el skin legacy colorea h1/h2/p globalmente con
+// var(--text-primary) (claro), lo que pisa por especificidad el color que cada
+// theme setea en su shell. Dentro de un theme, los títulos/párrafos sin color
+// propio deben heredar del shell (var(--ink)). `:where()` mantiene la
+// especificidad baja para no ganarle a un color explícito de un componente.
+[data-theme] :where(h1, h2, h3, h4, h5, h6, p) {
+  color: inherit;
+}
+
 // Syntax highlighting theme
 @import 'highlight.js/styles/github-dark.css';
 
