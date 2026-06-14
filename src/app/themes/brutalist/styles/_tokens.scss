@@ -1,23 +1,25 @@
 /**
- * Tokens del theme brutalist (ARQUITECTURA §6). Rellena los MISMOS nombres del
- * contrato semántico con valores brutalistas: amarillo ácido, negro, rojo,
- * bordes gruesos, sin radius. Se activan cuando `<html data-theme='brutalist'>`.
+ * Tokens del theme brutalist (ARQUITECTURA §6). Brutalismo OSCURO: fondo casi
+ * negro, texto gris claro/blanco, amarillo ácido como acento (bordes, números,
+ * títulos de sección, carril worker). Contraste duro, bordes gruesos, sin radius.
+ * Se activan cuando `<html data-theme='brutalist'>`.
  */
 [data-theme='brutalist'] {
-  --surface: #dcff1a;
-  --surface-raised: #ffffff;
+  --surface: #0a0a0a; // página casi negra
+  --surface-raised: #161616; // cards oscuras
 
-  --ink: #000000;
-  --ink-muted: #333333;
+  --ink: #f4f4f4; // texto gris claro/blanco
+  --ink-muted: #8a8a8a;
 
-  --accent: #ff3b3b;
+  --accent: #dcff1a; // amarillo ácido
 
-  --thread-main: #000000;
-  --thread-worker: #000000;
+  // Carriles: MAIN queda vacío (idle transparente), WORKER es acento sólido.
+  --thread-main: #2a2a2a;
+  --thread-worker: #dcff1a;
   --thread-blocked: #ff3b3b;
-  --thread-idle: rgba(0, 0, 0, 0.12);
+  --thread-idle: transparent;
 
-  --border: #000000;
+  --border: #dcff1a; // bordes amarillos (estructura visible)
   --border-width: 3px;
   --radius: 0;
 

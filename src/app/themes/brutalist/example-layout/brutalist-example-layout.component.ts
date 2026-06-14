@@ -13,12 +13,11 @@ import { BrutalistCodeBlock } from '../primitives/brutalist-code-block.component
 import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
 
 /**
- * Example-layout brutalista — la vertical completa del ejemplo:
- *   1. corre el worker real vía el ExampleRunnerService;
- *   2. visualiza los hilos resolviendo THREAD_VISUALIZER por DI (§5) y montándolo
- *      con ngComponentOutlet sobre los `lanes`/`elapsedMs` neutrales del monitor;
+ * Example-layout brutalista — vertical completa del ejemplo, encajada en una
+ * grilla expuesta de líneas duras amarillas (header + cards comparten bordes):
+ *   1. corre el worker real (ExampleRunnerService);
+ *   2. visualiza los hilos resolviendo THREAD_VISUALIZER por DI (§5);
  *   3. muestra el código (snippets del registry) en el code-block del theme.
- * Todo dentro de cards brutalistas.
  */
 @Component({
   selector: 'brutalist-example-layout',
@@ -30,33 +29,42 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
       <a class="b-back" routerLink="/t/brutalist">← INDEX</a>
 
       @if (example(); as ex) {
-        <h1>{{ ex.order }} · {{ ex.id }}</h1>
-        <p class="b-cat">{{ ex.category }}</p>
-
-        @if (ex.workerFactory) {
-          <brutalist-card title="Hilos">
-            <div class="b-controls">
-              <brutalist-button variant="solid" [disabled]="running()" (pressed)="start()">START</brutalist-button>
-              <brutalist-button [disabled]="!running()" (pressed)="stop()">STOP</brutalist-button>
-              <span class="b-status">{{ running() ? '● RUNNING' : '○ IDLE' }} · TICK {{ lastTick() }}</span>
+        <div class="b-frame">
+          <header class="b-head">
+            <span class="b-order">{{ ex.order.toString().padStart(2, '0') }}</span>
+            <div class="b-head-text">
+              <h1>{{ ex.id }}</h1>
+              <span class="b-badge">{{ ex.category }}</span>
             </div>
-            <ng-container
-              *ngComponentOutlet="visualizer; inputs: { lanes: lanes(), elapsedMs: elapsedMs() }"
-            />
-          </brutalist-card>
+          </header>
 
-          @if (snippets().length) {
-            <brutalist-card title="Código">
-              @for (snip of snippets(); track snip.label) {
-                <div class="b-snippet">
-                  <brutalist-code-block [label]="snip.label" [code]="snip.code" />
-                </div>
-              }
+          @if (ex.workerFactory) {
+            <brutalist-card title="Hilos">
+              <div class="b-controls">
+                <brutalist-button variant="solid" [disabled]="running()" (pressed)="start()">Start</brutalist-button>
+                <brutalist-button [disabled]="!running()" (pressed)="stop()">Stop</brutalist-button>
+                <span class="b-status" [class.is-running]="running()">
+                  {{ running() ? '● RUNNING' : '○ IDLE' }} · TICK {{ lastTick() }}
+                </span>
+              </div>
+              <ng-container
+                *ngComponentOutlet="visualizer; inputs: { lanes: lanes(), elapsedMs: elapsedMs() }"
+              />
             </brutalist-card>
+
+            @if (snippets().length) {
+              <brutalist-card title="Código">
+                <div class="b-code-stack">
+                  @for (snip of snippets(); track snip.label) {
+                    <brutalist-code-block [label]="snip.label" [code]="snip.code" />
+                  }
+                </div>
+              </brutalist-card>
+            }
+          } @else {
+            <div class="b-empty">Este ejemplo todavía no expone un worker neutral.</div>
           }
-        } @else {
-          <p class="b-note">Este ejemplo todavía no expone un worker neutral.</p>
-        }
+        </div>
       } @else {
         <p class="b-note">Ejemplo no encontrado.</p>
       }
@@ -65,48 +73,112 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
   styles: [
     `
       .b-ex {
-        max-width: 900px;
+        max-width: 940px;
         margin: 0 auto;
       }
       .b-back {
-        font-family: var(--font-mono);
+        display: inline-block;
+        margin-bottom: 18px;
+        font-family: var(--font-display);
         font-weight: 700;
         font-size: 12px;
-        color: var(--ink);
+        letter-spacing: 0.06em;
+        color: var(--accent);
         text-decoration: none;
       }
-      h1 {
+
+      /* Grilla expuesta: el contenedor pone borde top/left, cada celda right/bottom.
+         Las líneas duras (3px amarillas) quedan compartidas, sin dobles ni gaps. */
+      .b-frame {
+        border-top: var(--border-width) solid var(--border);
+        border-left: var(--border-width) solid var(--border);
+      }
+      .b-frame > * {
+        display: block;
+        border-right: var(--border-width) solid var(--border);
+        border-bottom: var(--border-width) solid var(--border);
+      }
+
+      .b-head {
+        display: flex;
+        align-items: stretch;
+        gap: 18px;
+        background: var(--surface-raised);
+      }
+      .b-order {
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        background: var(--accent);
+        color: var(--surface);
         font-family: var(--font-display);
         font-weight: 800;
-        font-size: clamp(22px, 4vw, 36px);
+        font-size: clamp(36px, 7vw, 64px);
         line-height: 1;
-        margin: 14px 0 4px;
+      }
+      .b-head-text {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 8px;
+        padding: 16px 8px;
+        min-width: 0;
+      }
+      .b-head-text h1 {
+        margin: 0;
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: clamp(20px, 3.5vw, 34px);
+        line-height: 0.95;
+        letter-spacing: -0.02em;
+        text-transform: uppercase;
+        color: var(--ink);
         word-break: break-all;
       }
-      .b-cat {
-        font-family: var(--font-mono);
-        font-size: 12px;
+      /* Badge invertido: texto sobre bloque sólido de acento. */
+      .b-badge {
+        align-self: flex-start;
+        padding: 3px 10px;
+        background: var(--accent);
+        color: var(--surface);
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 11px;
         text-transform: uppercase;
-        letter-spacing: 0.06em;
-        margin: 0 0 24px;
+        letter-spacing: 0.08em;
       }
+
       .b-controls {
         display: flex;
         align-items: center;
-        gap: 12px;
-        margin-bottom: 18px;
+        gap: 14px;
+        margin-bottom: 20px;
         flex-wrap: wrap;
       }
       .b-status {
-        font-family: var(--font-mono);
+        font-family: var(--font-display);
         font-weight: 700;
+        font-size: 13px;
+        letter-spacing: 0.04em;
+        color: var(--ink-muted);
       }
-      .b-snippet + .b-snippet {
-        margin-top: 14px;
+      .b-status.is-running {
+        color: var(--accent);
       }
+
+      /* Code-blocks encajados: colapsan sus bordes 3px en una sola línea. */
+      .b-code-stack > brutalist-code-block {
+        display: block;
+      }
+      .b-code-stack > brutalist-code-block + brutalist-code-block {
+        margin-top: calc(-1 * var(--border-width));
+      }
+
+      .b-empty,
       .b-note {
+        padding: 20px;
         font-family: var(--font-mono);
-        margin-top: 20px;
+        color: var(--ink-muted);
       }
     `,
   ],

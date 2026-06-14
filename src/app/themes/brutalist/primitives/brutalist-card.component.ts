@@ -1,7 +1,11 @@
 import { Component, input } from '@angular/core';
 import { CardContract } from '../../../ui-contracts/card.contract';
 
-/** Card brutalista: caja de borde negro grueso con sombra dura y título opcional. */
+/**
+ * Card brutalista (oscura): superficie casi negra, título de sección como bloque
+ * sólido de acento (texto invertido). Sin sombra ni margen: encaja en la grilla
+ * expuesta del layout, que aporta las líneas duras entre secciones.
+ */
 @Component({
   selector: 'brutalist-card',
   standalone: true,
@@ -19,23 +23,21 @@ import { CardContract } from '../../../ui-contracts/card.contract';
     `
       .b-card {
         background: var(--surface-raised);
-        border: var(--border-width) solid var(--border);
-        border-radius: var(--radius);
-        box-shadow: 6px 6px 0 var(--border);
-        margin-bottom: 24px;
+        height: 100%;
       }
       .b-card-head {
-        font-family: var(--font-mono);
+        font-family: var(--font-display);
         font-weight: 700;
-        font-size: 12px;
+        font-size: 13px;
         text-transform: uppercase;
         letter-spacing: 0.08em;
-        padding: 8px 14px;
-        background: var(--ink);
+        padding: 8px 16px;
+        background: var(--accent);
         color: var(--surface);
+        border-bottom: var(--border-width) solid var(--border);
       }
       .b-card-body {
-        padding: 18px;
+        padding: 20px 16px;
       }
     `,
   ],
