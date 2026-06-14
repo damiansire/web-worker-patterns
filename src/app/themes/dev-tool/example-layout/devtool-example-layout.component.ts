@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, effect, inject } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -6,6 +6,7 @@ import { map } from 'rxjs/operators';
 import { findExample } from '../../../core/domain/examples/examples.registry';
 import { ExampleRunnerService } from '../../../core/services/example-runner.service';
 import { ExampleContentService } from '../../../core/services/example-content.service';
+import { MessageExchangeService } from '../../../core/services/message-exchange.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { DevToolButton } from '../primitives/devtool-button.component';
 import { DevToolCodeBlock } from '../primitives/devtool-code-block.component';
@@ -35,38 +36,90 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
         }
 
         @if (ex.workerFactory) {
-          <section class="dt-panel">
-            <header class="dt-panel-h">// worker vs main thread</header>
-            @if (content()?.whatToWatch; as ww) {
-              <p class="dt-panel-b dt-watch">{{ ww }}</p>
+          @switch (ex.demo) {
+            @case ('thread-block') {
+              <section class="dt-panel">
+                <header class="dt-panel-h">// worker vs main thread</header>
+                @if (content()?.whatToWatch; as ww) {
+                  <p class="dt-panel-b dt-watch">{{ ww }}</p>
+                }
+                <div class="dt-panel-b dt-cmp">
+                  <div class="dt-col">
+                    <h3>en un worker</h3>
+                    <p class="dt-sub">main libre · UI fluida</p>
+                    <devtool-button variant="solid" [disabled]="phase() === 'worker'" (pressed)="runWorker()">
+                      ▶ correr en worker
+                    </devtool-button>
+                    @if (workerLanes(); as wl) {
+                      <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: wl, elapsedMs: 0 }" />
+                      <p class="dt-ok">✓ {{ workerTicks() }} ticks · sin jank</p>
+                    } @else {
+                      <p class="dt-hint">// tocá para correr en worker; el main queda libre</p>
+                    }
+                  </div>
+                  <div class="dt-col">
+                    <h3>en el main thread</h3>
+                    <p class="dt-sub">main bloqueado · UI congelada</p>
+                    <devtool-button [disabled]="phase() === 'main'" (pressed)="runMain()">▶ bloquear main</devtool-button>
+                    @if (mainLanes(); as ml) {
+                      <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: ml, elapsedMs: 0 }" />
+                      <p class="dt-bad">✗ congelado · {{ mainTicks() }} ticks perdidos</p>
+                    } @else {
+                      <p class="dt-hint">// tocá: la UI se congela ~2,5s, los clicks mueren</p>
+                    }
+                  </div>
+                </div>
+              </section>
             }
-            <div class="dt-panel-b dt-cmp">
-              <div class="dt-col">
-                <h3>en un worker</h3>
-                <p class="dt-sub">main libre · UI fluida</p>
-                <devtool-button variant="solid" [disabled]="phase() === 'worker'" (pressed)="runWorker()">
-                  ▶ correr en worker
-                </devtool-button>
-                @if (workerLanes(); as wl) {
-                  <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: wl, elapsedMs: 0 }" />
-                  <p class="dt-ok">✓ {{ workerTicks() }} ticks · sin jank</p>
-                } @else {
-                  <p class="dt-hint">// tocá para correr en worker; el main queda libre</p>
+
+            @case ('message-exchange') {
+              <section class="dt-panel">
+                <header class="dt-panel-h">// comunicación bidireccional</header>
+                @if (content()?.whatToWatch; as ww) {
+                  <p class="dt-panel-b dt-watch">{{ ww }}</p>
                 }
-              </div>
-              <div class="dt-col">
-                <h3>en el main thread</h3>
-                <p class="dt-sub">main bloqueado · UI congelada</p>
-                <devtool-button [disabled]="phase() === 'main'" (pressed)="runMain()">▶ bloquear main</devtool-button>
-                @if (mainLanes(); as ml) {
-                  <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: ml, elapsedMs: 0 }" />
-                  <p class="dt-bad">✗ congelado · {{ mainTicks() }} ticks perdidos</p>
-                } @else {
-                  <p class="dt-hint">// tocá: la UI se congela ~2,5s, los clicks mueren</p>
-                }
-              </div>
-            </div>
-          </section>
+                <div class="dt-panel-b">
+                  <div class="dt-send">
+                    <span class="dt-prompt">$</span>
+                    <input
+                      #msg
+                      class="dt-input"
+                      value="hola"
+                      placeholder="mensaje…"
+                      (keyup.enter)="send(msg.value); msg.value = ''"
+                    />
+                    <devtool-button variant="solid" [disabled]="pending()" (pressed)="send(msg.value); msg.value = ''">
+                      ▶ enviar
+                    </devtool-button>
+                    @if (messages().length) {
+                      <devtool-button (pressed)="resetExchange()">clear</devtool-button>
+                    }
+                  </div>
+                  @if (messages().length) {
+                    <div class="dt-log">
+                      @for (m of messages(); track m.direction + m.id) {
+                        <div class="dt-line" [attr.data-dir]="m.direction">
+                          <span class="dt-line-tag">{{ m.direction === 'out' ? 'main →' : '← worker' }}</span>
+                          <span class="dt-line-text">{{ m.text }}</span>
+                          @if (m.roundTripMs != null) {
+                            <span class="dt-line-rt">{{ m.roundTripMs }}ms</span>
+                          }
+                        </div>
+                      }
+                      @if (pending()) {
+                        <div class="dt-line" data-dir="in">
+                          <span class="dt-line-tag">← worker</span>
+                          <span class="dt-line-text">procesando…</span>
+                        </div>
+                      }
+                    </div>
+                  } @else {
+                    <p class="dt-hint">// escribí un mensaje y enviálo: → va al worker, ← vuelve con su round-trip</p>
+                  }
+                </div>
+              </section>
+            }
+          }
 
           @if (content()?.takeaways; as tk) {
             <section class="dt-panel">
@@ -246,6 +299,71 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
         display: grid;
         gap: 12px;
       }
+
+      /* ── message-exchange (ej. 03): consola/log ── */
+      .dt-send {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+      }
+      .dt-prompt {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--accent);
+      }
+      .dt-input {
+        flex: 1 1 200px;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        padding: 8px 12px;
+        background: var(--surface);
+        color: var(--ink);
+        border: var(--border-width) solid var(--border);
+        border-radius: var(--radius);
+        outline: none;
+      }
+      .dt-input::placeholder {
+        color: var(--ink-muted);
+      }
+      .dt-log {
+        display: grid;
+        gap: 3px;
+        font-family: var(--font-mono);
+        font-size: 13px;
+      }
+      .dt-line {
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+        padding: 4px 10px;
+        border-left: 2px solid transparent;
+        animation: wwp-seg-in 0.18s ease-out;
+      }
+      .dt-line[data-dir='out'] {
+        color: var(--ink);
+        border-left-color: var(--ink-muted);
+      }
+      .dt-line[data-dir='in'] {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: var(--surface-raised);
+      }
+      .dt-line-tag {
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .dt-line-text {
+        word-break: break-word;
+      }
+      .dt-line-rt {
+        margin-left: auto;
+        padding-left: 12px;
+        color: var(--ink-muted);
+        white-space: nowrap;
+      }
+
       .dt-note {
         font-family: var(--font-mono);
         color: var(--ink-muted);
@@ -256,6 +374,7 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
 export class DevToolExampleLayoutComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly runner = inject(ExampleRunnerService);
+  private readonly exchange = inject(MessageExchangeService);
 
   protected readonly visualizer = inject(THREAD_VISUALIZER);
 
@@ -268,11 +387,25 @@ export class DevToolExampleLayoutComponent {
   );
   protected readonly content = inject(ExampleContentService).contentFor(this.id);
 
+  // thread-block (01)
   protected readonly workerLanes = this.runner.workerLanes;
   protected readonly mainLanes = this.runner.mainLanes;
   protected readonly workerTicks = this.runner.workerTicks;
   protected readonly mainTicks = this.runner.mainTicks;
   protected readonly phase = this.runner.phase;
+
+  // message-exchange (03)
+  protected readonly messages = this.exchange.messages;
+  protected readonly pending = this.exchange.pending;
+
+  constructor() {
+    effect(() => {
+      const ex = this.example();
+      if (ex?.demo === 'message-exchange') {
+        this.exchange.open(ex);
+      }
+    });
+  }
 
   runWorker(): void {
     const ex = this.example();
@@ -283,5 +416,17 @@ export class DevToolExampleLayoutComponent {
 
   runMain(): void {
     this.runner.runMainBlockingDemo();
+  }
+
+  send(text: string): void {
+    this.exchange.send(text);
+  }
+
+  resetExchange(): void {
+    const ex = this.example();
+    this.exchange.reset();
+    if (ex?.demo === 'message-exchange') {
+      this.exchange.open(ex);
+    }
   }
 }

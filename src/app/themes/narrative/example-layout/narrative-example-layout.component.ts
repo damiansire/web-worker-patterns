@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, effect, inject } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -6,6 +6,7 @@ import { map } from 'rxjs/operators';
 import { findExample } from '../../../core/domain/examples/examples.registry';
 import { ExampleRunnerService } from '../../../core/services/example-runner.service';
 import { ExampleContentService } from '../../../core/services/example-content.service';
+import { MessageExchangeService } from '../../../core/services/message-exchange.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { NarrativeButton } from '../primitives/narrative-button.component';
 import { NarrativeCodeBlock } from '../primitives/narrative-code-block.component';
@@ -33,33 +34,77 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
             <p class="n-watch">{{ ww }}</p>
           }
 
-          <div class="n-cmp">
-            <section class="n-col">
-              <h2>En un Worker</h2>
-              <p class="n-sub">el main queda libre · la UI sigue fluida</p>
-              <narrative-button variant="solid" [disabled]="phase() === 'worker'" (pressed)="runWorker()">
-                Ejecutar en worker
-              </narrative-button>
-              @if (workerLanes(); as wl) {
-                <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: wl, elapsedMs: 0 }" />
-                <p class="n-foot">{{ workerTicks() }} ticks · la UI nunca se trabó</p>
-              } @else {
-                <p class="n-hint">Tocá para ver el worker emitir ticks mientras el main queda libre.</p>
-              }
-            </section>
+          @switch (ex.demo) {
+            @case ('thread-block') {
+              <div class="n-cmp">
+                <section class="n-col">
+                  <h2>En un Worker</h2>
+                  <p class="n-sub">el main queda libre · la UI sigue fluida</p>
+                  <narrative-button variant="solid" [disabled]="phase() === 'worker'" (pressed)="runWorker()">
+                    Ejecutar en worker
+                  </narrative-button>
+                  @if (workerLanes(); as wl) {
+                    <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: wl, elapsedMs: 0 }" />
+                    <p class="n-foot">{{ workerTicks() }} ticks · la UI nunca se trabó</p>
+                  } @else {
+                    <p class="n-hint">Tocá para ver el worker emitir ticks mientras el main queda libre.</p>
+                  }
+                </section>
 
-            <section class="n-col">
-              <h2>En el Main thread</h2>
-              <p class="n-sub">el main se bloquea · la UI se congela ~2,5s</p>
-              <narrative-button [disabled]="phase() === 'main'" (pressed)="runMain()">Bloquear main</narrative-button>
-              @if (mainLanes(); as ml) {
-                <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: ml, elapsedMs: 0 }" />
-                <p class="n-foot n-danger">se congeló · {{ mainTicks() }} ticks que no se pintaron</p>
+                <section class="n-col">
+                  <h2>En el Main thread</h2>
+                  <p class="n-sub">el main se bloquea · la UI se congela ~2,5s</p>
+                  <narrative-button [disabled]="phase() === 'main'" (pressed)="runMain()">Bloquear main</narrative-button>
+                  @if (mainLanes(); as ml) {
+                    <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: ml, elapsedMs: 0 }" />
+                    <p class="n-foot n-danger">se congeló · {{ mainTicks() }} ticks que no se pintaron</p>
+                  } @else {
+                    <p class="n-hint">Tocá y la página se congela: el contador no actualiza, los clicks mueren.</p>
+                  }
+                </section>
+              </div>
+            }
+
+            @case ('message-exchange') {
+              <div class="n-send">
+                <input
+                  #msg
+                  class="n-input"
+                  value="hola"
+                  placeholder="escribí un mensaje…"
+                  (keyup.enter)="send(msg.value); msg.value = ''"
+                />
+                <narrative-button variant="solid" [disabled]="pending()" (pressed)="send(msg.value); msg.value = ''">
+                  Enviar
+                </narrative-button>
+                @if (messages().length) {
+                  <narrative-button (pressed)="resetExchange()">Reiniciar</narrative-button>
+                }
+              </div>
+              @if (messages().length) {
+                <div class="n-dialogue">
+                  @for (m of messages(); track m.direction + m.id) {
+                    <div class="n-msg" [attr.data-dir]="m.direction">
+                      <p class="n-msg-line">
+                        <span class="n-msg-who">{{ m.direction === 'out' ? 'Main →' : '← Worker' }}</span>
+                        <span class="n-msg-text">{{ m.text }}</span>
+                      </p>
+                      @if (m.roundTripMs != null) {
+                        <p class="n-msg-rt">ida y vuelta · {{ m.roundTripMs }} ms</p>
+                      }
+                    </div>
+                  }
+                  @if (pending()) {
+                    <div class="n-msg n-msg-wait" data-dir="in">
+                      <p class="n-msg-line"><span class="n-msg-who">← Worker</span> <span class="n-msg-text">procesando…</span></p>
+                    </div>
+                  }
+                </div>
               } @else {
-                <p class="n-hint">Tocá y la página se congela: el contador no actualiza, los clicks mueren.</p>
+                <p class="n-hint">Enviá un mensaje: viaja al worker (→) y vuelve la respuesta (←) con su round-trip.</p>
               }
-            </section>
-          </div>
+            }
+          }
 
           @if (content()?.takeaways; as tk) {
             <section class="n-take">
@@ -222,6 +267,76 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
         display: grid;
         gap: 16px;
       }
+
+      /* ── message-exchange (ej. 03): diálogo ── */
+      .n-send {
+        display: flex;
+        gap: 14px;
+        align-items: stretch;
+        margin-bottom: 28px;
+        flex-wrap: wrap;
+      }
+      .n-input {
+        flex: 1 1 240px;
+        font-family: var(--font-body);
+        font-size: 16px;
+        padding: 10px 16px;
+        background: var(--surface-raised);
+        color: var(--ink);
+        border: var(--border-width) solid var(--border);
+        border-radius: var(--radius);
+        outline: none;
+      }
+      .n-input:focus {
+        border-color: var(--accent);
+      }
+      .n-dialogue {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-bottom: 40px;
+      }
+      .n-msg {
+        max-width: 76%;
+        padding: 12px 18px;
+        border: var(--border-width) solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-raised);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+        animation: wwp-seg-in 0.18s ease-out;
+      }
+      .n-msg[data-dir='out'] {
+        margin-right: auto;
+      }
+      .n-msg[data-dir='in'] {
+        margin-left: auto;
+        border-color: var(--accent);
+      }
+      .n-msg-line {
+        margin: 0;
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.5;
+        color: var(--ink);
+      }
+      .n-msg-who {
+        font-family: var(--font-display);
+        font-style: italic;
+        font-weight: 600;
+        color: var(--ink-muted);
+        margin-right: 8px;
+      }
+      .n-msg[data-dir='in'] .n-msg-who {
+        color: var(--accent);
+      }
+      .n-msg-rt {
+        margin: 6px 0 0;
+        font-family: var(--font-display);
+        font-style: italic;
+        font-size: 13px;
+        color: var(--ink-muted);
+      }
+
       .n-note {
         font-family: var(--font-display);
         font-style: italic;
@@ -233,6 +348,7 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
 export class NarrativeExampleLayoutComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly runner = inject(ExampleRunnerService);
+  private readonly exchange = inject(MessageExchangeService);
 
   protected readonly visualizer = inject(THREAD_VISUALIZER);
 
@@ -245,11 +361,25 @@ export class NarrativeExampleLayoutComponent {
   );
   protected readonly content = inject(ExampleContentService).contentFor(this.id);
 
+  // thread-block (01)
   protected readonly workerLanes = this.runner.workerLanes;
   protected readonly mainLanes = this.runner.mainLanes;
   protected readonly workerTicks = this.runner.workerTicks;
   protected readonly mainTicks = this.runner.mainTicks;
   protected readonly phase = this.runner.phase;
+
+  // message-exchange (03)
+  protected readonly messages = this.exchange.messages;
+  protected readonly pending = this.exchange.pending;
+
+  constructor() {
+    effect(() => {
+      const ex = this.example();
+      if (ex?.demo === 'message-exchange') {
+        this.exchange.open(ex);
+      }
+    });
+  }
 
   runWorker(): void {
     const ex = this.example();
@@ -260,5 +390,17 @@ export class NarrativeExampleLayoutComponent {
 
   runMain(): void {
     this.runner.runMainBlockingDemo();
+  }
+
+  send(text: string): void {
+    this.exchange.send(text);
+  }
+
+  resetExchange(): void {
+    const ex = this.example();
+    this.exchange.reset();
+    if (ex?.demo === 'message-exchange') {
+      this.exchange.open(ex);
+    }
   }
 }

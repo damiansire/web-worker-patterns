@@ -30,6 +30,18 @@ for (const t of themes) {
   await page.waitForTimeout(800);
   await page.screenshot({ path: `docs/screenshots/${t}-counter.png`, fullPage: true });
   await page.close();
+
+  // Ejemplo 03: comunicación bidireccional (mandamos unos mensajes).
+  page = await ctx.newPage();
+  await page.goto(`${base}/t/${t}/example/03-basic-communication`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(700);
+  for (const text of ['hola', 'web worker', 'comunicacion bidireccional']) {
+    await page.locator('input').first().fill(text);
+    await page.getByRole('button', { name: /enviar/i }).first().click();
+    await page.waitForTimeout(650);
+  }
+  await page.screenshot({ path: `docs/screenshots/${t}-03-communication.png`, fullPage: true });
+  await page.close();
   console.log('done', t);
 }
 await browser.close();

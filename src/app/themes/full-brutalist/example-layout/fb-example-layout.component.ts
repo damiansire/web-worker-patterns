@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, effect, inject } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -6,6 +6,7 @@ import { map } from 'rxjs/operators';
 import { findExample } from '../../../core/domain/examples/examples.registry';
 import { ExampleRunnerService } from '../../../core/services/example-runner.service';
 import { ExampleContentService } from '../../../core/services/example-content.service';
+import { MessageExchangeService } from '../../../core/services/message-exchange.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { FullBrutalistButton } from '../primitives/fb-button.component';
 import { FullBrutalistCard } from '../primitives/fb-card.component';
@@ -43,38 +44,87 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
           }
 
           @if (ex.workerFactory) {
-            <fb-card title="Worker vs Main thread">
-              <p class="b-lead">
-                {{ content()?.whatToWatch ?? 'Mismo contador, dos hilos. Corré los dos y mirá la diferencia.' }}
-              </p>
-              <div class="b-cmp">
-                <div class="b-col">
-                  <h3>En un Worker</h3>
-                  <p class="b-col-sub">el main queda libre · la UI sigue fluida</p>
-                  <fb-button variant="solid" [disabled]="phase() === 'worker'" (pressed)="runWorker()">
-                    Correr en worker
-                  </fb-button>
-                  @if (workerLanes(); as wl) {
-                    <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: wl, elapsedMs: 0 }" />
-                    <p class="b-foot">✓ {{ workerTicks() }} ticks · la UI nunca se trabó</p>
-                  } @else {
-                    <p class="b-hint">Tocá para ver el worker emitir ticks mientras el main queda libre.</p>
-                  }
-                </div>
+            @switch (ex.demo) {
+              @case ('thread-block') {
+                <fb-card title="Worker vs Main thread">
+                  <p class="b-lead">
+                    {{ content()?.whatToWatch ?? 'Mismo contador, dos hilos. Corré los dos y mirá la diferencia.' }}
+                  </p>
+                  <div class="b-cmp">
+                    <div class="b-col">
+                      <h3>En un Worker</h3>
+                      <p class="b-col-sub">el main queda libre · la UI sigue fluida</p>
+                      <fb-button variant="solid" [disabled]="phase() === 'worker'" (pressed)="runWorker()">
+                        Correr en worker
+                      </fb-button>
+                      @if (workerLanes(); as wl) {
+                        <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: wl, elapsedMs: 0 }" />
+                        <p class="b-foot">✓ {{ workerTicks() }} ticks · la UI nunca se trabó</p>
+                      } @else {
+                        <p class="b-hint">Tocá para ver el worker emitir ticks mientras el main queda libre.</p>
+                      }
+                    </div>
 
-                <div class="b-col">
-                  <h3>En el Main thread</h3>
-                  <p class="b-col-sub">el main se bloquea · la UI se congela ~2,5s</p>
-                  <fb-button [disabled]="phase() === 'main'" (pressed)="runMain()">Bloquear main</fb-button>
-                  @if (mainLanes(); as ml) {
-                    <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: ml, elapsedMs: 0 }" />
-                    <p class="b-foot b-danger">✗ se congeló · {{ mainTicks() }} ticks que no se pintaron</p>
+                    <div class="b-col">
+                      <h3>En el Main thread</h3>
+                      <p class="b-col-sub">el main se bloquea · la UI se congela ~2,5s</p>
+                      <fb-button [disabled]="phase() === 'main'" (pressed)="runMain()">Bloquear main</fb-button>
+                      @if (mainLanes(); as ml) {
+                        <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: ml, elapsedMs: 0 }" />
+                        <p class="b-foot b-danger">✗ se congeló · {{ mainTicks() }} ticks que no se pintaron</p>
+                      } @else {
+                        <p class="b-hint">Tocá y la página se congela: el contador no actualiza, los clicks mueren.</p>
+                      }
+                    </div>
+                  </div>
+                </fb-card>
+              }
+
+              @case ('message-exchange') {
+                <fb-card title="Ida y vuelta">
+                  <p class="b-lead">
+                    {{ content()?.whatToWatch ?? 'Enviá un mensaje y mirá el ida y vuelta entre el main y el worker.' }}
+                  </p>
+                  <div class="b-send">
+                    <input
+                      #msg
+                      type="text"
+                      class="b-input"
+                      value="hola"
+                      placeholder="escribí un mensaje…"
+                      (keyup.enter)="send(msg.value); msg.value = ''"
+                    />
+                    <fb-button variant="solid" [disabled]="pending()" (pressed)="send(msg.value); msg.value = ''">
+                      Enviar →
+                    </fb-button>
+                    @if (messages().length) {
+                      <fb-button (pressed)="resetExchange()">Reset</fb-button>
+                    }
+                  </div>
+                  @if (messages().length) {
+                    <div class="b-flow">
+                      @for (m of messages(); track m.direction + m.id) {
+                        <div class="b-msg" [attr.data-dir]="m.direction">
+                          <span class="b-msg-tag">{{ m.direction === 'out' ? 'MAIN →' : '← WORKER' }}</span>
+                          <span class="b-msg-text">{{ m.text }}</span>
+                          @if (m.roundTripMs != null) {
+                            <span class="b-msg-rt">{{ m.roundTripMs }} ms</span>
+                          }
+                        </div>
+                      }
+                      @if (pending()) {
+                        <div class="b-msg b-msg-wait" data-dir="in">
+                          <span class="b-msg-tag">← WORKER</span>
+                          <span class="b-msg-text">procesando…</span>
+                        </div>
+                      }
+                    </div>
                   } @else {
-                    <p class="b-hint">Tocá y la página se congela: el contador no actualiza, los clicks mueren.</p>
+                    <p class="b-hint">Escribí un mensaje y enviálo: va al worker (→) y vuelve la respuesta (←) con su round-trip.</p>
                   }
-                </div>
-              </div>
-            </fb-card>
+                </fb-card>
+              }
+            }
 
             @if (content()?.takeaways; as tk) {
               <fb-card [title]="tk.title">
@@ -281,6 +331,71 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
         color: var(--thread-blocked);
       }
 
+      /* ── message-exchange (ej. 03) ── */
+      .b-send {
+        display: flex;
+        gap: 12px;
+        align-items: stretch;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+      }
+      .b-input {
+        flex: 1 1 220px;
+        font-family: var(--font-mono);
+        font-size: 14px;
+        padding: 10px 14px;
+        background: var(--surface-raised);
+        color: var(--ink);
+        border: var(--border-width) solid var(--border);
+        border-radius: var(--radius);
+        outline: none;
+      }
+      .b-input::placeholder {
+        color: var(--ink-muted);
+      }
+      .b-flow {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .b-msg {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        max-width: 80%;
+        padding: 8px 12px;
+        border: var(--border-width) solid var(--border);
+        background: var(--surface-raised);
+        color: var(--ink);
+        font-family: var(--font-mono);
+        font-size: 13px;
+        animation: wwp-seg-in 0.18s ease-out;
+      }
+      .b-msg[data-dir='out'] {
+        margin-right: auto;
+      }
+      .b-msg[data-dir='in'] {
+        margin-left: auto;
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .b-msg-wait {
+        opacity: 0.7;
+      }
+      .b-msg-tag {
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .b-msg-text {
+        word-break: break-word;
+      }
+      .b-msg-rt {
+        margin-left: auto;
+        padding-left: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
       /* Code-blocks encajados: colapsan sus bordes 3px en una sola línea. */
       .b-code-stack > fb-code-block {
         display: block;
@@ -301,6 +416,7 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
 export class FullBrutalistExampleLayoutComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly runner = inject(ExampleRunnerService);
+  private readonly exchange = inject(MessageExchangeService);
 
   /** Implementación del ThreadVisualizer del theme activo, resuelta por DI. */
   protected readonly visualizer = inject(THREAD_VISUALIZER);
@@ -314,11 +430,25 @@ export class FullBrutalistExampleLayoutComponent {
   );
   protected readonly content = inject(ExampleContentService).contentFor(this.id);
 
+  // thread-block (01)
   protected readonly workerLanes = this.runner.workerLanes;
   protected readonly mainLanes = this.runner.mainLanes;
   protected readonly workerTicks = this.runner.workerTicks;
   protected readonly mainTicks = this.runner.mainTicks;
   protected readonly phase = this.runner.phase;
+
+  // message-exchange (03)
+  protected readonly messages = this.exchange.messages;
+  protected readonly pending = this.exchange.pending;
+
+  constructor() {
+    effect(() => {
+      const ex = this.example();
+      if (ex?.demo === 'message-exchange') {
+        this.exchange.open(ex);
+      }
+    });
+  }
 
   runWorker(): void {
     const ex = this.example();
@@ -329,5 +459,17 @@ export class FullBrutalistExampleLayoutComponent {
 
   runMain(): void {
     this.runner.runMainBlockingDemo();
+  }
+
+  send(text: string): void {
+    this.exchange.send(text);
+  }
+
+  resetExchange(): void {
+    const ex = this.example();
+    this.exchange.reset();
+    if (ex?.demo === 'message-exchange') {
+      this.exchange.open(ex);
+    }
   }
 }
