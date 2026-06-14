@@ -8,7 +8,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint:boundaries": "depcruise src --config .dependency-cruiser.cjs"
+    "lint:boundaries": "depcruise src --config .dependency-cruiser.cjs",
+    "screenshots": "node scripts/shots-all.mjs"
   },
   "prettier": {
     "printWidth": 100,

@@ -1,6 +1,15 @@
 import { chromium } from 'playwright';
+import { rm, mkdir } from 'node:fs/promises';
+
 const base = 'http://localhost:4200';
 const themes = ['brutalist', 'full-brutalist', 'dev-tool', 'editorial', 'narrative'];
+
+// Reemplazo limpio: borrar las capturas viejas y recrear la carpeta desde cero,
+// así no quedan archivos huérfanos si cambian los themes/nombres.
+const dir = 'docs/screenshots';
+await rm(dir, { recursive: true, force: true });
+await mkdir(dir, { recursive: true });
+
 const browser = await chromium.launch();
 // Fijamos idioma para capturas consistentes (el usuario escribe en español).
 const ctx = await browser.newContext({ viewport: { width: 1100, height: 1400 } });
