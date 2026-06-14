@@ -26,9 +26,9 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
 
         @if (ex.workerFactory) {
           <div class="e-controls">
-            <editorial-button variant="solid" (pressed)="start()">Ejecutar</editorial-button>
-            <editorial-button (pressed)="stop()">Detener</editorial-button>
-            <span class="e-tick">tick {{ lastTick() }}</span>
+            <editorial-button variant="solid" [disabled]="running()" (pressed)="start()">Ejecutar</editorial-button>
+            <editorial-button [disabled]="!running()" (pressed)="stop()">Detener</editorial-button>
+            <span class="e-tick">{{ running() ? '● corriendo' : '○ detenido' }} · tick {{ lastTick() }}</span>
           </div>
 
           <ng-container
@@ -101,6 +101,7 @@ export class EditorialExampleLayoutComponent {
   protected readonly lanes = this.monitor.lanes;
   protected readonly elapsedMs = this.monitor.elapsedMs;
   protected readonly lastTick = this.runner.lastTick;
+  protected readonly running = computed(() => this.runner.runningId() === this.example()?.id);
 
   start(): void {
     const ex = this.example();

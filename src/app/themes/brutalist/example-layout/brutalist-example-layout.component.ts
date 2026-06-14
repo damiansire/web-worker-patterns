@@ -31,9 +31,9 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
 
         @if (ex.workerFactory) {
           <div class="b-controls">
-            <brutalist-button variant="solid" (pressed)="start()">START</brutalist-button>
-            <brutalist-button (pressed)="stop()">STOP</brutalist-button>
-            <span class="b-tick">TICK {{ lastTick() }}</span>
+            <brutalist-button variant="solid" [disabled]="running()" (pressed)="start()">START</brutalist-button>
+            <brutalist-button [disabled]="!running()" (pressed)="stop()">STOP</brutalist-button>
+            <span class="b-tick">{{ running() ? '● RUNNING' : '○ IDLE' }} · TICK {{ lastTick() }}</span>
           </div>
 
           <ng-container
@@ -107,6 +107,8 @@ export class BrutalistExampleLayoutComponent {
   protected readonly lanes = this.monitor.lanes;
   protected readonly elapsedMs = this.monitor.elapsedMs;
   protected readonly lastTick = this.runner.lastTick;
+  /** ¿Este ejemplo está corriendo? Persiste al cambiar de theme (§10.9). */
+  protected readonly running = computed(() => this.runner.runningId() === this.example()?.id);
 
   start(): void {
     const ex = this.example();

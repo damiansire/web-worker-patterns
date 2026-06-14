@@ -26,9 +26,9 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
 
         @if (ex.workerFactory) {
           <div class="n-controls">
-            <narrative-button variant="solid" (pressed)="start()">Ejecutar</narrative-button>
-            <narrative-button (pressed)="stop()">Detener</narrative-button>
-            <span class="n-tick">tick {{ lastTick() }}</span>
+            <narrative-button variant="solid" [disabled]="running()" (pressed)="start()">Ejecutar</narrative-button>
+            <narrative-button [disabled]="!running()" (pressed)="stop()">Detener</narrative-button>
+            <span class="n-tick">{{ running() ? '● corriendo' : '○ detenido' }} · tick {{ lastTick() }}</span>
           </div>
 
           <ng-container
@@ -99,6 +99,7 @@ export class NarrativeExampleLayoutComponent {
   protected readonly lanes = this.monitor.lanes;
   protected readonly elapsedMs = this.monitor.elapsedMs;
   protected readonly lastTick = this.runner.lastTick;
+  protected readonly running = computed(() => this.runner.runningId() === this.example()?.id);
 
   start(): void {
     const ex = this.example();

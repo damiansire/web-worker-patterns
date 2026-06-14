@@ -31,9 +31,9 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
 
         @if (ex.workerFactory) {
           <div class="dt-controls">
-            <devtool-button variant="solid" (pressed)="start()">▶ run</devtool-button>
-            <devtool-button (pressed)="stop()">■ stop</devtool-button>
-            <span class="dt-tick">tick={{ lastTick() }}</span>
+            <devtool-button variant="solid" [disabled]="running()" (pressed)="start()">▶ run</devtool-button>
+            <devtool-button [disabled]="!running()" (pressed)="stop()">■ stop</devtool-button>
+            <span class="dt-tick">{{ running() ? '● running' : '○ idle' }} · tick={{ lastTick() }}</span>
           </div>
 
           <ng-container
@@ -108,6 +108,7 @@ export class DevToolExampleLayoutComponent {
   protected readonly lanes = this.monitor.lanes;
   protected readonly elapsedMs = this.monitor.elapsedMs;
   protected readonly lastTick = this.runner.lastTick;
+  protected readonly running = computed(() => this.runner.runningId() === this.example()?.id);
 
   start(): void {
     const ex = this.example();
