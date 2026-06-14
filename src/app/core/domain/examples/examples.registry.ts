@@ -3,6 +3,7 @@ import { COUNTER_SNIPPETS } from './snippets/counter.snippets';
 import { ECHO_SNIPPETS } from './snippets/echo.snippets';
 import { PRIMES_SNIPPETS } from './snippets/primes.snippets';
 import { RISKY_SNIPPETS } from './snippets/risky.snippets';
+import { LIFECYCLE_SNIPPETS } from './snippets/lifecycle.snippets';
 
 /**
  * Registry neutral de ejemplos (ARQUITECTURA §3.1).
@@ -58,7 +59,16 @@ export const EXAMPLES: WorkerExample[] = [
       new Worker(new URL('../workers/risky.worker', import.meta.url), { type: 'module' }),
     snippets: RISKY_SNIPPETS,
   },
-  { id: '06-lifecycle-termination', order: 6, category: 'management', i18nKey: 'examples.06-lifecycle-termination', snippets: {} },
+  {
+    id: '06-lifecycle-termination',
+    order: 6,
+    category: 'management',
+    i18nKey: 'examples.06-lifecycle-termination',
+    demo: 'lifecycle',
+    workerFactory: () =>
+      new Worker(new URL('../workers/lifecycle.worker', import.meta.url), { type: 'module' }),
+    snippets: LIFECYCLE_SNIPPETS,
+  },
   { id: '07-transferable-objects', order: 7, category: 'optimization', i18nKey: 'examples.07-transferable-objects', snippets: {} },
   { id: '08-shared-worker', order: 8, category: 'communication', i18nKey: 'examples.08-shared-worker', snippets: {} },
   { id: '09-worker-limits', order: 9, category: 'management', i18nKey: 'examples.09-worker-limits', snippets: {} },

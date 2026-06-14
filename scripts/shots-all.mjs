@@ -11,10 +11,12 @@ const dir = 'docs/screenshots';
 const dir03 = `${dir}/03-basic-communication`;
 const dir04 = `${dir}/04-offloading-computation`;
 const dir05 = `${dir}/05-error-handling`;
+const dir06 = `${dir}/06-lifecycle-termination`;
 await rm(dir, { recursive: true, force: true });
 await mkdir(dir03, { recursive: true });
 await mkdir(dir04, { recursive: true });
 await mkdir(dir05, { recursive: true });
+await mkdir(dir06, { recursive: true });
 
 const browser = await chromium.launch();
 // Fijamos idioma para capturas consistentes (el usuario escribe en español).
@@ -73,6 +75,18 @@ for (const t of themes) {
   await page.getByRole('button', { name: /json válido/i }).first().click();
   await page.waitForTimeout(600);
   await page.screenshot({ path: `${dir05}/${t}.png`, fullPage: true });
+  await page.close();
+
+  // Ejemplo 06: ciclo de vida. Arrancamos la tarea y la cortamos a mitad para
+  // capturar el estado 'terminated' (progreso congelado, trabajo perdido).
+  page = await ctx.newPage();
+  await page.goto(`${base}/t/${t}/example/06-lifecycle-termination`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(700);
+  await page.getByRole('button', { name: /iniciar/i }).first().click();
+  await page.waitForTimeout(1900); // dejamos subir la barra ~5-6 pasos
+  await page.getByRole('button', { name: /terminar|terminate/i }).first().click();
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: `${dir06}/${t}.png`, fullPage: true });
   await page.close();
   console.log('done', t);
 }

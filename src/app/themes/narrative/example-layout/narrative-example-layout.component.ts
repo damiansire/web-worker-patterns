@@ -9,6 +9,7 @@ import { ExampleContentService } from '../../../core/services/example-content.se
 import { MessageExchangeService } from '../../../core/services/message-exchange.service';
 import { ComputeDemoService } from '../../../core/services/compute-demo.service';
 import { ErrorDemoService } from '../../../core/services/error-demo.service';
+import { LifecycleDemoService } from '../../../core/services/lifecycle-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { NarrativeButton } from '../primitives/narrative-button.component';
 import { NarrativeCodeBlock } from '../primitives/narrative-code-block.component';
@@ -26,7 +27,7 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
 
       @if (example(); as ex) {
         <p class="n-chap">Capítulo {{ ex.order }} · {{ ex.category }}</p>
-        <h1>{{ ex.id }}</h1>
+        <h1>{{ content()?.title ?? ex.id }}</h1>
 
         @if (ex.workerFactory) {
           @if (content()?.summary; as summary) {
@@ -174,6 +175,40 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                 <p class="n-foot">La app sigue viva: el worker no se murió, podés seguir corriendo tareas.</p>
               } @else {
                 <p class="n-hint">Enviá un JSON válido (✓ devuelve sus claves) y después uno roto (✗ el main lo captura con onerror). La página no se rompe.</p>
+              }
+            }
+
+            @case ('lifecycle') {
+              <div class="n-send">
+                <narrative-button variant="solid" [disabled]="lifeStatus() === 'running'" (pressed)="startLife()">
+                  Iniciar tarea
+                </narrative-button>
+                <narrative-button [disabled]="lifeStatus() !== 'running'" (pressed)="terminateLife()">
+                  Terminar
+                </narrative-button>
+                @if (lifeStatus() !== 'idle') {
+                  <narrative-button (pressed)="resetLife()">Reiniciar</narrative-button>
+                }
+              </div>
+
+              <div class="n-bar" [attr.data-status]="lifeStatus()">
+                <div class="n-bar-fill" [style.width.%]="lifePct()"></div>
+              </div>
+              <p class="n-bar-label">paso {{ lifeStep() }} de {{ lifeSteps() || '—' }}</p>
+
+              @switch (lifeStatus()) {
+                @case ('idle') {
+                  <p class="n-hint">Iniciá la tarea: el worker avanza por pasos. Cortala a mitad con Terminar y mirá qué queda.</p>
+                }
+                @case ('running') {
+                  <p class="n-foot">El worker está vivo, emitiendo su progreso paso a paso.</p>
+                }
+                @case ('terminated') {
+                  <p class="n-foot n-danger">Terminado en el paso {{ lifeStep() }}/{{ lifeSteps() }}: el trabajo en curso se descartó y el worker ya no existe. Para volver a correr, Iniciar crea uno nuevo.</p>
+                }
+                @case ('done') {
+                  <p class="n-foot">Completado, {{ lifeSteps() }}/{{ lifeSteps() }}: el worker terminó su trabajo y se cerró solo con self.close().</p>
+                }
               }
             }
           }
@@ -508,6 +543,31 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
         word-break: break-word;
       }
 
+      /* ── lifecycle (ej. 06): barra de progreso ── */
+      .n-bar {
+        height: 20px;
+        border: var(--border-width) solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-raised);
+        overflow: hidden;
+        margin-bottom: 8px;
+      }
+      .n-bar-fill {
+        height: 100%;
+        width: 0;
+        background: var(--thread-worker);
+        transition: width 0.25s ease-out;
+      }
+      .n-bar[data-status='terminated'] .n-bar-fill {
+        background: var(--thread-blocked);
+      }
+      .n-bar-label {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: var(--ink-muted);
+        margin: 0 0 16px;
+      }
+
       .n-note {
         font-family: var(--font-display);
         font-style: italic;
@@ -522,10 +582,13 @@ export class NarrativeExampleLayoutComponent {
   private readonly exchange = inject(MessageExchangeService);
   private readonly compute = inject(ComputeDemoService);
   private readonly errors = inject(ErrorDemoService);
+  private readonly lifecycle = inject(LifecycleDemoService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
   private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
   private readonly BROKEN_PAYLOAD = '{user: ada, role}';
+  /** Pasos de la tarea larga del ejemplo 06. */
+  private readonly LIFECYCLE_STEPS = 12;
 
   protected readonly visualizer = inject(THREAD_VISUALIZER);
 
@@ -558,6 +621,15 @@ export class NarrativeExampleLayoutComponent {
   // error-handling (05)
   protected readonly errorEvents = this.errors.events;
   protected readonly errorBusy = this.errors.busy;
+
+  // lifecycle (06)
+  protected readonly lifeStatus = this.lifecycle.status;
+  protected readonly lifeStep = this.lifecycle.step;
+  protected readonly lifeSteps = this.lifecycle.steps;
+  protected readonly lifePct = computed(() => {
+    const total = this.lifeSteps();
+    return total > 0 ? Math.round((this.lifeStep() / total) * 100) : 0;
+  });
 
   constructor() {
     effect(() => {
@@ -611,6 +683,21 @@ export class NarrativeExampleLayoutComponent {
     if (ex?.demo === 'error-handling') {
       this.errors.open(ex);
     }
+  }
+
+  startLife(): void {
+    const ex = this.example();
+    if (ex) {
+      this.lifecycle.start(ex, this.LIFECYCLE_STEPS);
+    }
+  }
+
+  terminateLife(): void {
+    this.lifecycle.terminate();
+  }
+
+  resetLife(): void {
+    this.lifecycle.reset();
   }
 
   send(text: string): void {

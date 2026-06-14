@@ -9,6 +9,7 @@ import { ExampleContentService } from '../../../core/services/example-content.se
 import { MessageExchangeService } from '../../../core/services/message-exchange.service';
 import { ComputeDemoService } from '../../../core/services/compute-demo.service';
 import { ErrorDemoService } from '../../../core/services/error-demo.service';
+import { LifecycleDemoService } from '../../../core/services/lifecycle-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { FullBrutalistButton } from '../primitives/fb-button.component';
 import { FullBrutalistCard } from '../primitives/fb-card.component';
@@ -36,7 +37,7 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
           <header class="b-head">
             <span class="b-order">{{ ex.order.toString().padStart(2, '0') }}</span>
             <div class="b-head-text">
-              <h1>{{ ex.id }}</h1>
+              <h1>{{ content()?.title ?? ex.id }}</h1>
               <span class="b-badge">{{ ex.category }}</span>
             </div>
           </header>
@@ -207,6 +208,46 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
                     <p class="b-foot">▸ La app sigue viva: el worker no se murió, seguí tirando tareas.</p>
                   } @else {
                     <p class="b-hint">Probá el JSON válido (✓ devuelve las claves) y después el roto (✗ el main lo captura con onerror). La página no se rompe.</p>
+                  }
+                </fb-card>
+              }
+
+              @case ('lifecycle') {
+                <fb-card title="Ciclo de vida">
+                  <p class="b-lead">
+                    {{ content()?.whatToWatch ?? 'Arrancá la tarea larga y cortala a mitad: el trabajo en curso se pierde.' }}
+                  </p>
+
+                  <div class="b-send">
+                    <fb-button variant="solid" [disabled]="lifeStatus() === 'running'" (pressed)="startLife()">
+                      Iniciar tarea
+                    </fb-button>
+                    <fb-button [disabled]="lifeStatus() !== 'running'" (pressed)="terminateLife()">
+                      Terminar (terminate)
+                    </fb-button>
+                    @if (lifeStatus() !== 'idle') {
+                      <fb-button (pressed)="resetLife()">Reiniciar</fb-button>
+                    }
+                  </div>
+
+                  <div class="b-bar" [attr.data-status]="lifeStatus()">
+                    <div class="b-bar-fill" [style.width.%]="lifePct()"></div>
+                  </div>
+                  <p class="b-bar-label">paso {{ lifeStep() }} de {{ lifeSteps() || '—' }}</p>
+
+                  @switch (lifeStatus()) {
+                    @case ('idle') {
+                      <p class="b-hint">Tocá Iniciar: el worker corre una tarea larga por pasos. Cortala a mitad con Terminar y mirá qué pasa.</p>
+                    }
+                    @case ('running') {
+                      <p class="b-foot">▶ corriendo… el worker está vivo emitiendo progreso.</p>
+                    }
+                    @case ('terminated') {
+                      <p class="b-foot b-danger">✗ Terminado en el paso {{ lifeStep() }}/{{ lifeSteps() }} — el trabajo en curso se descartó y el worker ya no existe. Iniciá de nuevo: se crea uno nuevo.</p>
+                    }
+                    @case ('done') {
+                      <p class="b-foot">✓ Completado {{ lifeSteps() }}/{{ lifeSteps() }} — el worker terminó su trabajo y se cerró solo (self.close).</p>
+                    }
                   }
                 </fb-card>
               }
@@ -477,6 +518,31 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
       .b-evt-text {
         word-break: break-word;
       }
+
+      /* ── lifecycle (ej. 06): barra de progreso ── */
+      .b-bar {
+        height: 22px;
+        border: var(--border-width) solid var(--border);
+        background: var(--surface-raised);
+        margin-bottom: 8px;
+        overflow: hidden;
+      }
+      .b-bar-fill {
+        height: 100%;
+        width: 0;
+        background: var(--thread-worker);
+        transition: width 0.25s ease-out;
+      }
+      .b-bar[data-status='terminated'] .b-bar-fill {
+        background: var(--thread-blocked);
+      }
+      .b-bar-label {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-weight: 700;
+        margin: 0 0 12px;
+        color: var(--ink);
+      }
       .b-msg {
         display: flex;
         align-items: baseline;
@@ -570,10 +636,13 @@ export class FullBrutalistExampleLayoutComponent {
   private readonly exchange = inject(MessageExchangeService);
   private readonly compute = inject(ComputeDemoService);
   private readonly errors = inject(ErrorDemoService);
+  private readonly lifecycle = inject(LifecycleDemoService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
   private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
   private readonly BROKEN_PAYLOAD = '{user: ada, role}';
+  /** Pasos de la tarea larga del ejemplo 06. */
+  private readonly LIFECYCLE_STEPS = 12;
 
   /** Implementación del ThreadVisualizer del theme activo, resuelta por DI. */
   protected readonly visualizer = inject(THREAD_VISUALIZER);
@@ -607,6 +676,15 @@ export class FullBrutalistExampleLayoutComponent {
   // error-handling (05)
   protected readonly errorEvents = this.errors.events;
   protected readonly errorBusy = this.errors.busy;
+
+  // lifecycle (06)
+  protected readonly lifeStatus = this.lifecycle.status;
+  protected readonly lifeStep = this.lifecycle.step;
+  protected readonly lifeSteps = this.lifecycle.steps;
+  protected readonly lifePct = computed(() => {
+    const total = this.lifeSteps();
+    return total > 0 ? Math.round((this.lifeStep() / total) * 100) : 0;
+  });
 
   constructor() {
     effect(() => {
@@ -660,6 +738,21 @@ export class FullBrutalistExampleLayoutComponent {
     if (ex?.demo === 'error-handling') {
       this.errors.open(ex);
     }
+  }
+
+  startLife(): void {
+    const ex = this.example();
+    if (ex) {
+      this.lifecycle.start(ex, this.LIFECYCLE_STEPS);
+    }
+  }
+
+  terminateLife(): void {
+    this.lifecycle.terminate();
+  }
+
+  resetLife(): void {
+    this.lifecycle.reset();
   }
 
   send(text: string): void {

@@ -9,6 +9,7 @@ import { ExampleContentService } from '../../../core/services/example-content.se
 import { MessageExchangeService } from '../../../core/services/message-exchange.service';
 import { ComputeDemoService } from '../../../core/services/compute-demo.service';
 import { ErrorDemoService } from '../../../core/services/error-demo.service';
+import { LifecycleDemoService } from '../../../core/services/lifecycle-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { DevToolButton } from '../primitives/devtool-button.component';
 import { DevToolCodeBlock } from '../primitives/devtool-code-block.component';
@@ -29,7 +30,7 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
 
       @if (example(); as ex) {
         <h1>
-          <span class="dt-order">{{ ex.order.toString().padStart(2, '0') }}</span> {{ ex.id }}
+          <span class="dt-order">{{ ex.order.toString().padStart(2, '0') }}</span> {{ content()?.title ?? ex.id }}
         </h1>
         <p class="dt-cat">{{ ex.category }}</p>
 
@@ -200,6 +201,46 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                     <p class="dt-ok">// la app sigue viva: el worker no se murió, seguí mandando tareas</p>
                   } @else {
                     <p class="dt-hint">// mandá un json válido (✓ claves) y después uno roto (✗ onerror lo captura). la página no se rompe</p>
+                  }
+                </div>
+              </section>
+            }
+
+            @case ('lifecycle') {
+              <section class="dt-panel">
+                <header class="dt-panel-h">// ciclo de vida · worker.terminate()</header>
+                @if (content()?.whatToWatch; as ww) {
+                  <p class="dt-panel-b dt-watch">{{ ww }}</p>
+                }
+                <div class="dt-panel-b">
+                  <div class="dt-send">
+                    <devtool-button variant="solid" [disabled]="lifeStatus() === 'running'" (pressed)="startLife()">
+                      ▶ iniciar
+                    </devtool-button>
+                    <devtool-button [disabled]="lifeStatus() !== 'running'" (pressed)="terminateLife()">■ terminate</devtool-button>
+                    @if (lifeStatus() !== 'idle') {
+                      <devtool-button (pressed)="resetLife()">reset</devtool-button>
+                    }
+                  </div>
+
+                  <div class="dt-bar" [attr.data-status]="lifeStatus()">
+                    <div class="dt-bar-fill" [style.width.%]="lifePct()"></div>
+                  </div>
+                  <p class="dt-bar-label">paso {{ lifeStep() }} / {{ lifeSteps() || '—' }}</p>
+
+                  @switch (lifeStatus()) {
+                    @case ('idle') {
+                      <p class="dt-hint">// tocá iniciar y cortá a mitad con terminate: el paso en curso se descarta</p>
+                    }
+                    @case ('running') {
+                      <p class="dt-ok">// running · el worker está vivo emitiendo progreso</p>
+                    }
+                    @case ('terminated') {
+                      <p class="dt-bad">// terminated en paso {{ lifeStep() }}/{{ lifeSteps() }} · trabajo en curso perdido · el worker ya no existe (iniciá → se crea uno nuevo)</p>
+                    }
+                    @case ('done') {
+                      <p class="dt-ok">// done {{ lifeSteps() }}/{{ lifeSteps() }} · el worker se cerró solo (self.close)</p>
+                    }
                   }
                 </div>
               </section>
@@ -512,6 +553,31 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
         word-break: break-word;
       }
 
+      /* ── lifecycle (ej. 06): barra de progreso ── */
+      .dt-bar {
+        height: 18px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        overflow: hidden;
+        margin-bottom: 6px;
+      }
+      .dt-bar-fill {
+        height: 100%;
+        width: 0;
+        background: var(--accent);
+        transition: width 0.25s ease-out;
+      }
+      .dt-bar[data-status='terminated'] .dt-bar-fill {
+        background: var(--thread-blocked);
+      }
+      .dt-bar-label {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--ink-muted);
+        margin: 0 0 12px;
+      }
+
       .dt-note {
         font-family: var(--font-mono);
         color: var(--ink-muted);
@@ -525,10 +591,13 @@ export class DevToolExampleLayoutComponent {
   private readonly exchange = inject(MessageExchangeService);
   private readonly compute = inject(ComputeDemoService);
   private readonly errors = inject(ErrorDemoService);
+  private readonly lifecycle = inject(LifecycleDemoService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
   private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
   private readonly BROKEN_PAYLOAD = '{user: ada, role}';
+  /** Pasos de la tarea larga del ejemplo 06. */
+  private readonly LIFECYCLE_STEPS = 12;
 
   protected readonly visualizer = inject(THREAD_VISUALIZER);
 
@@ -561,6 +630,15 @@ export class DevToolExampleLayoutComponent {
   // error-handling (05)
   protected readonly errorEvents = this.errors.events;
   protected readonly errorBusy = this.errors.busy;
+
+  // lifecycle (06)
+  protected readonly lifeStatus = this.lifecycle.status;
+  protected readonly lifeStep = this.lifecycle.step;
+  protected readonly lifeSteps = this.lifecycle.steps;
+  protected readonly lifePct = computed(() => {
+    const total = this.lifeSteps();
+    return total > 0 ? Math.round((this.lifeStep() / total) * 100) : 0;
+  });
 
   constructor() {
     effect(() => {
@@ -614,6 +692,21 @@ export class DevToolExampleLayoutComponent {
     if (ex?.demo === 'error-handling') {
       this.errors.open(ex);
     }
+  }
+
+  startLife(): void {
+    const ex = this.example();
+    if (ex) {
+      this.lifecycle.start(ex, this.LIFECYCLE_STEPS);
+    }
+  }
+
+  terminateLife(): void {
+    this.lifecycle.terminate();
+  }
+
+  resetLife(): void {
+    this.lifecycle.reset();
   }
 
   send(text: string): void {

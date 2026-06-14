@@ -65,6 +65,22 @@
         ],
         "tip": "Chame event.preventDefault() no onerror para silenciar o log vermelho do console se você já mostra o erro na sua UI."
       }
+    },
+    "06-lifecycle-termination": {
+      "title": "Ciclo de vida e terminação",
+      "summary": "Um worker não vive para sempre: você o cria, ele roda, e você o termina. Aqui você inicia uma tarefa longa que avança passo a passo e pode cortá-la no meio. terminate() mata o worker na hora — o passo em andamento se perde e esse worker não pode ser reutilizado.",
+      "whatToWatch": "Inicie a tarefa e veja a barra subir. Toque em Terminar no meio: o progresso congela onde estava e o worker deixa de existir. Para rodar de novo é preciso criar um novo (o botão Iniciar faz isso). Se deixar terminar, o worker se fecha sozinho com self.close().",
+      "note": "terminate() é abrupto: sem limpeza, sem despedida — o worker morre com seu trabalho em andamento (o setTimeout pendente vai junto). Um worker terminado não reinicia: cria-se outro. De dentro, o worker pode se fechar com self.close() quando termina seu trabalho.",
+      "takeaways": {
+        "title": "Pontos-chave",
+        "items": [
+          "worker.terminate() mata o worker na hora a partir da thread principal",
+          "O trabalho em andamento é descartado: sem limpeza, sem evento de fechamento",
+          "Um worker terminado não é reutilizado: crie um novo para rodar de novo",
+          "self.close() deixa o worker se fechar sozinho quando termina"
+        ],
+        "tip": "Termine os workers que não usa mais: continuam ocupando memória e uma thread mesmo ociosos."
+      }
     }
   }
 }

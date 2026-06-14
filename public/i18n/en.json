@@ -65,6 +65,22 @@
         ],
         "tip": "Call event.preventDefault() in onerror to silence the red console log if you already surface the error in your UI."
       }
+    },
+    "06-lifecycle-termination": {
+      "title": "Lifecycle and termination",
+      "summary": "A worker doesn't live forever: you create it, it runs, and you terminate it. Here you start a long task that advances step by step and can cut it off midway. terminate() kills the worker instantly — the in-flight step is lost and that worker can't be reused.",
+      "whatToWatch": "Start the task and watch the bar climb. Hit Terminate midway: progress freezes where it was and the worker stops existing. To run again you must create a new one (the Start button does that). If you let it finish, the worker closes itself with self.close().",
+      "note": "terminate() is abrupt: no cleanup, no goodbye — the worker dies with its in-flight work (the pending setTimeout goes with it). A terminated worker can't be restarted: you make a new one. From the inside, a worker can close itself with self.close() once its work is done.",
+      "takeaways": {
+        "title": "Key takeaways",
+        "items": [
+          "worker.terminate() kills the worker instantly from the main thread",
+          "In-flight work is discarded: no cleanup, no close event",
+          "A terminated worker can't be reused: create a new one to run again",
+          "self.close() lets the worker close itself when it's done"
+        ],
+        "tip": "Terminate workers you no longer use: they keep holding memory and a thread even while idle."
+      }
     }
   }
 }
