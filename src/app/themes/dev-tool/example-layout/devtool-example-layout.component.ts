@@ -7,6 +7,7 @@ import { findExample } from '../../../core/domain/examples/examples.registry';
 import { ExampleRunnerService } from '../../../core/services/example-runner.service';
 import { ExampleContentService } from '../../../core/services/example-content.service';
 import { MessageExchangeService } from '../../../core/services/message-exchange.service';
+import { ComputeDemoService } from '../../../core/services/compute-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { DevToolButton } from '../primitives/devtool-button.component';
 import { DevToolCodeBlock } from '../primitives/devtool-code-block.component';
@@ -119,6 +120,48 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                   } @else {
                     <p class="dt-hint">// escribí un mensaje y enviálo: → va al worker, ← vuelve con su round-trip</p>
                   }
+                </div>
+              </section>
+            }
+
+            @case ('offload') {
+              <section class="dt-panel">
+                <header class="dt-panel-h">// cómputo pesado · worker vs main thread</header>
+                @if (content()?.whatToWatch; as ww) {
+                  <p class="dt-panel-b dt-watch">{{ ww }}</p>
+                }
+                <div class="dt-panel-b">
+                  <div class="dt-nrow">
+                    <span class="dt-prompt">const N =</span>
+                    <input #n class="dt-input-n" type="number" value="500000" min="10000" step="100000" />
+                    <span class="dt-nhint">// contar primos hasta N · subilo y el freeze dura más</span>
+                  </div>
+                </div>
+                <div class="dt-panel-b dt-cmp">
+                  <div class="dt-col">
+                    <h3>en un worker</h3>
+                    <p class="dt-sub">otro hilo · UI fluida</p>
+                    <devtool-button variant="solid" [disabled]="computePhase() === 'worker'" (pressed)="computeWorker(n.value)">
+                      ▶ correr en worker
+                    </devtool-button>
+                    @if (computePhase() === 'worker') {
+                      <p class="dt-ok">⏱ {{ liveMs() }} ms · calculando, la UI responde</p>
+                    } @else if (workerResult(); as r) {
+                      <p class="dt-ok">✓ {{ r.count }} primos · {{ r.ms }} ms · sin jank</p>
+                    } @else {
+                      <p class="dt-hint">// el cálculo corre en otro hilo; el cronómetro sigue subiendo</p>
+                    }
+                  </div>
+                  <div class="dt-col">
+                    <h3>en el main thread</h3>
+                    <p class="dt-sub">hilo bloqueado · UI congelada</p>
+                    <devtool-button [disabled]="computePhase() === 'main'" (pressed)="computeMain(n.value)">▶ bloquear main</devtool-button>
+                    @if (mainResult(); as r) {
+                      <p class="dt-bad">✗ {{ r.count }} primos · congelado {{ r.ms }} ms</p>
+                    } @else {
+                      <p class="dt-hint">// la página entera se congela hasta terminar: ni scroll</p>
+                    }
+                  </div>
                 </div>
               </section>
             }
@@ -371,6 +414,30 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
         white-space: nowrap;
       }
 
+      /* ── offload (ej. 04): input N ── */
+      .dt-nrow {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        font-family: var(--font-mono);
+      }
+      .dt-input-n {
+        width: 130px;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        padding: 6px 10px;
+        background: var(--surface);
+        color: var(--ink);
+        border: var(--border-width) solid var(--border);
+        border-radius: var(--radius);
+        outline: none;
+      }
+      .dt-nhint {
+        font-size: 11px;
+        color: var(--ink-muted);
+      }
+
       .dt-note {
         font-family: var(--font-mono);
         color: var(--ink-muted);
@@ -382,6 +449,7 @@ export class DevToolExampleLayoutComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly runner = inject(ExampleRunnerService);
   private readonly exchange = inject(MessageExchangeService);
+  private readonly compute = inject(ComputeDemoService);
 
   protected readonly visualizer = inject(THREAD_VISUALIZER);
 
@@ -405,6 +473,12 @@ export class DevToolExampleLayoutComponent {
   protected readonly messages = this.exchange.messages;
   protected readonly pending = this.exchange.pending;
 
+  // offload (04)
+  protected readonly workerResult = this.compute.workerResult;
+  protected readonly mainResult = this.compute.mainResult;
+  protected readonly liveMs = this.compute.liveMs;
+  protected readonly computePhase = this.compute.phase;
+
   constructor() {
     effect(() => {
       const ex = this.example();
@@ -423,6 +497,22 @@ export class DevToolExampleLayoutComponent {
 
   runMain(): void {
     this.runner.runMainBlockingDemo();
+  }
+
+  computeWorker(value: string): void {
+    const ex = this.example();
+    if (ex) {
+      this.compute.runWorker(ex, this.parseN(value));
+    }
+  }
+
+  computeMain(value: string): void {
+    this.compute.runMain(this.parseN(value));
+  }
+
+  private parseN(value: string): number {
+    const n = Number(value);
+    return Number.isFinite(n) && n > 0 ? Math.min(n, 5_000_000) : 500_000;
   }
 
   send(text: string): void {

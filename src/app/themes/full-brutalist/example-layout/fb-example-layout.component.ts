@@ -7,6 +7,7 @@ import { findExample } from '../../../core/domain/examples/examples.registry';
 import { ExampleRunnerService } from '../../../core/services/example-runner.service';
 import { ExampleContentService } from '../../../core/services/example-content.service';
 import { MessageExchangeService } from '../../../core/services/message-exchange.service';
+import { ComputeDemoService } from '../../../core/services/compute-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { FullBrutalistButton } from '../primitives/fb-button.component';
 import { FullBrutalistCard } from '../primitives/fb-card.component';
@@ -125,6 +126,48 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
                   } @else {
                     <p class="b-hint">Escribí un mensaje y enviálo: va al worker (→) y vuelve la respuesta (←) con su round-trip.</p>
                   }
+                </fb-card>
+              }
+
+              @case ('offload') {
+                <fb-card title="Cómputo pesado">
+                  <p class="b-lead">
+                    {{ content()?.whatToWatch ?? 'El mismo cálculo pesado en los dos hilos. Mirá cuál congela la UI.' }}
+                  </p>
+
+                  <div class="b-nrow">
+                    <span class="b-nlabel">N =</span>
+                    <input #n type="number" class="b-input-n" value="500000" min="10000" step="100000" />
+                    <span class="b-nhint">contar primos hasta N · subilo y el freeze dura más</span>
+                  </div>
+
+                  <div class="b-cmp">
+                    <div class="b-col">
+                      <h3>En un Worker</h3>
+                      <p class="b-col-sub">corre en otro hilo · la UI sigue fluida</p>
+                      <fb-button variant="solid" [disabled]="computePhase() === 'worker'" (pressed)="computeWorker(n.value)">
+                        Calcular en worker
+                      </fb-button>
+                      @if (computePhase() === 'worker') {
+                        <p class="b-foot">calculando… ⏱ {{ liveMs() }} ms · la UI responde</p>
+                      } @else if (workerResult(); as r) {
+                        <p class="b-foot">✓ {{ r.count }} primos · {{ r.ms }} ms · la UI nunca se trabó</p>
+                      } @else {
+                        <p class="b-hint">Tocá: el cálculo corre en otro hilo y el cronómetro sigue subiendo — el main queda libre.</p>
+                      }
+                    </div>
+
+                    <div class="b-col">
+                      <h3>En el Main thread</h3>
+                      <p class="b-col-sub">bloquea el hilo · la UI se congela</p>
+                      <fb-button [disabled]="computePhase() === 'main'" (pressed)="computeMain(n.value)">Calcular en el main</fb-button>
+                      @if (mainResult(); as r) {
+                        <p class="b-foot b-danger">✗ {{ r.count }} primos · la página se congeló {{ r.ms }} ms</p>
+                      } @else {
+                        <p class="b-hint">Tocá y la página entera se congela hasta terminar: no podés ni scrollear.</p>
+                      }
+                    </div>
+                  </div>
                 </fb-card>
               }
             }
@@ -403,6 +446,34 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
         white-space: nowrap;
       }
 
+      /* ── offload (ej. 04): input N ── */
+      .b-nrow {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+        font-family: var(--font-mono);
+      }
+      .b-nlabel {
+        font-weight: 700;
+      }
+      .b-input-n {
+        width: 140px;
+        font-family: var(--font-mono);
+        font-size: 14px;
+        padding: 8px 12px;
+        background: var(--surface-raised);
+        color: var(--ink);
+        border: var(--border-width) solid var(--border);
+        border-radius: var(--radius);
+        outline: none;
+      }
+      .b-nhint {
+        font-size: 11px;
+        color: var(--ink-muted);
+      }
+
       /* Code-blocks encajados: colapsan sus bordes 3px en una sola línea. */
       .b-code-stack > fb-code-block {
         display: block;
@@ -424,6 +495,7 @@ export class FullBrutalistExampleLayoutComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly runner = inject(ExampleRunnerService);
   private readonly exchange = inject(MessageExchangeService);
+  private readonly compute = inject(ComputeDemoService);
 
   /** Implementación del ThreadVisualizer del theme activo, resuelta por DI. */
   protected readonly visualizer = inject(THREAD_VISUALIZER);
@@ -448,6 +520,12 @@ export class FullBrutalistExampleLayoutComponent {
   protected readonly messages = this.exchange.messages;
   protected readonly pending = this.exchange.pending;
 
+  // offload (04)
+  protected readonly workerResult = this.compute.workerResult;
+  protected readonly mainResult = this.compute.mainResult;
+  protected readonly liveMs = this.compute.liveMs;
+  protected readonly computePhase = this.compute.phase;
+
   constructor() {
     effect(() => {
       const ex = this.example();
@@ -466,6 +544,22 @@ export class FullBrutalistExampleLayoutComponent {
 
   runMain(): void {
     this.runner.runMainBlockingDemo();
+  }
+
+  computeWorker(value: string): void {
+    const ex = this.example();
+    if (ex) {
+      this.compute.runWorker(ex, this.parseN(value));
+    }
+  }
+
+  computeMain(value: string): void {
+    this.compute.runMain(this.parseN(value));
+  }
+
+  private parseN(value: string): number {
+    const n = Number(value);
+    return Number.isFinite(n) && n > 0 ? Math.min(n, 5_000_000) : 500_000;
   }
 
   send(text: string): void {

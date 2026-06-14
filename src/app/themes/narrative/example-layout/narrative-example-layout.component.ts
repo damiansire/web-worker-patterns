@@ -7,6 +7,7 @@ import { findExample } from '../../../core/domain/examples/examples.registry';
 import { ExampleRunnerService } from '../../../core/services/example-runner.service';
 import { ExampleContentService } from '../../../core/services/example-content.service';
 import { MessageExchangeService } from '../../../core/services/message-exchange.service';
+import { ComputeDemoService } from '../../../core/services/compute-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { NarrativeButton } from '../primitives/narrative-button.component';
 import { NarrativeCodeBlock } from '../primitives/narrative-code-block.component';
@@ -106,6 +107,41 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
               } @else {
                 <p class="n-hint">Enviá un mensaje: viaja al worker (→) y vuelve la respuesta (←) con su round-trip.</p>
               }
+            }
+
+            @case ('offload') {
+              <div class="n-nrow">
+                <label class="n-nlabel" for="n-n">Contar primos hasta N =</label>
+                <input #n id="n-n" class="n-input-n" type="number" value="500000" min="10000" step="100000" />
+                <span class="n-nhint">subilo y el freeze del main dura más</span>
+              </div>
+              <div class="n-cmp">
+                <section class="n-col">
+                  <h2>En un Worker</h2>
+                  <p class="n-sub">corre en otro hilo · la UI sigue fluida</p>
+                  <narrative-button variant="solid" [disabled]="computePhase() === 'worker'" (pressed)="computeWorker(n.value)">
+                    Calcular en worker
+                  </narrative-button>
+                  @if (computePhase() === 'worker') {
+                    <p class="n-foot">calculando… {{ liveMs() }} ms · la UI responde mientras tanto</p>
+                  } @else if (workerResult(); as r) {
+                    <p class="n-foot n-ok"><span class="n-ok-mark">✓</span> {{ r.count }} primos · {{ r.ms }} ms · la UI nunca se trabó</p>
+                  } @else {
+                    <p class="n-hint">Tocá: el cálculo corre en otro hilo y el cronómetro sigue subiendo en vivo.</p>
+                  }
+                </section>
+
+                <section class="n-col">
+                  <h2>En el Main thread</h2>
+                  <p class="n-sub">bloquea el hilo · la página se congela</p>
+                  <narrative-button [disabled]="computePhase() === 'main'" (pressed)="computeMain(n.value)">Calcular en el main</narrative-button>
+                  @if (mainResult(); as r) {
+                    <p class="n-foot n-danger">{{ r.count }} primos · la página se congeló {{ r.ms }} ms</p>
+                  } @else {
+                    <p class="n-hint">Tocá y la página entera se congela hasta terminar: no podés ni scrollear.</p>
+                  }
+                </section>
+              </div>
             }
           }
 
@@ -260,6 +296,14 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
         font-style: normal;
         font-weight: 600;
       }
+      .n-ok {
+        color: var(--ink);
+        font-style: normal;
+      }
+      .n-ok-mark {
+        color: var(--thread-main);
+        font-weight: 700;
+      }
       .n-code-title {
         font-family: var(--font-display);
         font-weight: 600;
@@ -344,6 +388,40 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
         color: var(--ink-muted);
       }
 
+      /* ── offload (ej. 04): entrada N ── */
+      .n-nrow {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 28px;
+      }
+      .n-nlabel {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 18px;
+      }
+      .n-input-n {
+        width: 150px;
+        font-family: var(--font-body);
+        font-size: 16px;
+        padding: 9px 14px;
+        background: var(--surface-raised);
+        color: var(--ink);
+        border: var(--border-width) solid var(--border);
+        border-radius: var(--radius);
+        outline: none;
+      }
+      .n-input-n:focus {
+        border-color: var(--accent);
+      }
+      .n-nhint {
+        font-family: var(--font-display);
+        font-style: italic;
+        font-size: 13px;
+        color: var(--ink-muted);
+      }
+
       .n-note {
         font-family: var(--font-display);
         font-style: italic;
@@ -356,6 +434,7 @@ export class NarrativeExampleLayoutComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly runner = inject(ExampleRunnerService);
   private readonly exchange = inject(MessageExchangeService);
+  private readonly compute = inject(ComputeDemoService);
 
   protected readonly visualizer = inject(THREAD_VISUALIZER);
 
@@ -379,6 +458,12 @@ export class NarrativeExampleLayoutComponent {
   protected readonly messages = this.exchange.messages;
   protected readonly pending = this.exchange.pending;
 
+  // offload (04)
+  protected readonly workerResult = this.compute.workerResult;
+  protected readonly mainResult = this.compute.mainResult;
+  protected readonly liveMs = this.compute.liveMs;
+  protected readonly computePhase = this.compute.phase;
+
   constructor() {
     effect(() => {
       const ex = this.example();
@@ -397,6 +482,22 @@ export class NarrativeExampleLayoutComponent {
 
   runMain(): void {
     this.runner.runMainBlockingDemo();
+  }
+
+  computeWorker(value: string): void {
+    const ex = this.example();
+    if (ex) {
+      this.compute.runWorker(ex, this.parseN(value));
+    }
+  }
+
+  computeMain(value: string): void {
+    this.compute.runMain(this.parseN(value));
+  }
+
+  private parseN(value: string): number {
+    const n = Number(value);
+    return Number.isFinite(n) && n > 0 ? Math.min(n, 5_000_000) : 500_000;
   }
 
   send(text: string): void {
