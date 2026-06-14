@@ -7,7 +7,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "lint:boundaries": "depcruise src --config .dependency-cruiser.cjs"
   },
   "prettier": {
     "printWidth": 100,
@@ -30,6 +31,7 @@
     "@angular/forms": "^21.2.0",
     "@angular/platform-browser": "^21.2.0",
     "@angular/router": "^21.2.0",
+    "@jsverse/transloco": "^7.6.1",
     "highlight.js": "^11.11.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
@@ -38,6 +40,7 @@
     "@angular/build": "^21.2.0",
     "@angular/cli": "^21.2.0",
     "@angular/compiler-cli": "^21.2.0",
+    "dependency-cruiser": "^16.10.4",
     "jsdom": "^27.0.0",
     "typescript": "~5.9.2",
     "vitest": "^4.0.0"
