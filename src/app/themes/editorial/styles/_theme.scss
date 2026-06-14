@@ -1,0 +1,8 @@
+/** Estilos globales del theme editorial, en su cascade layer (§7a). */
+@layer theme-editorial {
+  [data-theme='editorial'] body {
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-body);
+  }
+}

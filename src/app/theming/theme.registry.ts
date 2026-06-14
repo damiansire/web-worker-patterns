@@ -4,13 +4,21 @@ import { ThemeId, ThemePack } from './theme.types';
 import { SKELETON_THEME } from '../themes/skeleton/skeleton.theme';
 import { BRUTALIST_THEME } from '../themes/brutalist/brutalist.theme';
 import { DEVTOOL_THEME } from '../themes/dev-tool/devtool.theme';
+import { EDITORIAL_THEME } from '../themes/editorial/editorial.theme';
+import { NARRATIVE_THEME } from '../themes/narrative/narrative.theme';
 
 /**
  * Themes registrados. A medida que se implementan (fases 5-7) se agregan acá:
  * cada ThemePack es liviano (solo metadata + loaders lazy), así importarlo no
  * arrastra el chunk del theme.
  */
-export const THEME_PACKS: ThemePack[] = [SKELETON_THEME, BRUTALIST_THEME, DEVTOOL_THEME];
+export const THEME_PACKS: ThemePack[] = [
+  SKELETON_THEME,
+  BRUTALIST_THEME,
+  DEVTOOL_THEME,
+  EDITORIAL_THEME,
+  NARRATIVE_THEME,
+];
 
 export function buildThemeRegistry(packs: ThemePack[] = THEME_PACKS): Map<ThemeId, ThemePack> {
   return new Map(packs.map((pack) => [pack.id, pack] as const));

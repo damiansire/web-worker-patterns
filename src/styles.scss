@@ -12,6 +12,10 @@
 @use './app/themes/brutalist/styles/theme' as brutalist-theme;
 @use './app/themes/dev-tool/styles/tokens' as devtool-tokens;
 @use './app/themes/dev-tool/styles/theme' as devtool-theme;
+@use './app/themes/editorial/styles/tokens' as editorial-tokens;
+@use './app/themes/editorial/styles/theme' as editorial-theme;
+@use './app/themes/narrative/styles/tokens' as narrative-tokens;
+@use './app/themes/narrative/styles/theme' as narrative-theme;
 
 // Syntax highlighting theme
 @import 'highlight.js/styles/github-dark.css';
