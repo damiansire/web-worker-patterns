@@ -2,15 +2,14 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter, convertToParamMap } from '@angular/router';
 import { of } from 'rxjs';
 import { BrutalistExampleLayoutComponent } from './brutalist-example-layout.component';
-import { ThreadMonitorService } from '../../../core/services/thread-monitor.service';
+import { ExampleRunnerService } from '../../../core/services/example-runner.service';
 
 /**
- * Prueba la vertical del ejemplo 01 en brutalist (sin levantar un Worker real,
- * que jsdom no soporta): con el ejemplo 01 cargado y carriles en el monitor, el
- * layout debe renderizar los controles, el ThreadVisualizer (resuelto por DI) y
- * el code-block con los snippets del registry.
+ * Vertical del ejemplo 01 en brutalist con el contraste worker-vs-main (backlog #2):
+ * dos columnas, el ThreadVisualizer resuelto por DI, y el code-block con snippets.
+ * El main-blocking se dispara sin Worker real (jsdom no lo soporta).
  */
-describe('BrutalistExampleLayoutComponent (example 01 vertical)', () => {
+describe('BrutalistExampleLayoutComponent (worker vs main contrast)', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
@@ -23,11 +22,10 @@ describe('BrutalistExampleLayoutComponent (example 01 vertical)', () => {
     });
   });
 
-  it('renders controls, the thread visualizer and the code snippets', async () => {
-    // Simulamos actividad del worker en el monitor (sin Worker real).
-    const monitor = TestBed.inject(ThreadMonitorService);
-    monitor.start(0);
-    monitor.push('worker', 'worker');
+  it('renders both columns, the main-blocked visualizer and the code snippets', async () => {
+    // Corremos la versión que bloquea el main (sincrónica, sin Worker).
+    const runner = TestBed.inject(ExampleRunnerService);
+    runner.runMainBlockingDemo({ intervalMs: 1, ticks: 1 });
 
     const fixture = TestBed.createComponent(BrutalistExampleLayoutComponent);
     fixture.detectChanges();
@@ -35,17 +33,17 @@ describe('BrutalistExampleLayoutComponent (example 01 vertical)', () => {
     fixture.detectChanges();
 
     const el = fixture.nativeElement as HTMLElement;
+    const text = el.textContent ?? '';
 
-    // Controles del worker.
-    expect(el.querySelector('.b-controls')).toBeTruthy();
-    // ThreadVisualizer brutalista montado por DI + ngComponentOutlet.
+    // Las dos columnas del contraste.
+    expect(text).toContain('En un Worker');
+    expect(text).toContain('En el Main thread');
+    // La corrida bloqueada pintó el carril main en 'blocked'.
     expect(el.querySelector('brutalist-thread-visualizer')).toBeTruthy();
-    expect(el.querySelector('.b-cell')).toBeTruthy();
+    expect(el.querySelector('.b-cell[data-state="blocked"]')).toBeTruthy();
     // Code-block con los snippets neutrales del registry.
     expect(el.querySelector('brutalist-code-block')).toBeTruthy();
-    expect(el.textContent).toContain('createCounter');
-    // Cards de cada sección.
-    expect(el.textContent).toContain('Hilos');
-    expect(el.textContent).toContain('Código');
+    expect(text).toContain('createCounter');
+    expect(text).toContain('Código');
   });
 });

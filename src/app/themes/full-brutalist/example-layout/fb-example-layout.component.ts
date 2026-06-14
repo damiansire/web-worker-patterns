@@ -5,7 +5,6 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 import { findExample } from '../../../core/domain/examples/examples.registry';
 import { ExampleRunnerService } from '../../../core/services/example-runner.service';
-import { ThreadMonitorService } from '../../../core/services/thread-monitor.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { FullBrutalistButton } from '../primitives/fb-button.component';
 import { FullBrutalistCard } from '../primitives/fb-card.component';
@@ -39,17 +38,35 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
           </header>
 
           @if (ex.workerFactory) {
-            <fb-card title="Hilos">
-              <div class="b-controls">
-                <fb-button variant="solid" [disabled]="running()" (pressed)="start()">Start</fb-button>
-                <fb-button [disabled]="!running()" (pressed)="stop()">Stop</fb-button>
-                <span class="b-status" [class.is-running]="running()">
-                  {{ running() ? '● RUNNING' : '○ IDLE' }} · TICK {{ lastTick() }}
-                </span>
+            <fb-card title="Worker vs Main thread">
+              <p class="b-lead">Mismo contador, dos hilos. Corré los dos y mirá la diferencia.</p>
+              <div class="b-cmp">
+                <div class="b-col">
+                  <h3>En un Worker</h3>
+                  <p class="b-col-sub">el main queda libre · la UI sigue fluida</p>
+                  <fb-button variant="solid" [disabled]="phase() === 'worker'" (pressed)="runWorker()">
+                    Correr en worker
+                  </fb-button>
+                  @if (workerLanes(); as wl) {
+                    <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: wl, elapsedMs: 0 }" />
+                    <p class="b-foot">✓ {{ workerTicks() }} ticks · la UI nunca se trabó</p>
+                  } @else {
+                    <p class="b-hint">Tocá para ver el worker emitir ticks mientras el main queda libre.</p>
+                  }
+                </div>
+
+                <div class="b-col">
+                  <h3>En el Main thread</h3>
+                  <p class="b-col-sub">el main se bloquea · la UI se congela ~2,5s</p>
+                  <fb-button [disabled]="phase() === 'main'" (pressed)="runMain()">Bloquear main</fb-button>
+                  @if (mainLanes(); as ml) {
+                    <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: ml, elapsedMs: 0 }" />
+                    <p class="b-foot b-danger">✗ se congeló · {{ mainTicks() }} ticks que no se pintaron</p>
+                  } @else {
+                    <p class="b-hint">Tocá y la página se congela: el contador no actualiza, los clicks mueren.</p>
+                  }
+                </div>
               </div>
-              <ng-container
-                *ngComponentOutlet="visualizer; inputs: { lanes: lanes(), elapsedMs: elapsedMs() }"
-              />
             </fb-card>
 
             @if (snippets().length) {
@@ -148,22 +165,61 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
         letter-spacing: 0.08em;
       }
 
-      .b-controls {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        margin-bottom: 20px;
-        flex-wrap: wrap;
-      }
-      .b-status {
-        font-family: var(--font-display);
-        font-weight: 700;
+      .b-lead {
+        font-family: var(--font-mono);
         font-size: 13px;
-        letter-spacing: 0.04em;
-        color: var(--ink-muted);
+        margin: 0 0 18px;
+        color: var(--ink);
       }
-      .b-status.is-running {
-        color: var(--accent);
+      .b-cmp {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+      .b-col {
+        padding: 4px 18px;
+      }
+      .b-col:first-child {
+        padding-left: 0;
+      }
+      .b-col + .b-col {
+        border-left: var(--border-width) solid var(--border);
+      }
+      .b-col h3 {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 16px;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        margin: 0 0 2px;
+        color: var(--ink);
+      }
+      .b-col-sub {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--ink-muted);
+        margin: 0 0 12px;
+      }
+      .b-col fb-button {
+        display: inline-block;
+        margin-bottom: 14px;
+      }
+      .b-hint {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        line-height: 1.5;
+        color: var(--ink-muted);
+        border: var(--border-width) dashed var(--border);
+        padding: 12px;
+      }
+      .b-foot {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-weight: 700;
+        margin: 10px 0 0;
+        color: var(--ink);
+      }
+      .b-danger {
+        color: var(--thread-blocked);
       }
 
       /* Code-blocks encajados: colapsan sus bordes 3px en una sola línea. */
@@ -186,7 +242,6 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
 export class FullBrutalistExampleLayoutComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly runner = inject(ExampleRunnerService);
-  private readonly monitor = inject(ThreadMonitorService);
 
   /** Implementación del ThreadVisualizer del theme activo, resuelta por DI. */
   protected readonly visualizer = inject(THREAD_VISUALIZER);
@@ -198,19 +253,21 @@ export class FullBrutalistExampleLayoutComponent {
   protected readonly snippets = computed(() =>
     Object.entries(this.example()?.snippets ?? {}).map(([label, code]) => ({ label, code })),
   );
-  protected readonly lanes = this.monitor.lanes;
-  protected readonly elapsedMs = this.monitor.elapsedMs;
-  protected readonly lastTick = this.runner.lastTick;
-  protected readonly running = computed(() => this.runner.runningId() === this.example()?.id);
 
-  start(): void {
+  protected readonly workerLanes = this.runner.workerLanes;
+  protected readonly mainLanes = this.runner.mainLanes;
+  protected readonly workerTicks = this.runner.workerTicks;
+  protected readonly mainTicks = this.runner.mainTicks;
+  protected readonly phase = this.runner.phase;
+
+  runWorker(): void {
     const ex = this.example();
     if (ex) {
-      this.runner.start(ex, { intervalMs: 500 });
+      this.runner.runWorkerDemo(ex);
     }
   }
 
-  stop(): void {
-    this.runner.stop();
+  runMain(): void {
+    this.runner.runMainBlockingDemo();
   }
 }

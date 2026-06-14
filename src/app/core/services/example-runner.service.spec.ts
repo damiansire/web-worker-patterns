@@ -77,4 +77,38 @@ describe('ExampleRunnerService', () => {
     runner.start(noWorker);
     expect(runner.runningId()).toBeNull();
   });
+
+  describe('worker-vs-main comparison demo', () => {
+    it('runWorkerDemo fills the worker lanes live and stops after N ticks', () => {
+      runner.runWorkerDemo(example, { intervalMs: 10, ticks: 3 });
+      fake.emit({ type: 'tick', tick: 1 });
+      expect(runner.workerLanes()).not.toBeNull();
+      fake.emit({ type: 'tick', tick: 2 });
+      fake.emit({ type: 'tick', tick: 3 });
+
+      expect(runner.workerTicks()).toBe(3);
+      expect(fake.terminated).toBe(true); // se detuvo solo al llegar a ticks
+      const lanes = runner.workerLanes()!;
+      expect(lanes.find((l) => l.id === 'main')!.segments[0].state).toBe('idle');
+      expect(lanes.find((l) => l.id === 'worker')!.segments).toHaveLength(3);
+      expect(runner.phase()).toBe('idle');
+    });
+
+    it('runMainBlockingDemo marks the main lane blocked (no worker)', () => {
+      runner.runMainBlockingDemo({ intervalMs: 1, ticks: 1 });
+      const lanes = runner.mainLanes();
+      expect(lanes).not.toBeNull();
+      expect(lanes!.find((l) => l.id === 'main')!.segments[0].state).toBe('blocked');
+      expect(lanes!.find((l) => l.id === 'worker')!.segments).toEqual([]);
+      expect(runner.mainTicks()).toBe(1);
+      expect(runner.phase()).toBe('idle');
+    });
+
+    it('resetComparison clears both runs', () => {
+      runner.runMainBlockingDemo({ intervalMs: 1, ticks: 1 });
+      runner.resetComparison();
+      expect(runner.workerLanes()).toBeNull();
+      expect(runner.mainLanes()).toBeNull();
+    });
+  });
 });

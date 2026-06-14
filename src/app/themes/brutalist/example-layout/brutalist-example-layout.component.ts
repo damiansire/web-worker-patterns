@@ -5,7 +5,6 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 import { findExample } from '../../../core/domain/examples/examples.registry';
 import { ExampleRunnerService } from '../../../core/services/example-runner.service';
-import { ThreadMonitorService } from '../../../core/services/thread-monitor.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { BrutalistButton } from '../primitives/brutalist-button.component';
 import { BrutalistCard } from '../primitives/brutalist-card.component';
@@ -13,12 +12,9 @@ import { BrutalistCodeBlock } from '../primitives/brutalist-code-block.component
 import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
 
 /**
- * Example-layout brutalista — la vertical completa del ejemplo:
- *   1. corre el worker real vía el ExampleRunnerService;
- *   2. visualiza los hilos resolviendo THREAD_VISUALIZER por DI (§5) y montándolo
- *      con ngComponentOutlet sobre los `lanes`/`elapsedMs` neutrales del monitor;
- *   3. muestra el código (snippets del registry) en el code-block del theme.
- * Todo dentro de cards brutalistas.
+ * Example-layout brutalista. Sección de hilos como CONTRASTE lado a lado
+ * (backlog #2): la misma cuenta corriendo en un worker (UI fluida) vs en el main
+ * thread (UI congelada). Cada columna monta el ThreadVisualizer por DI (§5).
  */
 @Component({
   selector: 'brutalist-example-layout',
@@ -34,15 +30,37 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
         <p class="b-cat">{{ ex.category }}</p>
 
         @if (ex.workerFactory) {
-          <brutalist-card title="Hilos">
-            <div class="b-controls">
-              <brutalist-button variant="solid" [disabled]="running()" (pressed)="start()">START</brutalist-button>
-              <brutalist-button [disabled]="!running()" (pressed)="stop()">STOP</brutalist-button>
-              <span class="b-status">{{ running() ? '● RUNNING' : '○ IDLE' }} · TICK {{ lastTick() }}</span>
+          <brutalist-card title="Worker vs Main thread">
+            <p class="b-lead">Mismo contador, dos hilos. Corré los dos y mirá la diferencia.</p>
+            <div class="b-cmp">
+              <div class="b-col">
+                <h3>En un Worker</h3>
+                <p class="b-col-sub">el main queda libre · la UI sigue fluida</p>
+                <brutalist-button variant="solid" [disabled]="phase() === 'worker'" (pressed)="runWorker()">
+                  Correr en worker
+                </brutalist-button>
+                @if (workerLanes(); as wl) {
+                  <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: wl, elapsedMs: 0 }" />
+                  <p class="b-foot">✓ {{ workerTicks() }} ticks · la UI nunca se trabó</p>
+                } @else {
+                  <p class="b-hint">Tocá para ver el worker emitir ticks mientras el main queda libre.</p>
+                }
+              </div>
+
+              <div class="b-col">
+                <h3>En el Main thread</h3>
+                <p class="b-col-sub">el main se bloquea · la UI se congela ~2,5s</p>
+                <brutalist-button [disabled]="phase() === 'main'" (pressed)="runMain()">
+                  Bloquear main
+                </brutalist-button>
+                @if (mainLanes(); as ml) {
+                  <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: ml, elapsedMs: 0 }" />
+                  <p class="b-foot b-danger">✗ se congeló · {{ mainTicks() }} ticks que no se pintaron</p>
+                } @else {
+                  <p class="b-hint">Tocá y la página se congela: el contador no actualiza, los clicks mueren.</p>
+                }
+              </div>
             </div>
-            <ng-container
-              *ngComponentOutlet="visualizer; inputs: { lanes: lanes(), elapsedMs: elapsedMs() }"
-            />
           </brutalist-card>
 
           @if (snippets().length) {
@@ -65,7 +83,7 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
   styles: [
     `
       .b-ex {
-        max-width: 900px;
+        max-width: 940px;
         margin: 0 auto;
       }
       .b-back {
@@ -90,16 +108,58 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
         letter-spacing: 0.06em;
         margin: 0 0 24px;
       }
-      .b-controls {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 18px;
-        flex-wrap: wrap;
-      }
-      .b-status {
+      .b-lead {
         font-family: var(--font-mono);
+        font-size: 13px;
+        margin: 0 0 18px;
+      }
+      .b-cmp {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+      .b-col {
+        padding: 4px 18px;
+      }
+      .b-col:first-child {
+        padding-left: 0;
+      }
+      .b-col + .b-col {
+        border-left: var(--border-width) solid var(--border);
+      }
+      .b-col h3 {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 16px;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        margin: 0 0 2px;
+      }
+      .b-col-sub {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--ink-muted);
+        margin: 0 0 12px;
+      }
+      .b-col brutalist-button {
+        display: inline-block;
+        margin-bottom: 14px;
+      }
+      .b-hint {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        line-height: 1.5;
+        color: var(--ink-muted);
+        border: var(--border-width) dashed var(--border);
+        padding: 12px;
+      }
+      .b-foot {
+        font-family: var(--font-mono);
+        font-size: 12px;
         font-weight: 700;
+        margin: 10px 0 0;
+      }
+      .b-danger {
+        color: var(--thread-blocked);
       }
       .b-snippet + .b-snippet {
         margin-top: 14px;
@@ -114,9 +174,8 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
 export class BrutalistExampleLayoutComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly runner = inject(ExampleRunnerService);
-  private readonly monitor = inject(ThreadMonitorService);
 
-  /** Implementación del ThreadVisualizer del theme activo, resuelta por DI. */
+  /** ThreadVisualizer del theme activo, resuelto por DI (§5). */
   protected readonly visualizer = inject(THREAD_VISUALIZER);
 
   private readonly id = toSignal(this.route.paramMap.pipe(map((p) => p.get('id') ?? '')), {
@@ -126,19 +185,21 @@ export class BrutalistExampleLayoutComponent {
   protected readonly snippets = computed(() =>
     Object.entries(this.example()?.snippets ?? {}).map(([label, code]) => ({ label, code })),
   );
-  protected readonly lanes = this.monitor.lanes;
-  protected readonly elapsedMs = this.monitor.elapsedMs;
-  protected readonly lastTick = this.runner.lastTick;
-  protected readonly running = computed(() => this.runner.runningId() === this.example()?.id);
 
-  start(): void {
+  protected readonly workerLanes = this.runner.workerLanes;
+  protected readonly mainLanes = this.runner.mainLanes;
+  protected readonly workerTicks = this.runner.workerTicks;
+  protected readonly mainTicks = this.runner.mainTicks;
+  protected readonly phase = this.runner.phase;
+
+  runWorker(): void {
     const ex = this.example();
     if (ex) {
-      this.runner.start(ex, { intervalMs: 500 });
+      this.runner.runWorkerDemo(ex);
     }
   }
 
-  stop(): void {
-    this.runner.stop();
+  runMain(): void {
+    this.runner.runMainBlockingDemo();
   }
 }
