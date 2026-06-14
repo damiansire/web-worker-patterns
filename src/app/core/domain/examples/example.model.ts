@@ -28,6 +28,7 @@ export type Category =
  *   - worker-pool:      un pool fijo de N workers que se reusan para drenar una cola de M tareas (ej. 10)
  *   - backpressure:     productor más rápido que el worker: sin control de flujo la cola se infla; con ack queda acotada (ej. 11)
  *   - shared-memory:    SharedArrayBuffer + Atomics: main y worker comparten la MISMA memoria, sin postMessage (ej. 12)
+ *   - degradation:      feature-detect de Worker: corre off-thread si hay, o en el main si no (mismo resultado) (ej. 13)
  */
 export type DemoKind =
   | 'thread-block'
@@ -40,7 +41,8 @@ export type DemoKind =
   | 'worker-limits'
   | 'worker-pool'
   | 'backpressure'
-  | 'shared-memory';
+  | 'shared-memory'
+  | 'degradation';
 
 export interface WorkerExample {
   /** Slug estable, ej. '01-setinterval-counter'. */

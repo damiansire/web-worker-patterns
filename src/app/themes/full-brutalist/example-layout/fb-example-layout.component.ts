@@ -16,6 +16,7 @@ import { WorkerLimitsDemoService } from '../../../core/services/worker-limits-de
 import { WorkerPoolDemoService } from '../../../core/services/worker-pool-demo.service';
 import { BackpressureDemoService } from '../../../core/services/backpressure-demo.service';
 import { SharedMemoryDemoService } from '../../../core/services/shared-memory-demo.service';
+import { DegradationDemoService } from '../../../core/services/degradation-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { FullBrutalistButton } from '../primitives/fb-button.component';
 import { FullBrutalistCard } from '../primitives/fb-card.component';
@@ -489,6 +490,37 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
                       <fb-button (pressed)="resetSm()">Reset</fb-button>
                     }
                   </div>
+                </fb-card>
+              }
+
+              @case ('degradation') {
+                <fb-card title="Degradación elegante">
+                  <p class="b-lead">
+                    {{ content()?.whatToWatch ?? 'El mismo trabajo corre off-thread si hay Worker, o en el main si no. Mismo resultado, distinta UX.' }}
+                  </p>
+                  <p class="b-bar-label">typeof Worker → {{ degSupported() ? 'disponible ✓' : 'no disponible' }}</p>
+
+                  <div class="b-send">
+                    <fb-button (pressed)="toggleFallback()">
+                      {{ degForce() ? '☑ simulando navegador sin Worker' : '☐ simular navegador sin Worker' }}
+                    </fb-button>
+                    <fb-button variant="solid" [disabled]="degRunning()" (pressed)="runDeg()">
+                      {{ degRunning() ? 'procesando…' : 'Procesar' }}
+                    </fb-button>
+                    @if (degResult() && !degRunning()) {
+                      <fb-button (pressed)="resetDeg()">Reset</fb-button>
+                    }
+                  </div>
+
+                  @if (degResult(); as r) {
+                    @if (r.path === 'worker') {
+                      <p class="b-foot">✓ Corrió en un WORKER · {{ r.value }} primos · {{ r.ms }} ms · la UI no se trabó</p>
+                    } @else {
+                      <p class="b-foot b-danger">⚠ Fallback: corrió en el MAIN · {{ r.value }} primos · {{ r.ms }} ms · la UI se congeló, pero el resultado es el mismo</p>
+                    }
+                  } @else {
+                    <p class="b-hint">Mismo código, dos caminos según el feature-detect. Tildá el fallback y volvé a procesar: el resultado es idéntico, sólo cambia si la UI se traba.</p>
+                  }
                 </fb-card>
               }
             }
@@ -1079,6 +1111,7 @@ export class FullBrutalistExampleLayoutComponent {
   private readonly pool = inject(WorkerPoolDemoService);
   private readonly backpressure = inject(BackpressureDemoService);
   private readonly sharedMem = inject(SharedMemoryDemoService);
+  private readonly degradation = inject(DegradationDemoService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
   private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
@@ -1093,6 +1126,8 @@ export class FullBrutalistExampleLayoutComponent {
   private readonly POOL_WORK = 400_000;
   /** Trabajo por mensaje del ejemplo 11 (consumidor algo lento). */
   private readonly BP_WORK = 150_000;
+  /** Trabajo del ejemplo 13: si cae al main, debe notarse el freeze. */
+  private readonly DEG_WORK = 500_000;
 
   /** Implementación del ThreadVisualizer del theme activo, resuelta por DI. */
   protected readonly visualizer = inject(THREAD_VISUALIZER);
@@ -1180,6 +1215,12 @@ export class FullBrutalistExampleLayoutComponent {
   protected readonly smRunning = this.sharedMem.running;
   protected readonly smSupported = this.sharedMem.supported;
   protected readonly smTarget = this.sharedMem.target;
+
+  // degradation (13)
+  protected readonly degSupported = this.degradation.supported;
+  protected readonly degForce = this.degradation.forceFallback;
+  protected readonly degResult = this.degradation.result;
+  protected readonly degRunning = this.degradation.running;
 
   constructor() {
     effect(() => {
@@ -1339,6 +1380,21 @@ export class FullBrutalistExampleLayoutComponent {
 
   smPct(): number {
     return Math.round((this.smValue() / this.smTarget) * 100);
+  }
+
+  toggleFallback(): void {
+    this.degradation.toggleFallback();
+  }
+
+  runDeg(): void {
+    const ex = this.example();
+    if (ex) {
+      this.degradation.run(ex, this.DEG_WORK);
+    }
+  }
+
+  resetDeg(): void {
+    this.degradation.reset();
   }
 
   send(text: string): void {

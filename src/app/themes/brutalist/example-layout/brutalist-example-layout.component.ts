@@ -16,6 +16,7 @@ import { WorkerLimitsDemoService } from '../../../core/services/worker-limits-de
 import { WorkerPoolDemoService } from '../../../core/services/worker-pool-demo.service';
 import { BackpressureDemoService } from '../../../core/services/backpressure-demo.service';
 import { SharedMemoryDemoService } from '../../../core/services/shared-memory-demo.service';
+import { DegradationDemoService } from '../../../core/services/degradation-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { BrutalistButton } from '../primitives/brutalist-button.component';
 import { BrutalistCard } from '../primitives/brutalist-card.component';
@@ -488,6 +489,37 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
                     <brutalist-button (pressed)="resetSm()">Reset</brutalist-button>
                   }
                 </div>
+              </brutalist-card>
+            }
+
+            @case ('degradation') {
+              <brutalist-card title="Degradación elegante">
+                <p class="b-lead">
+                  {{ content()?.whatToWatch ?? 'El mismo trabajo corre off-thread si hay Worker, o en el main si no. Mismo resultado, distinta UX.' }}
+                </p>
+                <p class="b-bar-label">typeof Worker → {{ degSupported() ? 'disponible ✓' : 'no disponible' }}</p>
+
+                <div class="b-send">
+                  <brutalist-button (pressed)="toggleFallback()">
+                    {{ degForce() ? '☑ simulando navegador sin Worker' : '☐ simular navegador sin Worker' }}
+                  </brutalist-button>
+                  <brutalist-button variant="solid" [disabled]="degRunning()" (pressed)="runDeg()">
+                    {{ degRunning() ? 'procesando…' : 'Procesar' }}
+                  </brutalist-button>
+                  @if (degResult() && !degRunning()) {
+                    <brutalist-button (pressed)="resetDeg()">Reset</brutalist-button>
+                  }
+                </div>
+
+                @if (degResult(); as r) {
+                  @if (r.path === 'worker') {
+                    <p class="b-foot">✓ Corrió en un WORKER · {{ r.value }} primos · {{ r.ms }} ms · la UI no se trabó</p>
+                  } @else {
+                    <p class="b-foot b-danger">⚠ Fallback: corrió en el MAIN · {{ r.value }} primos · {{ r.ms }} ms · la UI se congeló, pero el resultado es el mismo</p>
+                  }
+                } @else {
+                  <p class="b-hint">Mismo código, dos caminos según el feature-detect. Tildá el fallback y volvé a procesar: el resultado es idéntico, sólo cambia si la UI se traba.</p>
+                }
               </brutalist-card>
             }
           }
@@ -1010,6 +1042,7 @@ export class BrutalistExampleLayoutComponent {
   private readonly pool = inject(WorkerPoolDemoService);
   private readonly backpressure = inject(BackpressureDemoService);
   private readonly sharedMem = inject(SharedMemoryDemoService);
+  private readonly degradation = inject(DegradationDemoService);
   private readonly contentSvc = inject(ExampleContentService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
@@ -1025,6 +1058,8 @@ export class BrutalistExampleLayoutComponent {
   private readonly POOL_WORK = 400_000;
   /** Trabajo por mensaje del ejemplo 11 (consumidor algo lento). */
   private readonly BP_WORK = 150_000;
+  /** Trabajo del ejemplo 13: si cae al main, debe notarse el freeze. */
+  private readonly DEG_WORK = 500_000;
 
   /** ThreadVisualizer del theme activo, resuelto por DI (§5). */
   protected readonly visualizer = inject(THREAD_VISUALIZER);
@@ -1113,6 +1148,12 @@ export class BrutalistExampleLayoutComponent {
   protected readonly smRunning = this.sharedMem.running;
   protected readonly smSupported = this.sharedMem.supported;
   protected readonly smTarget = this.sharedMem.target;
+
+  // degradation (13)
+  protected readonly degSupported = this.degradation.supported;
+  protected readonly degForce = this.degradation.forceFallback;
+  protected readonly degResult = this.degradation.result;
+  protected readonly degRunning = this.degradation.running;
 
   constructor() {
     // Abre el worker del ejemplo activo (no-op si ya está abierto para el mismo
@@ -1278,6 +1319,21 @@ export class BrutalistExampleLayoutComponent {
 
   smPct(): number {
     return Math.round((this.smValue() / this.smTarget) * 100);
+  }
+
+  toggleFallback(): void {
+    this.degradation.toggleFallback();
+  }
+
+  runDeg(): void {
+    const ex = this.example();
+    if (ex) {
+      this.degradation.run(ex, this.DEG_WORK);
+    }
+  }
+
+  resetDeg(): void {
+    this.degradation.reset();
   }
 
   send(text: string): void {

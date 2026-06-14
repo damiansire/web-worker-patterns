@@ -177,6 +177,22 @@
         ],
         "tip": "Usá Atomics.wait/notify para sincronizar hilos sobre memoria compartida sin hacer polling."
       }
+    },
+    "13-graceful-degradation": {
+      "title": "Degradación elegante",
+      "summary": "No todos los entornos tienen Web Workers (runtimes viejos, algunos contextos de SSR). La degradación elegante es: detectás la feature (typeof Worker) y, si no está, corrés el MISMO trabajo en el hilo principal. La app funciona en todos lados — mejor donde hay workers, igual de correcta donde no.",
+      "whatToWatch": "Tocá Procesar: si hay Worker, corre off-thread y la UI no se traba. Tildá \"simular navegador sin Worker\" y volvé a procesar: corre la misma función en el main —la UI se congela— pero el resultado es exactamente el mismo. Mismo código, dos caminos según el feature-detect.",
+      "note": "La clave es compartir la lógica: una función pura (acá, contar primos) que el worker y el main pueden ejecutar igual. El worker es sólo el envoltorio que la corre en otro hilo. Así el fallback no es código duplicado: es la misma función, sin el worker. Detectá una vez y elegí el camino; nunca asumas que Worker existe.",
+      "takeaways": {
+        "title": "Puntos clave",
+        "items": [
+          "Detectá la feature (typeof Worker) en vez de asumir que existe",
+          "Sin Worker, corré el MISMO trabajo en el main: degradás la UX, no la función",
+          "Compartí la lógica pura entre worker y fallback (no la dupliques)",
+          "La app funciona en todos lados: mejor con workers, correcta sin ellos"
+        ],
+        "tip": "Lo mismo aplica a OffscreenCanvas, WebGL, etc.: detectá y degradá, no asumas soporte."
+      }
     }
   }
 }

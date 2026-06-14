@@ -16,6 +16,7 @@ import { WorkerLimitsDemoService } from '../../../core/services/worker-limits-de
 import { WorkerPoolDemoService } from '../../../core/services/worker-pool-demo.service';
 import { BackpressureDemoService } from '../../../core/services/backpressure-demo.service';
 import { SharedMemoryDemoService } from '../../../core/services/shared-memory-demo.service';
+import { DegradationDemoService } from '../../../core/services/degradation-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { DevToolButton } from '../primitives/devtool-button.component';
 import { DevToolCodeBlock } from '../primitives/devtool-code-block.component';
@@ -472,6 +473,37 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                       <devtool-button (pressed)="resetSm()">reset</devtool-button>
                     }
                   </div>
+                </div>
+              </section>
+            }
+
+            @case ('degradation') {
+              <section class="dt-panel">
+                <header class="dt-panel-h">// graceful degradation · typeof Worker !== 'undefined' ? {{ degSupported() ? 'true' : 'false' }}</header>
+                @if (content()?.whatToWatch; as ww) {
+                  <p class="dt-panel-b dt-watch">{{ ww }}</p>
+                }
+                <div class="dt-panel-b">
+                  <div class="dt-send">
+                    <devtool-button (pressed)="toggleFallback()">
+                      {{ degForce() ? '[x] simular sin Worker' : '[ ] simular sin Worker' }}
+                    </devtool-button>
+                    <devtool-button variant="solid" [disabled]="degRunning()" (pressed)="runDeg()">
+                      {{ degRunning() ? '▶ procesando…' : '▶ procesar' }}
+                    </devtool-button>
+                    @if (degResult() && !degRunning()) {
+                      <devtool-button (pressed)="resetDeg()">reset</devtool-button>
+                    }
+                  </div>
+                  @if (degResult(); as r) {
+                    @if (r.path === 'worker') {
+                      <p class="dt-ok">✓ path: worker · {{ r.value }} primos · {{ r.ms }} ms · UI fluida</p>
+                    } @else {
+                      <p class="dt-bad">⚠ path: main (fallback) · {{ r.value }} primos · {{ r.ms }} ms · UI congelada, mismo resultado</p>
+                    }
+                  } @else {
+                    <p class="dt-hint">// mismo código, dos caminos según el feature-detect · tildá el fallback y el resultado es idéntico, sólo cambia si la UI se traba</p>
+                  }
                 </div>
               </section>
             }
@@ -992,6 +1024,7 @@ export class DevToolExampleLayoutComponent {
   private readonly pool = inject(WorkerPoolDemoService);
   private readonly backpressure = inject(BackpressureDemoService);
   private readonly sharedMem = inject(SharedMemoryDemoService);
+  private readonly degradation = inject(DegradationDemoService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
   private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
@@ -1006,6 +1039,8 @@ export class DevToolExampleLayoutComponent {
   private readonly POOL_WORK = 400_000;
   /** Trabajo por mensaje del ejemplo 11 (consumidor algo lento). */
   private readonly BP_WORK = 150_000;
+  /** Trabajo del ejemplo 13: si cae al main, debe notarse el freeze. */
+  private readonly DEG_WORK = 500_000;
 
   protected readonly visualizer = inject(THREAD_VISUALIZER);
 
@@ -1092,6 +1127,12 @@ export class DevToolExampleLayoutComponent {
   protected readonly smRunning = this.sharedMem.running;
   protected readonly smSupported = this.sharedMem.supported;
   protected readonly smTarget = this.sharedMem.target;
+
+  // degradation (13)
+  protected readonly degSupported = this.degradation.supported;
+  protected readonly degForce = this.degradation.forceFallback;
+  protected readonly degResult = this.degradation.result;
+  protected readonly degRunning = this.degradation.running;
 
   constructor() {
     effect(() => {
@@ -1251,6 +1292,21 @@ export class DevToolExampleLayoutComponent {
 
   smPct(): number {
     return Math.round((this.smValue() / this.smTarget) * 100);
+  }
+
+  toggleFallback(): void {
+    this.degradation.toggleFallback();
+  }
+
+  runDeg(): void {
+    const ex = this.example();
+    if (ex) {
+      this.degradation.run(ex, this.DEG_WORK);
+    }
+  }
+
+  resetDeg(): void {
+    this.degradation.reset();
   }
 
   send(text: string): void {

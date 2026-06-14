@@ -16,6 +16,7 @@ import { WorkerLimitsDemoService } from '../../../core/services/worker-limits-de
 import { WorkerPoolDemoService } from '../../../core/services/worker-pool-demo.service';
 import { BackpressureDemoService } from '../../../core/services/backpressure-demo.service';
 import { SharedMemoryDemoService } from '../../../core/services/shared-memory-demo.service';
+import { DegradationDemoService } from '../../../core/services/degradation-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { NarrativeButton } from '../primitives/narrative-button.component';
 import { NarrativeCodeBlock } from '../primitives/narrative-code-block.component';
@@ -410,6 +411,30 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                   <narrative-button (pressed)="resetSm()">Reiniciar</narrative-button>
                 }
               </div>
+            }
+
+            @case ('degradation') {
+              <p class="n-lim-cpu">typeof Worker → {{ degSupported() ? 'disponible ✓' : 'no disponible' }}</p>
+              <div class="n-send">
+                <narrative-button (pressed)="toggleFallback()">
+                  {{ degForce() ? '☑ simulando sin Worker' : '☐ simular sin Worker' }}
+                </narrative-button>
+                <narrative-button variant="solid" [disabled]="degRunning()" (pressed)="runDeg()">
+                  {{ degRunning() ? 'Procesando…' : 'Procesar' }}
+                </narrative-button>
+                @if (degResult() && !degRunning()) {
+                  <narrative-button (pressed)="resetDeg()">Reiniciar</narrative-button>
+                }
+              </div>
+              @if (degResult(); as r) {
+                @if (r.path === 'worker') {
+                  <p class="n-foot"><span class="n-ok-mark">✓</span> Corrió en un worker: {{ r.value }} primos · {{ r.ms }} ms · la UI no se trabó.</p>
+                } @else {
+                  <p class="n-foot n-danger"><span class="n-bad-mark">⚠</span> Fallback: corrió en el main: {{ r.value }} primos · {{ r.ms }} ms · la UI se congeló, pero el resultado es el mismo.</p>
+                }
+              } @else {
+                <p class="n-hint">Mismo código, dos caminos según el feature-detect. Tildá el fallback y volvé a procesar: el resultado es idéntico, sólo cambia si la UI se traba.</p>
+              }
             }
           }
 
@@ -981,6 +1006,7 @@ export class NarrativeExampleLayoutComponent {
   private readonly pool = inject(WorkerPoolDemoService);
   private readonly backpressure = inject(BackpressureDemoService);
   private readonly sharedMem = inject(SharedMemoryDemoService);
+  private readonly degradation = inject(DegradationDemoService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
   private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
@@ -995,6 +1021,8 @@ export class NarrativeExampleLayoutComponent {
   private readonly POOL_WORK = 400_000;
   /** Trabajo por mensaje del ejemplo 11 (consumidor algo lento). */
   private readonly BP_WORK = 150_000;
+  /** Trabajo del ejemplo 13: si cae al main, debe notarse el freeze. */
+  private readonly DEG_WORK = 500_000;
 
   protected readonly visualizer = inject(THREAD_VISUALIZER);
 
@@ -1081,6 +1109,12 @@ export class NarrativeExampleLayoutComponent {
   protected readonly smRunning = this.sharedMem.running;
   protected readonly smSupported = this.sharedMem.supported;
   protected readonly smTarget = this.sharedMem.target;
+
+  // degradation (13)
+  protected readonly degSupported = this.degradation.supported;
+  protected readonly degForce = this.degradation.forceFallback;
+  protected readonly degResult = this.degradation.result;
+  protected readonly degRunning = this.degradation.running;
 
   constructor() {
     effect(() => {
@@ -1240,6 +1274,21 @@ export class NarrativeExampleLayoutComponent {
 
   smPct(): number {
     return Math.round((this.smValue() / this.smTarget) * 100);
+  }
+
+  toggleFallback(): void {
+    this.degradation.toggleFallback();
+  }
+
+  runDeg(): void {
+    const ex = this.example();
+    if (ex) {
+      this.degradation.run(ex, this.DEG_WORK);
+    }
+  }
+
+  resetDeg(): void {
+    this.degradation.reset();
   }
 
   send(text: string): void {

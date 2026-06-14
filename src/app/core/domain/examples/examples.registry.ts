@@ -10,6 +10,7 @@ import { WORKER_LIMITS_SNIPPETS } from './snippets/worker-limits.snippets';
 import { WORKER_POOL_SNIPPETS } from './snippets/worker-pool.snippets';
 import { BACKPRESSURE_SNIPPETS } from './snippets/backpressure.snippets';
 import { SHARED_MEMORY_SNIPPETS } from './snippets/shared-memory.snippets';
+import { DEGRADATION_SNIPPETS } from './snippets/degradation.snippets';
 
 /**
  * Registry neutral de ejemplos (ARQUITECTURA §3.1).
@@ -140,7 +141,16 @@ export const EXAMPLES: WorkerExample[] = [
       new Worker(new URL('../workers/atomics-counter.worker', import.meta.url), { type: 'module' }),
     snippets: SHARED_MEMORY_SNIPPETS,
   },
-  { id: '13-graceful-degradation', order: 13, category: 'advanced', i18nKey: 'examples.13-graceful-degradation', snippets: {} },
+  {
+    id: '13-graceful-degradation',
+    order: 13,
+    category: 'advanced',
+    i18nKey: 'examples.13-graceful-degradation',
+    demo: 'degradation',
+    workerFactory: () =>
+      new Worker(new URL('../workers/primes.worker', import.meta.url), { type: 'module' }),
+    snippets: DEGRADATION_SNIPPETS,
+  },
 ];
 
 /** Acceso por id. */

@@ -18,6 +18,7 @@ const dir09 = `${dir}/09-worker-limits`;
 const dir10 = `${dir}/10-worker-pool`;
 const dir11 = `${dir}/11-backpressure-scheduling`;
 const dir12 = `${dir}/12-shared-array-buffer`;
+const dir13 = `${dir}/13-graceful-degradation`;
 await rm(dir, { recursive: true, force: true });
 await mkdir(dir03, { recursive: true });
 await mkdir(dir04, { recursive: true });
@@ -29,6 +30,7 @@ await mkdir(dir09, { recursive: true });
 await mkdir(dir10, { recursive: true });
 await mkdir(dir11, { recursive: true });
 await mkdir(dir12, { recursive: true });
+await mkdir(dir13, { recursive: true });
 
 const browser = await chromium.launch();
 // Fijamos idioma para capturas consistentes (el usuario escribe en español).
@@ -173,6 +175,18 @@ for (const t of themes) {
   await page.getByRole('button', { name: /arrancar/i }).first().click();
   await page.waitForTimeout(1500); // contador a media subida
   await page.screenshot({ path: `${dir12}/${t}.png`, fullPage: true });
+  await page.close();
+
+  // Ejemplo 13: degradación. Forzamos el fallback y procesamos para capturar
+  // el caso "corrió en el main" (el más ilustrativo del concepto).
+  page = await ctx.newPage();
+  await page.goto(`${base}/t/${t}/example/13-graceful-degradation`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(700);
+  await page.getByRole('button', { name: /simular .* sin worker|simular sin worker/i }).first().click();
+  await page.waitForTimeout(200);
+  await page.getByRole('button', { name: /^▶?\s*procesar$|procesar/i }).first().click();
+  await page.waitForTimeout(1200);
+  await page.screenshot({ path: `${dir13}/${t}.png`, fullPage: true });
   await page.close();
   console.log('done', t);
 }

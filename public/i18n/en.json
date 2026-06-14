@@ -177,6 +177,22 @@
         ],
         "tip": "Use Atomics.wait/notify to synchronize threads over shared memory without polling."
       }
+    },
+    "13-graceful-degradation": {
+      "title": "Graceful degradation",
+      "summary": "Not every environment has Web Workers (old runtimes, some SSR contexts). Graceful degradation is: you detect the feature (typeof Worker) and, if it's missing, run the SAME work on the main thread. The app works everywhere — better where workers exist, just as correct where they don't.",
+      "whatToWatch": "Hit Process: if Worker exists, it runs off-thread and the UI stays smooth. Tick \"simulate browser without Worker\" and process again: it runs the same function on the main thread —the UI freezes— but the result is exactly the same. Same code, two paths chosen by feature detection.",
+      "note": "The key is sharing the logic: a pure function (here, counting primes) that the worker and the main thread can both run. The worker is just the wrapper that runs it on another thread. So the fallback isn't duplicated code: it's the same function, minus the worker. Detect once and pick the path; never assume Worker exists.",
+      "takeaways": {
+        "title": "Key takeaways",
+        "items": [
+          "Detect the feature (typeof Worker) instead of assuming it exists",
+          "Without Worker, run the SAME work on the main: you degrade the UX, not the function",
+          "Share the pure logic between worker and fallback (don't duplicate it)",
+          "The app works everywhere: better with workers, correct without them"
+        ],
+        "tip": "The same applies to OffscreenCanvas, WebGL, etc.: detect and degrade, don't assume support."
+      }
     }
   }
 }
