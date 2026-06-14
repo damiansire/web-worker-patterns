@@ -12,7 +12,7 @@ function broadcastToAll(message: any, excludePort: any = null) {
   });
 }
 
-self.onconnect = function(e: any) {
+(self as unknown as SharedWorkerGlobalScope).onconnect = function(e: any) {
   const port = e.ports[0];
   totalConnections++;
   
