@@ -25,6 +25,7 @@ export type Category =
  *   - transferable:     transferir un ArrayBuffer (zero-copy, deja el buffer detached) vs clonarlo (ej. 07)
  *   - shared-worker:    un SharedWorker compartido por varias conexiones: un solo estado, N clientes (ej. 08)
  *   - worker-limits:    correr K workers a la vez: el paralelismo se aplana al pasar los núcleos del CPU (ej. 09)
+ *   - worker-pool:      un pool fijo de N workers que se reusan para drenar una cola de M tareas (ej. 10)
  */
 export type DemoKind =
   | 'thread-block'
@@ -34,7 +35,8 @@ export type DemoKind =
   | 'lifecycle'
   | 'transferable'
   | 'shared-worker'
-  | 'worker-limits';
+  | 'worker-limits'
+  | 'worker-pool';
 
 export interface WorkerExample {
   /** Slug estable, ej. '01-setinterval-counter'. */

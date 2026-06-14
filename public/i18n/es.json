@@ -129,6 +129,22 @@
         ],
         "tip": "Para trabajo de CPU, dimensioná tu pool a navigator.hardwareConcurrency; de más solo agrega overhead."
       }
+    },
+    "10-worker-pool": {
+      "title": "Pool de workers",
+      "summary": "La solución al límite del ejemplo anterior: en vez de crear un worker por tarea, mantenés un pool fijo de N workers y los reusás para drenar una cola de muchas tareas. Cada worker termina una tarea y agarra la siguiente. Acá: 4 workers procesan 24 tareas.",
+      "whatToWatch": "Mirá la cola drenar: las tareas pasan de pendiente a en proceso (tomadas por un worker) a hechas. Los slots son solo 4 y se reusan — fijate el contador de cada uno: ya despachó varias. Abajo, el número que importa: se crearon 4 workers, no 24.",
+      "note": "El pool es un scheduler que escribís vos en el main; el worker ni se entera (sólo computa). Reusar workers evita el costo de crear y destruir uno por tarea, y mantiene la concurrencia acotada a N (sin pasar los núcleos, como avisaba el ejemplo 09). Dimensioná N según el trabajo: para CPU, cerca de navigator.hardwareConcurrency.",
+      "takeaways": {
+        "title": "Puntos clave",
+        "items": [
+          "Un pool reusa N workers para M tareas, en vez de crear uno por tarea",
+          "Cada worker termina su tarea y toma la siguiente de la cola",
+          "Se crean N workers (acá 4), no M (24): menos memoria y arranque",
+          "El pool es un scheduler del main; el worker sólo hace el cómputo"
+        ],
+        "tip": "Dimensioná el pool al trabajo: para CPU, cerca de los núcleos; para I/O podés tener más, porque casi no usan CPU."
+      }
     }
   }
 }

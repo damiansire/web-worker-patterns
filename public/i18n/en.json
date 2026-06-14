@@ -129,6 +129,22 @@
         ],
         "tip": "For CPU work, size your pool to navigator.hardwareConcurrency; beyond that only adds overhead."
       }
+    },
+    "10-worker-pool": {
+      "title": "Worker pool",
+      "summary": "The fix for the previous example's limit: instead of creating one worker per task, you keep a fixed pool of N workers and reuse them to drain a queue of many tasks. Each worker finishes a task and grabs the next. Here: 4 workers process 24 tasks.",
+      "whatToWatch": "Watch the queue drain: tasks go from pending to running (picked up by a worker) to done. There are only 4 slots and they're reused — check each one's counter: it has already dispatched several. Below, the number that matters: 4 workers were created, not 24.",
+      "note": "The pool is a scheduler you write on the main thread; the worker has no idea (it just computes). Reusing workers avoids the cost of creating and destroying one per task, and keeps concurrency capped at N (without exceeding the cores, as example 09 warned). Size N to the work: for CPU, near navigator.hardwareConcurrency.",
+      "takeaways": {
+        "title": "Key takeaways",
+        "items": [
+          "A pool reuses N workers for M tasks, instead of one per task",
+          "Each worker finishes its task and takes the next from the queue",
+          "N workers are created (here 4), not M (24): less memory and startup",
+          "The pool is a main-thread scheduler; the worker only does the compute"
+        ],
+        "tip": "Size the pool to the work: for CPU, near the core count; for I/O you can have more, since they barely use CPU."
+      }
     }
   }
 }

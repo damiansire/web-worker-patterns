@@ -15,6 +15,7 @@ const dir06 = `${dir}/06-lifecycle-termination`;
 const dir07 = `${dir}/07-transferable-objects`;
 const dir08 = `${dir}/08-shared-worker`;
 const dir09 = `${dir}/09-worker-limits`;
+const dir10 = `${dir}/10-worker-pool`;
 await rm(dir, { recursive: true, force: true });
 await mkdir(dir03, { recursive: true });
 await mkdir(dir04, { recursive: true });
@@ -23,6 +24,7 @@ await mkdir(dir06, { recursive: true });
 await mkdir(dir07, { recursive: true });
 await mkdir(dir08, { recursive: true });
 await mkdir(dir09, { recursive: true });
+await mkdir(dir10, { recursive: true });
 
 const browser = await chromium.launch();
 // Fijamos idioma para capturas consistentes (el usuario escribe en español).
@@ -135,6 +137,16 @@ for (const t of themes) {
   await page.getByText('32×').first().waitFor({ timeout: 25000 }).catch(() => {});
   await page.waitForTimeout(800);
   await page.screenshot({ path: `${dir09}/${t}.png`, fullPage: true });
+  await page.close();
+
+  // Ejemplo 10: pool de workers. Arrancamos el drenado y capturamos a media cola
+  // (el throttle del service deja ~3-4s de drenado; tiramos el shot a ~1.4s).
+  page = await ctx.newPage();
+  await page.goto(`${base}/t/${t}/example/10-worker-pool`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(700);
+  await page.getByRole('button', { name: /procesar (la )?cola/i }).first().click();
+  await page.waitForTimeout(1400); // cola a medio drenar: slots ocupados + ✓ + pendientes
+  await page.screenshot({ path: `${dir10}/${t}.png`, fullPage: true });
   await page.close();
   console.log('done', t);
 }

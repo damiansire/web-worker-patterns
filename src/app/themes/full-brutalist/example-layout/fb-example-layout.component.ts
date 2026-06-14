@@ -13,6 +13,7 @@ import { LifecycleDemoService } from '../../../core/services/lifecycle-demo.serv
 import { TransferDemoService } from '../../../core/services/transfer-demo.service';
 import { SharedWorkerDemoService } from '../../../core/services/shared-worker-demo.service';
 import { WorkerLimitsDemoService } from '../../../core/services/worker-limits-demo.service';
+import { WorkerPoolDemoService } from '../../../core/services/worker-pool-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { FullBrutalistButton } from '../primitives/fb-button.component';
 import { FullBrutalistCard } from '../primitives/fb-card.component';
@@ -371,6 +372,50 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
                   }
                 </fb-card>
               }
+
+              @case ('worker-pool') {
+                <fb-card title="Pool de workers">
+                  <p class="b-lead">
+                    {{ content()?.whatToWatch ?? '4 workers se reusan para drenar 24 tareas. Mirá el contador de cada uno subir.' }}
+                  </p>
+
+                  <div class="b-send">
+                    <fb-button variant="solid" [disabled]="poolRunning()" (pressed)="runPool()">
+                      {{ poolRunning() ? 'procesando… ' + poolProcessed() + '/' + poolTaskCount : 'Procesar la cola' }}
+                    </fb-button>
+                    @if (poolTasks().length && !poolRunning()) {
+                      <fb-button (pressed)="resetPool()">Reset</fb-button>
+                    }
+                  </div>
+
+                  @if (poolTasks().length) {
+                    <p class="b-bar-label">Cola — {{ poolProcessed() }} / {{ poolTaskCount }} hechas</p>
+                    <div class="b-pool-queue">
+                      @for (task of poolTasks(); track task.id) {
+                        <span class="b-pool-task" [attr.data-state]="task.state">
+                          {{ task.state === 'done' ? '✓' : 'T' + task.id }}
+                        </span>
+                      }
+                    </div>
+
+                    <p class="b-bar-label">Pool — {{ poolSize() }} workers, se reusan</p>
+                    <div class="b-pool-slots">
+                      @for (slot of poolSlots(); track slot.id) {
+                        <div class="b-pool-slot" [attr.data-busy]="slot.busy">
+                          <span class="b-pool-slot-w">W{{ slot.id }}</span>
+                          <span class="b-pool-slot-task">{{ slot.busy ? 'T' + slot.taskId : 'libre' }}</span>
+                          <span class="b-pool-slot-x">× {{ slot.processed }}</span>
+                        </div>
+                      }
+                    </div>
+
+                    <p class="b-foot">▸ CON POOL: {{ workersCreated() }} workers creados, reusados {{ poolTaskCount }} veces.</p>
+                    <p class="b-foot b-danger">SIN POOL: {{ spawnedWithoutPool }} workers (uno por tarea) — el ejemplo 09 mostró por qué eso no escala.</p>
+                  } @else {
+                    <p class="b-hint">24 tareas, 4 workers. Tocá Procesar: los 4 se reusan para drenar la cola entera (× cuenta cuántas despachó cada uno). No se crea un worker por tarea.</p>
+                  }
+                </fb-card>
+              }
             }
 
             @if (content()?.takeaways; as tk) {
@@ -677,6 +722,67 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
         color: var(--ink);
       }
 
+      /* ── worker-pool (ej. 10): cola de tareas + slots ── */
+      .b-pool-queue {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin: 4px 0 18px;
+      }
+      .b-pool-task {
+        width: 34px;
+        height: 26px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 700;
+        border: 2px solid var(--border);
+        background: var(--surface-raised);
+        color: var(--ink-muted);
+      }
+      .b-pool-task[data-state='running'] {
+        background: var(--thread-worker);
+        color: var(--surface);
+        border-color: var(--thread-worker);
+      }
+      .b-pool-task[data-state='done'] {
+        background: var(--surface);
+        color: var(--border);
+        opacity: 0.5;
+      }
+      .b-pool-slots {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin: 4px 0 16px;
+      }
+      .b-pool-slot {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 10px;
+        border: var(--border-width) solid var(--border);
+        background: var(--surface-raised);
+        font-family: var(--font-mono);
+      }
+      .b-pool-slot[data-busy='true'] {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .b-pool-slot-w {
+        font-weight: 800;
+        font-size: 14px;
+      }
+      .b-pool-slot-task {
+        font-size: 12px;
+      }
+      .b-pool-slot-x {
+        font-size: 12px;
+        font-weight: 700;
+      }
+
       /* ── worker-limits (ej. 09): filas de tiempo por cantidad de workers ── */
       .b-lim {
         display: flex;
@@ -837,6 +943,7 @@ export class FullBrutalistExampleLayoutComponent {
   private readonly transfer = inject(TransferDemoService);
   private readonly shared = inject(SharedWorkerDemoService);
   private readonly limits = inject(WorkerLimitsDemoService);
+  private readonly pool = inject(WorkerPoolDemoService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
   private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
@@ -847,6 +954,8 @@ export class FullBrutalistExampleLayoutComponent {
   protected readonly transferMb = 64;
   /** Trabajo (primos hasta N) que corre cada worker en el ejemplo 09. */
   private readonly LIMITS_WORK = 600_000;
+  /** Trabajo por tarea del pool (ej. 10): mediano, para que el drenado se vea. */
+  private readonly POOL_WORK = 400_000;
 
   /** Implementación del ThreadVisualizer del theme activo, resuelta por DI. */
   protected readonly visualizer = inject(THREAD_VISUALIZER);
@@ -910,6 +1019,16 @@ export class FullBrutalistExampleLayoutComponent {
   private readonly limitMaxMs = computed(() =>
     Math.max(1, ...this.limitRuns().map((r) => r.ms)),
   );
+
+  // worker-pool (10)
+  protected readonly poolTasks = this.pool.tasks;
+  protected readonly poolSlots = this.pool.slots;
+  protected readonly poolRunning = this.pool.running;
+  protected readonly poolProcessed = this.pool.processed;
+  protected readonly poolSize = this.pool.poolSize;
+  protected readonly poolTaskCount = this.pool.taskCount;
+  protected readonly workersCreated = this.pool.workersCreated;
+  protected readonly spawnedWithoutPool = this.pool.spawnedWithoutPool;
 
   constructor() {
     effect(() => {
@@ -1025,6 +1144,17 @@ export class FullBrutalistExampleLayoutComponent {
 
   limitPct(ms: number): number {
     return Math.round((ms / this.limitMaxMs()) * 100);
+  }
+
+  runPool(): void {
+    const ex = this.example();
+    if (ex) {
+      this.pool.start(ex, this.POOL_WORK);
+    }
+  }
+
+  resetPool(): void {
+    this.pool.reset();
   }
 
   send(text: string): void {

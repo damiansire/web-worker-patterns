@@ -13,6 +13,7 @@ import { LifecycleDemoService } from '../../../core/services/lifecycle-demo.serv
 import { TransferDemoService } from '../../../core/services/transfer-demo.service';
 import { SharedWorkerDemoService } from '../../../core/services/shared-worker-demo.service';
 import { WorkerLimitsDemoService } from '../../../core/services/worker-limits-demo.service';
+import { WorkerPoolDemoService } from '../../../core/services/worker-pool-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { NarrativeButton } from '../primitives/narrative-button.component';
 import { NarrativeCodeBlock } from '../primitives/narrative-code-block.component';
@@ -307,6 +308,44 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                 <p class="n-foot">Plano hasta {{ hardwareConcurrency() }} (tus núcleos); pasado eso el tiempo trepa — más workers no ayudan.</p>
               } @else {
                 <p class="n-hint">Corré 1, 2, 4, 8 y 16 workers a la vez con el mismo cómputo. El tiempo se mantiene plano mientras entren en tus núcleos.</p>
+              }
+            }
+
+            @case ('worker-pool') {
+              <div class="n-send">
+                <narrative-button variant="solid" [disabled]="poolRunning()" (pressed)="runPool()">
+                  {{ poolRunning() ? 'Procesando… ' + poolProcessed() + '/' + poolTaskCount : 'Procesar la cola' }}
+                </narrative-button>
+                @if (poolTasks().length && !poolRunning()) {
+                  <narrative-button (pressed)="resetPool()">Reiniciar</narrative-button>
+                }
+              </div>
+
+              @if (poolTasks().length) {
+                <p class="n-lim-cpu">La cola — {{ poolProcessed() }} / {{ poolTaskCount }} hechas</p>
+                <div class="n-pool-queue">
+                  @for (task of poolTasks(); track task.id) {
+                    <span class="n-pool-task" [attr.data-state]="task.state">
+                      {{ task.state === 'done' ? '✓' : 'T' + task.id }}
+                    </span>
+                  }
+                </div>
+
+                <p class="n-lim-cpu">El pool — {{ poolSize() }} workers, se reusan</p>
+                <div class="n-pool-slots">
+                  @for (slot of poolSlots(); track slot.id) {
+                    <div class="n-pool-slot" [attr.data-busy]="slot.busy">
+                      <span class="n-pool-slot-w">W{{ slot.id }}</span>
+                      <span class="n-pool-slot-task">{{ slot.busy ? 'T' + slot.taskId : 'libre' }}</span>
+                      <span class="n-pool-slot-x">× {{ slot.processed }}</span>
+                    </div>
+                  }
+                </div>
+
+                <p class="n-foot">Con pool: {{ workersCreated() }} workers creados, reusados {{ poolTaskCount }} veces.</p>
+                <p class="n-foot n-danger">Sin pool: {{ spawnedWithoutPool }} workers, uno por tarea — el ejemplo 09 mostró por qué eso no escala.</p>
+              } @else {
+                <p class="n-hint">24 tareas, 4 workers. Tocá Procesar: los 4 se reusan para drenar la cola entera (× cuenta cuántas despachó cada uno). No se crea un worker por tarea.</p>
               }
             }
           }
@@ -641,6 +680,63 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
         word-break: break-word;
       }
 
+      /* ── worker-pool (ej. 10): cola + slots ── */
+      .n-pool-queue {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin: 4px 0 20px;
+      }
+      .n-pool-task {
+        min-width: 34px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 6px;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        border: var(--border-width) solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-raised);
+        color: var(--ink-muted);
+      }
+      .n-pool-task[data-state='running'] {
+        background: var(--thread-worker);
+        color: var(--surface);
+        border-color: var(--thread-worker);
+      }
+      .n-pool-task[data-state='done'] {
+        opacity: 0.4;
+      }
+      .n-pool-slots {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin: 4px 0 18px;
+      }
+      .n-pool-slot {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        padding: 12px;
+        border: var(--border-width) solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-raised);
+        font-family: var(--font-mono);
+        font-size: 13px;
+      }
+      .n-pool-slot[data-busy='true'] {
+        border-color: var(--accent);
+      }
+      .n-pool-slot-w {
+        font-weight: 600;
+        color: var(--accent);
+      }
+      .n-pool-slot-x {
+        color: var(--ink-muted);
+      }
+
       /* ── worker-limits (ej. 09): filas de tiempo ── */
       .n-lim-cpu {
         font-family: var(--font-display);
@@ -764,6 +860,7 @@ export class NarrativeExampleLayoutComponent {
   private readonly transfer = inject(TransferDemoService);
   private readonly shared = inject(SharedWorkerDemoService);
   private readonly limits = inject(WorkerLimitsDemoService);
+  private readonly pool = inject(WorkerPoolDemoService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
   private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
@@ -774,6 +871,8 @@ export class NarrativeExampleLayoutComponent {
   protected readonly transferMb = 64;
   /** Trabajo (primos hasta N) que corre cada worker en el ejemplo 09. */
   private readonly LIMITS_WORK = 600_000;
+  /** Trabajo por tarea del pool (ej. 10): mediano, para que el drenado se vea. */
+  private readonly POOL_WORK = 400_000;
 
   protected readonly visualizer = inject(THREAD_VISUALIZER);
 
@@ -836,6 +935,16 @@ export class NarrativeExampleLayoutComponent {
   private readonly limitMaxMs = computed(() =>
     Math.max(1, ...this.limitRuns().map((r) => r.ms)),
   );
+
+  // worker-pool (10)
+  protected readonly poolTasks = this.pool.tasks;
+  protected readonly poolSlots = this.pool.slots;
+  protected readonly poolRunning = this.pool.running;
+  protected readonly poolProcessed = this.pool.processed;
+  protected readonly poolSize = this.pool.poolSize;
+  protected readonly poolTaskCount = this.pool.taskCount;
+  protected readonly workersCreated = this.pool.workersCreated;
+  protected readonly spawnedWithoutPool = this.pool.spawnedWithoutPool;
 
   constructor() {
     effect(() => {
@@ -951,6 +1060,17 @@ export class NarrativeExampleLayoutComponent {
 
   limitPct(ms: number): number {
     return Math.round((ms / this.limitMaxMs()) * 100);
+  }
+
+  runPool(): void {
+    const ex = this.example();
+    if (ex) {
+      this.pool.start(ex, this.POOL_WORK);
+    }
+  }
+
+  resetPool(): void {
+    this.pool.reset();
   }
 
   send(text: string): void {

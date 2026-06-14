@@ -13,6 +13,7 @@ import { LifecycleDemoService } from '../../../core/services/lifecycle-demo.serv
 import { TransferDemoService } from '../../../core/services/transfer-demo.service';
 import { SharedWorkerDemoService } from '../../../core/services/shared-worker-demo.service';
 import { WorkerLimitsDemoService } from '../../../core/services/worker-limits-demo.service';
+import { WorkerPoolDemoService } from '../../../core/services/worker-pool-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { DevToolButton } from '../primitives/devtool-button.component';
 import { DevToolCodeBlock } from '../primitives/devtool-code-block.component';
@@ -358,6 +359,52 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                 </div>
               </section>
             }
+
+            @case ('worker-pool') {
+              <section class="dt-panel">
+                <header class="dt-panel-h">// worker pool · {{ poolSize() }} workers · {{ poolTaskCount }} tareas</header>
+                @if (content()?.whatToWatch; as ww) {
+                  <p class="dt-panel-b dt-watch">{{ ww }}</p>
+                }
+                <div class="dt-panel-b">
+                  <div class="dt-send">
+                    <devtool-button variant="solid" [disabled]="poolRunning()" (pressed)="runPool()">
+                      {{ poolRunning() ? '▶ procesando ' + poolProcessed() + '/' + poolTaskCount : '▶ procesar cola' }}
+                    </devtool-button>
+                    @if (poolTasks().length && !poolRunning()) {
+                      <devtool-button (pressed)="resetPool()">reset</devtool-button>
+                    }
+                  </div>
+
+                  @if (poolTasks().length) {
+                    <p class="dt-sub">// cola — {{ poolProcessed() }} / {{ poolTaskCount }} hechas</p>
+                    <div class="dt-pool-queue">
+                      @for (task of poolTasks(); track task.id) {
+                        <span class="dt-pool-task" [attr.data-state]="task.state">
+                          {{ task.state === 'done' ? '✓' : 'T' + task.id }}
+                        </span>
+                      }
+                    </div>
+
+                    <p class="dt-sub">// pool — {{ poolSize() }} workers, se reusan</p>
+                    <div class="dt-pool-slots">
+                      @for (slot of poolSlots(); track slot.id) {
+                        <div class="dt-pool-slot" [attr.data-busy]="slot.busy">
+                          <span class="dt-pool-slot-w">W{{ slot.id }}</span>
+                          <span class="dt-pool-slot-task">{{ slot.busy ? 'T' + slot.taskId : 'idle' }}</span>
+                          <span class="dt-pool-slot-x">×{{ slot.processed }}</span>
+                        </div>
+                      }
+                    </div>
+
+                    <p class="dt-ok">// pool: {{ workersCreated() }} workers creados, reusados {{ poolTaskCount }} veces</p>
+                    <p class="dt-bad">// sin pool: {{ spawnedWithoutPool }} workers (uno por tarea) — ver ejemplo 09</p>
+                  } @else {
+                    <p class="dt-hint">// 24 tareas, 4 workers · tocá procesar: los 4 se reusan para drenar la cola (×N = cuántas despachó cada uno)</p>
+                  }
+                </div>
+              </section>
+            }
           }
 
           @if (content()?.takeaways; as tk) {
@@ -666,6 +713,66 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
         word-break: break-word;
       }
 
+      /* ── worker-pool (ej. 10): cola + slots ── */
+      .dt-pool-queue {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin: 4px 0 16px;
+      }
+      .dt-pool-task {
+        min-width: 30px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 4px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        color: var(--ink-muted);
+      }
+      .dt-pool-task[data-state='running'] {
+        background: var(--accent);
+        color: var(--surface);
+        border-color: var(--accent);
+      }
+      .dt-pool-task[data-state='done'] {
+        color: var(--accent);
+        border-color: var(--accent);
+        opacity: 0.7;
+      }
+      .dt-pool-slots {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin: 4px 0 16px;
+      }
+      .dt-pool-slot {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 10px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 12px;
+      }
+      .dt-pool-slot[data-busy='true'] {
+        border-color: var(--accent);
+        background: var(--surface-raised);
+      }
+      .dt-pool-slot-w {
+        font-weight: 700;
+        color: var(--accent);
+      }
+      .dt-pool-slot-x {
+        color: var(--ink-muted);
+      }
+
       /* ── worker-limits (ej. 09): filas de tiempo ── */
       .dt-lim {
         display: flex;
@@ -757,6 +864,7 @@ export class DevToolExampleLayoutComponent {
   private readonly transfer = inject(TransferDemoService);
   private readonly shared = inject(SharedWorkerDemoService);
   private readonly limits = inject(WorkerLimitsDemoService);
+  private readonly pool = inject(WorkerPoolDemoService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
   private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
@@ -767,6 +875,8 @@ export class DevToolExampleLayoutComponent {
   protected readonly transferMb = 64;
   /** Trabajo (primos hasta N) que corre cada worker en el ejemplo 09. */
   private readonly LIMITS_WORK = 600_000;
+  /** Trabajo por tarea del pool (ej. 10): mediano, para que el drenado se vea. */
+  private readonly POOL_WORK = 400_000;
 
   protected readonly visualizer = inject(THREAD_VISUALIZER);
 
@@ -829,6 +939,16 @@ export class DevToolExampleLayoutComponent {
   private readonly limitMaxMs = computed(() =>
     Math.max(1, ...this.limitRuns().map((r) => r.ms)),
   );
+
+  // worker-pool (10)
+  protected readonly poolTasks = this.pool.tasks;
+  protected readonly poolSlots = this.pool.slots;
+  protected readonly poolRunning = this.pool.running;
+  protected readonly poolProcessed = this.pool.processed;
+  protected readonly poolSize = this.pool.poolSize;
+  protected readonly poolTaskCount = this.pool.taskCount;
+  protected readonly workersCreated = this.pool.workersCreated;
+  protected readonly spawnedWithoutPool = this.pool.spawnedWithoutPool;
 
   constructor() {
     effect(() => {
@@ -944,6 +1064,17 @@ export class DevToolExampleLayoutComponent {
 
   limitPct(ms: number): number {
     return Math.round((ms / this.limitMaxMs()) * 100);
+  }
+
+  runPool(): void {
+    const ex = this.example();
+    if (ex) {
+      this.pool.start(ex, this.POOL_WORK);
+    }
+  }
+
+  resetPool(): void {
+    this.pool.reset();
   }
 
   send(text: string): void {

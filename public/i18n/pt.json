@@ -129,6 +129,22 @@
         ],
         "tip": "Para trabalho de CPU, dimensione seu pool a navigator.hardwareConcurrency; além disso só adiciona overhead."
       }
+    },
+    "10-worker-pool": {
+      "title": "Pool de workers",
+      "summary": "A solução para o limite do exemplo anterior: em vez de criar um worker por tarefa, você mantém um pool fixo de N workers e os reutiliza para drenar uma fila de muitas tarefas. Cada worker termina uma tarefa e pega a próxima. Aqui: 4 workers processam 24 tarefas.",
+      "whatToWatch": "Veja a fila drenar: as tarefas passam de pendente a em processo (pega por um worker) a feita. São só 4 slots e eles se reutilizam — repare no contador de cada um: já despachou várias. Embaixo, o número que importa: foram criados 4 workers, não 24.",
+      "note": "O pool é um scheduler que você escreve na thread principal; o worker nem sabe (só computa). Reutilizar workers evita o custo de criar e destruir um por tarefa, e mantém a concorrência limitada a N (sem passar os núcleos, como avisava o exemplo 09). Dimensione N conforme o trabalho: para CPU, perto de navigator.hardwareConcurrency.",
+      "takeaways": {
+        "title": "Pontos-chave",
+        "items": [
+          "Um pool reutiliza N workers para M tarefas, em vez de um por tarefa",
+          "Cada worker termina sua tarefa e pega a próxima da fila",
+          "São criados N workers (aqui 4), não M (24): menos memória e inicialização",
+          "O pool é um scheduler da thread principal; o worker só faz o cálculo"
+        ],
+        "tip": "Dimensione o pool ao trabalho: para CPU, perto da contagem de núcleos; para I/O pode ter mais, pois quase não usam CPU."
+      }
     }
   }
 }

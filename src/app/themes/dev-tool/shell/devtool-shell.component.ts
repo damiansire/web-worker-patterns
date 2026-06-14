@@ -39,7 +39,7 @@ import { ExampleRunnerService } from '../../../core/services/example-runner.serv
         >
           ● {{ statusLabel() }}
         </span>
-        <span class="dt-stat">1 worker thread</span>
+        <span class="dt-stat">web workers</span>
         <span class="dt-grow"></span>
         <span class="dt-stat">UTF-8</span>
         <span class="dt-stat">TypeScript</span>
