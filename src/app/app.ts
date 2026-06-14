@@ -27,7 +27,15 @@ export class App {
 
     effect(() => {
       const pack = this.theme.active();
-      pack.shell().then((cmp) => this.shell.set(cmp));
+      const id = pack.id;
+      pack.shell().then((cmp) => {
+        // Evita la race en deep-link: el shell de un theme se carga async, así
+        // que solo aplicamos la resolución si sigue siendo el theme activo
+        // (si no, una carga vieja —p.ej. skeleton— pisaría a la nueva).
+        if (this.theme.activeId() === id) {
+          this.shell.set(cmp);
+        }
+      });
     });
   }
 }
