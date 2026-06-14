@@ -1,0 +1,27 @@
+/**
+ * Tokens del theme brutalist (ARQUITECTURA §6). Rellena los MISMOS nombres del
+ * contrato semántico con valores brutalistas: amarillo ácido, negro, rojo,
+ * bordes gruesos, sin radius. Se activan cuando `<html data-theme='brutalist'>`.
+ */
+[data-theme='brutalist'] {
+  --surface: #dcff1a;
+  --surface-raised: #ffffff;
+
+  --ink: #000000;
+  --ink-muted: #333333;
+
+  --accent: #ff3b3b;
+
+  --thread-main: #000000;
+  --thread-worker: #000000;
+  --thread-blocked: #ff3b3b;
+  --thread-idle: rgba(0, 0, 0, 0.12);
+
+  --border: #000000;
+  --border-width: 3px;
+  --radius: 0;
+
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, 'JetBrains Mono', monospace;
+}

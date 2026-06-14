@@ -6,6 +6,11 @@
 // Los themes reales sobreescriben estos nombres bajo [data-theme='<id>'].
 @use './app/theming/styles/tokens-contract';
 
+// Tokens + estilos globales de cada theme (livianos; el CSS pesado de librería
+// se carga lazy vía ThemeService.stylesheets). Scopeados bajo [data-theme].
+@use './app/themes/brutalist/styles/tokens' as brutalist-tokens;
+@use './app/themes/brutalist/styles/theme' as brutalist-theme;
+
 // Syntax highlighting theme
 @import 'highlight.js/styles/github-dark.css';
 
