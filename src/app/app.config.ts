@@ -10,12 +10,14 @@ import { provideTransloco } from '@jsverse/transloco';
 
 import { routes } from './app.routes';
 import { TranslocoHttpLoader } from './core/i18n/transloco-loader';
+import { provideThemeRegistry } from './theming/theme.registry';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
+    provideThemeRegistry(),
     provideHttpClient(),
     provideTransloco({
       config: {

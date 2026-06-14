@@ -1,25 +1,45 @@
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
+import { THEME_REGISTRY } from './theming/theme.tokens';
+import { ThemeId, ThemePack } from './theming/theme.types';
 
-describe('App', () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [App],
-    }).compileComponents();
+@Component({ standalone: true, template: '<p class="fake-shell">shell</p>' })
+class FakeShell {}
+
+const fakePack: ThemePack = {
+  id: 'skeleton',
+  label: 'Skeleton',
+  shell: () => Promise.resolve(FakeShell),
+  home: () => Promise.resolve(FakeShell),
+  exampleLayout: () => Promise.resolve(FakeShell),
+};
+
+describe('App (theme host)', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: THEME_REGISTRY,
+          useValue: new Map<ThemeId, ThemePack>([['skeleton', fakePack]]),
+        },
+      ],
+    });
   });
 
-  it('should create the app', () => {
+  it('creates the host', () => {
     const fixture = TestBed.createComponent(App);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should render main layout', async () => {
+  it('mounts the active theme shell and sets data-theme', async () => {
     const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
     await fixture.whenStable();
+    fixture.detectChanges();
+
     const compiled = fixture.nativeElement as HTMLElement;
-    const main = compiled.querySelector('main.main-grid');
-    expect(main).toBeTruthy();
-    expect(compiled.querySelector('.content')).toBeTruthy();
+    expect(compiled.querySelector('.fake-shell')).toBeTruthy();
+    expect(document.documentElement.dataset['theme']).toBe('skeleton');
   });
 });

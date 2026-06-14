@@ -1,40 +1,33 @@
-import { Component, signal, computed, inject } from '@angular/core';
-import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { filter, map } from 'rxjs/operators';
-import { LanguageService } from './core/services/language.service';
-import { SidebarComponent } from './core/layout/sidebar/sidebar.component';
+import { Component, effect, inject, signal, Type } from '@angular/core';
+import { NgComponentOutlet } from '@angular/common';
+import { ThemeService } from './theming/theme.service';
 
+/**
+ * Host de la app (ARQUITECTURA §4.3): monta el shell del theme activo vía
+ * `ngComponentOutlet`. Al cambiar de theme, el effect re-monta el shell; el
+ * estado de dominio (workers, monitor) vive en signals root y no se reinicia.
+ */
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, SidebarComponent],
-  templateUrl: './app.html',
-  styleUrl: './app.scss',
-  standalone: true
+  standalone: true,
+  imports: [NgComponentOutlet],
+  template: `
+    @if (shell(); as shellCmp) {
+      <ng-container *ngComponentOutlet="shellCmp" />
+    }
+  `,
 })
 export class App {
-  protected readonly title = signal('web-worker-patterns');
-  private readonly router = inject(Router);
-  protected readonly language = inject(LanguageService);
+  private readonly theme = inject(ThemeService);
+  protected readonly shell = signal<Type<unknown> | null>(null);
 
-  protected readonly geoMessage = computed(() => {
-    const n = this.language.geoNotification();
-    if (!n) return null;
-    const template = this.language.t<string>('geoNotification.message');
-    const langLabel = this.language.languages.find(l => l.code === n.languageCode)?.nativeLabel ?? n.languageCode;
-    return template.replace('{country}', n.countryName).replace('{language}', langLabel);
-  });
+  constructor() {
+    // Setea data-theme inicial (y, en el futuro, inyecta el CSS del theme).
+    this.theme.setTheme(this.theme.activeId());
 
-  private readonly currentUrl = toSignal(
-    this.router.events.pipe(
-      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-      map(event => event.urlAfterRedirects)
-    ),
-    { initialValue: this.router.url }
-  );
-
-  protected readonly isHomePage = computed(() => {
-    const url = this.currentUrl();
-    return url === '/' || url === '';
-  });
+    effect(() => {
+      const pack = this.theme.active();
+      pack.shell().then((cmp) => this.shell.set(cmp));
+    });
+  }
 }
