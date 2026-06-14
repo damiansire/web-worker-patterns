@@ -5,6 +5,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 import { findExample } from '../../../core/domain/examples/examples.registry';
 import { ExampleRunnerService } from '../../../core/services/example-runner.service';
+import { ExampleContentService } from '../../../core/services/example-content.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { FullBrutalistButton } from '../primitives/fb-button.component';
 import { FullBrutalistCard } from '../primitives/fb-card.component';
@@ -37,9 +38,15 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
             </div>
           </header>
 
+          @if (content()?.summary; as summary) {
+            <p class="b-summary">{{ summary }}</p>
+          }
+
           @if (ex.workerFactory) {
             <fb-card title="Worker vs Main thread">
-              <p class="b-lead">Mismo contador, dos hilos. Corré los dos y mirá la diferencia.</p>
+              <p class="b-lead">
+                {{ content()?.whatToWatch ?? 'Mismo contador, dos hilos. Corré los dos y mirá la diferencia.' }}
+              </p>
               <div class="b-cmp">
                 <div class="b-col">
                   <h3>En un Worker</h3>
@@ -68,6 +75,25 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
                 </div>
               </div>
             </fb-card>
+
+            @if (content()?.takeaways; as tk) {
+              <fb-card [title]="tk.title">
+                <ul class="b-take">
+                  @for (item of tk.items; track item) {
+                    <li>{{ item }}</li>
+                  }
+                </ul>
+                @if (tk.tip; as tip) {
+                  <p class="b-tip">→ {{ tip }}</p>
+                }
+              </fb-card>
+            }
+
+            @if (content()?.note; as note) {
+              <fb-card title="Nota">
+                <p class="b-noteedu">{{ note }}</p>
+              </fb-card>
+            }
 
             @if (snippets().length) {
               <fb-card title="Código">
@@ -165,11 +191,44 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
         letter-spacing: 0.08em;
       }
 
+      .b-summary {
+        background: var(--surface-raised);
+        color: var(--ink);
+        font-family: var(--font-mono);
+        font-size: 15px;
+        line-height: 1.6;
+        padding: 18px;
+        margin: 0;
+      }
       .b-lead {
         font-family: var(--font-mono);
         font-size: 13px;
         margin: 0 0 18px;
         color: var(--ink);
+      }
+      .b-take {
+        margin: 0;
+        padding-left: 20px;
+        font-family: var(--font-mono);
+        font-size: 14px;
+        line-height: 1.7;
+        color: var(--ink);
+      }
+      .b-tip {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--accent);
+        margin: 14px 0 0;
+        padding-top: 12px;
+        border-top: var(--border-width) solid var(--border);
+      }
+      .b-noteedu {
+        font-family: var(--font-mono);
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--ink);
+        margin: 0;
       }
       .b-cmp {
         display: grid;
@@ -253,6 +312,7 @@ export class FullBrutalistExampleLayoutComponent {
   protected readonly snippets = computed(() =>
     Object.entries(this.example()?.snippets ?? {}).map(([label, code]) => ({ label, code })),
   );
+  protected readonly content = inject(ExampleContentService).contentFor(this.id);
 
   protected readonly workerLanes = this.runner.workerLanes;
   protected readonly mainLanes = this.runner.mainLanes;

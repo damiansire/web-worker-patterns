@@ -1,8 +1,10 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter, convertToParamMap } from '@angular/router';
 import { of } from 'rxjs';
 import { BrutalistExampleLayoutComponent } from './brutalist-example-layout.component';
 import { ExampleRunnerService } from '../../../core/services/example-runner.service';
+import { ExampleContentService } from '../../../core/services/example-content.service';
 
 /**
  * Vertical del ejemplo 01 en brutalist con el contraste worker-vs-main (backlog #2):
@@ -18,6 +20,8 @@ describe('BrutalistExampleLayoutComponent (worker vs main contrast)', () => {
           provide: ActivatedRoute,
           useValue: { paramMap: of(convertToParamMap({ id: '01-setinterval-counter' })) },
         },
+        // Stub: el contenido i18n no es parte de esta prueba (evita cablear Transloco).
+        { provide: ExampleContentService, useValue: { contentFor: () => signal(null) } },
       ],
     });
   });

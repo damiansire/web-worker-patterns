@@ -5,6 +5,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 import { findExample } from '../../../core/domain/examples/examples.registry';
 import { ExampleRunnerService } from '../../../core/services/example-runner.service';
+import { ExampleContentService } from '../../../core/services/example-content.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { BrutalistButton } from '../primitives/brutalist-button.component';
 import { BrutalistCard } from '../primitives/brutalist-card.component';
@@ -29,9 +30,15 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
         <h1>{{ ex.order }} · {{ ex.id }}</h1>
         <p class="b-cat">{{ ex.category }}</p>
 
+        @if (content()?.summary; as summary) {
+          <p class="b-summary">{{ summary }}</p>
+        }
+
         @if (ex.workerFactory) {
           <brutalist-card title="Worker vs Main thread">
-            <p class="b-lead">Mismo contador, dos hilos. Corré los dos y mirá la diferencia.</p>
+            <p class="b-lead">
+              {{ content()?.whatToWatch ?? 'Mismo contador, dos hilos. Corré los dos y mirá la diferencia.' }}
+            </p>
             <div class="b-cmp">
               <div class="b-col">
                 <h3>En un Worker</h3>
@@ -62,6 +69,25 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
               </div>
             </div>
           </brutalist-card>
+
+          @if (content()?.takeaways; as tk) {
+            <brutalist-card [title]="tk.title">
+              <ul class="b-take">
+                @for (item of tk.items; track item) {
+                  <li>{{ item }}</li>
+                }
+              </ul>
+              @if (tk.tip; as tip) {
+                <p class="b-tip">→ {{ tip }}</p>
+              }
+            </brutalist-card>
+          }
+
+          @if (content()?.note; as note) {
+            <brutalist-card title="Nota">
+              <p class="b-noteedu">{{ note }}</p>
+            </brutalist-card>
+          }
 
           @if (snippets().length) {
             <brutalist-card title="Código">
@@ -108,10 +134,38 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
         letter-spacing: 0.06em;
         margin: 0 0 24px;
       }
+      .b-summary {
+        font-family: var(--font-mono);
+        font-size: 15px;
+        line-height: 1.6;
+        margin: 0 0 24px;
+        max-width: 70ch;
+      }
       .b-lead {
         font-family: var(--font-mono);
         font-size: 13px;
         margin: 0 0 18px;
+      }
+      .b-take {
+        margin: 0;
+        padding-left: 20px;
+        font-family: var(--font-mono);
+        font-size: 14px;
+        line-height: 1.7;
+      }
+      .b-tip {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        font-weight: 700;
+        margin: 14px 0 0;
+        padding-top: 12px;
+        border-top: var(--border-width) solid var(--border);
+      }
+      .b-noteedu {
+        font-family: var(--font-mono);
+        font-size: 14px;
+        line-height: 1.6;
+        margin: 0;
       }
       .b-cmp {
         display: grid;
@@ -174,6 +228,7 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
 export class BrutalistExampleLayoutComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly runner = inject(ExampleRunnerService);
+  private readonly contentSvc = inject(ExampleContentService);
 
   /** ThreadVisualizer del theme activo, resuelto por DI (§5). */
   protected readonly visualizer = inject(THREAD_VISUALIZER);
@@ -182,6 +237,8 @@ export class BrutalistExampleLayoutComponent {
     initialValue: '',
   });
   protected readonly example = computed(() => findExample(this.id()));
+  /** Contenido educativo neutral (i18n), reactivo al idioma activo. */
+  protected readonly content = this.contentSvc.contentFor(this.id);
   protected readonly snippets = computed(() =>
     Object.entries(this.example()?.snippets ?? {}).map(([label, code]) => ({ label, code })),
   );

@@ -1,5 +1,22 @@
 {
   "chrome": {
     "appTitle": "Web Worker Patterns"
+  },
+  "examples": {
+    "01-setinterval-counter": {
+      "title": "Counter with setInterval",
+      "summary": "This example shows how to use setInterval to run code periodically. It's fundamental to understand before learning about Web Workers, since counters are a common way to demonstrate how the main thread can get blocked.",
+      "whatToWatch": "Watch the two lanes: when the counter runs in a worker, the main thread stays free and the UI responds. When it runs on the main thread, that lane is blocked and the UI freezes.",
+      "note": "This counter works perfectly because the main thread is free. When the main thread is busy with heavy work, the same counter freezes — which is exactly why you move it to a worker. The comparison above shows that difference.",
+      "takeaways": {
+        "title": "Key takeaways",
+        "items": [
+          "setInterval runs its callback on the main thread",
+          "If the main thread is busy, the intervals are delayed",
+          "This is the fundamental problem Web Workers solve"
+        ],
+        "tip": "Use requestAnimationFrame instead of setInterval for smoother animations."
+      }
+    }
   }
 }

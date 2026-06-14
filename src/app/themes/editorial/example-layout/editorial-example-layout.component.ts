@@ -5,6 +5,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 import { findExample } from '../../../core/domain/examples/examples.registry';
 import { ExampleRunnerService } from '../../../core/services/example-runner.service';
+import { ExampleContentService } from '../../../core/services/example-content.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { EditorialButton } from '../primitives/editorial-button.component';
 import { EditorialCodeBlock } from '../primitives/editorial-code-block.component';
@@ -25,10 +26,12 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
         <h1>{{ ex.id }}</h1>
 
         @if (ex.workerFactory) {
-          <p class="e-lead">
-            La misma cuenta, dos hilos. En un worker el main queda libre; en el main thread, todo
-            se congela. Corré los dos y sentí la diferencia.
-          </p>
+          @if (content()?.summary; as summary) {
+            <p class="e-lead">{{ summary }}</p>
+          }
+          @if (content()?.whatToWatch; as ww) {
+            <p class="e-watch">{{ ww }}</p>
+          }
 
           <div class="e-cmp">
             <section class="e-col">
@@ -57,6 +60,24 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
               }
             </section>
           </div>
+
+          @if (content()?.takeaways; as tk) {
+            <section class="e-take">
+              <h2>{{ tk.title }}</h2>
+              <ul>
+                @for (item of tk.items; track item) {
+                  <li>{{ item }}</li>
+                }
+              </ul>
+              @if (tk.tip; as tip) {
+                <p class="e-tip">{{ tip }}</p>
+              }
+            </section>
+          }
+
+          @if (content()?.note; as note) {
+            <aside class="e-noteedu">{{ note }}</aside>
+          }
 
           @if (snippets().length) {
             <h2 class="e-code-title">El código</h2>
@@ -102,10 +123,53 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
       }
       .e-lead {
         font-family: var(--font-body);
-        font-size: 17px;
+        font-size: 19px;
         line-height: 1.6;
+        margin: 0 0 14px;
+        max-width: 62ch;
+      }
+      .e-watch {
+        font-family: var(--font-display);
+        font-style: italic;
+        font-size: 15px;
+        line-height: 1.6;
+        color: var(--ink-muted);
         margin: 0 0 28px;
-        max-width: 60ch;
+        max-width: 62ch;
+      }
+      .e-take {
+        margin: 8px 0 32px;
+      }
+      .e-take h2 {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 22px;
+        margin: 0 0 12px;
+      }
+      .e-take ul {
+        margin: 0;
+        padding-left: 22px;
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.7;
+      }
+      .e-tip {
+        font-family: var(--font-display);
+        font-style: italic;
+        font-size: 15px;
+        color: var(--accent);
+        margin: 14px 0 0;
+      }
+      .e-noteedu {
+        display: block;
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.6;
+        color: var(--ink-muted);
+        border-left: 3px solid var(--accent);
+        padding-left: 16px;
+        margin: 0 0 36px;
+        max-width: 62ch;
       }
       .e-cmp {
         display: grid;
@@ -179,6 +243,7 @@ export class EditorialExampleLayoutComponent {
   protected readonly snippets = computed(() =>
     Object.entries(this.example()?.snippets ?? {}).map(([label, code]) => ({ label, code })),
   );
+  protected readonly content = inject(ExampleContentService).contentFor(this.id);
 
   protected readonly workerLanes = this.runner.workerLanes;
   protected readonly mainLanes = this.runner.mainLanes;

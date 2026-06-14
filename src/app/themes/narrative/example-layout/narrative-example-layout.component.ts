@@ -5,6 +5,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 import { findExample } from '../../../core/domain/examples/examples.registry';
 import { ExampleRunnerService } from '../../../core/services/example-runner.service';
+import { ExampleContentService } from '../../../core/services/example-content.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { NarrativeButton } from '../primitives/narrative-button.component';
 import { NarrativeCodeBlock } from '../primitives/narrative-code-block.component';
@@ -25,10 +26,12 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
         <h1>{{ ex.id }}</h1>
 
         @if (ex.workerFactory) {
-          <p class="n-lead">
-            La misma cuenta corre en dos lugares distintos. En un worker, el hilo principal sigue
-            libre y la interfaz responde. En el hilo principal, todo se detiene. Corré ambos.
-          </p>
+          @if (content()?.summary; as summary) {
+            <p class="n-lead">{{ summary }}</p>
+          }
+          @if (content()?.whatToWatch; as ww) {
+            <p class="n-watch">{{ ww }}</p>
+          }
 
           <div class="n-cmp">
             <section class="n-col">
@@ -57,6 +60,24 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
               }
             </section>
           </div>
+
+          @if (content()?.takeaways; as tk) {
+            <section class="n-take">
+              <h2>{{ tk.title }}</h2>
+              <ul>
+                @for (item of tk.items; track item) {
+                  <li>{{ item }}</li>
+                }
+              </ul>
+              @if (tk.tip; as tip) {
+                <p class="n-tip">{{ tip }}</p>
+              }
+            </section>
+          }
+
+          @if (content()?.note; as note) {
+            <aside class="n-noteedu">{{ note }}</aside>
+          }
 
           @if (snippets().length) {
             <h2 class="n-code-title">El código</h2>
@@ -101,9 +122,50 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
       }
       .n-lead {
         font-family: var(--font-body);
-        font-size: 17px;
+        font-size: 19px;
         line-height: 1.7;
+        margin: 0 0 14px;
+      }
+      .n-watch {
+        font-family: var(--font-display);
+        font-style: italic;
+        font-size: 16px;
+        line-height: 1.6;
+        color: var(--ink-muted);
         margin: 0 0 30px;
+      }
+      .n-take {
+        margin: 8px 0 32px;
+      }
+      .n-take h2 {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 24px;
+        margin: 0 0 12px;
+      }
+      .n-take ul {
+        margin: 0;
+        padding-left: 22px;
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.8;
+      }
+      .n-tip {
+        font-family: var(--font-display);
+        font-style: italic;
+        font-size: 16px;
+        color: var(--accent);
+        margin: 14px 0 0;
+      }
+      .n-noteedu {
+        display: block;
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.7;
+        color: var(--ink-muted);
+        border-left: 3px solid var(--accent);
+        padding-left: 16px;
+        margin: 0 0 36px;
       }
       .n-cmp {
         display: grid;
@@ -178,6 +240,7 @@ export class NarrativeExampleLayoutComponent {
   protected readonly snippets = computed(() =>
     Object.entries(this.example()?.snippets ?? {}).map(([label, code]) => ({ label, code })),
   );
+  protected readonly content = inject(ExampleContentService).contentFor(this.id);
 
   protected readonly workerLanes = this.runner.workerLanes;
   protected readonly mainLanes = this.runner.mainLanes;

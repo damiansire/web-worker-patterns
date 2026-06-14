@@ -5,6 +5,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 import { findExample } from '../../../core/domain/examples/examples.registry';
 import { ExampleRunnerService } from '../../../core/services/example-runner.service';
+import { ExampleContentService } from '../../../core/services/example-content.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { DevToolButton } from '../primitives/devtool-button.component';
 import { DevToolCodeBlock } from '../primitives/devtool-code-block.component';
@@ -29,9 +30,16 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
         </h1>
         <p class="dt-cat">{{ ex.category }}</p>
 
+        @if (content()?.summary; as summary) {
+          <p class="dt-summary">{{ summary }}</p>
+        }
+
         @if (ex.workerFactory) {
           <section class="dt-panel">
             <header class="dt-panel-h">// worker vs main thread</header>
+            @if (content()?.whatToWatch; as ww) {
+              <p class="dt-panel-b dt-watch">{{ ww }}</p>
+            }
             <div class="dt-panel-b dt-cmp">
               <div class="dt-col">
                 <h3>en un worker</h3>
@@ -59,6 +67,29 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
               </div>
             </div>
           </section>
+
+          @if (content()?.takeaways; as tk) {
+            <section class="dt-panel">
+              <header class="dt-panel-h">// {{ tk.title.toLowerCase() }}</header>
+              <div class="dt-panel-b">
+                <ul class="dt-take">
+                  @for (item of tk.items; track item) {
+                    <li>{{ item }}</li>
+                  }
+                </ul>
+                @if (tk.tip; as tip) {
+                  <p class="dt-tip">→ {{ tip }}</p>
+                }
+              </div>
+            </section>
+          }
+
+          @if (content()?.note; as note) {
+            <section class="dt-panel">
+              <header class="dt-panel-h">// nota</header>
+              <p class="dt-panel-b dt-noteedu">{{ note }}</p>
+            </section>
+          }
 
           @if (snippets().length) {
             <section class="dt-panel">
@@ -107,11 +138,48 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
         text-transform: uppercase;
         margin: 0 0 20px;
       }
+      .dt-summary {
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        color: var(--ink);
+        margin: 0 0 20px;
+        max-width: 70ch;
+      }
       .dt-panel {
         border: var(--border-width) solid var(--border);
         border-radius: var(--radius);
         margin-bottom: 16px;
         overflow: hidden;
+      }
+      .dt-watch {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        line-height: 1.6;
+        color: var(--ink-muted);
+        border-bottom: var(--border-width) solid var(--border);
+        margin: 0;
+      }
+      .dt-take {
+        margin: 0;
+        padding-left: 18px;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        line-height: 1.8;
+        color: var(--ink);
+      }
+      .dt-tip {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: var(--accent);
+        margin: 12px 0 0;
+      }
+      .dt-noteedu {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        line-height: 1.6;
+        color: var(--ink);
+        margin: 0;
       }
       .dt-panel-h {
         font-family: var(--font-mono);
@@ -194,6 +262,7 @@ export class DevToolExampleLayoutComponent {
   protected readonly snippets = computed(() =>
     Object.entries(this.example()?.snippets ?? {}).map(([label, code]) => ({ label, code })),
   );
+  protected readonly content = inject(ExampleContentService).contentFor(this.id);
 
   protected readonly workerLanes = this.runner.workerLanes;
   protected readonly mainLanes = this.runner.mainLanes;

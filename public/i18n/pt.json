@@ -1,5 +1,22 @@
 {
   "chrome": {
     "appTitle": "Padrões de Web Workers"
+  },
+  "examples": {
+    "01-setinterval-counter": {
+      "title": "Contador com setInterval",
+      "summary": "Este exemplo mostra como usar setInterval para executar código periodicamente. É fundamental entender isso antes de aprender sobre Web Workers, pois os contadores são uma forma comum de demonstrar como a thread principal pode ser bloqueada.",
+      "whatToWatch": "Observe as duas faixas: quando o contador roda em um worker, a thread principal fica livre e a interface responde. Quando roda na thread principal, essa faixa é bloqueada e a UI congela.",
+      "note": "Este contador funciona perfeitamente porque a thread principal está livre. Quando a thread principal fica ocupada com trabalho pesado, o mesmo contador congela — por isso convém movê-lo para um worker. A comparação acima mostra exatamente essa diferença.",
+      "takeaways": {
+        "title": "Pontos-chave",
+        "items": [
+          "setInterval executa seu callback na thread principal",
+          "Se a thread principal estiver ocupada, os intervalos atrasam",
+          "Este é o problema fundamental que os Web Workers resolvem"
+        ],
+        "tip": "Use requestAnimationFrame em vez de setInterval para animações mais suaves."
+      }
+    }
   }
 }
