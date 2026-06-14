@@ -14,6 +14,7 @@ import { TransferDemoService } from '../../../core/services/transfer-demo.servic
 import { SharedWorkerDemoService } from '../../../core/services/shared-worker-demo.service';
 import { WorkerLimitsDemoService } from '../../../core/services/worker-limits-demo.service';
 import { WorkerPoolDemoService } from '../../../core/services/worker-pool-demo.service';
+import { BackpressureDemoService } from '../../../core/services/backpressure-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { FullBrutalistButton } from '../primitives/fb-button.component';
 import { FullBrutalistCard } from '../primitives/fb-card.component';
@@ -416,6 +417,45 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
                   }
                 </fb-card>
               }
+
+              @case ('backpressure') {
+                <fb-card title="Backpressure">
+                  <p class="b-lead">
+                    {{ content()?.whatToWatch ?? 'El mismo trabajo de dos formas. Mirá hasta dónde crece la cola en espera.' }}
+                  </p>
+                  <div class="b-cmp">
+                    <div class="b-col">
+                      <h3>Sin backpressure</h3>
+                      <p class="b-col-sub">disparás las {{ bpTotal }} de una</p>
+                      <fb-button variant="solid" [disabled]="bpMode() !== 'idle'" (pressed)="runNaive()">
+                        Disparar todo
+                      </fb-button>
+                      @if (bpMode() === 'naive') {
+                        <p class="b-foot">en cola: {{ bpPending() }}…</p>
+                      } @else if (naivePeak(); as p) {
+                        <div class="b-bp-bar" data-kind="naive"><div class="b-bp-fill" [style.width.%]="bpPctOf(p)"></div></div>
+                        <p class="b-foot b-danger">✗ pico de cola: {{ p }} mensajes en espera</p>
+                      } @else {
+                        <p class="b-hint">Dispara las {{ bpTotal }} de una: el worker procesa de a uno y el resto se encola sin techo.</p>
+                      }
+                    </div>
+
+                    <div class="b-col">
+                      <h3>Con backpressure</h3>
+                      <p class="b-col-sub">ventana de {{ bpWindow }} · esperás el ack</p>
+                      <fb-button [disabled]="bpMode() !== 'idle'" (pressed)="runBackpressure()">Con control de flujo</fb-button>
+                      @if (bpMode() === 'backpressure') {
+                        <p class="b-foot">en cola: {{ bpPending() }}…</p>
+                      } @else if (bpPeak(); as p) {
+                        <div class="b-bp-bar" data-kind="bp"><div class="b-bp-fill" [style.width.%]="bpPctOf(p)"></div></div>
+                        <p class="b-foot">✓ pico de cola: {{ p }} — nunca pasó la ventana</p>
+                      } @else {
+                        <p class="b-hint">Manda {{ bpWindow }}, espera el ack, manda la próxima: la cola queda acotada al ritmo del worker.</p>
+                      }
+                    </div>
+                  </div>
+                </fb-card>
+              }
             }
 
             @if (content()?.takeaways; as tk) {
@@ -722,6 +762,25 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
         color: var(--ink);
       }
 
+      /* ── backpressure (ej. 11): barra de pico de cola ── */
+      .b-bp-bar {
+        height: 16px;
+        border: var(--border-width) solid var(--border);
+        background: var(--surface-raised);
+        margin: 12px 0 6px;
+        overflow: hidden;
+      }
+      .b-bp-fill {
+        height: 100%;
+        transition: width 0.3s ease-out;
+      }
+      .b-bp-bar[data-kind='naive'] .b-bp-fill {
+        background: var(--thread-blocked);
+      }
+      .b-bp-bar[data-kind='bp'] .b-bp-fill {
+        background: var(--thread-worker);
+      }
+
       /* ── worker-pool (ej. 10): cola de tareas + slots ── */
       .b-pool-queue {
         display: flex;
@@ -944,6 +1003,7 @@ export class FullBrutalistExampleLayoutComponent {
   private readonly shared = inject(SharedWorkerDemoService);
   private readonly limits = inject(WorkerLimitsDemoService);
   private readonly pool = inject(WorkerPoolDemoService);
+  private readonly backpressure = inject(BackpressureDemoService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
   private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
@@ -956,6 +1016,8 @@ export class FullBrutalistExampleLayoutComponent {
   private readonly LIMITS_WORK = 600_000;
   /** Trabajo por tarea del pool (ej. 10): mediano, para que el drenado se vea. */
   private readonly POOL_WORK = 400_000;
+  /** Trabajo por mensaje del ejemplo 11 (consumidor algo lento). */
+  private readonly BP_WORK = 150_000;
 
   /** Implementación del ThreadVisualizer del theme activo, resuelta por DI. */
   protected readonly visualizer = inject(THREAD_VISUALIZER);
@@ -1029,6 +1091,14 @@ export class FullBrutalistExampleLayoutComponent {
   protected readonly poolTaskCount = this.pool.taskCount;
   protected readonly workersCreated = this.pool.workersCreated;
   protected readonly spawnedWithoutPool = this.pool.spawnedWithoutPool;
+
+  // backpressure (11)
+  protected readonly bpMode = this.backpressure.mode;
+  protected readonly bpPending = this.backpressure.pending;
+  protected readonly naivePeak = this.backpressure.naivePeak;
+  protected readonly bpPeak = this.backpressure.bpPeak;
+  protected readonly bpTotal = this.backpressure.total;
+  protected readonly bpWindow = this.backpressure.windowSize;
 
   constructor() {
     effect(() => {
@@ -1155,6 +1225,24 @@ export class FullBrutalistExampleLayoutComponent {
 
   resetPool(): void {
     this.pool.reset();
+  }
+
+  runNaive(): void {
+    const ex = this.example();
+    if (ex) {
+      this.backpressure.runNaive(ex, this.BP_WORK);
+    }
+  }
+
+  runBackpressure(): void {
+    const ex = this.example();
+    if (ex) {
+      this.backpressure.runBackpressure(ex, this.BP_WORK);
+    }
+  }
+
+  bpPctOf(peak: number): number {
+    return Math.max(4, Math.round((peak / this.bpTotal) * 100));
   }
 
   send(text: string): void {

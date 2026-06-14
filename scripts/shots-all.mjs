@@ -16,6 +16,7 @@ const dir07 = `${dir}/07-transferable-objects`;
 const dir08 = `${dir}/08-shared-worker`;
 const dir09 = `${dir}/09-worker-limits`;
 const dir10 = `${dir}/10-worker-pool`;
+const dir11 = `${dir}/11-backpressure-scheduling`;
 await rm(dir, { recursive: true, force: true });
 await mkdir(dir03, { recursive: true });
 await mkdir(dir04, { recursive: true });
@@ -25,6 +26,7 @@ await mkdir(dir07, { recursive: true });
 await mkdir(dir08, { recursive: true });
 await mkdir(dir09, { recursive: true });
 await mkdir(dir10, { recursive: true });
+await mkdir(dir11, { recursive: true });
 
 const browser = await chromium.launch();
 // Fijamos idioma para capturas consistentes (el usuario escribe en español).
@@ -147,6 +149,18 @@ for (const t of themes) {
   await page.getByRole('button', { name: /procesar (la )?cola/i }).first().click();
   await page.waitForTimeout(1400); // cola a medio drenar: slots ocupados + ✓ + pendientes
   await page.screenshot({ path: `${dir10}/${t}.png`, fullPage: true });
+  await page.close();
+
+  // Ejemplo 11: backpressure. Corremos los dos lados (sin/con control de flujo)
+  // y capturamos los dos picos de cola enfrentados.
+  page = await ctx.newPage();
+  await page.goto(`${base}/t/${t}/example/11-backpressure-scheduling`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(700);
+  await page.getByRole('button', { name: /disparar todo/i }).first().click();
+  await page.waitForTimeout(2200); // deja drenar la cola naive
+  await page.getByRole('button', { name: /control de flujo/i }).first().click();
+  await page.waitForTimeout(2600); // deja drenar con backpressure
+  await page.screenshot({ path: `${dir11}/${t}.png`, fullPage: true });
   await page.close();
   console.log('done', t);
 }

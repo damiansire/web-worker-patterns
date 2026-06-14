@@ -14,6 +14,7 @@ import { TransferDemoService } from '../../../core/services/transfer-demo.servic
 import { SharedWorkerDemoService } from '../../../core/services/shared-worker-demo.service';
 import { WorkerLimitsDemoService } from '../../../core/services/worker-limits-demo.service';
 import { WorkerPoolDemoService } from '../../../core/services/worker-pool-demo.service';
+import { BackpressureDemoService } from '../../../core/services/backpressure-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { DevToolButton } from '../primitives/devtool-button.component';
 import { DevToolCodeBlock } from '../primitives/devtool-code-block.component';
@@ -405,6 +406,45 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                 </div>
               </section>
             }
+
+            @case ('backpressure') {
+              <section class="dt-panel">
+                <header class="dt-panel-h">// backpressure · {{ bpTotal }} mensajes · ventana {{ bpWindow }}</header>
+                @if (content()?.whatToWatch; as ww) {
+                  <p class="dt-panel-b dt-watch">{{ ww }}</p>
+                }
+                <div class="dt-panel-b dt-cmp">
+                  <div class="dt-col">
+                    <h3>sin backpressure</h3>
+                    <p class="dt-sub">disparás las {{ bpTotal }} de una</p>
+                    <devtool-button variant="solid" [disabled]="bpMode() !== 'idle'" (pressed)="runNaive()">
+                      ▶ disparar todo
+                    </devtool-button>
+                    @if (bpMode() === 'naive') {
+                      <p class="dt-ok">// en cola: {{ bpPending() }}…</p>
+                    } @else if (naivePeak(); as p) {
+                      <div class="dt-bp-bar" data-kind="naive"><div class="dt-bp-fill" [style.width.%]="bpPctOf(p)"></div></div>
+                      <p class="dt-bad">✗ pico de cola: {{ p }} en espera</p>
+                    } @else {
+                      <p class="dt-hint">// el worker procesa de a uno · el resto se encola sin techo</p>
+                    }
+                  </div>
+                  <div class="dt-col">
+                    <h3>con backpressure</h3>
+                    <p class="dt-sub">ventana {{ bpWindow }} · esperás el ack</p>
+                    <devtool-button [disabled]="bpMode() !== 'idle'" (pressed)="runBackpressure()">▶ con control de flujo</devtool-button>
+                    @if (bpMode() === 'backpressure') {
+                      <p class="dt-ok">// en cola: {{ bpPending() }}…</p>
+                    } @else if (bpPeak(); as p) {
+                      <div class="dt-bp-bar" data-kind="bp"><div class="dt-bp-fill" [style.width.%]="bpPctOf(p)"></div></div>
+                      <p class="dt-ok">✓ pico de cola: {{ p }} · acotado a la ventana</p>
+                    } @else {
+                      <p class="dt-hint">// manda {{ bpWindow }}, espera ack, manda la próxima · cola acotada</p>
+                    }
+                  </div>
+                </div>
+              </section>
+            }
           }
 
           @if (content()?.takeaways; as tk) {
@@ -713,6 +753,26 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
         word-break: break-word;
       }
 
+      /* ── backpressure (ej. 11): barra de pico ── */
+      .dt-bp-bar {
+        height: 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        margin: 10px 0 6px;
+        overflow: hidden;
+      }
+      .dt-bp-fill {
+        height: 100%;
+        transition: width 0.3s ease-out;
+      }
+      .dt-bp-bar[data-kind='naive'] .dt-bp-fill {
+        background: var(--thread-blocked);
+      }
+      .dt-bp-bar[data-kind='bp'] .dt-bp-fill {
+        background: var(--accent);
+      }
+
       /* ── worker-pool (ej. 10): cola + slots ── */
       .dt-pool-queue {
         display: flex;
@@ -865,6 +925,7 @@ export class DevToolExampleLayoutComponent {
   private readonly shared = inject(SharedWorkerDemoService);
   private readonly limits = inject(WorkerLimitsDemoService);
   private readonly pool = inject(WorkerPoolDemoService);
+  private readonly backpressure = inject(BackpressureDemoService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
   private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
@@ -877,6 +938,8 @@ export class DevToolExampleLayoutComponent {
   private readonly LIMITS_WORK = 600_000;
   /** Trabajo por tarea del pool (ej. 10): mediano, para que el drenado se vea. */
   private readonly POOL_WORK = 400_000;
+  /** Trabajo por mensaje del ejemplo 11 (consumidor algo lento). */
+  private readonly BP_WORK = 150_000;
 
   protected readonly visualizer = inject(THREAD_VISUALIZER);
 
@@ -949,6 +1012,14 @@ export class DevToolExampleLayoutComponent {
   protected readonly poolTaskCount = this.pool.taskCount;
   protected readonly workersCreated = this.pool.workersCreated;
   protected readonly spawnedWithoutPool = this.pool.spawnedWithoutPool;
+
+  // backpressure (11)
+  protected readonly bpMode = this.backpressure.mode;
+  protected readonly bpPending = this.backpressure.pending;
+  protected readonly naivePeak = this.backpressure.naivePeak;
+  protected readonly bpPeak = this.backpressure.bpPeak;
+  protected readonly bpTotal = this.backpressure.total;
+  protected readonly bpWindow = this.backpressure.windowSize;
 
   constructor() {
     effect(() => {
@@ -1075,6 +1146,24 @@ export class DevToolExampleLayoutComponent {
 
   resetPool(): void {
     this.pool.reset();
+  }
+
+  runNaive(): void {
+    const ex = this.example();
+    if (ex) {
+      this.backpressure.runNaive(ex, this.BP_WORK);
+    }
+  }
+
+  runBackpressure(): void {
+    const ex = this.example();
+    if (ex) {
+      this.backpressure.runBackpressure(ex, this.BP_WORK);
+    }
+  }
+
+  bpPctOf(peak: number): number {
+    return Math.max(4, Math.round((peak / this.bpTotal) * 100));
   }
 
   send(text: string): void {

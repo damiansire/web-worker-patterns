@@ -14,6 +14,7 @@ import { TransferDemoService } from '../../../core/services/transfer-demo.servic
 import { SharedWorkerDemoService } from '../../../core/services/shared-worker-demo.service';
 import { WorkerLimitsDemoService } from '../../../core/services/worker-limits-demo.service';
 import { WorkerPoolDemoService } from '../../../core/services/worker-pool-demo.service';
+import { BackpressureDemoService } from '../../../core/services/backpressure-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { NarrativeButton } from '../primitives/narrative-button.component';
 import { NarrativeCodeBlock } from '../primitives/narrative-code-block.component';
@@ -348,6 +349,40 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                 <p class="n-hint">24 tareas, 4 workers. Tocá Procesar: los 4 se reusan para drenar la cola entera (× cuenta cuántas despachó cada uno). No se crea un worker por tarea.</p>
               }
             }
+
+            @case ('backpressure') {
+              <div class="n-cmp">
+                <section class="n-col">
+                  <h2>Sin backpressure</h2>
+                  <p class="n-sub">disparás las {{ bpTotal }} de una</p>
+                  <narrative-button variant="solid" [disabled]="bpMode() !== 'idle'" (pressed)="runNaive()">
+                    Disparar todo
+                  </narrative-button>
+                  @if (bpMode() === 'naive') {
+                    <p class="n-foot">en cola: {{ bpPending() }}…</p>
+                  } @else if (naivePeak(); as p) {
+                    <div class="n-bp-bar" data-kind="naive"><div class="n-bp-fill" [style.width.%]="bpPctOf(p)"></div></div>
+                    <p class="n-foot n-danger">Pico de cola: {{ p }} mensajes en espera.</p>
+                  } @else {
+                    <p class="n-hint">El worker procesa de a uno; el resto se encola sin techo.</p>
+                  }
+                </section>
+
+                <section class="n-col">
+                  <h2>Con backpressure</h2>
+                  <p class="n-sub">ventana de {{ bpWindow }} · esperás el ack</p>
+                  <narrative-button [disabled]="bpMode() !== 'idle'" (pressed)="runBackpressure()">Con control de flujo</narrative-button>
+                  @if (bpMode() === 'backpressure') {
+                    <p class="n-foot">en cola: {{ bpPending() }}…</p>
+                  } @else if (bpPeak(); as p) {
+                    <div class="n-bp-bar" data-kind="bp"><div class="n-bp-fill" [style.width.%]="bpPctOf(p)"></div></div>
+                    <p class="n-foot">Pico de cola: {{ p }} — nunca pasó la ventana.</p>
+                  } @else {
+                    <p class="n-hint">Mandás {{ bpWindow }}, esperás el ack, mandás la próxima: la cola queda acotada.</p>
+                  }
+                </section>
+              </div>
+            }
           }
 
           @if (content()?.takeaways; as tk) {
@@ -680,6 +715,26 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
         word-break: break-word;
       }
 
+      /* ── backpressure (ej. 11): barra de pico ── */
+      .n-bp-bar {
+        height: 16px;
+        border: var(--border-width) solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-raised);
+        margin: 12px 0 6px;
+        overflow: hidden;
+      }
+      .n-bp-fill {
+        height: 100%;
+        transition: width 0.3s ease-out;
+      }
+      .n-bp-bar[data-kind='naive'] .n-bp-fill {
+        background: var(--thread-blocked);
+      }
+      .n-bp-bar[data-kind='bp'] .n-bp-fill {
+        background: var(--thread-worker);
+      }
+
       /* ── worker-pool (ej. 10): cola + slots ── */
       .n-pool-queue {
         display: flex;
@@ -861,6 +916,7 @@ export class NarrativeExampleLayoutComponent {
   private readonly shared = inject(SharedWorkerDemoService);
   private readonly limits = inject(WorkerLimitsDemoService);
   private readonly pool = inject(WorkerPoolDemoService);
+  private readonly backpressure = inject(BackpressureDemoService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
   private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
@@ -873,6 +929,8 @@ export class NarrativeExampleLayoutComponent {
   private readonly LIMITS_WORK = 600_000;
   /** Trabajo por tarea del pool (ej. 10): mediano, para que el drenado se vea. */
   private readonly POOL_WORK = 400_000;
+  /** Trabajo por mensaje del ejemplo 11 (consumidor algo lento). */
+  private readonly BP_WORK = 150_000;
 
   protected readonly visualizer = inject(THREAD_VISUALIZER);
 
@@ -945,6 +1003,14 @@ export class NarrativeExampleLayoutComponent {
   protected readonly poolTaskCount = this.pool.taskCount;
   protected readonly workersCreated = this.pool.workersCreated;
   protected readonly spawnedWithoutPool = this.pool.spawnedWithoutPool;
+
+  // backpressure (11)
+  protected readonly bpMode = this.backpressure.mode;
+  protected readonly bpPending = this.backpressure.pending;
+  protected readonly naivePeak = this.backpressure.naivePeak;
+  protected readonly bpPeak = this.backpressure.bpPeak;
+  protected readonly bpTotal = this.backpressure.total;
+  protected readonly bpWindow = this.backpressure.windowSize;
 
   constructor() {
     effect(() => {
@@ -1071,6 +1137,24 @@ export class NarrativeExampleLayoutComponent {
 
   resetPool(): void {
     this.pool.reset();
+  }
+
+  runNaive(): void {
+    const ex = this.example();
+    if (ex) {
+      this.backpressure.runNaive(ex, this.BP_WORK);
+    }
+  }
+
+  runBackpressure(): void {
+    const ex = this.example();
+    if (ex) {
+      this.backpressure.runBackpressure(ex, this.BP_WORK);
+    }
+  }
+
+  bpPctOf(peak: number): number {
+    return Math.max(4, Math.round((peak / this.bpTotal) * 100));
   }
 
   send(text: string): void {

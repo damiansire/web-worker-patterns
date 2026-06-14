@@ -8,6 +8,7 @@ import { TRANSFER_SNIPPETS } from './snippets/transfer.snippets';
 import { SHARED_WORKER_SNIPPETS } from './snippets/shared-worker.snippets';
 import { WORKER_LIMITS_SNIPPETS } from './snippets/worker-limits.snippets';
 import { WORKER_POOL_SNIPPETS } from './snippets/worker-pool.snippets';
+import { BACKPRESSURE_SNIPPETS } from './snippets/backpressure.snippets';
 
 /**
  * Registry neutral de ejemplos (ARQUITECTURA §3.1).
@@ -117,7 +118,17 @@ export const EXAMPLES: WorkerExample[] = [
       new Worker(new URL('../workers/primes.worker', import.meta.url), { type: 'module' }),
     snippets: WORKER_POOL_SNIPPETS,
   },
-  { id: '11-backpressure-scheduling', order: 11, category: 'advanced', i18nKey: 'examples.11-backpressure-scheduling', snippets: {} },
+  {
+    id: '11-backpressure-scheduling',
+    order: 11,
+    category: 'advanced',
+    i18nKey: 'examples.11-backpressure-scheduling',
+    demo: 'backpressure',
+    // Reusa el worker de primos como consumidor que procesa de a uno.
+    workerFactory: () =>
+      new Worker(new URL('../workers/primes.worker', import.meta.url), { type: 'module' }),
+    snippets: BACKPRESSURE_SNIPPETS,
+  },
   { id: '12-shared-array-buffer', order: 12, category: 'advanced', i18nKey: 'examples.12-shared-array-buffer', snippets: {} },
   { id: '13-graceful-degradation', order: 13, category: 'advanced', i18nKey: 'examples.13-graceful-degradation', snippets: {} },
 ];
