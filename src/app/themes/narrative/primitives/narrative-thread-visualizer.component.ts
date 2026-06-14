@@ -58,6 +58,8 @@ import { ThreadVisualizerContract } from '../../../ui-contracts/thread-visualize
         min-width: 3px;
         background: var(--thread-idle);
         border-radius: 999px;
+        animation: wwp-seg-in 0.18s ease-out;
+        transform-origin: center;
       }
       .n-seg[data-state='main'] {
         background: var(--thread-main);

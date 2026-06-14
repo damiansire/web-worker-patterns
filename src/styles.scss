@@ -19,6 +19,28 @@
 @use './app/themes/narrative/styles/tokens' as narrative-tokens;
 @use './app/themes/narrative/styles/theme' as narrative-theme;
 
+// Microinteracción: cada segmento nuevo del ThreadVisualizer entra con un
+// fade/scale rápido — feedback de que pasó algo en otro hilo (backlog #5).
+@keyframes wwp-seg-in {
+  from {
+    opacity: 0;
+    transform: scaleY(0.35);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  @keyframes wwp-seg-in {
+    from,
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
 // Fix de herencia de color: el skin legacy colorea h1/h2/p globalmente con
 // var(--text-primary) (claro), lo que pisa por especificidad el color que cada
 // theme setea en su shell. Dentro de un theme, los títulos/párrafos sin color

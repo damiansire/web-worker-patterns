@@ -67,6 +67,8 @@ import { ThreadVisualizerContract } from '../../../ui-contracts/thread-visualize
         min-width: 3px;
         /* Por defecto vacío: el main (idle) se ve como track negro. */
         background: transparent;
+        animation: wwp-seg-in 0.18s ease-out;
+        transform-origin: center;
       }
       .b-cell[data-state='worker'] {
         background: var(--thread-worker);

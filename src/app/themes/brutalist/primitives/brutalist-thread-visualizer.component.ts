@@ -60,6 +60,8 @@ import { ThreadVisualizerContract } from '../../../ui-contracts/thread-visualize
         flex: 1 1 0;
         min-width: 4px;
         background: var(--thread-idle);
+        animation: wwp-seg-in 0.18s ease-out;
+        transform-origin: center;
       }
       .b-cell[data-state='main'] {
         background: var(--thread-main);
