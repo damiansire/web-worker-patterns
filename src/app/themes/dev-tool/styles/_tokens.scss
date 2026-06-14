@@ -1,0 +1,26 @@
+/**
+ * Tokens del theme dev-tool (ARQUITECTURA §6). Skin IDE/terminal oscuro.
+ * Se activan cuando `<html data-theme='dev-tool'>`.
+ */
+[data-theme='dev-tool'] {
+  --surface: #0d1117;
+  --surface-raised: #161b22;
+
+  --ink: #e6edf3;
+  --ink-muted: #8b949e;
+
+  --accent: #3fb950;
+
+  --thread-main: #2f81f7;
+  --thread-worker: #3fb950;
+  --thread-blocked: #f85149;
+  --thread-idle: rgba(255, 255, 255, 0.06);
+
+  --border: #30363d;
+  --border-width: 1px;
+  --radius: 6px;
+
+  --font-display: 'JetBrains Mono', ui-monospace, monospace;
+  --font-body: ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Consolas, monospace;
+}
