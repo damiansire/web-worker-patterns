@@ -12,6 +12,7 @@ import { ErrorDemoService } from '../../../core/services/error-demo.service';
 import { LifecycleDemoService } from '../../../core/services/lifecycle-demo.service';
 import { TransferDemoService } from '../../../core/services/transfer-demo.service';
 import { SharedWorkerDemoService } from '../../../core/services/shared-worker-demo.service';
+import { WorkerLimitsDemoService } from '../../../core/services/worker-limits-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { DevToolButton } from '../primitives/devtool-button.component';
 import { DevToolCodeBlock } from '../primitives/devtool-code-block.component';
@@ -324,6 +325,39 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                 </div>
               </section>
             }
+
+            @case ('worker-limits') {
+              <section class="dt-panel">
+                <header class="dt-panel-h">// worker limits · navigator.hardwareConcurrency = {{ hardwareConcurrency() }}</header>
+                @if (content()?.whatToWatch; as ww) {
+                  <p class="dt-panel-b dt-watch">{{ ww }}</p>
+                }
+                <div class="dt-panel-b">
+                  <div class="dt-send">
+                    <devtool-button variant="solid" [disabled]="limitRunning()" (pressed)="runLimits()">
+                      {{ limitRunning() ? '▶ corriendo ' + currentWorkers() + '× …' : '▶ correr escala' }}
+                    </devtool-button>
+                    @if (limitRuns().length && !limitRunning()) {
+                      <devtool-button (pressed)="resetLimits()">reset</devtool-button>
+                    }
+                  </div>
+                  @if (limitRuns().length) {
+                    <div class="dt-lim">
+                      @for (run of limitRuns(); track run.workers) {
+                        <div class="dt-lim-row" [attr.data-over]="run.workers > hardwareConcurrency()">
+                          <span class="dt-lim-k">{{ run.workers }}×</span>
+                          <div class="dt-lim-bar"><div class="dt-lim-fill" [style.width.%]="limitPct(run.ms)"></div></div>
+                          <span class="dt-lim-ms">{{ run.ms }}ms</span>
+                        </div>
+                      }
+                    </div>
+                    <p class="dt-ok">// plano hasta {{ hardwareConcurrency() }} núcleos · pasado eso el tiempo trepa, más workers no ayudan</p>
+                  } @else {
+                    <p class="dt-hint">// corre 1,2,4,8,16 workers a la vez con el mismo trabajo · mirá dónde el tiempo deja de bajar</p>
+                  }
+                </div>
+              </section>
+            }
           }
 
           @if (content()?.takeaways; as tk) {
@@ -632,6 +666,45 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
         word-break: break-word;
       }
 
+      /* ── worker-limits (ej. 09): filas de tiempo ── */
+      .dt-lim {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin: 4px 0 12px;
+      }
+      .dt-lim-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: var(--font-mono);
+        font-size: 12px;
+      }
+      .dt-lim-k {
+        width: 32px;
+        text-align: right;
+        color: var(--ink-muted);
+      }
+      .dt-lim-bar {
+        flex: 1;
+        height: 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        overflow: hidden;
+      }
+      .dt-lim-fill {
+        height: 100%;
+        background: var(--accent);
+        transition: width 0.3s ease-out;
+      }
+      .dt-lim-row[data-over='true'] .dt-lim-fill {
+        background: var(--thread-blocked);
+      }
+      .dt-lim-ms {
+        width: 56px;
+      }
+
       /* ── shared-worker (ej. 08): contador ── */
       .dt-sw-count {
         font-family: var(--font-mono);
@@ -683,6 +756,7 @@ export class DevToolExampleLayoutComponent {
   private readonly lifecycle = inject(LifecycleDemoService);
   private readonly transfer = inject(TransferDemoService);
   private readonly shared = inject(SharedWorkerDemoService);
+  private readonly limits = inject(WorkerLimitsDemoService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
   private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
@@ -691,6 +765,8 @@ export class DevToolExampleLayoutComponent {
   private readonly LIFECYCLE_STEPS = 12;
   /** Tamaño del buffer de prueba del ejemplo 07. */
   protected readonly transferMb = 64;
+  /** Trabajo (primos hasta N) que corre cada worker en el ejemplo 09. */
+  private readonly LIMITS_WORK = 600_000;
 
   protected readonly visualizer = inject(THREAD_VISUALIZER);
 
@@ -744,6 +820,15 @@ export class DevToolExampleLayoutComponent {
   protected readonly swCount = this.shared.count;
   protected readonly swPanels = this.shared.panels;
   protected readonly swSupported = this.shared.supported;
+
+  // worker-limits (09)
+  protected readonly hardwareConcurrency = this.limits.hardwareConcurrency;
+  protected readonly limitRuns = this.limits.runs;
+  protected readonly limitRunning = this.limits.running;
+  protected readonly currentWorkers = this.limits.currentWorkers;
+  private readonly limitMaxMs = computed(() =>
+    Math.max(1, ...this.limitRuns().map((r) => r.ms)),
+  );
 
   constructor() {
     effect(() => {
@@ -844,6 +929,21 @@ export class DevToolExampleLayoutComponent {
 
   swClose(label: string): void {
     this.shared.closePanel(label);
+  }
+
+  runLimits(): void {
+    const ex = this.example();
+    if (ex) {
+      void this.limits.runScale(ex, this.LIMITS_WORK);
+    }
+  }
+
+  resetLimits(): void {
+    this.limits.reset();
+  }
+
+  limitPct(ms: number): number {
+    return Math.round((ms / this.limitMaxMs()) * 100);
   }
 
   send(text: string): void {

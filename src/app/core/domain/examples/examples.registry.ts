@@ -6,6 +6,7 @@ import { RISKY_SNIPPETS } from './snippets/risky.snippets';
 import { LIFECYCLE_SNIPPETS } from './snippets/lifecycle.snippets';
 import { TRANSFER_SNIPPETS } from './snippets/transfer.snippets';
 import { SHARED_WORKER_SNIPPETS } from './snippets/shared-worker.snippets';
+import { WORKER_LIMITS_SNIPPETS } from './snippets/worker-limits.snippets';
 
 /**
  * Registry neutral de ejemplos (ARQUITECTURA §3.1).
@@ -93,7 +94,17 @@ export const EXAMPLES: WorkerExample[] = [
       }),
     snippets: SHARED_WORKER_SNIPPETS,
   },
-  { id: '09-worker-limits', order: 9, category: 'management', i18nKey: 'examples.09-worker-limits', snippets: {} },
+  {
+    id: '09-worker-limits',
+    order: 9,
+    category: 'management',
+    i18nKey: 'examples.09-worker-limits',
+    demo: 'worker-limits',
+    // Reusa el worker de primos del ejemplo 04: cada tanda corre K copias a la vez.
+    workerFactory: () =>
+      new Worker(new URL('../workers/primes.worker', import.meta.url), { type: 'module' }),
+    snippets: WORKER_LIMITS_SNIPPETS,
+  },
   { id: '10-worker-pool', order: 10, category: 'optimization', i18nKey: 'examples.10-worker-pool', snippets: {} },
   { id: '11-backpressure-scheduling', order: 11, category: 'advanced', i18nKey: 'examples.11-backpressure-scheduling', snippets: {} },
   { id: '12-shared-array-buffer', order: 12, category: 'advanced', i18nKey: 'examples.12-shared-array-buffer', snippets: {} },

@@ -12,6 +12,7 @@ import { ErrorDemoService } from '../../../core/services/error-demo.service';
 import { LifecycleDemoService } from '../../../core/services/lifecycle-demo.service';
 import { TransferDemoService } from '../../../core/services/transfer-demo.service';
 import { SharedWorkerDemoService } from '../../../core/services/shared-worker-demo.service';
+import { WorkerLimitsDemoService } from '../../../core/services/worker-limits-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { BrutalistButton } from '../primitives/brutalist-button.component';
 import { BrutalistCard } from '../primitives/brutalist-card.component';
@@ -336,6 +337,39 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
                 <brutalist-button (pressed)="swAdd()">+ abrir otra conexión</brutalist-button>
               </brutalist-card>
             }
+
+            @case ('worker-limits') {
+              <brutalist-card title="Cuántos workers ayudan">
+                <p class="b-lead">
+                  {{ content()?.whatToWatch ?? 'Corremos K workers a la vez con el mismo trabajo. Mirá dónde el tiempo deja de bajar.' }}
+                </p>
+                <p class="b-bar-label">Tu CPU: {{ hardwareConcurrency() }} núcleos lógicos</p>
+
+                <div class="b-send">
+                  <brutalist-button variant="solid" [disabled]="limitRunning()" (pressed)="runLimits()">
+                    {{ limitRunning() ? 'corriendo ' + currentWorkers() + '× …' : 'Correr la escala' }}
+                  </brutalist-button>
+                  @if (limitRuns().length && !limitRunning()) {
+                    <brutalist-button (pressed)="resetLimits()">Reset</brutalist-button>
+                  }
+                </div>
+
+                @if (limitRuns().length) {
+                  <div class="b-lim">
+                    @for (run of limitRuns(); track run.workers) {
+                      <div class="b-lim-row" [attr.data-over]="run.workers > hardwareConcurrency()">
+                        <span class="b-lim-k">{{ run.workers }}×</span>
+                        <div class="b-lim-bar"><div class="b-lim-fill" [style.width.%]="limitPct(run.ms)"></div></div>
+                        <span class="b-lim-ms">{{ run.ms }} ms</span>
+                      </div>
+                    }
+                  </div>
+                  <p class="b-foot">▸ Plano hasta {{ hardwareConcurrency() }} (tus núcleos); pasado eso el tiempo trepa — más workers no ayudan.</p>
+                } @else {
+                  <p class="b-hint">Corre 1, 2, 4, 8 y 16 workers a la vez con el mismo cómputo. El tiempo se mantiene plano mientras entren en tus núcleos.</p>
+                }
+              </brutalist-card>
+            }
           }
 
           @if (content()?.takeaways; as tk) {
@@ -610,6 +644,44 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
         color: var(--ink);
       }
 
+      /* ── worker-limits (ej. 09): filas de tiempo por cantidad de workers ── */
+      .b-lim {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin: 4px 0 12px;
+      }
+      .b-lim-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .b-lim-k {
+        width: 40px;
+        text-align: right;
+      }
+      .b-lim-bar {
+        flex: 1;
+        height: 18px;
+        border: var(--border-width) solid var(--border);
+        background: var(--surface-raised);
+        overflow: hidden;
+      }
+      .b-lim-fill {
+        height: 100%;
+        background: var(--thread-worker);
+        transition: width 0.3s ease-out;
+      }
+      .b-lim-row[data-over='true'] .b-lim-fill {
+        background: var(--thread-blocked);
+      }
+      .b-lim-ms {
+        width: 64px;
+      }
+
       /* ── lifecycle (ej. 06): barra de progreso ── */
       .b-bar {
         height: 22px;
@@ -695,6 +767,7 @@ export class BrutalistExampleLayoutComponent {
   private readonly lifecycle = inject(LifecycleDemoService);
   private readonly transfer = inject(TransferDemoService);
   private readonly shared = inject(SharedWorkerDemoService);
+  private readonly limits = inject(WorkerLimitsDemoService);
   private readonly contentSvc = inject(ExampleContentService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
@@ -704,6 +777,8 @@ export class BrutalistExampleLayoutComponent {
   private readonly LIFECYCLE_STEPS = 12;
   /** Tamaño del buffer de prueba del ejemplo 07. */
   protected readonly transferMb = 64;
+  /** Trabajo (primos hasta N) que corre cada worker en el ejemplo 09. */
+  private readonly LIMITS_WORK = 600_000;
 
   /** ThreadVisualizer del theme activo, resuelto por DI (§5). */
   protected readonly visualizer = inject(THREAD_VISUALIZER);
@@ -759,6 +834,15 @@ export class BrutalistExampleLayoutComponent {
   protected readonly swCount = this.shared.count;
   protected readonly swPanels = this.shared.panels;
   protected readonly swSupported = this.shared.supported;
+
+  // worker-limits (09)
+  protected readonly hardwareConcurrency = this.limits.hardwareConcurrency;
+  protected readonly limitRuns = this.limits.runs;
+  protected readonly limitRunning = this.limits.running;
+  protected readonly currentWorkers = this.limits.currentWorkers;
+  private readonly limitMaxMs = computed(() =>
+    Math.max(1, ...this.limitRuns().map((r) => r.ms)),
+  );
 
   constructor() {
     // Abre el worker del ejemplo activo (no-op si ya está abierto para el mismo
@@ -865,6 +949,21 @@ export class BrutalistExampleLayoutComponent {
 
   swClose(label: string): void {
     this.shared.closePanel(label);
+  }
+
+  runLimits(): void {
+    const ex = this.example();
+    if (ex) {
+      void this.limits.runScale(ex, this.LIMITS_WORK);
+    }
+  }
+
+  resetLimits(): void {
+    this.limits.reset();
+  }
+
+  limitPct(ms: number): number {
+    return Math.round((ms / this.limitMaxMs()) * 100);
   }
 
   send(text: string): void {

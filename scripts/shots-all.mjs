@@ -14,6 +14,7 @@ const dir05 = `${dir}/05-error-handling`;
 const dir06 = `${dir}/06-lifecycle-termination`;
 const dir07 = `${dir}/07-transferable-objects`;
 const dir08 = `${dir}/08-shared-worker`;
+const dir09 = `${dir}/09-worker-limits`;
 await rm(dir, { recursive: true, force: true });
 await mkdir(dir03, { recursive: true });
 await mkdir(dir04, { recursive: true });
@@ -21,6 +22,7 @@ await mkdir(dir05, { recursive: true });
 await mkdir(dir06, { recursive: true });
 await mkdir(dir07, { recursive: true });
 await mkdir(dir08, { recursive: true });
+await mkdir(dir09, { recursive: true });
 
 const browser = await chromium.launch();
 // Fijamos idioma para capturas consistentes (el usuario escribe en español).
@@ -120,6 +122,19 @@ for (const t of themes) {
   await plus.click();
   await page.waitForTimeout(500);
   await page.screenshot({ path: `${dir08}/${t}.png`, fullPage: true });
+  await page.close();
+
+  // Ejemplo 09: límites del paralelismo. Corremos la escala (1,2,4,8,16) y
+  // esperamos a que terminen las 5 tandas para capturar la columna de tiempos.
+  page = await ctx.newPage();
+  await page.goto(`${base}/t/${t}/example/09-worker-limits`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(700);
+  await page.getByRole('button', { name: /correr (la )?escala|correr escala/i }).first().click();
+  // la escala completa tarda ~2-4s según la máquina; esperamos con margen
+  // y hasta que aparezca la última fila (32×).
+  await page.getByText('32×').first().waitFor({ timeout: 25000 }).catch(() => {});
+  await page.waitForTimeout(800);
+  await page.screenshot({ path: `${dir09}/${t}.png`, fullPage: true });
   await page.close();
   console.log('done', t);
 }

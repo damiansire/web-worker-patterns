@@ -113,6 +113,22 @@
         ],
         "tip": "Um SharedWorker fica vivo enquanto houver ao menos uma conexão aberta; fecha quando a última sai."
       }
+    },
+    "09-worker-limits": {
+      "title": "Limites do paralelismo",
+      "summary": "Os workers rodam de verdade em paralelo, mas só até onde sua CPU vai. navigator.hardwareConcurrency diz quantas threads podem rodar de uma vez. Passado esse número, os workers não rodam \"mais em paralelo\": dividem os mesmos núcleos. Aqui rodamos K cópias do mesmo cálculo de uma vez e medimos quanto demoram.",
+      "whatToWatch": "Olhe a coluna de tempos. Enquanto K não passa seus núcleos, o tempo se mantém quase igual (cabem todos em paralelo). Quando K os supera, o tempo sobe: não há onde rodá-los, então se revezam. O limiar é justamente seu hardwareConcurrency.",
+      "note": "navigator.hardwareConcurrency é uma dica, não uma garantia: o sistema operacional divide os núcleos entre tudo que roda. Criar workers a mais não acelera o cálculo e custa memória e overhead de inicialização. Regra prática: para trabalho de CPU, não mais workers que núcleos. Para isso serve um pool (exemplo 10).",
+      "takeaways": {
+        "title": "Pontos-chave",
+        "items": [
+          "navigator.hardwareConcurrency = quantas threads rodam de verdade ao mesmo tempo",
+          "Mais workers que núcleos não é mais rápido: dividem os mesmos núcleos",
+          "O tempo se mantém plano até a contagem de núcleos e depois sobe",
+          "Cada worker a mais custa memória e inicialização, sem ganho de CPU"
+        ],
+        "tip": "Para trabalho de CPU, dimensione seu pool a navigator.hardwareConcurrency; além disso só adiciona overhead."
+      }
     }
   }
 }
