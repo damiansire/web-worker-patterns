@@ -15,6 +15,7 @@ import { SharedWorkerDemoService } from '../../../core/services/shared-worker-de
 import { WorkerLimitsDemoService } from '../../../core/services/worker-limits-demo.service';
 import { WorkerPoolDemoService } from '../../../core/services/worker-pool-demo.service';
 import { BackpressureDemoService } from '../../../core/services/backpressure-demo.service';
+import { SharedMemoryDemoService } from '../../../core/services/shared-memory-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { NarrativeButton } from '../primitives/narrative-button.component';
 import { NarrativeCodeBlock } from '../primitives/narrative-code-block.component';
@@ -383,6 +384,33 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                 </section>
               </div>
             }
+
+            @case ('shared-memory') {
+              @if (!smSupported()) {
+                <p class="n-foot n-danger">Backend simulado · SharedArrayBuffer necesita cabeceras COOP/COEP.</p>
+              }
+              <div class="n-sm">
+                <div class="n-sm-side">
+                  <span class="n-sm-who">Main</span>
+                  <span class="n-sub">lee →</span>
+                </div>
+                <div class="n-sm-cell">{{ smValue() }}</div>
+                <div class="n-sm-side n-sm-r">
+                  <span class="n-sm-who">Worker</span>
+                  <span class="n-sub">← escribe</span>
+                </div>
+              </div>
+              <div class="n-bar"><div class="n-bar-fill" [style.width.%]="smPct()"></div></div>
+              <p class="n-bar-label">0 mensajes intercambiados — es la misma memoria, escrita por el worker y leída por el main.</p>
+              <div class="n-send">
+                <narrative-button variant="solid" [disabled]="smRunning()" (pressed)="startSm()">
+                  {{ smRunning() ? 'Contando… ' + smValue() + '/' + smTarget : 'Arrancar' }}
+                </narrative-button>
+                @if (smValue() && !smRunning()) {
+                  <narrative-button (pressed)="resetSm()">Reiniciar</narrative-button>
+                }
+              </div>
+            }
           }
 
           @if (content()?.takeaways; as tk) {
@@ -715,6 +743,41 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
         word-break: break-word;
       }
 
+      /* ── shared-memory (ej. 12): main · celda · worker ── */
+      .n-sm {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 18px;
+        margin: 8px 0 14px;
+      }
+      .n-sm-side {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .n-sm-r {
+        text-align: right;
+      }
+      .n-sm-who {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 20px;
+      }
+      .n-sm-cell {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        font-size: clamp(48px, 9vw, 80px);
+        line-height: 1;
+        min-width: 120px;
+        text-align: center;
+        padding: 12px 20px;
+        border: var(--border-width) solid var(--accent);
+        border-radius: var(--radius);
+        background: var(--surface-raised);
+        color: var(--ink);
+      }
+
       /* ── backpressure (ej. 11): barra de pico ── */
       .n-bp-bar {
         height: 16px;
@@ -917,6 +980,7 @@ export class NarrativeExampleLayoutComponent {
   private readonly limits = inject(WorkerLimitsDemoService);
   private readonly pool = inject(WorkerPoolDemoService);
   private readonly backpressure = inject(BackpressureDemoService);
+  private readonly sharedMem = inject(SharedMemoryDemoService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
   private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
@@ -1011,6 +1075,12 @@ export class NarrativeExampleLayoutComponent {
   protected readonly bpPeak = this.backpressure.bpPeak;
   protected readonly bpTotal = this.backpressure.total;
   protected readonly bpWindow = this.backpressure.windowSize;
+
+  // shared-memory (12)
+  protected readonly smValue = this.sharedMem.value;
+  protected readonly smRunning = this.sharedMem.running;
+  protected readonly smSupported = this.sharedMem.supported;
+  protected readonly smTarget = this.sharedMem.target;
 
   constructor() {
     effect(() => {
@@ -1155,6 +1225,21 @@ export class NarrativeExampleLayoutComponent {
 
   bpPctOf(peak: number): number {
     return Math.max(4, Math.round((peak / this.bpTotal) * 100));
+  }
+
+  startSm(): void {
+    const ex = this.example();
+    if (ex) {
+      this.sharedMem.start(ex);
+    }
+  }
+
+  resetSm(): void {
+    this.sharedMem.reset();
+  }
+
+  smPct(): number {
+    return Math.round((this.smValue() / this.smTarget) * 100);
   }
 
   send(text: string): void {

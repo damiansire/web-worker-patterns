@@ -27,6 +27,7 @@ export type Category =
  *   - worker-limits:    correr K workers a la vez: el paralelismo se aplana al pasar los núcleos del CPU (ej. 09)
  *   - worker-pool:      un pool fijo de N workers que se reusan para drenar una cola de M tareas (ej. 10)
  *   - backpressure:     productor más rápido que el worker: sin control de flujo la cola se infla; con ack queda acotada (ej. 11)
+ *   - shared-memory:    SharedArrayBuffer + Atomics: main y worker comparten la MISMA memoria, sin postMessage (ej. 12)
  */
 export type DemoKind =
   | 'thread-block'
@@ -38,7 +39,8 @@ export type DemoKind =
   | 'shared-worker'
   | 'worker-limits'
   | 'worker-pool'
-  | 'backpressure';
+  | 'backpressure'
+  | 'shared-memory';
 
 export interface WorkerExample {
   /** Slug estable, ej. '01-setinterval-counter'. */

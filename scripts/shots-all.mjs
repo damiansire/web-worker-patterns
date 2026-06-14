@@ -17,6 +17,7 @@ const dir08 = `${dir}/08-shared-worker`;
 const dir09 = `${dir}/09-worker-limits`;
 const dir10 = `${dir}/10-worker-pool`;
 const dir11 = `${dir}/11-backpressure-scheduling`;
+const dir12 = `${dir}/12-shared-array-buffer`;
 await rm(dir, { recursive: true, force: true });
 await mkdir(dir03, { recursive: true });
 await mkdir(dir04, { recursive: true });
@@ -27,6 +28,7 @@ await mkdir(dir08, { recursive: true });
 await mkdir(dir09, { recursive: true });
 await mkdir(dir10, { recursive: true });
 await mkdir(dir11, { recursive: true });
+await mkdir(dir12, { recursive: true });
 
 const browser = await chromium.launch();
 // Fijamos idioma para capturas consistentes (el usuario escribe en español).
@@ -161,6 +163,16 @@ for (const t of themes) {
   await page.getByRole('button', { name: /control de flujo/i }).first().click();
   await page.waitForTimeout(2600); // deja drenar con backpressure
   await page.screenshot({ path: `${dir11}/${t}.png`, fullPage: true });
+  await page.close();
+
+  // Ejemplo 12: memoria compartida. Arrancamos y capturamos a mitad de la cuenta
+  // (el worker incrementa la memoria, el main la lee subiendo).
+  page = await ctx.newPage();
+  await page.goto(`${base}/t/${t}/example/12-shared-array-buffer`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(700);
+  await page.getByRole('button', { name: /arrancar/i }).first().click();
+  await page.waitForTimeout(1500); // contador a media subida
+  await page.screenshot({ path: `${dir12}/${t}.png`, fullPage: true });
   await page.close();
   console.log('done', t);
 }

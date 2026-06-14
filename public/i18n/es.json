@@ -161,6 +161,22 @@
         ],
         "tip": "Si la fuente lo soporta, usá ReadableStream: trae backpressure de fábrica, sin que lo cablees a mano."
       }
+    },
+    "12-shared-array-buffer": {
+      "title": "SharedArrayBuffer",
+      "summary": "Hasta ahora todo viajaba como mensajes: postMessage clona (03), o transfiere (07). Un SharedArrayBuffer es distinto: main y worker comparten la MISMA memoria, no una copia. El worker escribe un número ahí con Atomics y el main lo lee directo — sin un solo postMessage de por medio.",
+      "whatToWatch": "Arrancá y mirá el número subir. El worker lo incrementa en la memoria compartida; el main lee esa misma memoria con Atomics.load. El contador de mensajes intercambiados queda en 0: no hay ida y vuelta, es literalmente la misma variable en los dos hilos.",
+      "note": "Atomics garantiza lecturas y escrituras coherentes cuando varios hilos tocan la misma memoria (sin él tendrías condiciones de carrera). SharedArrayBuffer es poderoso pero sólo existe si la página está cross-origin isolated: hay que servir con las cabeceras COOP y COEP. Sin ellas, typeof SharedArrayBuffer es 'undefined' (acá verás un backend simulado rotulado).",
+      "takeaways": {
+        "title": "Puntos clave",
+        "items": [
+          "SharedArrayBuffer comparte la MISMA memoria entre hilos, no una copia",
+          "El worker escribe y el main lee la misma celda, sin postMessage",
+          "Atomics evita condiciones de carrera al tocar memoria compartida",
+          "Sólo disponible con cross-origin isolation (cabeceras COOP/COEP)"
+        ],
+        "tip": "Usá Atomics.wait/notify para sincronizar hilos sobre memoria compartida sin hacer polling."
+      }
     }
   }
 }

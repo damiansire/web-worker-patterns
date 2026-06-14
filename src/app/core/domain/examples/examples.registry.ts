@@ -9,6 +9,7 @@ import { SHARED_WORKER_SNIPPETS } from './snippets/shared-worker.snippets';
 import { WORKER_LIMITS_SNIPPETS } from './snippets/worker-limits.snippets';
 import { WORKER_POOL_SNIPPETS } from './snippets/worker-pool.snippets';
 import { BACKPRESSURE_SNIPPETS } from './snippets/backpressure.snippets';
+import { SHARED_MEMORY_SNIPPETS } from './snippets/shared-memory.snippets';
 
 /**
  * Registry neutral de ejemplos (ARQUITECTURA §3.1).
@@ -129,7 +130,16 @@ export const EXAMPLES: WorkerExample[] = [
       new Worker(new URL('../workers/primes.worker', import.meta.url), { type: 'module' }),
     snippets: BACKPRESSURE_SNIPPETS,
   },
-  { id: '12-shared-array-buffer', order: 12, category: 'advanced', i18nKey: 'examples.12-shared-array-buffer', snippets: {} },
+  {
+    id: '12-shared-array-buffer',
+    order: 12,
+    category: 'advanced',
+    i18nKey: 'examples.12-shared-array-buffer',
+    demo: 'shared-memory',
+    workerFactory: () =>
+      new Worker(new URL('../workers/atomics-counter.worker', import.meta.url), { type: 'module' }),
+    snippets: SHARED_MEMORY_SNIPPETS,
+  },
   { id: '13-graceful-degradation', order: 13, category: 'advanced', i18nKey: 'examples.13-graceful-degradation', snippets: {} },
 ];
 
