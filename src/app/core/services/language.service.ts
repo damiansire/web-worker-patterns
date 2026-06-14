@@ -40,7 +40,7 @@ export class LanguageService {
   constructor() {
     this.loadTranslations();
 
-    const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY) as LanguageCode | null;
+    const stored = this.storage?.getItem(LANGUAGE_STORAGE_KEY) as LanguageCode | null;
     if (stored && this.isSupported(stored)) {
       this.language.set(stored);
     } else {
@@ -50,9 +50,14 @@ export class LanguageService {
     effect(() => {
       const lang = this.language();
       if (lang) {
-        localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
+        this.storage?.setItem(LANGUAGE_STORAGE_KEY, lang);
       }
     });
+  }
+
+  /** localStorage puede no existir en test/SSR; lo accedemos de forma defensiva. */
+  private get storage(): Storage | null {
+    return typeof localStorage !== 'undefined' ? localStorage : null;
   }
 
   /**
