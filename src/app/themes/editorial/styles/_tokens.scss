@@ -11,10 +11,11 @@
 
   --accent: #e63924;
 
-  --thread-main: #4f6ef7;
+  // worker = color activo, main = neutro apagado, blocked = alerta, idle = tenue.
+  --thread-main: #a8a294;
   --thread-worker: #34c992;
   --thread-blocked: #e63924;
-  --thread-idle: rgba(0, 0, 0, 0.08);
+  --thread-idle: rgba(0, 0, 0, 0.1);
 
   --border: rgba(0, 0, 0, 0.18);
   --border-width: 1px;

@@ -11,10 +11,12 @@
 
   --accent: #3fb950;
 
-  --thread-main: #2f81f7;
+  // Semántica de hilos (constante en todos los themes): worker = color activo,
+  // main = neutro apagado, blocked = alerta, idle = pista tenue.
+  --thread-main: #57606a;
   --thread-worker: #3fb950;
   --thread-blocked: #f85149;
-  --thread-idle: rgba(255, 255, 255, 0.06);
+  --thread-idle: rgba(255, 255, 255, 0.08);
 
   --border: #30363d;
   --border-width: 1px;
