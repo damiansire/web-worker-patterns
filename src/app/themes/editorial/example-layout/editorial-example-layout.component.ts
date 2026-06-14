@@ -136,7 +136,7 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
                   <p class="e-sub">bloquea el hilo · la página se congela</p>
                   <editorial-button [disabled]="computePhase() === 'main'" (pressed)="computeMain(n.value)">Calcular en el main</editorial-button>
                   @if (mainResult(); as r) {
-                    <p class="e-foot e-danger">{{ r.count }} primos · la página se congeló {{ r.ms }} ms</p>
+                    <p class="e-foot e-danger"><span class="e-bad-mark">✗</span> {{ r.count }} primos · la página se congeló {{ r.ms }} ms</p>
                   } @else {
                     <p class="e-hint">Tocá y la página entera se congela hasta terminar: no podés ni scrollear.</p>
                   }
@@ -304,7 +304,10 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
         font-style: normal;
       }
       .e-ok-mark {
-        color: var(--thread-main);
+        color: var(--thread-worker);
+        font-weight: 700;
+      }
+      .e-bad-mark {
         font-weight: 700;
       }
       .e-code-title {

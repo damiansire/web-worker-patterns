@@ -136,7 +136,7 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                   <p class="n-sub">bloquea el hilo · la página se congela</p>
                   <narrative-button [disabled]="computePhase() === 'main'" (pressed)="computeMain(n.value)">Calcular en el main</narrative-button>
                   @if (mainResult(); as r) {
-                    <p class="n-foot n-danger">{{ r.count }} primos · la página se congeló {{ r.ms }} ms</p>
+                    <p class="n-foot n-danger"><span class="n-bad-mark">✗</span> {{ r.count }} primos · la página se congeló {{ r.ms }} ms</p>
                   } @else {
                     <p class="n-hint">Tocá y la página entera se congela hasta terminar: no podés ni scrollear.</p>
                   }
@@ -301,7 +301,10 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
         font-style: normal;
       }
       .n-ok-mark {
-        color: var(--thread-main);
+        color: var(--thread-worker);
+        font-weight: 700;
+      }
+      .n-bad-mark {
         font-weight: 700;
       }
       .n-code-title {
