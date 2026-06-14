@@ -10,6 +10,7 @@ import { MessageExchangeService } from '../../../core/services/message-exchange.
 import { ComputeDemoService } from '../../../core/services/compute-demo.service';
 import { ErrorDemoService } from '../../../core/services/error-demo.service';
 import { LifecycleDemoService } from '../../../core/services/lifecycle-demo.service';
+import { TransferDemoService } from '../../../core/services/transfer-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { BrutalistButton } from '../primitives/brutalist-button.component';
 import { BrutalistCard } from '../primitives/brutalist-card.component';
@@ -248,6 +249,43 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
                     <p class="b-foot">✓ Completado {{ lifeSteps() }}/{{ lifeSteps() }} — el worker terminó su trabajo y se cerró solo (self.close).</p>
                   }
                 }
+              </brutalist-card>
+            }
+
+            @case ('transferable') {
+              <brutalist-card title="Transferir vs Clonar">
+                <p class="b-lead">
+                  {{ content()?.whatToWatch ?? 'El mismo buffer, dos formas de mandarlo. Mirá el round-trip y qué le pasa al buffer del main.' }}
+                </p>
+                <p class="b-bar-label">buffer de prueba: {{ transferMb }} MB</p>
+
+                <div class="b-cmp">
+                  <div class="b-col">
+                    <h3>Transferir (zero-copy)</h3>
+                    <p class="b-col-sub">cambia de dueño · no copia</p>
+                    <brutalist-button variant="solid" [disabled]="transferBusy()" (pressed)="runTransfer()">
+                      Transferir buffer
+                    </brutalist-button>
+                    @if (transferResult(); as r) {
+                      <p class="b-foot">✓ round-trip {{ r.ms }} ms — instantáneo aunque sea grande</p>
+                      <p class="b-foot b-danger">⚠ el buffer del main quedó DETACHED (0 B): cambió de dueño</p>
+                    } @else {
+                      <p class="b-hint">Pasás el buffer en la transfer list: no se copia, pero el main pierde la propiedad (queda en 0 bytes).</p>
+                    }
+                  </div>
+
+                  <div class="b-col">
+                    <h3>Clonar (structured clone)</h3>
+                    <p class="b-col-sub">copia byte por byte · el main lo conserva</p>
+                    <brutalist-button [disabled]="transferBusy()" (pressed)="runClone()">Clonar buffer</brutalist-button>
+                    @if (cloneResult(); as r) {
+                      <p class="b-foot">round-trip {{ r.ms }} ms — más lento: copió {{ r.mb }} MB</p>
+                      <p class="b-foot">✓ el main conserva su copia intacta ({{ r.mb }} MB)</p>
+                    } @else {
+                      <p class="b-hint">Sin transfer list, postMessage copia el buffer entero. El main se queda con el suyo, pero la copia cuesta.</p>
+                    }
+                  </div>
+                </div>
               </brutalist-card>
             }
           }
@@ -569,6 +607,7 @@ export class BrutalistExampleLayoutComponent {
   private readonly compute = inject(ComputeDemoService);
   private readonly errors = inject(ErrorDemoService);
   private readonly lifecycle = inject(LifecycleDemoService);
+  private readonly transfer = inject(TransferDemoService);
   private readonly contentSvc = inject(ExampleContentService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
@@ -576,6 +615,8 @@ export class BrutalistExampleLayoutComponent {
   private readonly BROKEN_PAYLOAD = '{user: ada, role}';
   /** Pasos de la tarea larga del ejemplo 06. */
   private readonly LIFECYCLE_STEPS = 12;
+  /** Tamaño del buffer de prueba del ejemplo 07. */
+  protected readonly transferMb = 64;
 
   /** ThreadVisualizer del theme activo, resuelto por DI (§5). */
   protected readonly visualizer = inject(THREAD_VISUALIZER);
@@ -619,6 +660,11 @@ export class BrutalistExampleLayoutComponent {
     const total = this.lifeSteps();
     return total > 0 ? Math.round((this.lifeStep() / total) * 100) : 0;
   });
+
+  // transferable (07)
+  protected readonly transferResult = this.transfer.transferResult;
+  protected readonly cloneResult = this.transfer.cloneResult;
+  protected readonly transferBusy = this.transfer.busy;
 
   constructor() {
     // Abre el worker del ejemplo activo (no-op si ya está abierto para el mismo
@@ -693,6 +739,20 @@ export class BrutalistExampleLayoutComponent {
 
   resetLife(): void {
     this.lifecycle.reset();
+  }
+
+  runTransfer(): void {
+    const ex = this.example();
+    if (ex) {
+      this.transfer.runTransfer(ex, this.transferMb);
+    }
+  }
+
+  runClone(): void {
+    const ex = this.example();
+    if (ex) {
+      this.transfer.runClone(ex, this.transferMb);
+    }
   }
 
   send(text: string): void {

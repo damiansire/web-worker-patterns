@@ -81,6 +81,22 @@
         ],
         "tip": "Terminá los workers que ya no usás: siguen consumiendo memoria y un hilo aunque estén ociosos."
       }
+    },
+    "07-transferable-objects": {
+      "title": "Objetos transferibles",
+      "summary": "postMessage normalmente CLONA los datos (structured clone). Para datos grandes —un ArrayBuffer— eso cuesta. Un Transferable se pasa sin copiar (zero-copy): el buffer cambia de dueño al worker. La contra: el buffer del que lo envía queda detached, vacío e inutilizable.",
+      "whatToWatch": "Mandá el mismo buffer de las dos formas y compará el round-trip. Transferir es casi instantáneo aunque el buffer sea grande; clonar tarda porque copia byte por byte. Y mirá el efecto colateral: después de transferir, el buffer del main quedó DETACHED (0 bytes); al clonar, el main conserva su copia.",
+      "note": "Transferir no copia: mueve la propiedad del buffer al worker, por eso del lado del main queda detached (byteLength 0) y usarlo tira error. Son transferibles ArrayBuffer, MessagePort, ImageBitmap, OffscreenCanvas y los ReadableStream/WritableStream. Si necesitás conservar el dato de los dos lados, cloná; si no, transferí y ganás la copia.",
+      "takeaways": {
+        "title": "Puntos clave",
+        "items": [
+          "postMessage clona por defecto; el 2º argumento (transfer list) transfiere sin copiar",
+          "Transferir es zero-copy: instantáneo incluso para buffers grandes",
+          "El buffer transferido queda detached del lado del emisor (byteLength 0)",
+          "Transferibles: ArrayBuffer, MessagePort, ImageBitmap, OffscreenCanvas, streams"
+        ],
+        "tip": "Si después de mandar el buffer no lo vas a volver a tocar, transferilo: misma data, sin el costo de la copia."
+      }
     }
   }
 }

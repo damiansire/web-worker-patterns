@@ -10,6 +10,7 @@ import { MessageExchangeService } from '../../../core/services/message-exchange.
 import { ComputeDemoService } from '../../../core/services/compute-demo.service';
 import { ErrorDemoService } from '../../../core/services/error-demo.service';
 import { LifecycleDemoService } from '../../../core/services/lifecycle-demo.service';
+import { TransferDemoService } from '../../../core/services/transfer-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { EditorialButton } from '../primitives/editorial-button.component';
 import { EditorialCodeBlock } from '../primitives/editorial-code-block.component';
@@ -210,6 +211,37 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
                   <p class="e-foot">Completado, {{ lifeSteps() }}/{{ lifeSteps() }}: el worker terminó su trabajo y se cerró solo con self.close().</p>
                 }
               }
+            }
+
+            @case ('transferable') {
+              <p class="e-bar-label">Buffer de prueba: {{ transferMb }} MB</p>
+              <div class="e-cmp">
+                <section class="e-col">
+                  <h2>Transferir (zero-copy)</h2>
+                  <p class="e-sub">cambia de dueño · no copia</p>
+                  <editorial-button variant="solid" [disabled]="transferBusy()" (pressed)="runTransfer()">
+                    Transferir buffer
+                  </editorial-button>
+                  @if (transferResult(); as r) {
+                    <p class="e-foot"><span class="e-ok-mark">✓</span> round-trip {{ r.ms }} ms — instantáneo aunque sea grande</p>
+                    <p class="e-foot e-danger">El buffer del main quedó detached (0 B): perdió la propiedad.</p>
+                  } @else {
+                    <p class="e-hint">Pasás el buffer en la transfer list: no se copia, pero el main pierde la propiedad y queda en 0 bytes.</p>
+                  }
+                </section>
+
+                <section class="e-col">
+                  <h2>Clonar (structured clone)</h2>
+                  <p class="e-sub">copia byte por byte · el main lo conserva</p>
+                  <editorial-button [disabled]="transferBusy()" (pressed)="runClone()">Clonar buffer</editorial-button>
+                  @if (cloneResult(); as r) {
+                    <p class="e-foot">round-trip {{ r.ms }} ms — más lento: copió {{ r.mb }} MB</p>
+                    <p class="e-foot">El main conserva su copia intacta ({{ r.mb }} MB).</p>
+                  } @else {
+                    <p class="e-hint">Sin transfer list, postMessage copia el buffer entero. El main se queda con el suyo, pero la copia cuesta.</p>
+                  }
+                </section>
+              </div>
             }
           }
 
@@ -584,12 +616,15 @@ export class EditorialExampleLayoutComponent {
   private readonly compute = inject(ComputeDemoService);
   private readonly errors = inject(ErrorDemoService);
   private readonly lifecycle = inject(LifecycleDemoService);
+  private readonly transfer = inject(TransferDemoService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
   private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
   private readonly BROKEN_PAYLOAD = '{user: ada, role}';
   /** Pasos de la tarea larga del ejemplo 06. */
   private readonly LIFECYCLE_STEPS = 12;
+  /** Tamaño del buffer de prueba del ejemplo 07. */
+  protected readonly transferMb = 64;
 
   protected readonly visualizer = inject(THREAD_VISUALIZER);
 
@@ -631,6 +666,11 @@ export class EditorialExampleLayoutComponent {
     const total = this.lifeSteps();
     return total > 0 ? Math.round((this.lifeStep() / total) * 100) : 0;
   });
+
+  // transferable (07)
+  protected readonly transferResult = this.transfer.transferResult;
+  protected readonly cloneResult = this.transfer.cloneResult;
+  protected readonly transferBusy = this.transfer.busy;
 
   constructor() {
     effect(() => {
@@ -699,6 +739,20 @@ export class EditorialExampleLayoutComponent {
 
   resetLife(): void {
     this.lifecycle.reset();
+  }
+
+  runTransfer(): void {
+    const ex = this.example();
+    if (ex) {
+      this.transfer.runTransfer(ex, this.transferMb);
+    }
+  }
+
+  runClone(): void {
+    const ex = this.example();
+    if (ex) {
+      this.transfer.runClone(ex, this.transferMb);
+    }
   }
 
   send(text: string): void {

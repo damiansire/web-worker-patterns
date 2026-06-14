@@ -12,11 +12,13 @@ const dir03 = `${dir}/03-basic-communication`;
 const dir04 = `${dir}/04-offloading-computation`;
 const dir05 = `${dir}/05-error-handling`;
 const dir06 = `${dir}/06-lifecycle-termination`;
+const dir07 = `${dir}/07-transferable-objects`;
 await rm(dir, { recursive: true, force: true });
 await mkdir(dir03, { recursive: true });
 await mkdir(dir04, { recursive: true });
 await mkdir(dir05, { recursive: true });
 await mkdir(dir06, { recursive: true });
+await mkdir(dir07, { recursive: true });
 
 const browser = await chromium.launch();
 // Fijamos idioma para capturas consistentes (el usuario escribe en español).
@@ -87,6 +89,18 @@ for (const t of themes) {
   await page.getByRole('button', { name: /terminar|terminate/i }).first().click();
   await page.waitForTimeout(500);
   await page.screenshot({ path: `${dir06}/${t}.png`, fullPage: true });
+  await page.close();
+
+  // Ejemplo 07: transferibles. Corremos transferir y clonar para capturar
+  // ambos resultados (round-trip de cada uno + el buffer del main detached).
+  page = await ctx.newPage();
+  await page.goto(`${base}/t/${t}/example/07-transferable-objects`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(700);
+  await page.getByRole('button', { name: /transferir/i }).first().click();
+  await page.waitForTimeout(700);
+  await page.getByRole('button', { name: /clonar/i }).first().click();
+  await page.waitForTimeout(900);
+  await page.screenshot({ path: `${dir07}/${t}.png`, fullPage: true });
   await page.close();
   console.log('done', t);
 }

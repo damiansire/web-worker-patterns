@@ -22,13 +22,15 @@ export type Category =
  *   - offload:          cómputo pesado en el worker (UI fluida) vs en el main (UI congelada) (ej. 04)
  *   - error-handling:   un error dentro del worker se captura con onerror y la app sigue viva (ej. 05)
  *   - lifecycle:        ciclo de vida del worker: arrancar una tarea larga y terminarla a mitad (ej. 06)
+ *   - transferable:     transferir un ArrayBuffer (zero-copy, deja el buffer detached) vs clonarlo (ej. 07)
  */
 export type DemoKind =
   | 'thread-block'
   | 'message-exchange'
   | 'offload'
   | 'error-handling'
-  | 'lifecycle';
+  | 'lifecycle'
+  | 'transferable';
 
 export interface WorkerExample {
   /** Slug estable, ej. '01-setinterval-counter'. */

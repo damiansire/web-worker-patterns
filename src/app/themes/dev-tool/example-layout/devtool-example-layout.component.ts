@@ -10,6 +10,7 @@ import { MessageExchangeService } from '../../../core/services/message-exchange.
 import { ComputeDemoService } from '../../../core/services/compute-demo.service';
 import { ErrorDemoService } from '../../../core/services/error-demo.service';
 import { LifecycleDemoService } from '../../../core/services/lifecycle-demo.service';
+import { TransferDemoService } from '../../../core/services/transfer-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { DevToolButton } from '../primitives/devtool-button.component';
 import { DevToolCodeBlock } from '../primitives/devtool-code-block.component';
@@ -242,6 +243,41 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                       <p class="dt-ok">// done {{ lifeSteps() }}/{{ lifeSteps() }} · el worker se cerró solo (self.close)</p>
                     }
                   }
+                </div>
+              </section>
+            }
+
+            @case ('transferable') {
+              <section class="dt-panel">
+                <header class="dt-panel-h">// transferir vs clonar · ArrayBuffer ({{ transferMb }} MB)</header>
+                @if (content()?.whatToWatch; as ww) {
+                  <p class="dt-panel-b dt-watch">{{ ww }}</p>
+                }
+                <div class="dt-panel-b dt-cmp">
+                  <div class="dt-col">
+                    <h3>transfer (zero-copy)</h3>
+                    <p class="dt-sub">cambia de dueño · no copia</p>
+                    <devtool-button variant="solid" [disabled]="transferBusy()" (pressed)="runTransfer()">
+                      ▶ transferir
+                    </devtool-button>
+                    @if (transferResult(); as r) {
+                      <p class="dt-ok">✓ round-trip {{ r.ms }} ms · instantáneo</p>
+                      <p class="dt-bad">⚠ main buffer DETACHED · byteLength 0</p>
+                    } @else {
+                      <p class="dt-hint">// postMessage(msg, [buf]) · zero-copy, pero el main pierde el buffer</p>
+                    }
+                  </div>
+                  <div class="dt-col">
+                    <h3>clone (structured)</h3>
+                    <p class="dt-sub">copia byte por byte · el main lo conserva</p>
+                    <devtool-button [disabled]="transferBusy()" (pressed)="runClone()">▶ clonar</devtool-button>
+                    @if (cloneResult(); as r) {
+                      <p class="dt-ok">round-trip {{ r.ms }} ms · copió {{ r.mb }} MB</p>
+                      <p class="dt-ok">✓ main conserva su copia ({{ r.mb }} MB)</p>
+                    } @else {
+                      <p class="dt-hint">// postMessage(msg) · copia el buffer entero (cuesta para datos grandes)</p>
+                    }
+                  </div>
                 </div>
               </section>
             }
@@ -592,12 +628,15 @@ export class DevToolExampleLayoutComponent {
   private readonly compute = inject(ComputeDemoService);
   private readonly errors = inject(ErrorDemoService);
   private readonly lifecycle = inject(LifecycleDemoService);
+  private readonly transfer = inject(TransferDemoService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
   private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
   private readonly BROKEN_PAYLOAD = '{user: ada, role}';
   /** Pasos de la tarea larga del ejemplo 06. */
   private readonly LIFECYCLE_STEPS = 12;
+  /** Tamaño del buffer de prueba del ejemplo 07. */
+  protected readonly transferMb = 64;
 
   protected readonly visualizer = inject(THREAD_VISUALIZER);
 
@@ -639,6 +678,11 @@ export class DevToolExampleLayoutComponent {
     const total = this.lifeSteps();
     return total > 0 ? Math.round((this.lifeStep() / total) * 100) : 0;
   });
+
+  // transferable (07)
+  protected readonly transferResult = this.transfer.transferResult;
+  protected readonly cloneResult = this.transfer.cloneResult;
+  protected readonly transferBusy = this.transfer.busy;
 
   constructor() {
     effect(() => {
@@ -707,6 +751,20 @@ export class DevToolExampleLayoutComponent {
 
   resetLife(): void {
     this.lifecycle.reset();
+  }
+
+  runTransfer(): void {
+    const ex = this.example();
+    if (ex) {
+      this.transfer.runTransfer(ex, this.transferMb);
+    }
+  }
+
+  runClone(): void {
+    const ex = this.example();
+    if (ex) {
+      this.transfer.runClone(ex, this.transferMb);
+    }
   }
 
   send(text: string): void {
