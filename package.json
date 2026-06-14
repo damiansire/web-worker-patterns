@@ -43,6 +43,7 @@
     "@angular/compiler-cli": "^21.2.0",
     "dependency-cruiser": "^16.10.4",
     "jsdom": "^27.0.0",
+    "playwright": "^1.60.0",
     "typescript": "~5.9.2",
     "vitest": "^4.0.0"
   }

@@ -70,3 +70,6 @@ desktop.ini
 .env
 .env.local
 .env.*.local
+
+# Capturas de verificación visual (locales)
+scripts/*.png
