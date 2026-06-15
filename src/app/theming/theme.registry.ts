@@ -1,7 +1,6 @@
 import { Provider } from '@angular/core';
 import { THEME_REGISTRY } from './theme.tokens';
 import { ThemeId, ThemePack } from './theme.types';
-import { SKELETON_THEME } from '../themes/skeleton/skeleton.theme';
 import { BRUTALIST_THEME } from '../themes/brutalist/brutalist.theme';
 import { FULL_BRUTALIST_THEME } from '../themes/full-brutalist/fb.theme';
 import { DEVTOOL_THEME } from '../themes/dev-tool/devtool.theme';
@@ -14,7 +13,6 @@ import { NARRATIVE_THEME } from '../themes/narrative/narrative.theme';
  * arrastra el chunk del theme.
  */
 export const THEME_PACKS: ThemePack[] = [
-  SKELETON_THEME,
   BRUTALIST_THEME,
   FULL_BRUTALIST_THEME,
   DEVTOOL_THEME,

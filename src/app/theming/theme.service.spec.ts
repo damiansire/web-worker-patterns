@@ -18,7 +18,7 @@ function makeService(packs: ThemePack[]): ThemeService {
 
 describe('ThemeService', () => {
   it('switches the active theme and sets data-theme on <html>', () => {
-    const svc = makeService([pack('skeleton'), pack('brutalist')]);
+    const svc = makeService([pack('editorial'), pack('brutalist')]);
     svc.setTheme('brutalist');
     expect(svc.activeId()).toBe('brutalist');
     expect(svc.active().id).toBe('brutalist');
@@ -26,9 +26,9 @@ describe('ThemeService', () => {
   });
 
   it('ignores unknown theme ids', () => {
-    const svc = makeService([pack('skeleton')]);
+    const svc = makeService([pack('editorial')]);
     svc.setTheme('does-not-exist' as ThemeId);
-    expect(svc.activeId()).toBe('skeleton');
+    expect(svc.activeId()).toBe('editorial');
   });
 
   it('persists the active theme to localStorage', () => {
@@ -42,7 +42,7 @@ describe('ThemeService', () => {
       },
     });
     try {
-      const svc = makeService([pack('skeleton'), pack('brutalist')]);
+      const svc = makeService([pack('editorial'), pack('brutalist')]);
       svc.setTheme('brutalist');
       expect(store.get('wwp-theme')).toBe('brutalist');
     } finally {
@@ -52,7 +52,7 @@ describe('ThemeService', () => {
 
   it('injects the active theme stylesheets and purges the previous ones', () => {
     const svc = makeService([
-      pack('skeleton'),
+      pack('narrative'),
       pack('brutalist', ['/themes/brutalist.css']),
       pack('editorial', ['/themes/editorial.css']),
     ]);

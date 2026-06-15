@@ -18,11 +18,10 @@ import { DEGRADATION_SNIPPETS } from './snippets/degradation.snippets';
  * Es metadata pura: ids, orden, categoría, clave i18n y referencia al worker
  * real. No conoce componentes ni themes. Cada theme renderiza estos datos.
  *
- * Migración progresiva: el `workerFactory` y los `snippets` de cada ejemplo se
- * trasladan a esta capa neutral a medida que los themes los van consumiendo
- * (los componentes mono-theme actuales en `app/examples/` se eliminan cuando un
- * theme los reemplaza). El contador ya vive acá como pieza canónica que valida
- * el pipeline worker -> runner -> monitor.
+ * Es la única fuente de verdad de los ejemplos: cada uno declara su `demo`
+ * (qué visualización), su `workerFactory`/`sharedWorkerFactory` y sus
+ * `snippets`. El contenido educativo (título, texto, takeaways) vive en i18n y
+ * lo resuelve `ExampleContentService` por id.
  */
 export const EXAMPLES: WorkerExample[] = [
   {

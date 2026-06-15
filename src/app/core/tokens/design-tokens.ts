@@ -5,7 +5,7 @@
  * compartidos y los `ThreadVisualizer` pueden leer. Cada theme rellena estos
  * mismos nombres con SUS valores en `themes/<id>/styles/_tokens.scss`, bajo
  * `[data-theme='<id>']`. Nunca usar colores literales en código compartido:
- * siempre estos tokens. El skin por defecto (gris "skeleton") vive en
+ * siempre estos tokens. Los valores por defecto (skin gris neutro) viven en
  * `theming/styles/_tokens-contract.scss`.
  */
 export const DESIGN_TOKENS = {

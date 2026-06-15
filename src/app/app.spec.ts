@@ -16,8 +16,8 @@ class TestLoader implements TranslocoLoader {
 }
 
 const fakePack: ThemePack = {
-  id: 'skeleton',
-  label: 'Skeleton',
+  id: 'editorial',
+  label: 'Editorial',
   shell: () => Promise.resolve(FakeShell),
   home: () => Promise.resolve(FakeShell),
   exampleLayout: () => Promise.resolve(FakeShell),
@@ -29,7 +29,7 @@ describe('App (theme host)', () => {
       providers: [
         {
           provide: THEME_REGISTRY,
-          useValue: new Map<ThemeId, ThemePack>([['skeleton', fakePack]]),
+          useValue: new Map<ThemeId, ThemePack>([['editorial', fakePack]]),
         },
         provideTransloco({
           config: { availableLangs: ['en', 'es', 'pt'], defaultLang: 'en' },
@@ -52,6 +52,6 @@ describe('App (theme host)', () => {
 
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('.fake-shell')).toBeTruthy();
-    expect(document.documentElement.dataset['theme']).toBe('skeleton');
+    expect(document.documentElement.dataset['theme']).toBe('editorial');
   });
 });

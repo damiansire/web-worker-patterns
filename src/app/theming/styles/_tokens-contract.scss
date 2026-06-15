@@ -1,17 +1,17 @@
 /**
- * Contrato de tokens semánticos + theme "skeleton" gris (ARQUITECTURA §6 / §10.3).
+ * Contrato de tokens semánticos: valores DEFAULT (ARQUITECTURA §6).
  *
- * `:root` declara TODOS los tokens con un skin gris neutro. Esto garantiza que
- * cualquier primitivo o `ThreadVisualizer` que lea estos tokens funcione aunque
- * todavía no haya un theme real activo: el "puente" dominio -> presentación
- * queda validado con el skeleton antes de implementar ningún theme con librería.
+ * `:root` declara TODOS los tokens con un skin gris neutro. Es la red de
+ * seguridad: cualquier primitivo o `ThreadVisualizer` que lea estos tokens
+ * funciona aunque todavía no haya un theme real activo (deep-link, primer
+ * frame antes de que el guard setee el `data-theme`).
  *
  * Cada theme real sobreescribe estos MISMOS nombres bajo `[data-theme='<id>']`
  * (ver `themes/<id>/styles/_tokens.scss`). El `data-theme` lo setea el
  * ThemeService en `<html>`.
  */
 
-@mixin skeleton-tokens {
+@mixin default-tokens {
   // Superficies
   --surface: #e8e8ea;
   --surface-raised: #f6f6f7;
@@ -40,7 +40,6 @@
   --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Consolas, monospace;
 }
 
-:root,
-[data-theme='skeleton'] {
-  @include skeleton-tokens;
+:root {
+  @include default-tokens;
 }

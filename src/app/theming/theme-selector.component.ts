@@ -64,8 +64,7 @@ export class ThemeSelectorComponent {
   private readonly router = inject(Router);
 
   protected readonly activeId = this.theme.activeId;
-  // El skeleton es transitorio: no se ofrece en el selector.
-  protected readonly themes = [...this.registry.values()].filter((t) => t.id !== 'skeleton');
+  protected readonly themes = [...this.registry.values()];
 
   protected select(id: ThemeId): void {
     const match = this.router.url.match(/\/t\/[^/]+(\/example\/[^/?#]+)?/);

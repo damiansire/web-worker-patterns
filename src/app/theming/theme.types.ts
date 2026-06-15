@@ -3,11 +3,11 @@ import { Provider, Type } from '@angular/core';
 /**
  * Motor de theming (ARQUITECTURA §4).
  *
- * `skeleton` es un theme gris transitorio que envuelve la app actual y valida
- * el motor punta a punta antes de implementar los 4 themes reales.
+ * Cinco themes reales conviven e intercambiables en runtime. (El theme gris
+ * transitorio `skeleton`, que validó el motor durante la migración, se retiró
+ * al completarse los themes reales.)
  */
 export type ThemeId =
-  | 'skeleton'
   | 'brutalist'
   | 'full-brutalist'
   | 'dev-tool'

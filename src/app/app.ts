@@ -40,7 +40,7 @@ export class App {
       pack.shell().then((cmp) => {
         // Evita la race en deep-link: el shell de un theme se carga async, así
         // que solo aplicamos la resolución si sigue siendo el theme activo
-        // (si no, una carga vieja —p.ej. skeleton— pisaría a la nueva).
+        // (si no, una carga vieja pisaría a la nueva al cambiar rápido de theme).
         if (this.theme.activeId() === id) {
           this.shell.set(cmp);
         }

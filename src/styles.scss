@@ -2,7 +2,7 @@
 
 @use './app/core/styles/_shared' as *;
 
-// Contrato de tokens semánticos + skeleton gris (ARQUITECTURA §6).
+// Contrato de tokens semánticos: valores default (skin gris neutro) en :root.
 // Los themes reales sobreescriben estos nombres bajo [data-theme='<id>'].
 @use './app/theming/styles/tokens-contract';
 
