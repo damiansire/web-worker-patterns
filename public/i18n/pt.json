@@ -18,6 +18,22 @@
         "tip": "Use requestAnimationFrame em vez de setInterval para animações mais suaves."
       }
     },
+    "02-main-thread": {
+      "title": "A thread principal e o event loop",
+      "summary": "Tudo o que sua página faz —rodar JavaScript, calcular o layout, pintar, responder a cliques e teclas— roda em UMA thread: a thread principal, sobre um único event loop que processa uma tarefa por vez. E as tarefas são atômicas: uma vez que começa, não dá para interromper até terminar. Por isso uma função que leva 50 ms congela TUDO durante esses 50 ms: não há uma segunda thread para atender. Esse é o gargalo que os Web Workers vêm destravar.",
+      "whatToWatch": "Veja em ação em outros exemplos: o 01 (um contador na thread principal vs em um worker) e o 04 (cómputo pesado) mostram esse bloqueio; o 14 (OffscreenCanvas) mostra o outro lado — renderização que sobrevive porque roda fora da thread principal.",
+      "note": "Mas «congela tudo» não é totalmente exato. O navegador tem OUTRA thread —o compositor— que segue viva mesmo com a thread principal bloqueada: pode recompor e mover camadas JÁ pintadas. Por isso uma animação CSS de transform ou opacity (que o compositor controla) pode seguir fluida durante o jank, enquanto um setInterval, o layout, o repintado e os eventos —tudo que vive na thread principal— congelam. É o mesmo princípio de «tirar trabalho da thread principal», mas do lado do navegador.",
+      "takeaways": {
+        "title": "Pontos-chave",
+        "items": [
+          "A thread principal roda JS, layout, paint e eventos — tudo em um event loop, uma tarefa por vez",
+          "As tarefas são atômicas: uma tarefa longa não pode ser interrompida, congela a UI até terminar",
+          "O compositor é outra thread do navegador: animações CSS de transform/opacity podem sobreviver ao jank da thread principal",
+          "Mover trabalho para um Web Worker libera a thread principal: não acelera a tarefa, mas a página continua respondendo"
+        ],
+        "tip": "A métrica real não é «mais rápido» e sim a responsividade (INP): tirar trabalho da thread principal pode levar o mesmo tempo ou até mais no total, mas SENTE-SE melhor porque a thread principal fica livre para responder."
+      }
+    },
     "03-basic-communication": {
       "title": "Comunicação básica",
       "summary": "O \"Olá Mundo\" dos Web Workers: você escreve uma mensagem e a envia ao worker. O worker a recebe, processa e responde de volta. É assim que as threads se comunicam — postMessage nas duas direções.",

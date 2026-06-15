@@ -46,7 +46,7 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
           <p class="dt-summary">{{ summary }}</p>
         }
 
-        @if (ex.workerFactory || ex.sharedWorkerFactory) {
+        @if (ex.workerFactory || ex.sharedWorkerFactory || content()) {
           @switch (ex.demo) {
             @case ('thread-block') {
               <section class="dt-panel">

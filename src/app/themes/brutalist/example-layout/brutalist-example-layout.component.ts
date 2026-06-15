@@ -47,7 +47,7 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
           <p class="b-summary">{{ summary }}</p>
         }
 
-        @if (ex.workerFactory || ex.sharedWorkerFactory) {
+        @if (ex.workerFactory || ex.sharedWorkerFactory || content()) {
           @switch (ex.demo) {
             @case ('thread-block') {
               <brutalist-card title="Worker vs Main thread">

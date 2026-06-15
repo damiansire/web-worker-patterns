@@ -37,7 +37,7 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
         <p class="n-chap">Capítulo {{ ex.order }} · {{ ex.category }}</p>
         <h1>{{ content()?.title ?? ex.id }}</h1>
 
-        @if (ex.workerFactory || ex.sharedWorkerFactory) {
+        @if (ex.workerFactory || ex.sharedWorkerFactory || content()) {
           @if (content()?.summary; as summary) {
             <p class="n-lead">{{ summary }}</p>
           }

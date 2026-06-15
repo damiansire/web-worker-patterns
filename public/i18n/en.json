@@ -18,6 +18,22 @@
         "tip": "Use requestAnimationFrame instead of setInterval for smoother animations."
       }
     },
+    "02-main-thread": {
+      "title": "The main thread and the event loop",
+      "summary": "Everything your page does —run JavaScript, compute layout, paint, respond to clicks and keystrokes— runs on ONE thread: the main thread, on a single event loop that processes one task at a time. And tasks are atomic: once one starts, it can't be interrupted until it finishes. That's why a function taking 50 ms freezes EVERYTHING for those 50 ms: there's no second thread to step in. That's the bottleneck Web Workers exist to relieve.",
+      "whatToWatch": "See it in action in other examples: 01 (a counter on the main thread vs in a worker) and 04 (heavy computation) show this blocking; 14 (OffscreenCanvas) shows the other side — rendering that survives because it runs off the main thread.",
+      "note": "But \"everything freezes\" isn't quite right. The browser has ANOTHER thread —the compositor— that stays alive even when the main thread is blocked: it can re-composite and move already-painted layers. That's why a CSS transform or opacity animation (driven by the compositor) can keep running smoothly during jank, while a setInterval, layout, repaint and events —everything living on the main thread— freeze. It's the same \"get work off the main thread\" principle, but from the browser's side.",
+      "takeaways": {
+        "title": "Key takeaways",
+        "items": [
+          "The main thread runs JS, layout, paint and events — all on one event loop, one task at a time",
+          "Tasks are atomic: a long task can't be interrupted, it freezes the UI until it's done",
+          "The compositor is another browser thread: CSS transform/opacity animations can survive main-thread jank",
+          "Moving work to a Web Worker frees the main thread: it doesn't speed up the task, but the page stays responsive"
+        ],
+        "tip": "The real metric isn't \"faster\" but responsiveness (INP): getting work off the main thread can take the same time or even longer overall, yet it FEELS better because the main thread is free to respond."
+      }
+    },
     "03-basic-communication": {
       "title": "Basic communication",
       "summary": "The \"Hello World\" of Web Workers: you type a message and send it to the worker. The worker receives it, processes it, and replies back. That's how threads talk to each other — postMessage in both directions.",

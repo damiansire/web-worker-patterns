@@ -37,7 +37,7 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
         <p class="e-kicker">{{ ex.category }} · nº {{ ex.order.toString().padStart(2, '0') }}</p>
         <h1>{{ content()?.title ?? ex.id }}</h1>
 
-        @if (ex.workerFactory || ex.sharedWorkerFactory) {
+        @if (ex.workerFactory || ex.sharedWorkerFactory || content()) {
           @if (content()?.summary; as summary) {
             <p class="e-lead">{{ summary }}</p>
           }

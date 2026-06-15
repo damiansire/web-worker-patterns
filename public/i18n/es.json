@@ -18,6 +18,22 @@
         "tip": "Usá requestAnimationFrame en lugar de setInterval para animaciones más suaves."
       }
     },
+    "02-main-thread": {
+      "title": "El main thread y el event loop",
+      "summary": "Todo lo que hace tu página —ejecutar JavaScript, calcular el layout, pintar, responder clics y teclas— corre en UN SOLO hilo: el main thread, sobre un único event loop que procesa una tarea por vez. Y las tareas son atómicas: una vez que una empezó, no se puede interrumpir hasta que termina. Por eso una función que tarda 50 ms congela TODO durante esos 50 ms: no hay un segundo hilo que atienda mientras tanto. Ese es el cuello de botella que los Web Workers vienen a destrabar.",
+      "whatToWatch": "Velo en acción en otros ejemplos: el 01 (un contador en el main vs en un worker) y el 04 (cómputo pesado) muestran este bloqueo; el 14 (OffscreenCanvas) muestra el otro lado, render que sobrevive porque corre fuera del main.",
+      "note": "Pero «se congela todo» no es del todo exacto. El navegador tiene OTRO hilo —el compositor— que sigue vivo aunque el main esté bloqueado: puede recomponer y mover capas YA pintadas. Por eso una animación CSS de transform u opacity (que maneja el compositor) puede seguir fluida durante el jank, mientras que un setInterval, el layout, el repintado y los eventos —todo lo que vive en el main— se congelan. Es el mismo principio de «sacar trabajo del main», pero del lado del navegador.",
+      "takeaways": {
+        "title": "Puntos clave",
+        "items": [
+          "El main thread corre JS, layout, paint y eventos — todo en un event loop, una tarea por vez",
+          "Las tareas son atómicas: una tarea larga no se puede interrumpir, congela la UI hasta terminar",
+          "El compositor es otro hilo del navegador: las animaciones CSS de transform/opacity pueden sobrevivir al jank del main",
+          "Mover trabajo a un Web Worker libera el main: no acelera la tarea, pero la página sigue respondiendo"
+        ],
+        "tip": "La métrica real no es «más rápido» sino la responsividad (INP): sacar trabajo del main puede tardar lo mismo o incluso más en total, pero se SIENTE mejor porque el main queda libre para responder."
+      }
+    },
     "03-basic-communication": {
       "title": "Comunicación básica",
       "summary": "El \"Hola Mundo\" de los Web Workers: escribís un mensaje y se lo mandás al worker. El worker lo recibe, lo procesa y te responde de vuelta. Así funciona la comunicación entre hilos — postMessage en las dos direcciones.",
