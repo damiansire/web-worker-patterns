@@ -1,4 +1,4 @@
-import { signal } from '@angular/core';
+import { provideZonelessChangeDetection, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter, convertToParamMap } from '@angular/router';
 import { of } from 'rxjs';
@@ -15,6 +15,7 @@ describe('BrutalistExampleLayoutComponent (worker vs main contrast)', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
+        provideZonelessChangeDetection(),
         provideRouter([]),
         {
           provide: ActivatedRoute,
@@ -32,9 +33,7 @@ describe('BrutalistExampleLayoutComponent (worker vs main contrast)', () => {
     runner.runMainBlockingDemo({ intervalMs: 1, ticks: 1 });
 
     const fixture = TestBed.createComponent(BrutalistExampleLayoutComponent);
-    fixture.detectChanges();
     await fixture.whenStable();
-    fixture.detectChanges();
 
     const el = fixture.nativeElement as HTMLElement;
     const text = el.textContent ?? '';

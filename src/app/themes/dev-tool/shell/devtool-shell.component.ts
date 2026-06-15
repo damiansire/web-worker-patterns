@@ -154,8 +154,13 @@ export class DevToolShellComponent implements OnDestroy {
     }
   }
 
+  /** Foco a restaurar al cerrar la paleta (retorno de foco, WCAG 2.4.3). */
+  private paletteOpener: HTMLElement | null = null;
+
   protected openPalette(): void {
     if (this.overlayRef) return;
+    this.paletteOpener =
+      typeof document !== 'undefined' ? (document.activeElement as HTMLElement | null) : null;
     this.overlayRef = this.overlay.create({
       hasBackdrop: true,
       backdropClass: 'dt-overlay-backdrop',
@@ -178,6 +183,9 @@ export class DevToolShellComponent implements OnDestroy {
   private closePalette(): void {
     this.overlayRef?.dispose();
     this.overlayRef = undefined;
+    // Devuelve el foco a quien abrió la paleta (no se pierde en el body).
+    this.paletteOpener?.focus?.();
+    this.paletteOpener = null;
   }
 
   ngOnDestroy(): void {

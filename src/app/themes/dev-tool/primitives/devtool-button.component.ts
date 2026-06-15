@@ -5,7 +5,7 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
 @Component({
   selector: 'devtool-button',
   template: `
-    <button class="dt-btn" [attr.data-variant]="variant()" [disabled]="disabled()" (click)="pressed.emit()">
+    <button type="button" class="dt-btn" [attr.data-variant]="variant()" [disabled]="disabled()" (click)="pressed.emit()">
       <ng-content />
     </button>
   `,
@@ -29,6 +29,10 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
         background: var(--accent);
         color: var(--surface);
         border-color: var(--accent);
+      }
+      .dt-btn:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
       }
       .dt-btn:disabled {
         opacity: 0.45;

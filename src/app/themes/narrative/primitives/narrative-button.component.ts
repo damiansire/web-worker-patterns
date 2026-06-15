@@ -5,7 +5,7 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
 @Component({
   selector: 'narrative-button',
   template: `
-    <button class="n-btn" [attr.data-variant]="variant()" [disabled]="disabled()" (click)="pressed.emit()">
+    <button type="button" class="n-btn" [attr.data-variant]="variant()" [disabled]="disabled()" (click)="pressed.emit()">
       <ng-content />
     </button>
   `,
@@ -30,6 +30,10 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
       .n-btn:hover:not(:disabled) {
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
         transform: translateY(-1px);
+      }
+      .n-btn:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
       }
       .n-btn:disabled {
         background: var(--surface-raised);

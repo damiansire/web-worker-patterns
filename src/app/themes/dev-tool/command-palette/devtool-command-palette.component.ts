@@ -1,4 +1,5 @@
 import { Component, computed, inject, output, signal } from '@angular/core';
+import { A11yModule } from '@angular/cdk/a11y';
 import { Router } from '@angular/router';
 import { EXAMPLES } from '../../../core/domain/examples/examples.registry';
 
@@ -9,20 +10,35 @@ import { EXAMPLES } from '../../../core/domain/examples/examples.registry';
  */
 @Component({
   selector: 'devtool-command-palette',
+  imports: [A11yModule],
   template: `
-    <div class="dt-palette" (keydown)="onKeydown($event)">
+    <div
+      class="dt-palette"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Paleta de comandos: buscar ejemplo"
+      cdkTrapFocus
+      [cdkTrapFocusAutoCapture]="true"
+      (keydown)="onKeydown($event)"
+    >
       <input
         #search
         class="dt-palette-input"
         type="text"
         placeholder="Buscar ejemplo… (Esc para cerrar)"
-        autofocus
+        aria-label="Buscar ejemplo"
         [value]="query()"
         (input)="query.set(search.value)"
       />
-      <ul class="dt-palette-list">
+      <ul class="dt-palette-list" role="listbox" aria-label="Ejemplos">
         @for (ex of filtered(); track ex.id; let i = $index) {
-          <li [class.is-active]="i === active()" (mouseenter)="active.set(i)" (click)="go(ex.id)">
+          <li
+            role="option"
+            [attr.aria-selected]="i === active()"
+            [class.is-active]="i === active()"
+            (mouseenter)="active.set(i)"
+            (click)="go(ex.id)"
+          >
             <span class="dt-palette-num">{{ ex.order }}</span>
             <span class="dt-palette-id">{{ ex.id }}</span>
             <span class="dt-palette-cat">{{ ex.category }}</span>

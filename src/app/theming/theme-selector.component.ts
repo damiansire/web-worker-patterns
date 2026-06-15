@@ -19,6 +19,7 @@ import { ThemeId } from './theme.types';
           type="button"
           class="ts-btn"
           [class.is-active]="t.id === activeId()"
+          [attr.aria-current]="t.id === activeId() ? 'true' : null"
           (click)="select(t.id)"
         >
           {{ t.label }}
@@ -51,8 +52,16 @@ import { ThemeId } from './theme.types';
         color: var(--ink);
       }
       .ts-btn.is-active {
-        background: var(--accent);
-        color: var(--surface-raised);
+        /* Tinta sobre la superficie (alto contraste en los 5 themes) + subrayado
+           de acento como indicador. Evita el texto claro-sobre-accent, que en los
+           acentos rojos no llega a WCAG AA. El aria-current refuerza el estado. */
+        color: var(--ink);
+        font-weight: 700;
+        box-shadow: inset 0 -2px 0 var(--accent);
+      }
+      .ts-btn:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
       }
     `,
   ],

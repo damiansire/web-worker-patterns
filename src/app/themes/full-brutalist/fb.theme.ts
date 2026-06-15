@@ -1,5 +1,4 @@
 import { ThemePack } from '../../theming/theme.types';
-import { FULL_BRUTALIST_PROVIDERS } from './fb.providers';
 
 /**
  * Theme brutalist (ARQUITECTURA §10.5): el más simple (sin librería UI), valida
@@ -10,7 +9,6 @@ import { FULL_BRUTALIST_PROVIDERS } from './fb.providers';
 export const FULL_BRUTALIST_THEME: ThemePack = {
   id: 'full-brutalist',
   label: 'Full Brutalist',
-  providers: FULL_BRUTALIST_PROVIDERS,
   shell: () =>
     import('./shell/fb-shell.component').then((m) => m.FullBrutalistShellComponent),
   home: () => import('./home/fb-home.component').then((m) => m.FullBrutalistHomeComponent),

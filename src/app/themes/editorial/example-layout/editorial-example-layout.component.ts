@@ -7,6 +7,7 @@ import { findExample } from '../../../core/domain/examples/examples.registry';
 import { ExampleRunnerService } from '../../../core/services/example-runner.service';
 import { ExampleContentService } from '../../../core/services/example-content.service';
 import { MessageExchangeService } from '../../../core/services/message-exchange.service';
+import { ExampleWorkerCoordinator } from '../../../core/services/example-worker-coordinator.service';
 import { ComputeDemoService } from '../../../core/services/compute-demo.service';
 import { ErrorDemoService } from '../../../core/services/error-demo.service';
 import { LifecycleDemoService } from '../../../core/services/lifecycle-demo.service';
@@ -81,6 +82,7 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
                   class="e-input"
                   value="hola"
                   placeholder="escribí un mensaje…"
+                  aria-label="Mensaje para enviar al worker"
                   (keyup.enter)="send(msg.value); msg.value = ''"
                 />
                 <editorial-button variant="solid" [disabled]="pending()" (pressed)="send(msg.value); msg.value = ''">
@@ -997,6 +999,7 @@ export class EditorialExampleLayoutComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly runner = inject(ExampleRunnerService);
   private readonly exchange = inject(MessageExchangeService);
+  private readonly coordinator = inject(ExampleWorkerCoordinator);
   private readonly compute = inject(ComputeDemoService);
   private readonly errors = inject(ErrorDemoService);
   private readonly lifecycle = inject(LifecycleDemoService);
@@ -1119,12 +1122,8 @@ export class EditorialExampleLayoutComponent {
   constructor() {
     effect(() => {
       const ex = this.example();
-      if (ex?.demo === 'message-exchange') {
-        this.exchange.open(ex);
-      } else if (ex?.demo === 'error-handling') {
-        this.errors.open(ex);
-      } else if (ex?.demo === 'shared-worker') {
-        this.shared.open(ex);
+      if (ex) {
+        this.coordinator.openFor(ex);
       }
     });
   }

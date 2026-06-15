@@ -7,6 +7,7 @@ import { findExample } from '../../../core/domain/examples/examples.registry';
 import { ExampleRunnerService } from '../../../core/services/example-runner.service';
 import { ExampleContentService } from '../../../core/services/example-content.service';
 import { MessageExchangeService } from '../../../core/services/message-exchange.service';
+import { ExampleWorkerCoordinator } from '../../../core/services/example-worker-coordinator.service';
 import { ComputeDemoService } from '../../../core/services/compute-demo.service';
 import { ErrorDemoService } from '../../../core/services/error-demo.service';
 import { LifecycleDemoService } from '../../../core/services/lifecycle-demo.service';
@@ -54,7 +55,7 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                 }
                 <div class="dt-panel-b dt-cmp">
                   <div class="dt-col">
-                    <h3>en un worker</h3>
+                    <h2>en un worker</h2>
                     <p class="dt-sub">main libre · UI fluida</p>
                     <devtool-button variant="solid" [disabled]="phase() === 'worker'" (pressed)="runWorker()">
                       ▶ correr en worker
@@ -67,7 +68,7 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                     }
                   </div>
                   <div class="dt-col">
-                    <h3>en el main thread</h3>
+                    <h2>en el main thread</h2>
                     <p class="dt-sub">main bloqueado · UI congelada</p>
                     <devtool-button [disabled]="phase() === 'main'" (pressed)="runMain()">▶ bloquear main</devtool-button>
                     @if (mainLanes(); as ml) {
@@ -95,6 +96,7 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                       class="dt-input"
                       value="hola"
                       placeholder="mensaje…"
+                      aria-label="Mensaje para enviar al worker"
                       (keyup.enter)="send(msg.value); msg.value = ''"
                     />
                     <devtool-button variant="solid" [disabled]="pending()" (pressed)="send(msg.value); msg.value = ''">
@@ -141,13 +143,13 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                 <div class="dt-panel-b">
                   <div class="dt-nrow">
                     <span class="dt-prompt">const N =</span>
-                    <input #n class="dt-input-n" type="number" value="500000" min="10000" step="100000" />
+                    <input #n class="dt-input-n" type="number" value="500000" min="10000" step="100000" aria-label="N: contar primos hasta este número" />
                     <span class="dt-nhint">// contar primos hasta N · subilo y el freeze dura más</span>
                   </div>
                 </div>
                 <div class="dt-panel-b dt-cmp">
                   <div class="dt-col">
-                    <h3>en un worker</h3>
+                    <h2>en un worker</h2>
                     <p class="dt-sub">otro hilo · UI fluida</p>
                     <devtool-button variant="solid" [disabled]="computePhase() === 'worker'" (pressed)="computeWorker(n.value)">
                       ▶ correr en worker
@@ -161,7 +163,7 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                     }
                   </div>
                   <div class="dt-col">
-                    <h3>en el main thread</h3>
+                    <h2>en el main thread</h2>
                     <p class="dt-sub">hilo bloqueado · UI congelada</p>
                     <devtool-button [disabled]="computePhase() === 'main'" (pressed)="computeMain(n.value)">▶ bloquear main</devtool-button>
                     @if (mainResult(); as r) {
@@ -260,7 +262,7 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                 }
                 <div class="dt-panel-b dt-cmp">
                   <div class="dt-col">
-                    <h3>transfer (zero-copy)</h3>
+                    <h2>transfer (zero-copy)</h2>
                     <p class="dt-sub">cambia de dueño · no copia</p>
                     <devtool-button variant="solid" [disabled]="transferBusy()" (pressed)="runTransfer()">
                       ▶ transferir
@@ -273,7 +275,7 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                     }
                   </div>
                   <div class="dt-col">
-                    <h3>clone (structured)</h3>
+                    <h2>clone (structured)</h2>
                     <p class="dt-sub">copia byte por byte · el main lo conserva</p>
                     <devtool-button [disabled]="transferBusy()" (pressed)="runClone()">▶ clonar</devtool-button>
                     @if (cloneResult(); as r) {
@@ -298,7 +300,7 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                 <div class="dt-panel-b dt-cmp">
                   @for (panel of swPanels(); track panel.label) {
                     <div class="dt-col">
-                      <h3>conn {{ panel.label }}</h3>
+                      <h2>conn {{ panel.label }}</h2>
                       <p class="dt-sub">puerto {{ panel.label }} · mismo worker</p>
                       <div class="dt-sw-count">{{ swCount() }}</div>
                       <div class="dt-send">
@@ -416,7 +418,7 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                 }
                 <div class="dt-panel-b dt-cmp">
                   <div class="dt-col">
-                    <h3>sin backpressure</h3>
+                    <h2>sin backpressure</h2>
                     <p class="dt-sub">disparás las {{ bpTotal }} de una</p>
                     <devtool-button variant="solid" [disabled]="bpMode() !== 'idle'" (pressed)="runNaive()">
                       ▶ disparar todo
@@ -431,7 +433,7 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                     }
                   </div>
                   <div class="dt-col">
-                    <h3>con backpressure</h3>
+                    <h2>con backpressure</h2>
                     <p class="dt-sub">ventana {{ bpWindow }} · esperás el ack</p>
                     <devtool-button [disabled]="bpMode() !== 'idle'" (pressed)="runBackpressure()">▶ con control de flujo</devtool-button>
                     @if (bpMode() === 'backpressure') {
@@ -644,7 +646,7 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
       .dt-col + .dt-col {
         border-left: var(--border-width) solid var(--border);
       }
-      .dt-col h3 {
+      .dt-col h2 {
         font-family: var(--font-mono);
         font-size: 13px;
         margin: 0 0 2px;
@@ -1014,6 +1016,7 @@ export class DevToolExampleLayoutComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly runner = inject(ExampleRunnerService);
   private readonly exchange = inject(MessageExchangeService);
+  private readonly coordinator = inject(ExampleWorkerCoordinator);
   private readonly compute = inject(ComputeDemoService);
   private readonly errors = inject(ErrorDemoService);
   private readonly lifecycle = inject(LifecycleDemoService);
@@ -1136,12 +1139,8 @@ export class DevToolExampleLayoutComponent {
   constructor() {
     effect(() => {
       const ex = this.example();
-      if (ex?.demo === 'message-exchange') {
-        this.exchange.open(ex);
-      } else if (ex?.demo === 'error-handling') {
-        this.errors.open(ex);
-      } else if (ex?.demo === 'shared-worker') {
-        this.shared.open(ex);
+      if (ex) {
+        this.coordinator.openFor(ex);
       }
     });
   }

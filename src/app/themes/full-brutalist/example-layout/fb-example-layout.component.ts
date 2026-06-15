@@ -7,6 +7,7 @@ import { findExample } from '../../../core/domain/examples/examples.registry';
 import { ExampleRunnerService } from '../../../core/services/example-runner.service';
 import { ExampleContentService } from '../../../core/services/example-content.service';
 import { MessageExchangeService } from '../../../core/services/message-exchange.service';
+import { ExampleWorkerCoordinator } from '../../../core/services/example-worker-coordinator.service';
 import { ComputeDemoService } from '../../../core/services/compute-demo.service';
 import { ErrorDemoService } from '../../../core/services/error-demo.service';
 import { LifecycleDemoService } from '../../../core/services/lifecycle-demo.service';
@@ -61,7 +62,7 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
                   </p>
                   <div class="b-cmp">
                     <div class="b-col">
-                      <h3>En un Worker</h3>
+                      <h2>En un Worker</h2>
                       <p class="b-col-sub">el main queda libre · la UI sigue fluida</p>
                       <fb-button variant="solid" [disabled]="phase() === 'worker'" (pressed)="runWorker()">
                         Correr en worker
@@ -75,7 +76,7 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
                     </div>
 
                     <div class="b-col">
-                      <h3>En el Main thread</h3>
+                      <h2>En el Main thread</h2>
                       <p class="b-col-sub">el main se bloquea · la UI se congela ~2,5s</p>
                       <fb-button [disabled]="phase() === 'main'" (pressed)="runMain()">Bloquear main</fb-button>
                       @if (mainLanes(); as ml) {
@@ -101,6 +102,7 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
                       class="b-input"
                       value="hola"
                       placeholder="escribí un mensaje…"
+                      aria-label="Mensaje para enviar al worker"
                       (keyup.enter)="send(msg.value); msg.value = ''"
                     />
                     <fb-button variant="solid" [disabled]="pending()" (pressed)="send(msg.value); msg.value = ''">
@@ -145,13 +147,13 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
 
                   <div class="b-nrow">
                     <span class="b-nlabel">N =</span>
-                    <input #n type="number" class="b-input-n" value="500000" min="10000" step="100000" />
+                    <input #n type="number" class="b-input-n" value="500000" min="10000" step="100000" aria-label="N: contar primos hasta este número" />
                     <span class="b-nhint">contar primos hasta N · subilo y el freeze dura más</span>
                   </div>
 
                   <div class="b-cmp">
                     <div class="b-col">
-                      <h3>En un Worker</h3>
+                      <h2>En un Worker</h2>
                       <p class="b-col-sub">corre en otro hilo · la UI sigue fluida</p>
                       <fb-button variant="solid" [disabled]="computePhase() === 'worker'" (pressed)="computeWorker(n.value)">
                         Calcular en worker
@@ -166,7 +168,7 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
                     </div>
 
                     <div class="b-col">
-                      <h3>En el Main thread</h3>
+                      <h2>En el Main thread</h2>
                       <p class="b-col-sub">bloquea el hilo · la UI se congela</p>
                       <fb-button [disabled]="computePhase() === 'main'" (pressed)="computeMain(n.value)">Calcular en el main</fb-button>
                       @if (mainResult(); as r) {
@@ -267,7 +269,7 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
 
                   <div class="b-cmp">
                     <div class="b-col">
-                      <h3>Transferir (zero-copy)</h3>
+                      <h2>Transferir (zero-copy)</h2>
                       <p class="b-col-sub">cambia de dueño · no copia</p>
                       <fb-button variant="solid" [disabled]="transferBusy()" (pressed)="runTransfer()">
                         Transferir buffer
@@ -281,7 +283,7 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
                     </div>
 
                     <div class="b-col">
-                      <h3>Clonar (structured clone)</h3>
+                      <h2>Clonar (structured clone)</h2>
                       <p class="b-col-sub">copia byte por byte · el main lo conserva</p>
                       <fb-button [disabled]="transferBusy()" (pressed)="runClone()">Clonar buffer</fb-button>
                       @if (cloneResult(); as r) {
@@ -312,7 +314,7 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
                   <div class="b-cmp b-sw-cmp">
                     @for (panel of swPanels(); track panel.label) {
                       <div class="b-col">
-                        <h3>conexión {{ panel.label }}</h3>
+                        <h2>conexión {{ panel.label }}</h2>
                         <p class="b-col-sub">puerto {{ panel.label }} · mismo worker</p>
                         <div class="b-sw-count">{{ swCount() }}</div>
                         <div class="b-send">
@@ -426,7 +428,7 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
                   </p>
                   <div class="b-cmp">
                     <div class="b-col">
-                      <h3>Sin backpressure</h3>
+                      <h2>Sin backpressure</h2>
                       <p class="b-col-sub">disparás las {{ bpTotal }} de una</p>
                       <fb-button variant="solid" [disabled]="bpMode() !== 'idle'" (pressed)="runNaive()">
                         Disparar todo
@@ -442,7 +444,7 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
                     </div>
 
                     <div class="b-col">
-                      <h3>Con backpressure</h3>
+                      <h2>Con backpressure</h2>
                       <p class="b-col-sub">ventana de {{ bpWindow }} · esperás el ack</p>
                       <fb-button [disabled]="bpMode() !== 'idle'" (pressed)="runBackpressure()">Con control de flujo</fb-button>
                       @if (bpMode() === 'backpressure') {
@@ -691,7 +693,7 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
       .b-col + .b-col {
         border-left: var(--border-width) solid var(--border);
       }
-      .b-col h3 {
+      .b-col h2 {
         font-family: var(--font-display);
         font-weight: 800;
         font-size: 16px;
@@ -1101,6 +1103,7 @@ export class FullBrutalistExampleLayoutComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly runner = inject(ExampleRunnerService);
   private readonly exchange = inject(MessageExchangeService);
+  private readonly coordinator = inject(ExampleWorkerCoordinator);
   private readonly compute = inject(ComputeDemoService);
   private readonly errors = inject(ErrorDemoService);
   private readonly lifecycle = inject(LifecycleDemoService);
@@ -1224,12 +1227,8 @@ export class FullBrutalistExampleLayoutComponent {
   constructor() {
     effect(() => {
       const ex = this.example();
-      if (ex?.demo === 'message-exchange') {
-        this.exchange.open(ex);
-      } else if (ex?.demo === 'error-handling') {
-        this.errors.open(ex);
-      } else if (ex?.demo === 'shared-worker') {
-        this.shared.open(ex);
+      if (ex) {
+        this.coordinator.openFor(ex);
       }
     });
   }

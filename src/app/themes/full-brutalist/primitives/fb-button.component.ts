@@ -8,7 +8,7 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
 @Component({
   selector: 'fb-button',
   template: `
-    <button class="b-btn" [attr.data-variant]="variant()" [disabled]="disabled()" (click)="pressed.emit()">
+    <button type="button" class="b-btn" [attr.data-variant]="variant()" [disabled]="disabled()" (click)="pressed.emit()">
       <ng-content />
     </button>
   `,
@@ -39,6 +39,10 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
       }
       /* Apagado pero legible: gris plano sobre negro, sin sombra, coherente con
          la paleta. Aplica igual a solid y ghost (nunca amarillo pálido/pastel). */
+      .b-btn:focus-visible {
+        outline: 3px solid var(--accent);
+        outline-offset: 2px;
+      }
       .b-btn:disabled {
         background: transparent;
         color: var(--ink-muted);

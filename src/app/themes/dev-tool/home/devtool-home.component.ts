@@ -8,6 +8,7 @@ import { EXAMPLES } from '../../../core/domain/examples/examples.registry';
   imports: [RouterLink],
   template: `
     <section class="dt-home">
+      <h1 class="dt-sr-only">Web Worker Patterns — índice de ejemplos</h1>
       <div class="dt-toolbar">
         <span class="dt-path"><span class="dt-prompt">▍</span> src/examples</span>
         <span class="dt-meta">{{ examples.length }} files · ⌘K to search</span>
@@ -27,6 +28,17 @@ import { EXAMPLES } from '../../../core/domain/examples/examples.registry';
   `,
   styles: [
     `
+      .dt-sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
       .dt-home {
         max-width: 820px;
         margin: 0 auto;

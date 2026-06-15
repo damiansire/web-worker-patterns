@@ -8,6 +8,7 @@ import { EXAMPLES } from '../../../core/domain/examples/examples.registry';
   imports: [RouterLink],
   template: `
     <section class="n-home">
+      <h1 class="n-sr-only">Web Worker Patterns — índice de capítulos</h1>
       <p class="n-dek">
         Cada patrón es un capítulo: por qué el hilo principal se bloquea y cómo un worker lo
         rescata.
@@ -27,6 +28,17 @@ import { EXAMPLES } from '../../../core/domain/examples/examples.registry';
   `,
   styles: [
     `
+      .n-sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
       .n-home {
         max-width: 640px;
         margin: 0 auto;

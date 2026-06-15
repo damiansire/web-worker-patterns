@@ -1,5 +1,4 @@
 import { ThemePack } from '../../theming/theme.types';
-import { BRUTALIST_PROVIDERS } from './brutalist.providers';
 
 /**
  * Theme brutalist (ARQUITECTURA §10.5): el más simple (sin librería UI), valida
@@ -10,7 +9,6 @@ import { BRUTALIST_PROVIDERS } from './brutalist.providers';
 export const BRUTALIST_THEME: ThemePack = {
   id: 'brutalist',
   label: 'Brutalist',
-  providers: BRUTALIST_PROVIDERS,
   shell: () =>
     import('./shell/brutalist-shell.component').then((m) => m.BrutalistShellComponent),
   home: () => import('./home/brutalist-home.component').then((m) => m.BrutalistHomeComponent),

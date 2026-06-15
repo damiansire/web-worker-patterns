@@ -1,4 +1,4 @@
-import { Provider, Type } from '@angular/core';
+import { Type } from '@angular/core';
 
 /**
  * Motor de theming (ARQUITECTURA §4).
@@ -26,7 +26,4 @@ export interface ThemePack {
 
   // CSS de librería UI a inyectar SOLO cuando este theme está activo.
   stylesheets?: string[];
-
-  // Providers propios del theme (config de su librería UI).
-  providers?: Provider[];
 }

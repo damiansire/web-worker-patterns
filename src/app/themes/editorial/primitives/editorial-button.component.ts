@@ -5,7 +5,7 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
 @Component({
   selector: 'editorial-button',
   template: `
-    <button class="e-btn" [attr.data-variant]="variant()" [disabled]="disabled()" (click)="pressed.emit()">
+    <button type="button" class="e-btn" [attr.data-variant]="variant()" [disabled]="disabled()" (click)="pressed.emit()">
       <ng-content />
     </button>
   `,
@@ -35,6 +35,10 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
       .e-btn[data-variant='solid']:hover:not(:disabled) {
         background: var(--ink);
         border-color: var(--ink);
+      }
+      .e-btn:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
       }
       .e-btn:disabled {
         background: transparent;
