@@ -63,7 +63,7 @@
           "O cálculo não é mais rápido no worker — mas a UI não trava",
           "O resultado volta por postMessage (structured clone); para dados grandes, transferables (exemplo 07)"
         ],
-        "tip": "Regra prática: se uma tarefa pode levar mais de um frame (~16ms), mande-a para um worker."
+        "tip": "Regra prática: se uma tarefa pode levar mais de um frame (~16ms), mande-a para um worker. Atenção: não a torna mais rápida —o cálculo leva o mesmo— mas a página continua respondendo (melhor INP)."
       }
     },
     "05-error-handling": {

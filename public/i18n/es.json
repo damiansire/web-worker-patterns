@@ -63,7 +63,7 @@
           "El cálculo no es más rápido en el worker — pero la UI no se traba",
           "El resultado vuelve por postMessage (structured clone); para datos grandes, transferables (ejemplo 07)"
         ],
-        "tip": "Regla práctica: si una tarea puede tardar más de un frame (~16ms), mandala a un worker."
+        "tip": "Regla práctica: si una tarea puede tardar más de un frame (~16ms), mandala a un worker. Ojo: no la hace más rápida —el cálculo tarda lo mismo— pero la página sigue respondiendo (mejor INP)."
       }
     },
     "05-error-handling": {

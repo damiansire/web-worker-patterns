@@ -63,7 +63,7 @@
           "The computation isn't faster in the worker — but the UI doesn't jank",
           "The result returns via postMessage (structured clone); for large data, transferables (example 07)"
         ],
-        "tip": "Rule of thumb: if a task can take longer than one frame (~16ms), send it to a worker."
+        "tip": "Rule of thumb: if a task can take longer than one frame (~16ms), send it to a worker. Note: it doesn't make the task faster —the work takes the same time— but the page stays responsive (better INP)."
       }
     },
     "05-error-handling": {
