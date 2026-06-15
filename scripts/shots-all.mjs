@@ -19,7 +19,11 @@ const dir10 = `${dir}/10-worker-pool`;
 const dir11 = `${dir}/11-backpressure-scheduling`;
 const dir12 = `${dir}/12-shared-array-buffer`;
 const dir13 = `${dir}/13-graceful-degradation`;
+const dir02 = `${dir}/02-main-thread`;
+const dir14 = `${dir}/14-offscreen-canvas`;
 await rm(dir, { recursive: true, force: true });
+await mkdir(dir02, { recursive: true });
+await mkdir(dir14, { recursive: true });
 await mkdir(dir03, { recursive: true });
 await mkdir(dir04, { recursive: true });
 await mkdir(dir05, { recursive: true });
@@ -51,6 +55,13 @@ for (const t of themes) {
   await page.getByRole('button', { name: /bloquear main/i }).first().click().catch(() => {});
   await page.waitForTimeout(800);
   await page.screenshot({ path: `docs/screenshots/${t}-counter.png`, fullPage: true });
+  await page.close();
+
+  // Ejemplo 02: página conceptual (main thread / event loop / compositor). Sin interacción.
+  page = await ctx.newPage();
+  await page.goto(`${base}/t/${t}/example/02-main-thread`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(900);
+  await page.screenshot({ path: `${dir02}/${t}.png`, fullPage: true });
   await page.close();
 
   // Ejemplo 03: comunicación bidireccional (mandamos unos mensajes).
@@ -187,6 +198,18 @@ for (const t of themes) {
   await page.getByRole('button', { name: /^▶?\s*procesar$|procesar/i }).first().click();
   await page.waitForTimeout(1200);
   await page.screenshot({ path: `${dir13}/${t}.png`, fullPage: true });
+  await page.close();
+
+  // Ejemplo 14: OffscreenCanvas. Iniciamos los dos relojes y bloqueamos el main para
+  // capturar el "saltó N frames" (la evidencia del congelamiento del main).
+  page = await ctx.newPage();
+  await page.goto(`${base}/t/${t}/example/14-offscreen-canvas`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(700);
+  await page.getByRole('button', { name: /iniciar/i }).first().click();
+  await page.waitForTimeout(1300);
+  await page.getByRole('button', { name: /bloquear main|block main/i }).first().click().catch(() => {});
+  await page.waitForTimeout(3000);
+  await page.screenshot({ path: `${dir14}/${t}.png`, fullPage: true });
   await page.close();
   console.log('done', t);
 }
