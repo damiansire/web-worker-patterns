@@ -12,6 +12,7 @@ import { BACKPRESSURE_SNIPPETS } from './snippets/backpressure.snippets';
 import { SHARED_MEMORY_SNIPPETS } from './snippets/shared-memory.snippets';
 import { DEGRADATION_SNIPPETS } from './snippets/degradation.snippets';
 import { OFFSCREEN_CANVAS_SNIPPETS } from './snippets/offscreen-canvas.snippets';
+import { CLONE_COST_SNIPPETS } from './snippets/clone-cost.snippets';
 
 /**
  * Registry neutral de ejemplos (ARQUITECTURA §3.1).
@@ -160,6 +161,16 @@ export const EXAMPLES: WorkerExample[] = [
     workerFactory: () =>
       new Worker(new URL('../workers/offscreen-canvas.worker', import.meta.url), { type: 'module' }),
     snippets: OFFSCREEN_CANVAS_SNIPPETS,
+  },
+  {
+    id: '15-clone-cost',
+    order: 15,
+    category: 'optimization',
+    i18nKey: 'examples.15-clone-cost',
+    demo: 'clone-cost',
+    workerFactory: () =>
+      new Worker(new URL('../workers/clone-cost.worker', import.meta.url), { type: 'module' }),
+    snippets: CLONE_COST_SNIPPETS,
   },
 ];
 

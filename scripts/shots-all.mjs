@@ -21,9 +21,11 @@ const dir12 = `${dir}/12-shared-array-buffer`;
 const dir13 = `${dir}/13-graceful-degradation`;
 const dir02 = `${dir}/02-main-thread`;
 const dir14 = `${dir}/14-offscreen-canvas`;
+const dir15 = `${dir}/15-clone-cost`;
 await rm(dir, { recursive: true, force: true });
 await mkdir(dir02, { recursive: true });
 await mkdir(dir14, { recursive: true });
+await mkdir(dir15, { recursive: true });
 await mkdir(dir03, { recursive: true });
 await mkdir(dir04, { recursive: true });
 await mkdir(dir05, { recursive: true });
@@ -210,6 +212,16 @@ for (const t of themes) {
   await page.getByRole('button', { name: /bloquear main|block main/i }).first().click().catch(() => {});
   await page.waitForTimeout(3000);
   await page.screenshot({ path: `${dir14}/${t}.png`, fullPage: true });
+  await page.close();
+
+  // Ejemplo 15: costo de clonar (structured clone). Tocamos "Medir" y esperamos
+  // a que el barrido complete la curva (round-trips reales de payloads crecientes).
+  page = await ctx.newPage();
+  await page.goto(`${base}/t/${t}/example/15-clone-cost`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(700);
+  await page.getByRole('button', { name: /medir/i }).first().click();
+  await page.waitForTimeout(4000); // deja completar el barrido (warm-up + tamaños × reps)
+  await page.screenshot({ path: `${dir15}/${t}.png`, fullPage: true });
   await page.close();
   console.log('done', t);
 }

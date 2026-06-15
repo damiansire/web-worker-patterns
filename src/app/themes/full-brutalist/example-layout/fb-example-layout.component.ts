@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, viewChild, ElementRef } from '@angular/core';
+import { Component, computed, effect, inject, signal, viewChild, ElementRef } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -19,7 +19,13 @@ import { BackpressureDemoService } from '../../../core/services/backpressure-dem
 import { SharedMemoryDemoService } from '../../../core/services/shared-memory-demo.service';
 import { DegradationDemoService } from '../../../core/services/degradation-demo.service';
 import { OffscreenCanvasDemoService } from '../../../core/services/offscreen-canvas-demo.service';
+import { CloneCostDemoService } from '../../../core/services/clone-cost-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
+import {
+  CloneCostChartComponent,
+  CloneCostPoint,
+  formatBytes,
+} from '../../../ui-primitives/clone-cost-chart.component';
 import { FullBrutalistButton } from '../primitives/fb-button.component';
 import { FullBrutalistCard } from '../primitives/fb-card.component';
 import { FullBrutalistCodeBlock } from '../primitives/fb-code-block.component';
@@ -34,7 +40,14 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
  */
 @Component({
   selector: 'fb-example-layout',
-  imports: [NgComponentOutlet, RouterLink, FullBrutalistButton, FullBrutalistCard, FullBrutalistCodeBlock],
+  imports: [
+    NgComponentOutlet,
+    RouterLink,
+    FullBrutalistButton,
+    FullBrutalistCard,
+    FullBrutalistCodeBlock,
+    CloneCostChartComponent,
+  ],
   providers: [FULL_BRUTALIST_PROVIDERS],
   template: `
     <section class="b-ex">
@@ -563,6 +576,57 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
                     }
                   } @else {
                     <p class="b-hint">Mismo código, dos caminos según el feature-detect. Tildá el fallback y volvé a procesar: el resultado es idéntico, sólo cambia si la UI se traba.</p>
+                  }
+                </fb-card>
+              }
+
+              @case ('clone-cost') {
+                <fb-card title="Costo de clonar">
+                  <p class="b-lead">
+                    {{ content()?.whatToWatch ?? 'Movés el tamaño y la complejidad, medís el round-trip real y mirás la curva trepar.' }}
+                  </p>
+
+                  <div class="b-cc-ctl">
+                    <label class="b-cc-field">
+                      <span>Tamaño: {{ ccSize() }} {{ ccSize() === 1 ? 'registro' : 'registros' }}</span>
+                      <input
+                        type="range" min="500" max="20000" step="500"
+                        [value]="ccSize()" [disabled]="cloneRunning()"
+                        (input)="ccSize.set(+$any($event.target).value)"
+                        aria-label="Tamaño del payload en registros"
+                      />
+                    </label>
+                    <label class="b-cc-field">
+                      <span>Complejidad: {{ ccDepth() }} {{ ccDepth() === 1 ? 'nivel' : 'niveles' }}</span>
+                      <input
+                        type="range" min="0" max="8" step="1"
+                        [value]="ccDepth()" [disabled]="cloneRunning()"
+                        (input)="ccDepth.set(+$any($event.target).value)"
+                        aria-label="Complejidad: niveles de anidación"
+                      />
+                    </label>
+                  </div>
+
+                  <div class="b-send">
+                    <fb-button variant="solid" [disabled]="cloneRunning()" (pressed)="runCloneSweep()">
+                      {{ cloneRunning() ? 'midiendo…' : 'Medir' }}
+                    </fb-button>
+                    @if (cloneMeasurements().length && !cloneRunning()) {
+                      <fb-button (pressed)="resetClone()">Reset</fb-button>
+                    }
+                  </div>
+
+                  <div class="b-cc-chart">
+                    <wwp-clone-cost-chart [points]="chartPoints()" />
+                  </div>
+
+                  @if (cloneLast(); as last) {
+                    <p class="b-foot">
+                      ✓ {{ cloneMeasurements().length }} mediciones · el payload de {{ fmtBytes(last.serializedBytes) }}
+                      tardó {{ fmtMs(last.ms) }} ms en ir y volver (profundidad {{ cloneDepthRun() }})
+                    </p>
+                  } @else {
+                    <p class="b-hint">Movés los sliders y tocás Medir: mandamos payloads cada vez más grandes al worker y cronometramos el ida y vuelta REAL. Cada punto es una medición tuya, no un número inventado.</p>
                   }
                 </fb-card>
               }
@@ -1145,6 +1209,34 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
         color: var(--ink-muted);
       }
 
+      /* ── clone-cost (ej. 15): sliders + gráfica de costo ── */
+      .b-cc-ctl {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        margin-bottom: 18px;
+      }
+      .b-cc-field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        flex: 1 1 220px;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--ink);
+      }
+      .b-cc-field input[type='range'] {
+        width: 100%;
+        accent-color: var(--accent);
+      }
+      .b-cc-chart {
+        border: var(--border-width, 2px) solid var(--border);
+        background: var(--surface-raised);
+        padding: 12px;
+        margin-bottom: 14px;
+      }
+
       /* Code-blocks encajados: colapsan sus bordes 3px en una sola línea. */
       .b-code-stack > fb-code-block {
         display: block;
@@ -1177,6 +1269,7 @@ export class FullBrutalistExampleLayoutComponent {
   private readonly backpressure = inject(BackpressureDemoService);
   private readonly sharedMem = inject(SharedMemoryDemoService);
   private readonly degradation = inject(DegradationDemoService);
+  private readonly cloneCost = inject(CloneCostDemoService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
   private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
@@ -1288,6 +1381,18 @@ export class FullBrutalistExampleLayoutComponent {
   protected readonly degForce = this.degradation.forceFallback;
   protected readonly degResult = this.degradation.result;
   protected readonly degRunning = this.degradation.running;
+
+  // clone-cost (15)
+  protected readonly ccSize = signal(8000);
+  protected readonly ccDepth = signal(1);
+  protected readonly cloneMeasurements = this.cloneCost.measurements;
+  protected readonly cloneRunning = this.cloneCost.running;
+  protected readonly cloneDepthRun = this.cloneCost.depth;
+  protected readonly chartPoints = computed<CloneCostPoint[]>(() =>
+    this.cloneMeasurements().map((m) => ({ x: m.serializedBytes, y: m.ms })),
+  );
+  protected readonly fmtBytes = formatBytes;
+  protected readonly cloneLast = computed(() => this.cloneMeasurements().at(-1) ?? null);
 
   // offscreen-canvas (14)
   private readonly oc = inject(OffscreenCanvasDemoService);
@@ -1491,6 +1596,22 @@ export class FullBrutalistExampleLayoutComponent {
 
   resetDeg(): void {
     this.degradation.reset();
+  }
+
+  runCloneSweep(): void {
+    const ex = this.example();
+    if (ex) {
+      this.cloneCost.runSweep(ex, { maxSize: this.ccSize(), depth: this.ccDepth() });
+    }
+  }
+
+  resetClone(): void {
+    this.cloneCost.reset();
+  }
+
+  /** Formatea el round-trip: sub-10ms con un decimal, el resto entero. */
+  fmtMs(ms: number): string {
+    return ms < 10 ? ms.toFixed(1) : String(Math.round(ms));
   }
 
   send(text: string): void {

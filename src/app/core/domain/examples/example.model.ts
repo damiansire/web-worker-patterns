@@ -31,6 +31,8 @@ export type Category =
  *   - degradation:      feature-detect de Worker: corre off-thread si hay, o en el main si no (mismo resultado) (ej. 13)
  *   - offscreen-canvas: transferControlToOffscreen: el worker dibuja/anima un canvas con su propio
  *                       rendering loop; sigue fluido aunque el main esté bloqueado (ej. 14)
+ *   - clone-cost:       mide el round-trip REAL (structured clone ida y vuelta) de payloads que el
+ *                       usuario dimensiona por tamaño y complejidad; grafica ms vs bytes (ej. 15)
  */
 export type DemoKind =
   | 'thread-block'
@@ -45,7 +47,8 @@ export type DemoKind =
   | 'backpressure'
   | 'shared-memory'
   | 'degradation'
-  | 'offscreen-canvas';
+  | 'offscreen-canvas'
+  | 'clone-cost';
 
 export interface WorkerExample {
   /** Slug estable, ej. '01-setinterval-counter'. */
