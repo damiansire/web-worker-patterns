@@ -38,7 +38,7 @@
       "title": "Comunicação básica",
       "summary": "O \"Olá Mundo\" dos Web Workers: você escreve uma mensagem e a envia ao worker. O worker a recebe, processa e responde de volta. É assim que as threads se comunicam — postMessage nas duas direções.",
       "whatToWatch": "→ sai da thread principal para o worker, ← a resposta processada volta. O número em ms é o round-trip REAL: cruzar a thread custa uma fração de milissegundo — quase nada.",
-      "note": "postMessage CLONA os dados (structured clone): é serializado na saída e desserializado na entrada, então o worker recebe uma CÓPIA, não a referência. O custo não é cruzar a thread — isso é sub-ms — e sim copiar: cresce com o tamanho do payload. Um bom teto prático: ~10KB de JSON. Para dados grandes, transferables movem sem copiar (exemplo 07).",
+      "note": "O worker roda em seu próprio isolate de V8 (heap e coletor de lixo próprios): main e worker NÃO compartilham objetos JS, por isso postMessage CLONA os dados (structured clone) — é serializado na saída e desserializado na entrada, então o worker recebe uma CÓPIA, não a referência. O custo não é cruzar a thread — isso é sub-ms — e sim copiar: cresce com o tamanho e a complexidade do payload (não há um limiar mágico; quanto maior, mais caro). Para dados grandes, transferables movem sem copiar (exemplo 07).",
       "takeaways": {
         "title": "Pontos-chave",
         "items": [
@@ -54,7 +54,7 @@
       "title": "Descarregar cómputo pesado",
       "summary": "Aqui está o ganho dos Web Workers: tirar trabalho pesado da thread principal. Calculamos números primos —um cálculo deliberadamente intensivo— e o rodamos nos dois lados para você sentir a diferença.",
       "whatToWatch": "Rode em um worker: o cronômetro continua subindo ao vivo e você pode interagir — a UI nunca trava. Rode o MESMO cálculo na thread principal: a página inteira congela (não repinta, não responde) até terminar.",
-      "note": "Qualquer trabalho que leve mais de ~16ms bloqueia um frame e aparece. Um worker roda em paralelo real em outra thread: o cálculo leva o mesmo tempo, mas a thread principal fica livre para responder. O resultado volta por postMessage (clonado).",
+      "note": "Qualquer trabalho que leve mais de ~16ms (um frame a 60Hz; em telas de 120Hz, ~8ms) bloqueia esse frame e aparece. Um worker roda em paralelo real em outra thread: o cálculo leva o mesmo tempo, mas a thread principal fica livre para responder. O resultado volta por postMessage (clonado).",
       "takeaways": {
         "title": "Pontos-chave",
         "items": [
@@ -63,7 +63,7 @@
           "O cálculo não é mais rápido no worker — mas a UI não trava",
           "O resultado volta por postMessage (structured clone); para dados grandes, transferables (exemplo 07)"
         ],
-        "tip": "Regra prática: se uma tarefa pode levar mais de um frame (~16ms), mande-a para um worker. Atenção: não a torna mais rápida —o cálculo leva o mesmo— mas a página continua respondendo (melhor INP)."
+        "tip": "Regra prática: se uma tarefa pode levar mais de um frame (~16ms a 60Hz), mande-a para um worker. Atenção: não a torna mais rápida —o cálculo leva o mesmo— mas a página continua respondendo (melhor INP)."
       }
     },
     "05-error-handling": {
@@ -86,7 +86,7 @@
       "title": "Ciclo de vida e terminação",
       "summary": "Um worker não vive para sempre: você o cria, ele roda, e você o termina. Aqui você inicia uma tarefa longa que avança passo a passo e pode cortá-la no meio. terminate() mata o worker na hora — o passo em andamento se perde e esse worker não pode ser reutilizado.",
       "whatToWatch": "Inicie a tarefa e veja a barra subir. Toque em Terminar no meio: o progresso congela onde estava e o worker deixa de existir. Para rodar de novo é preciso criar um novo (o botão Iniciar faz isso). Se deixar terminar, o worker se fecha sozinho com self.close().",
-      "note": "terminate() é abrupto: sem limpeza, sem despedida — o worker morre com seu trabalho em andamento (o setTimeout pendente vai junto). Um worker terminado não reinicia: cria-se outro. De dentro, o worker pode se fechar com self.close() quando termina seu trabalho.",
+      "note": "Criar o worker não foi de graça: o navegador provisionou um isolate de V8 com seu contexto e heap. terminate() é abrupto: sem limpeza, sem despedida — o worker morre com seu trabalho em andamento (o setTimeout pendente vai junto) e essa thread, com seu isolate e memória, é liberada. Um worker terminado não reinicia: cria-se outro. De dentro, o worker pode se fechar com self.close() quando termina seu trabalho.",
       "takeaways": {
         "title": "Pontos-chave",
         "items": [
@@ -95,7 +95,7 @@
           "Um worker terminado não é reutilizado: crie um novo para rodar de novo",
           "self.close() deixa o worker se fechar sozinho quando termina"
         ],
-        "tip": "Termine os workers que não usa mais: continuam ocupando memória e uma thread mesmo ociosos."
+        "tip": "Termine os workers que não usa mais: cada um ocupa uma thread e seu próprio isolate de V8 (com heap próprio) mesmo ocioso."
       }
     },
     "07-transferable-objects": {
@@ -118,7 +118,7 @@
       "title": "SharedWorker",
       "summary": "Um Worker normal pertence a quem o criou. Um SharedWorker é UM só, compartilhado por várias conexões — várias abas, ou como aqui, vários painéis. Todos falam com a mesma instância e veem o mesmo estado: o contador não vive em cada painel, vive no worker.",
       "whatToWatch": "O mesmo número nos dois painéis, e o mesmo id de worker no topo. Some em um e veja saltar no outro: não são duas cópias sincronizadas, é UMA variável dentro do worker. Adicione uma terceira conexão e verá que ela herda o valor atual.",
-      "note": "Cada conexão chega por onconnect e traz seu próprio MessagePort; é preciso chamar port.start() para receber. O estado vive no worker, não nas páginas, por isso a conexão nova herda o contador. Diferente do exemplo 03 (main↔worker, 1 para 1), aqui é N para 1. Inspecione em chrome://inspect/#workers. Se o navegador não suportar SharedWorker, esta demo cai para um backend simulado (você verá rotulado).",
+      "note": "Cada conexão chega por onconnect e traz seu próprio MessagePort; é preciso chamar port.start() para receber. O estado vive no worker, não nas páginas, por isso a conexão nova herda o contador. Diferente do exemplo 03 (main↔worker, 1 para 1), aqui é N para 1. E diferente de um worker dedicado (mesmo processo do renderer, outra thread), um SharedWorker vive fora do processo de cada aba — por isso uma única instância serve a todas e sobrevive a cada página. Inspecione em chrome://inspect/#workers. Se o navegador não suportar SharedWorker, esta demo cai para um backend simulado (você verá rotulado).",
       "takeaways": {
         "title": "Pontos-chave",
         "items": [
@@ -182,7 +182,7 @@
       "title": "SharedArrayBuffer",
       "summary": "Até agora tudo viajava como mensagens: postMessage clona (03) ou transfere (07). Um SharedArrayBuffer é diferente: main e worker compartilham a MESMA memória, não uma cópia. O worker escreve um número ali com Atomics e o main o lê direto — sem um único postMessage no meio.",
       "whatToWatch": "Inicie e veja o número subir. O worker o incrementa na memória compartilhada; o main lê essa mesma memória com Atomics.load. O contador de mensagens trocadas fica em 0: não há ida e volta, é literalmente a mesma variável nas duas threads.",
-      "note": "Atomics garante leituras e escritas coerentes quando várias threads tocam a mesma memória (sem ele você teria condições de corrida). SharedArrayBuffer é poderoso mas só existe se a página estiver cross-origin isolated: é preciso servir com os cabeçalhos COOP e COEP. Sem eles, typeof SharedArrayBuffer é 'undefined' (aqui você verá um backend simulado rotulado).",
+      "note": "Atomics garante leituras e escritas coerentes quando várias threads tocam a mesma memória (sem ele você teria condições de corrida). Atenção: o que se compartilha é o backing store de memória, não objetos JS — cada thread mantém seu próprio isolate e heap; o SharedArrayBuffer é a única exceção ao isolamento de memória entre threads. SharedArrayBuffer é poderoso mas só existe se a página estiver cross-origin isolated: é preciso servir com os cabeçalhos COOP e COEP. Sem eles, typeof SharedArrayBuffer é 'undefined' (aqui você verá um backend simulado rotulado).",
       "takeaways": {
         "title": "Pontos-chave",
         "items": [
@@ -224,6 +224,22 @@
           "O worker não acessa o DOM: recebe um OffscreenCanvas e seu contexto de desenho, nada mais"
         ],
         "tip": "Reserve OffscreenCanvas para renderização que precise seguir fluida sob carga: visualizações, jogos, gráficos ao vivo. Passe as cores/tokens por mensagem: lá dentro não há CSS."
+      }
+    },
+    "15-clone-cost": {
+      "title": "O custo de clonar mensagens",
+      "summary": "postMessage não passa os dados por referência: ele os CLONA (structured clone). Esse custo não é \"cruzar a thread\" —isso é sub-ms— e sim serializar e desserializar o grafo, e cresce com o TAMANHO (quantos dados) e a COMPLEXIDADE (quantos nós, quão aninhado). Não te damos uma curva inventada: você move os dois controles, medimos o round-trip REAL na sua máquina e plotamos.",
+      "whatToWatch": "Mova o tamanho e a complexidade, toque em Medir e a app manda payloads cada vez maiores ao worker, cronometrando o ida e volta real. Cada ponto é uma medição: o eixo X são os bytes serializados, o eixo Y os milissegundos. Veja a curva subir — e aumente a complexidade para ver como encarece com o mesmo tamanho.",
+      "note": "O worker devolve o payload tal como está, sem trabalhar: assim a única coisa medida é o structured clone (clona ao sair da thread principal e clona de novo ao voltar). Não há um limiar mágico —nenhum \"até 10KB está bem\"—: é uma rampa que sobe com o tamanho e a forma do grafo. Quando o payload pesa, duas saídas: transferir sem copiar (exemplo 07) ou compartilhar memória (exemplo 12).",
+      "takeaways": {
+        "title": "Pontos-chave",
+        "items": [
+          "postMessage clona a mensagem (structured clone): o custo é serializar/desserializar, não cruzar a thread",
+          "O custo cresce com o tamanho do payload E com sua complexidade estrutural (quantidade de nós)",
+          "Não existe um limiar fixo: é uma curva, você a mede — não a adivinha",
+          "Para payloads grandes, transfira (exemplo 07) ou compartilhe memória com SharedArrayBuffer (exemplo 12)"
+        ],
+        "tip": "Meça no seu hardware antes de otimizar: o custo do clone depende da máquina e da forma do dado, não de um número mágico da internet."
       }
     }
   }
