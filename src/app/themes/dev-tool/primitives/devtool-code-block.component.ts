@@ -8,7 +8,6 @@ hljs.registerLanguage('typescript', typescript);
 /** Bloque de código dev-tool: panel de editor con barra de título. */
 @Component({
   selector: 'devtool-code-block',
-  standalone: true,
   template: `
     <div class="dt-code">
       <div class="dt-code-bar">

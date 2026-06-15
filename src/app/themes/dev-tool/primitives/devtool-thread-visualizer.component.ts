@@ -9,7 +9,6 @@ import { ThreadVisualizerContract } from '../../../ui-contracts/thread-visualize
  */
 @Component({
   selector: 'devtool-thread-visualizer',
-  standalone: true,
   imports: [DecimalPipe],
   template: `
     <div class="dt-viz">

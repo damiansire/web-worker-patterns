@@ -13,7 +13,6 @@ hljs.registerLanguage('typescript', typescript);
  */
 @Component({
   selector: 'fb-code-block',
-  standalone: true,
   template: `
     <figure class="b-code">
       @if (label(); as l) {

@@ -5,7 +5,6 @@ import { ThemeSelectorComponent } from '../../../theming/theme-selector.componen
 /** Shell editorial: cabecera tipo portada de revista de arte. */
 @Component({
   selector: 'editorial-shell',
-  standalone: true,
   imports: [RouterOutlet, RouterLink, ThemeSelectorComponent],
   template: `
     <div class="e-shell">

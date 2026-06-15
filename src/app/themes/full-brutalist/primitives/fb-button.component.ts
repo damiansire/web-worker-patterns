@@ -7,7 +7,6 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
  */
 @Component({
   selector: 'fb-button',
-  standalone: true,
   template: `
     <button class="b-btn" [attr.data-variant]="variant()" [disabled]="disabled()" (click)="pressed.emit()">
       <ng-content />

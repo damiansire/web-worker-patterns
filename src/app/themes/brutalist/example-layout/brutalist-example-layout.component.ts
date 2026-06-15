@@ -31,7 +31,6 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
  */
 @Component({
   selector: 'brutalist-example-layout',
-  standalone: true,
   imports: [NgComponentOutlet, RouterLink, BrutalistButton, BrutalistCard, BrutalistCodeBlock],
   providers: [BRUTALIST_PROVIDERS],
   template: `

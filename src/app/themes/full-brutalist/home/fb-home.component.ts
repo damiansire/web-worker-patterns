@@ -5,7 +5,6 @@ import { EXAMPLES } from '../../../core/domain/examples/examples.registry';
 /** Home brutalista: grilla de celdas duras, números mono, hover invertido. */
 @Component({
   selector: 'fb-home',
-  standalone: true,
   imports: [RouterLink],
   template: `
     <section class="b-home">

@@ -9,7 +9,6 @@ import { EXAMPLES } from '../../../core/domain/examples/examples.registry';
  */
 @Component({
   selector: 'devtool-command-palette',
-  standalone: true,
   template: `
     <div class="dt-palette" (keydown)="onKeydown($event)">
       <input

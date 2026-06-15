@@ -5,7 +5,6 @@ import { EXAMPLES } from '../../../core/domain/examples/examples.registry';
 /** Home narrative: sumario centrado tipo revista, en columna estrecha. */
 @Component({
   selector: 'narrative-home',
-  standalone: true,
   imports: [RouterLink],
   template: `
     <section class="n-home">

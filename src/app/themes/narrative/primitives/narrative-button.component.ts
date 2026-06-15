@@ -4,7 +4,6 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
 /** Botón narrative: editorial de revista, serif, subrayado animado. */
 @Component({
   selector: 'narrative-button',
-  standalone: true,
   template: `
     <button class="n-btn" [attr.data-variant]="variant()" [disabled]="disabled()" (click)="pressed.emit()">
       <ng-content />

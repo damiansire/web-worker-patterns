@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, computed, inject } from '@angular/core';
+import { Component, OnDestroy, computed, inject } from '@angular/core';
 import { RouterOutlet, RouterLink } from '@angular/router';
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
@@ -13,8 +13,8 @@ import { ExampleRunnerService } from '../../../core/services/example-runner.serv
  */
 @Component({
   selector: 'devtool-shell',
-  standalone: true,
   imports: [RouterOutlet, RouterLink, ThemeSelectorComponent],
+  host: { '(document:keydown)': 'onKeydown($event)' },
   template: `
     <div class="dt-shell">
       <header class="dt-titlebar">
@@ -145,7 +145,6 @@ export class DevToolShellComponent implements OnDestroy {
     }
   });
 
-  @HostListener('document:keydown', ['$event'])
   protected onKeydown(event: KeyboardEvent): void {
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
       event.preventDefault();

@@ -5,7 +5,6 @@ import { EXAMPLES } from '../../../core/domain/examples/examples.registry';
 /** Home dev-tool: explorador denso tipo IDE (toolbar + árbol de archivos). */
 @Component({
   selector: 'devtool-home',
-  standalone: true,
   imports: [RouterLink],
   template: `
     <section class="dt-home">

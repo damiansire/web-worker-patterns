@@ -5,7 +5,6 @@ import { ThemeSelectorComponent } from '../../../theming/theme-selector.componen
 /** Shell narrative: cabecera de revista, mucho aire, serif. */
 @Component({
   selector: 'narrative-shell',
-  standalone: true,
   imports: [RouterOutlet, RouterLink, ThemeSelectorComponent],
   template: `
     <div class="n-shell">

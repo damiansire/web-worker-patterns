@@ -32,7 +32,6 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
  */
 @Component({
   selector: 'fb-example-layout',
-  standalone: true,
   imports: [NgComponentOutlet, RouterLink, FullBrutalistButton, FullBrutalistCard, FullBrutalistCodeBlock],
   providers: [FULL_BRUTALIST_PROVIDERS],
   template: `

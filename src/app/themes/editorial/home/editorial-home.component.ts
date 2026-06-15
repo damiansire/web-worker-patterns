@@ -5,7 +5,6 @@ import { EXAMPLES } from '../../../core/domain/examples/examples.registry';
 /** Home editorial: índice tipo sumario de revista, números grandes serif. */
 @Component({
   selector: 'editorial-home',
-  standalone: true,
   imports: [RouterLink],
   template: `
     <section class="e-home">

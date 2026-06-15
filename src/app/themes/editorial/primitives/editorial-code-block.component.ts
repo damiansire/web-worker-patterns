@@ -8,7 +8,6 @@ hljs.registerLanguage('typescript', typescript);
 /** Bloque de código editorial: tipográfico, marco fino, etiqueta serif. */
 @Component({
   selector: 'editorial-code-block',
-  standalone: true,
   template: `
     <figure class="e-code">
       @if (label(); as l) {

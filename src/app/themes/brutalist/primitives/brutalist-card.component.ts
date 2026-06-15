@@ -4,7 +4,6 @@ import { CardContract } from '../../../ui-contracts/card.contract';
 /** Card brutalista: caja de borde negro grueso con sombra dura y título opcional. */
 @Component({
   selector: 'brutalist-card',
-  standalone: true,
   template: `
     <section class="b-card">
       @if (title(); as t) {

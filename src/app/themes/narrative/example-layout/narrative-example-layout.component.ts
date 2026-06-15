@@ -25,7 +25,6 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
 /** Example-layout narrative. Hilos como contraste worker-vs-main (#2) + código. */
 @Component({
   selector: 'narrative-example-layout',
-  standalone: true,
   imports: [NgComponentOutlet, RouterLink, NarrativeButton, NarrativeCodeBlock],
   providers: [NARRATIVE_PROVIDERS],
   template: `

@@ -8,7 +8,6 @@ import { ThemeSelectorComponent } from '../../../theming/theme-selector.componen
  */
 @Component({
   selector: 'fb-shell',
-  standalone: true,
   imports: [RouterOutlet, RouterLink, ThemeSelectorComponent],
   template: `
     <div class="b-shell">

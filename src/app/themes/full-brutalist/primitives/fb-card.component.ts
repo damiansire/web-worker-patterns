@@ -8,7 +8,6 @@ import { CardContract } from '../../../ui-contracts/card.contract';
  */
 @Component({
   selector: 'fb-card',
-  standalone: true,
   template: `
     <section class="b-card">
       @if (title(); as t) {

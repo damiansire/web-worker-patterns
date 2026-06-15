@@ -8,7 +8,6 @@ hljs.registerLanguage('typescript', typescript);
 /** Bloque de código brutalista: marco negro grueso, fuente mono, sin radius. */
 @Component({
   selector: 'brutalist-code-block',
-  standalone: true,
   template: `
     <figure class="b-code">
       @if (label(); as l) {

@@ -8,7 +8,6 @@ hljs.registerLanguage('typescript', typescript);
 /** Bloque de código narrative: aparte tipográfico, fondo suave. */
 @Component({
   selector: 'narrative-code-block',
-  standalone: true,
   template: `
     <figure class="n-code">
       @if (label(); as l) {

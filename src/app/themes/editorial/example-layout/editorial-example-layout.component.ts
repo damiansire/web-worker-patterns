@@ -25,7 +25,6 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
 /** Example-layout editorial. Hilos como contraste worker-vs-main (#2) + código. */
 @Component({
   selector: 'editorial-example-layout',
-  standalone: true,
   imports: [NgComponentOutlet, RouterLink, EditorialButton, EditorialCodeBlock],
   providers: [EDITORIAL_PROVIDERS],
   template: `

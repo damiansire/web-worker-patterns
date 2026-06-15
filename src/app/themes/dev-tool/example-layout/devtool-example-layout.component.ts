@@ -28,7 +28,6 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
  */
 @Component({
   selector: 'devtool-example-layout',
-  standalone: true,
   imports: [NgComponentOutlet, RouterLink, DevToolButton, DevToolCodeBlock],
   providers: [DEVTOOL_PROVIDERS],
   template: `

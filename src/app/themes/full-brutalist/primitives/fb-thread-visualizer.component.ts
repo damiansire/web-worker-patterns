@@ -11,7 +11,6 @@ import { ThreadVisualizerContract } from '../../../ui-contracts/thread-visualize
  */
 @Component({
   selector: 'fb-thread-visualizer',
-  standalone: true,
   imports: [DecimalPipe],
   template: `
     <div class="b-viz">

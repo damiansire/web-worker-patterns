@@ -18,7 +18,8 @@ const SPANISH_COUNTRY_CODES = new Set([
   'PY', 'SV', 'NI', 'CR', 'PA', 'UY', 'PR', 'GQ'
 ]);
 
-type TranslationTree = Record<string, any>;
+/** Árbol de traducciones (ramas anidadas, hojas string); se navega por path. */
+type TranslationTree = Record<string, unknown>;
 
 @Injectable({
   providedIn: 'root'
@@ -118,8 +119,12 @@ export class LanguageService {
     });
   }
 
-  private resolvePath(obj: TranslationTree, path: string): any {
-    return path.split('.').reduce((acc: any, key: string) => (acc !== undefined && acc !== null ? acc[key] : undefined), obj);
+  private resolvePath(obj: TranslationTree, path: string): unknown {
+    return path.split('.').reduce<unknown>(
+      (acc, key) =>
+        acc && typeof acc === 'object' ? (acc as Record<string, unknown>)[key] : undefined,
+      obj,
+    );
   }
 
   private isSupported(code: string): code is LanguageCode {

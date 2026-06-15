@@ -4,7 +4,6 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
 /** Botón brutalista: bordes negros gruesos, sin radius, sombra dura. */
 @Component({
   selector: 'brutalist-button',
-  standalone: true,
   template: `
     <button class="b-btn" [attr.data-variant]="variant()" [disabled]="disabled()" (click)="pressed.emit()">
       <ng-content />

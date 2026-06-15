@@ -11,7 +11,6 @@ import { LanguageService } from './core/services/language.service';
  */
 @Component({
   selector: 'app-root',
-  standalone: true,
   imports: [NgComponentOutlet],
   template: `
     @if (shell(); as shellCmp) {

@@ -4,7 +4,6 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
 /** Botón dev-tool: estilo IDE/terminal, sutil, mono. */
 @Component({
   selector: 'devtool-button',
-  standalone: true,
   template: `
     <button class="dt-btn" [attr.data-variant]="variant()" [disabled]="disabled()" (click)="pressed.emit()">
       <ng-content />

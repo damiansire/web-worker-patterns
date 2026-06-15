@@ -4,7 +4,6 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
 /** Botón editorial: pill suave, tipografía de display, acento cálido. */
 @Component({
   selector: 'editorial-button',
-  standalone: true,
   template: `
     <button class="e-btn" [attr.data-variant]="variant()" [disabled]="disabled()" (click)="pressed.emit()">
       <ng-content />

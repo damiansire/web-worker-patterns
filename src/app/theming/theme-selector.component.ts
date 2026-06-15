@@ -12,7 +12,6 @@ import { ThemeId } from './theme.types';
  */
 @Component({
   selector: 'theme-selector',
-  standalone: true,
   template: `
     <nav class="ts" aria-label="Theme">
       @for (t of themes; track t.id) {

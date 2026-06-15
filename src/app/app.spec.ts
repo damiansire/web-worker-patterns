@@ -6,7 +6,7 @@ import { App } from './app';
 import { THEME_REGISTRY } from './theming/theme.tokens';
 import { ThemeId, ThemePack } from './theming/theme.types';
 
-@Component({ standalone: true, template: '<p class="fake-shell">shell</p>' })
+@Component({ template: '<p class="fake-shell">shell</p>' })
 class FakeShell {}
 
 class TestLoader implements TranslocoLoader {
