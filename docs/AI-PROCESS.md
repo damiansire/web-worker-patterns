@@ -38,18 +38,31 @@ Esto es el patrón ECC de "subagentes con scope acotado" + verificación adversa
 *código* (no diseño) el equivalente es correr varios lentes — correctitud, seguridad, a11y,
 perf — anclados en la skill `angular-developer`, no un solo pase.
 
-## 3. Hooks event-driven (defensa en profundidad)
+## 3. Aplicación multi-harness (no atada a una IA/IDE)
 
-Scripts Node cross-platform en `scripts/hooks/` (patrón ECC: "los hooks disparan en eventos").
-Se registran copiando `.claude/settings.hooks.sample.json` → `.claude/settings.json`:
+Lección ECC: la *aplicación* de las reglas no puede vivir dentro de un solo asistente. Si
+los guardrails fueran solo de Claude Code, quien use Cursor/Copilot/Codex/Zed no quedaría
+cubierto. Por eso hay **dos capas**:
 
-- **`guard-regla-de-oro.mjs`** (PostToolUse Write|Edit): bloquea en vivo si `core/` importa de
-  `themes/` o si aparece un `*.worker.ts` dentro de un theme. Adelanta el lint al momento de
-  escribir; no lo reemplaza.
-- **`cleanup-scratch.mjs`** (SessionEnd): barre los `wwp-*-tmp.*` que dejan los pasos
-  exploratorios, para que no ensucien `git status`.
+**a) Vendor-neutral (la red real — se dispara con cualquier editor/IA):**
+- **git pre-commit** (`.githooks/pre-commit`, activado por `npm run setup` / `prepare`): corre
+  `npm run lint:boundaries` antes de cada commit. Es git, no depende del editor.
+- **CI** (`.github/workflows/ci.yml`): build + test + boundaries en cada push/PR. Backstop final
+  aunque alguien no tenga el pre-commit local.
+- `.gitattributes` fuerza LF en hooks/scripts: un `#!/bin/sh` con CRLF falla en Linux/CI.
 
-No son un gate (el gate es `npm run`), son una red temprana que provoca autocorrección.
+**b) Por herramienta (feedback temprano, advisory — NO reemplaza a (a)):**
+- **Claude Code**: hooks Node cross-platform en `scripts/hooks/` (patrón ECC "los hooks disparan
+  en eventos"), registro opt-in en `.claude/settings.hooks.sample.json`:
+  - `guard-regla-de-oro.mjs` (PostToolUse): bloquea en vivo `core/`→`themes/` o `*.worker.ts`
+    dentro de un theme.
+  - `cleanup-scratch.mjs` (SessionEnd): barre los `wwp-*-tmp.*`.
+- **Cursor**: `.cursor/rules/regla-de-oro.mdc`. **Copilot**: `.github/copilot-instructions.md`.
+- **Cualquier otro**: `AGENTS.md` (estándar cross-tool) — puntero único a la fuente de verdad.
+
+Regla DRY (patrón adapter de ECC): las reglas se escriben **una vez** (ARQUITECTURA/CLAUDE.md);
+los archivos por-herramienta son punteros, no copias. Y la verificación es **una sola**
+implementación (`npm run lint:boundaries`) que git hook, CI y el hook de Claude reutilizan.
 
 ## 4. El pipeline por-ejemplo: `/migrate-example`
 

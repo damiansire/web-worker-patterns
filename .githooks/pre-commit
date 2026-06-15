@@ -1,0 +1,16 @@
+#!/bin/sh
+# Pre-commit HARNESS-AGNOSTIC — vale para cualquier IDE/IA (Claude, Cursor, Copilot,
+# Codex, Zed, Gemini…). A diferencia de los hooks de Claude Code (.claude/), este corre
+# en git, así que la regla de oro se hace cumplir aunque tu editor no tenga hooks propios.
+#
+# Activación: `npm run setup` (o automático tras `npm install` vía el script "prepare"),
+# que setea `git config core.hooksPath .githooks`.
+#
+# Mantenelo rápido: acá va solo el invariante arquitectónico (boundaries). El build y los
+# tests completos viven en CI (.github/workflows/ci.yml).
+
+echo "[pre-commit] regla de oro: verificando boundaries (core/ ⇏ themes/)…"
+if ! npm run --silent lint:boundaries; then
+  echo "[pre-commit] ✗ boundaries falló — commit abortado. Corregí antes de commitear." >&2
+  exit 1
+fi

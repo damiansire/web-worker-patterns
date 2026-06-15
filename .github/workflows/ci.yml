@@ -1,0 +1,25 @@
+name: CI
+
+# Backstop vendor-neutral: los gates corren en cada push/PR sin importar qué IDE/IA usó
+# quien escribió el código. Es la última red si alguien no tiene el pre-commit local.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Boundaries (regla de oro, self-test)
+        run: npm run lint:boundaries
+      - name: Tests
+        run: npm test
+      - name: Build
+        run: npm run build

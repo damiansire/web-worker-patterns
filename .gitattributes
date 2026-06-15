@@ -1,0 +1,8 @@
+# Los git hooks y scripts de shell DEBEN quedar en LF: con CRLF, `#!/bin/sh` falla con
+# "bad interpreter" en Linux/Mac (y en el runner de CI). Esto es independiente del editor.
+.githooks/** text eol=lf
+*.sh text eol=lf
+
+# Scripts Node de tooling: LF también, por consistencia entre plataformas.
+*.mjs text eol=lf
+*.cjs text eol=lf

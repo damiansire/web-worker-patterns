@@ -9,7 +9,9 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint:boundaries": "node scripts/lint/boundaries.mjs",
-    "screenshots": "node scripts/shots-all.mjs"
+    "screenshots": "node scripts/shots-all.mjs",
+    "setup": "node scripts/setup-git-hooks.mjs",
+    "prepare": "node scripts/setup-git-hooks.mjs"
   },
   "prettier": {
     "printWidth": 100,
