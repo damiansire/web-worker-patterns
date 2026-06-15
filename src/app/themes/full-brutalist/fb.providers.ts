@@ -8,7 +8,7 @@ import { FullBrutalistButton } from './primitives/fb-button.component';
 import { FullBrutalistCodeBlock } from './primitives/fb-code-block.component';
 import { FullBrutalistCard } from './primitives/fb-card.component';
 
-/** Registra los primitivos del theme brutalist contra sus contratos (§5). */
+/** Registra los primitivos del theme full-brutalist contra sus contratos (§5). */
 export const FULL_BRUTALIST_PROVIDERS: Provider[] = [
   { provide: THREAD_VISUALIZER, useValue: FullBrutalistThreadVisualizer },
   { provide: BUTTON, useValue: FullBrutalistButton },

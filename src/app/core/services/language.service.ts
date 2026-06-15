@@ -18,9 +18,6 @@ const SPANISH_COUNTRY_CODES = new Set([
   'PY', 'SV', 'NI', 'CR', 'PA', 'UY', 'PR', 'GQ'
 ]);
 
-/** Árbol de traducciones (ramas anidadas, hojas string); se navega por path. */
-type TranslationTree = Record<string, unknown>;
-
 @Injectable({
   providedIn: 'root'
 })
@@ -31,7 +28,6 @@ export class LanguageService {
     { code: 'pt', label: 'Portuguese', nativeLabel: 'Português' }
   ];
 
-  private readonly translations = signal<TranslationTree>({});
   private readonly language = signal<LanguageCode | null>(null);
   readonly currentLanguage = computed<LanguageCode>(() => this.language() ?? 'en');
 
@@ -39,8 +35,6 @@ export class LanguageService {
   readonly geoNotification = signal<GeoNotification | null>(null);
 
   constructor() {
-    this.loadTranslations();
-
     const stored = this.storage?.getItem(LANGUAGE_STORAGE_KEY) as LanguageCode | null;
     if (stored && this.isSupported(stored)) {
       this.language.set(stored);
@@ -103,28 +97,6 @@ export class LanguageService {
 
   isLanguageSelected(): boolean {
     return this.language() !== null;
-  }
-
-  t<T = string>(path: string, fallback?: T): T {
-    const value = this.resolvePath(this.translations(), `${this.currentLanguage()}.${path}`);
-    if (value === undefined) {
-      return (fallback ?? path) as unknown as T;
-    }
-    return value as T;
-  }
-
-  private loadTranslations() {
-    import('../translations/translations').then(module => {
-      this.translations.set(module.translations);
-    });
-  }
-
-  private resolvePath(obj: TranslationTree, path: string): unknown {
-    return path.split('.').reduce<unknown>(
-      (acc, key) =>
-        acc && typeof acc === 'object' ? (acc as Record<string, unknown>)[key] : undefined,
-      obj,
-    );
   }
 
   private isSupported(code: string): code is LanguageCode {

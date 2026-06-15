@@ -1,10 +1,9 @@
 import { ThemePack } from '../../theming/theme.types';
 
 /**
- * Theme brutalist (ARQUITECTURA §10.5): el más simple (sin librería UI), valida
- * el pipeline punta a punta — shell, home, example-layout, primitivos y su
- * ThreadVisualizer. Sus tokens viven en `styles/_tokens.scss` (cargados global)
- * y su skin no necesita CSS lazy de librería.
+ * Theme full-brutalist: la variante oscura del brutalismo (alto contraste sobre fondo
+ * negro). Sin librería UI, tokens en `styles/_tokens.scss` (cargados global) y skin propio
+ * — shell, home, example-layout, primitivos y su ThreadVisualizer.
  */
 export const FULL_BRUTALIST_THEME: ThemePack = {
   id: 'full-brutalist',
