@@ -36,6 +36,7 @@ de que tu editor tenga hooks. Si trabajás en otro harness, esa es la red que te
 - **Claude Code**: hooks en `scripts/hooks/`; registro en `.claude/settings.hooks.sample.json`.
 - **Cursor**: `.cursor/rules/`.
 - **GitHub Copilot**: `.github/copilot-instructions.md`.
+- **Google Antigravity**: lee este `AGENTS.md`; además hay regla nativa en `.agents/rules/`.
 
 Convención del repo: los mensajes de commit van en español, estilo Conventional Commits, y
 **sin atribución a la IA**.
