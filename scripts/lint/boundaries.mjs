@@ -16,7 +16,8 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 
 // Tenemos ~128 módulos. Si el cruiser de golpe ve un puñado, algo se rompió.
-const MIN_MODULES = 50;
+// Override por env (WWP_MIN_MODULES) para que CI pueda apretar el umbral o para testear.
+const MIN_MODULES = Number(process.env.WWP_MIN_MODULES) || 50;
 
 // Invocamos el entry .mjs del cruiser con el mismo node (sin shell) para evitar
 // los shims .cmd/.bin y la deprecación de spawn con shell:true. El paquete bloquea
