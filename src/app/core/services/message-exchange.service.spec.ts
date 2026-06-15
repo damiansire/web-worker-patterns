@@ -52,16 +52,18 @@ describe('MessageExchangeService', () => {
     expect(svc.pending()).toBe(true);
   });
 
-  it('records the reply with the round-trip time', () => {
+  it('records the reply with the (sub-ms) round-trip time, kept to 2 decimals', () => {
     svc.open(example);
     t = 100;
     svc.send('hola');
-    t = 450;
+    // El round-trip real de postMessage es sub-milisegundo (el worker responde ya);
+    // verificamos que se preserva con 2 decimales, no que se redondee a 0.
+    t = 100.27;
     fake.reply({ id: 0, text: 'HOLA', length: 4 });
 
     const msgs = svc.messages();
     expect(msgs).toHaveLength(2);
-    expect(msgs[1]).toMatchObject({ direction: 'in', roundTripMs: 350 });
+    expect(msgs[1]).toMatchObject({ direction: 'in', roundTripMs: 0.27 });
     expect(msgs[1].text).toContain('HOLA');
     expect(svc.pending()).toBe(false);
   });

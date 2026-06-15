@@ -66,7 +66,9 @@ export class MessageExchangeService {
     const at = this.clock();
     this._messages.update((m) => {
       const out = m.find((x) => x.id === data.id && x.direction === 'out');
-      const roundTripMs = out ? Math.round(at - out.atMs) : undefined;
+      // Sub-milisegundo: el round-trip real es tan barato que redondear a entero daría
+      // siempre 0. Mostramos 2 decimales para que se vea el costo honesto de cruzar el hilo.
+      const roundTripMs = out ? Math.round((at - out.atMs) * 100) / 100 : undefined;
       const text = String(data.text ?? '');
       const meta = data.length != null ? `${data.length} chars` : undefined;
       return [...m, { id: data.id ?? -1, direction: 'in', text, meta, atMs: at, roundTripMs }];

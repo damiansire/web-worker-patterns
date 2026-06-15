@@ -21,8 +21,8 @@
     "03-basic-communication": {
       "title": "Comunicación básica",
       "summary": "El \"Hola Mundo\" de los Web Workers: escribís un mensaje y se lo mandás al worker. El worker lo recibe, lo procesa y te responde de vuelta. Así funciona la comunicación entre hilos — postMessage en las dos direcciones.",
-      "whatToWatch": "→ sale del main hacia el worker, ← vuelve la respuesta procesada. El número en ms es el round-trip: cuánto tardó el viaje completo.",
-      "note": "postMessage CLONA los datos (structured clone): el worker recibe una copia, no la referencia. Para mensajes chicos alcanza; para datos grandes conviene usar transferables (ejemplo 07).",
+      "whatToWatch": "→ sale del main hacia el worker, ← vuelve la respuesta procesada. El número en ms es el round-trip REAL: cruzar el hilo cuesta una fracción de milisegundo, prácticamente nada.",
+      "note": "postMessage CLONA los datos (structured clone): se serializa al salir y se deserializa al entrar, así que el worker recibe una COPIA, no la referencia. El costo no es cruzar el hilo —eso es sub-ms— sino copiar: crece con el tamaño del payload. Buen techo práctico: ~10KB de JSON. Para datos grandes, transferables mueven sin copiar (ejemplo 07).",
       "takeaways": {
         "title": "Puntos clave",
         "items": [

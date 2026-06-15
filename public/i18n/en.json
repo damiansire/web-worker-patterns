@@ -21,8 +21,8 @@
     "03-basic-communication": {
       "title": "Basic communication",
       "summary": "The \"Hello World\" of Web Workers: you type a message and send it to the worker. The worker receives it, processes it, and replies back. That's how threads talk to each other — postMessage in both directions.",
-      "whatToWatch": "→ leaves the main thread toward the worker, ← the processed reply comes back. The ms number is the round-trip: how long the whole journey took.",
-      "note": "postMessage CLONES the data (structured clone): the worker gets a copy, not the reference. That's fine for small messages; for large data, prefer transferables (example 07).",
+      "whatToWatch": "→ leaves the main thread toward the worker, ← the processed reply comes back. The ms number is the REAL round-trip: crossing the thread costs a fraction of a millisecond — almost nothing.",
+      "note": "postMessage CLONES the data (structured clone): it's serialized on the way out and deserialized on the way in, so the worker gets a COPY, not the reference. The cost isn't crossing the thread — that's sub-ms — it's copying: it grows with payload size. A good practical budget: ~10KB of JSON. For large data, transferables move without copying (example 07).",
       "takeaways": {
         "title": "Key takeaways",
         "items": [
