@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { RouterOutlet, RouterLink } from '@angular/router';
 import { ThemeSelectorComponent } from '../../../theming/theme-selector.component';
+import { LanguageSwitcherComponent } from '../../../ui-primitives/language-switcher.component';
 
 /**
  * Shell brutalista: header stark de borde negro grueso sobre fondo amarillo, con
@@ -8,12 +9,15 @@ import { ThemeSelectorComponent } from '../../../theming/theme-selector.componen
  */
 @Component({
   selector: 'fb-shell',
-  imports: [RouterOutlet, RouterLink, ThemeSelectorComponent],
+  imports: [RouterOutlet, RouterLink, ThemeSelectorComponent, LanguageSwitcherComponent],
   template: `
     <div class="b-shell">
       <header class="b-header">
         <a class="b-brand" routerLink="/t/full-brutalist">WEB·WORKER<br />PATTERNS</a>
-        <theme-selector />
+        <div class="b-controls">
+          <wwp-language-switcher />
+          <theme-selector />
+        </div>
       </header>
       <main class="b-main">
         <router-outlet />
@@ -34,6 +38,11 @@ import { ThemeSelectorComponent } from '../../../theming/theme-selector.componen
         justify-content: space-between;
         padding: 18px 24px;
         border-bottom: var(--border-width) solid var(--border);
+      }
+      .b-controls {
+        display: flex;
+        align-items: center;
+        gap: 16px;
       }
       .b-brand {
         font-family: var(--font-display);

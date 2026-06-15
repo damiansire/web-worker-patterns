@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, viewChild, ElementRef } from '@angular/core';
+import { Component, computed, effect, inject, signal, viewChild, ElementRef } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -19,7 +19,13 @@ import { BackpressureDemoService } from '../../../core/services/backpressure-dem
 import { SharedMemoryDemoService } from '../../../core/services/shared-memory-demo.service';
 import { DegradationDemoService } from '../../../core/services/degradation-demo.service';
 import { OffscreenCanvasDemoService } from '../../../core/services/offscreen-canvas-demo.service';
+import { CloneCostDemoService } from '../../../core/services/clone-cost-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
+import {
+  CloneCostChartComponent,
+  CloneCostPoint,
+  formatBytes,
+} from '../../../ui-primitives/clone-cost-chart.component';
 import { DevToolButton } from '../primitives/devtool-button.component';
 import { DevToolCodeBlock } from '../primitives/devtool-code-block.component';
 import { DEVTOOL_PROVIDERS } from '../devtool.providers';
@@ -30,7 +36,7 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
  */
 @Component({
   selector: 'devtool-example-layout',
-  imports: [NgComponentOutlet, RouterLink, DevToolButton, DevToolCodeBlock],
+  imports: [NgComponentOutlet, RouterLink, DevToolButton, DevToolCodeBlock, CloneCostChartComponent],
   providers: [DEVTOOL_PROVIDERS],
   template: `
     <section class="dt-ex">
@@ -546,6 +552,59 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                     }
                   } @else {
                     <p class="dt-hint">// mismo código, dos caminos según el feature-detect · tildá el fallback y el resultado es idéntico, sólo cambia si la UI se traba</p>
+                  }
+                </div>
+              </section>
+            }
+
+            @case ('clone-cost') {
+              <section class="dt-panel">
+                <header class="dt-panel-h">// structured clone cost · postMessage round-trip</header>
+                <p class="dt-panel-b dt-watch">
+                  {{ content()?.whatToWatch ?? 'Movés el tamaño y la complejidad, medís el round-trip real y mirás la curva trepar.' }}
+                </p>
+                <div class="dt-panel-b">
+                  <div class="cc-ctl">
+                    <label class="cc-field">
+                      <span>// tamaño: {{ ccSize() }} {{ ccSize() === 1 ? 'registro' : 'registros' }}</span>
+                      <input
+                        type="range" min="500" max="20000" step="500"
+                        [value]="ccSize()" [disabled]="cloneRunning()"
+                        (input)="ccSize.set(+$any($event.target).value)"
+                        aria-label="Tamaño del payload en registros"
+                      />
+                    </label>
+                    <label class="cc-field">
+                      <span>// complejidad: {{ ccDepth() }} {{ ccDepth() === 1 ? 'nivel' : 'niveles' }}</span>
+                      <input
+                        type="range" min="0" max="8" step="1"
+                        [value]="ccDepth()" [disabled]="cloneRunning()"
+                        (input)="ccDepth.set(+$any($event.target).value)"
+                        aria-label="Complejidad: niveles de anidación"
+                      />
+                    </label>
+                  </div>
+
+                  <div class="dt-send">
+                    <devtool-button variant="solid" [disabled]="cloneRunning()" (pressed)="runCloneSweep()">
+                      {{ cloneRunning() ? '▶ midiendo…' : '▶ medir' }}
+                    </devtool-button>
+                    @if (cloneMeasurements().length && !cloneRunning()) {
+                      <devtool-button (pressed)="resetClone()">reset</devtool-button>
+                    }
+                  </div>
+
+                  <div class="cc-chart">
+                    <wwp-clone-cost-chart [points]="chartPoints()" />
+                  </div>
+
+                  @if (cloneLast(); as last) {
+                    <p class="dt-ok">
+                      ✓ {{ cloneMeasurements().length }} mediciones · el payload de {{ fmtBytes(last.serializedBytes) }}
+                      tardó {{ fmtMs(last.ms) }} ms en ir y volver (profundidad {{ cloneDepthRun() }})
+                    </p>
+                  } @else {
+                    <p class="dt-hint">// movés los sliders y tocás medir: mandamos payloads cada vez más grandes al worker y cronometramos el ida y vuelta REAL · cada punto es una medición tuya, no un número inventado</p>
                   }
                 </div>
               </section>
@@ -1068,6 +1127,35 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
         margin: 0 0 12px;
       }
 
+      /* ── clone-cost (ej. 15): sliders + gráfica de costo ── */
+      .cc-ctl {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        margin-bottom: 18px;
+      }
+      .cc-field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        flex: 1 1 220px;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--ink-muted);
+      }
+      .cc-field input[type='range'] {
+        width: 100%;
+        accent-color: var(--accent);
+      }
+      .cc-chart {
+        border: var(--border-width, 1px) solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-raised);
+        padding: 12px;
+        margin-bottom: 14px;
+      }
+
       .dt-note {
         font-family: var(--font-mono);
         color: var(--ink-muted);
@@ -1090,6 +1178,7 @@ export class DevToolExampleLayoutComponent {
   private readonly backpressure = inject(BackpressureDemoService);
   private readonly sharedMem = inject(SharedMemoryDemoService);
   private readonly degradation = inject(DegradationDemoService);
+  private readonly cloneCost = inject(CloneCostDemoService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
   private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
@@ -1200,6 +1289,18 @@ export class DevToolExampleLayoutComponent {
   protected readonly degForce = this.degradation.forceFallback;
   protected readonly degResult = this.degradation.result;
   protected readonly degRunning = this.degradation.running;
+
+  // clone-cost (15)
+  protected readonly ccSize = signal(8000);
+  protected readonly ccDepth = signal(1);
+  protected readonly cloneMeasurements = this.cloneCost.measurements;
+  protected readonly cloneRunning = this.cloneCost.running;
+  protected readonly cloneDepthRun = this.cloneCost.depth;
+  protected readonly chartPoints = computed<CloneCostPoint[]>(() =>
+    this.cloneMeasurements().map((m) => ({ x: m.serializedBytes, y: m.ms })),
+  );
+  protected readonly fmtBytes = formatBytes;
+  protected readonly cloneLast = computed(() => this.cloneMeasurements().at(-1) ?? null);
 
   // offscreen-canvas (14)
   private readonly oc = inject(OffscreenCanvasDemoService);
@@ -1403,6 +1504,22 @@ export class DevToolExampleLayoutComponent {
 
   resetDeg(): void {
     this.degradation.reset();
+  }
+
+  runCloneSweep(): void {
+    const ex = this.example();
+    if (ex) {
+      this.cloneCost.runSweep(ex, { maxSize: this.ccSize(), depth: this.ccDepth() });
+    }
+  }
+
+  resetClone(): void {
+    this.cloneCost.reset();
+  }
+
+  /** Formatea el round-trip: sub-10ms con un decimal, el resto entero. */
+  fmtMs(ms: number): string {
+    return ms < 10 ? ms.toFixed(1) : String(Math.round(ms));
   }
 
   send(text: string): void {

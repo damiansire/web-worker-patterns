@@ -4,6 +4,7 @@ import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
 import { DevToolCommandPaletteComponent } from '../command-palette/devtool-command-palette.component';
 import { ThemeSelectorComponent } from '../../../theming/theme-selector.component';
+import { LanguageSwitcherComponent } from '../../../ui-primitives/language-switcher.component';
 import { ExampleRunnerService } from '../../../core/services/example-runner.service';
 
 /**
@@ -13,7 +14,7 @@ import { ExampleRunnerService } from '../../../core/services/example-runner.serv
  */
 @Component({
   selector: 'devtool-shell',
-  imports: [RouterOutlet, RouterLink, ThemeSelectorComponent],
+  imports: [RouterOutlet, RouterLink, ThemeSelectorComponent, LanguageSwitcherComponent],
   host: { '(document:keydown)': 'onKeydown($event)' },
   template: `
     <div class="dt-shell">
@@ -25,6 +26,7 @@ import { ExampleRunnerService } from '../../../core/services/example-runner.serv
           <button type="button" class="dt-kbd" (click)="openPalette()">
             <kbd>⌘</kbd><kbd>K</kbd> <span>command palette</span>
           </button>
+          <wwp-language-switcher />
           <theme-selector />
         </div>
       </header>

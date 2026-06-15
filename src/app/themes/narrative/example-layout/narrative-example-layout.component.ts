@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, viewChild, ElementRef } from '@angular/core';
+import { Component, computed, effect, inject, signal, viewChild, ElementRef } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -19,7 +19,13 @@ import { BackpressureDemoService } from '../../../core/services/backpressure-dem
 import { SharedMemoryDemoService } from '../../../core/services/shared-memory-demo.service';
 import { DegradationDemoService } from '../../../core/services/degradation-demo.service';
 import { OffscreenCanvasDemoService } from '../../../core/services/offscreen-canvas-demo.service';
+import { CloneCostDemoService } from '../../../core/services/clone-cost-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
+import {
+  CloneCostChartComponent,
+  CloneCostPoint,
+  formatBytes,
+} from '../../../ui-primitives/clone-cost-chart.component';
 import { NarrativeButton } from '../primitives/narrative-button.component';
 import { NarrativeCodeBlock } from '../primitives/narrative-code-block.component';
 import { NARRATIVE_PROVIDERS } from '../narrative.providers';
@@ -27,7 +33,13 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
 /** Example-layout narrative. Hilos como contraste worker-vs-main (#2) + código. */
 @Component({
   selector: 'narrative-example-layout',
-  imports: [NgComponentOutlet, RouterLink, NarrativeButton, NarrativeCodeBlock],
+  imports: [
+    NgComponentOutlet,
+    RouterLink,
+    NarrativeButton,
+    NarrativeCodeBlock,
+    CloneCostChartComponent,
+  ],
   providers: [NARRATIVE_PROVIDERS],
   template: `
     <article class="n-ex">
@@ -472,6 +484,51 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                 }
               } @else {
                 <p class="n-hint">Mismo código, dos caminos según el feature-detect. Tildá el fallback y volvé a procesar: el resultado es idéntico, sólo cambia si la UI se traba.</p>
+              }
+            }
+
+            @case ('clone-cost') {
+              <div class="n-cc-ctl">
+                <label class="n-cc-field">
+                  <span>Tamaño: {{ ccSize() }} {{ ccSize() === 1 ? 'registro' : 'registros' }}</span>
+                  <input
+                    type="range" min="500" max="20000" step="500"
+                    [value]="ccSize()" [disabled]="cloneRunning()"
+                    (input)="ccSize.set(+$any($event.target).value)"
+                    aria-label="Tamaño del payload en registros"
+                  />
+                </label>
+                <label class="n-cc-field">
+                  <span>Complejidad: {{ ccDepth() }} {{ ccDepth() === 1 ? 'nivel' : 'niveles' }}</span>
+                  <input
+                    type="range" min="0" max="8" step="1"
+                    [value]="ccDepth()" [disabled]="cloneRunning()"
+                    (input)="ccDepth.set(+$any($event.target).value)"
+                    aria-label="Complejidad: niveles de anidación"
+                  />
+                </label>
+              </div>
+
+              <div class="n-send">
+                <narrative-button variant="solid" [disabled]="cloneRunning()" (pressed)="runCloneSweep()">
+                  {{ cloneRunning() ? 'Midiendo…' : 'Medir' }}
+                </narrative-button>
+                @if (cloneMeasurements().length && !cloneRunning()) {
+                  <narrative-button (pressed)="resetClone()">Reiniciar</narrative-button>
+                }
+              </div>
+
+              <div class="n-cc-chart">
+                <wwp-clone-cost-chart [points]="chartPoints()" />
+              </div>
+
+              @if (cloneLast(); as last) {
+                <p class="n-foot">
+                  <span class="n-ok-mark">✓</span> {{ cloneMeasurements().length }} mediciones · el payload de {{ fmtBytes(last.serializedBytes) }}
+                  tardó {{ fmtMs(last.ms) }} ms en ir y volver (profundidad {{ cloneDepthRun() }}).
+                </p>
+              } @else {
+                <p class="n-hint">Movés los sliders y tocás Medir: mandamos payloads cada vez más grandes al worker y cronometramos el ida y vuelta real. Cada punto es una medición tuya, no un número inventado.</p>
               }
             }
           }
@@ -1047,6 +1104,34 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
         margin: 0 0 16px;
       }
 
+      /* ── clone-cost (ej. 15): sliders + gráfica de costo ── */
+      .n-cc-ctl {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        margin-bottom: 18px;
+      }
+      .n-cc-field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        flex: 1 1 220px;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .n-cc-field input[type='range'] {
+        width: 100%;
+        accent-color: var(--accent);
+      }
+      .n-cc-chart {
+        border: var(--border-width, 1px) solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-raised);
+        padding: 12px;
+        margin-bottom: 14px;
+      }
+
       .n-note {
         font-family: var(--font-display);
         font-style: italic;
@@ -1070,6 +1155,7 @@ export class NarrativeExampleLayoutComponent {
   private readonly backpressure = inject(BackpressureDemoService);
   private readonly sharedMem = inject(SharedMemoryDemoService);
   private readonly degradation = inject(DegradationDemoService);
+  private readonly cloneCost = inject(CloneCostDemoService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
   private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
@@ -1180,6 +1266,18 @@ export class NarrativeExampleLayoutComponent {
   protected readonly degForce = this.degradation.forceFallback;
   protected readonly degResult = this.degradation.result;
   protected readonly degRunning = this.degradation.running;
+
+  // clone-cost (15)
+  protected readonly ccSize = signal(8000);
+  protected readonly ccDepth = signal(1);
+  protected readonly cloneMeasurements = this.cloneCost.measurements;
+  protected readonly cloneRunning = this.cloneCost.running;
+  protected readonly cloneDepthRun = this.cloneCost.depth;
+  protected readonly chartPoints = computed<CloneCostPoint[]>(() =>
+    this.cloneMeasurements().map((m) => ({ x: m.serializedBytes, y: m.ms })),
+  );
+  protected readonly fmtBytes = formatBytes;
+  protected readonly cloneLast = computed(() => this.cloneMeasurements().at(-1) ?? null);
 
   // offscreen-canvas (14)
   private readonly oc = inject(OffscreenCanvasDemoService);
@@ -1383,6 +1481,22 @@ export class NarrativeExampleLayoutComponent {
 
   resetDeg(): void {
     this.degradation.reset();
+  }
+
+  runCloneSweep(): void {
+    const ex = this.example();
+    if (ex) {
+      this.cloneCost.runSweep(ex, { maxSize: this.ccSize(), depth: this.ccDepth() });
+    }
+  }
+
+  resetClone(): void {
+    this.cloneCost.reset();
+  }
+
+  /** Formatea el round-trip: sub-10ms con un decimal, el resto entero. */
+  fmtMs(ms: number): string {
+    return ms < 10 ? ms.toFixed(1) : String(Math.round(ms));
   }
 
   send(text: string): void {

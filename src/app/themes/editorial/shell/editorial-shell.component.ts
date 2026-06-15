@@ -1,17 +1,19 @@
 import { Component } from '@angular/core';
 import { RouterOutlet, RouterLink } from '@angular/router';
 import { ThemeSelectorComponent } from '../../../theming/theme-selector.component';
+import { LanguageSwitcherComponent } from '../../../ui-primitives/language-switcher.component';
 
 /** Shell editorial: cabecera tipo portada de revista de arte. */
 @Component({
   selector: 'editorial-shell',
-  imports: [RouterOutlet, RouterLink, ThemeSelectorComponent],
+  imports: [RouterOutlet, RouterLink, ThemeSelectorComponent, LanguageSwitcherComponent],
   template: `
     <div class="e-shell">
       <header class="e-masthead">
         <a class="e-logo" routerLink="/t/editorial">Web Worker Patterns</a>
         <div class="e-mast-right">
           <span class="e-issue">an essay on concurrency · nº 01</span>
+          <wwp-language-switcher />
           <theme-selector />
         </div>
       </header>
