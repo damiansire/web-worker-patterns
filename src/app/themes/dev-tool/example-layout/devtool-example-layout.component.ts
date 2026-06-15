@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject } from '@angular/core';
+import { Component, computed, effect, inject, viewChild, ElementRef } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -18,6 +18,7 @@ import { WorkerPoolDemoService } from '../../../core/services/worker-pool-demo.s
 import { BackpressureDemoService } from '../../../core/services/backpressure-demo.service';
 import { SharedMemoryDemoService } from '../../../core/services/shared-memory-demo.service';
 import { DegradationDemoService } from '../../../core/services/degradation-demo.service';
+import { OffscreenCanvasDemoService } from '../../../core/services/offscreen-canvas-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { DevToolButton } from '../primitives/devtool-button.component';
 import { DevToolCodeBlock } from '../primitives/devtool-code-block.component';
@@ -170,6 +171,47 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                       <p class="dt-bad">✗ {{ r.count }} primos · congelado {{ r.ms }} ms</p>
                     } @else {
                       <p class="dt-hint">// la página entera se congela hasta terminar: ni scroll</p>
+                    }
+                  </div>
+                </div>
+              </section>
+            }
+
+            @case ('offscreen-canvas') {
+              <section class="dt-panel">
+                <header class="dt-panel-h">// offscreen render · worker vs main thread</header>
+                @if (!ocSupported()) {
+                  <p class="dt-panel-b dt-bad">// sin OffscreenCanvas: los dos relojes corren en el main</p>
+                }
+                <div class="dt-panel-b">
+                  <div class="dt-oc-ctl">
+                    <devtool-button variant="solid" [disabled]="ocRunning()" (pressed)="ocStart()">▶ iniciar</devtool-button>
+                    <devtool-button [disabled]="!ocRunning() || ocBlocked()" (pressed)="ocBlock()">▶ block main 2.5s</devtool-button>
+                  </div>
+                </div>
+                <div class="dt-panel-b dt-cmp">
+                  <div class="dt-col">
+                    <h2>worker</h2>
+                    <p class="dt-sub">offscreen · otro hilo</p>
+                    <div class="dt-oc-frame">
+                      <canvas #ocWorker class="dt-oc-canvas" width="240" height="240" role="img"
+                        [attr.aria-label]="ocRunning() ? 'Reloj animado por un worker, fluido' : 'Reloj del worker, detenido'"></canvas>
+                    </div>
+                    <p class="dt-ok">{{ ocRunning() ? 'fps ' + ocWorkerFps() + ' · frame ' + ocWorkerFrames() : '// tocá iniciar' }}</p>
+                  </div>
+                  <div class="dt-col">
+                    <h2>main thread</h2>
+                    <p class="dt-sub">se congela al bloquear</p>
+                    <div class="dt-oc-frame" [class.dt-oc-dead]="ocBlocked()">
+                      <canvas #ocMain class="dt-oc-canvas" width="240" height="240" role="img"
+                        [attr.aria-label]="ocBlocked() ? 'Reloj del main, congelado' : 'Reloj animado por el main thread'"></canvas>
+                    </div>
+                    @if (ocBlocked()) {
+                      <p class="dt-bad" aria-live="polite">// BLOCKED · no pinta frames</p>
+                    } @else if (ocSkipped()) {
+                      <p class="dt-bad">// saltó {{ ocSkipped() }} frames al volver</p>
+                    } @else {
+                      <p class="dt-ok">{{ ocRunning() ? 'fps ' + ocMainFps() + ' · frame ' + ocMainFrames() : '// tocá iniciar' }}</p>
                     }
                   </div>
                 </div>
@@ -639,6 +681,27 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
         grid-template-columns: 1fr 1fr;
         gap: 0;
         padding: 0;
+      }
+      .dt-oc-ctl {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .dt-oc-frame {
+        border: 1px solid var(--border);
+        background: var(--surface-raised);
+        line-height: 0;
+        margin-top: 8px;
+      }
+      .dt-oc-canvas {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1 / 1;
+      }
+      .dt-oc-dead {
+        opacity: 0.5;
+        filter: grayscale(0.7);
       }
       .dt-col {
         padding: 16px;
@@ -1138,6 +1201,19 @@ export class DevToolExampleLayoutComponent {
   protected readonly degResult = this.degradation.result;
   protected readonly degRunning = this.degradation.running;
 
+  // offscreen-canvas (14)
+  private readonly oc = inject(OffscreenCanvasDemoService);
+  protected readonly ocSupported = this.oc.supported;
+  protected readonly ocRunning = this.oc.running;
+  protected readonly ocBlocked = this.oc.mainBlocked;
+  protected readonly ocWorkerFps = this.oc.workerFps;
+  protected readonly ocMainFps = this.oc.mainFps;
+  protected readonly ocWorkerFrames = this.oc.workerFrames;
+  protected readonly ocMainFrames = this.oc.mainFrames;
+  protected readonly ocSkipped = this.oc.skippedFrames;
+  private readonly ocWorkerCanvas = viewChild<ElementRef<HTMLCanvasElement>>('ocWorker');
+  private readonly ocMainCanvas = viewChild<ElementRef<HTMLCanvasElement>>('ocMain');
+
   constructor() {
     effect(() => {
       const ex = this.example();
@@ -1145,6 +1221,26 @@ export class DevToolExampleLayoutComponent {
         this.coordinator.openFor(ex);
       }
     });
+    // OffscreenCanvas (14): al entrar arrancamos limpio (el canvas se recrea y
+    // transferControlToOffscreen() es de una sola vez; el estado no sobrevive al re-montaje).
+    effect(() => {
+      if (this.example()?.demo === 'offscreen-canvas') {
+        this.oc.reset();
+      }
+    });
+  }
+
+  ocStart(): void {
+    const ex = this.example();
+    const wc = this.ocWorkerCanvas()?.nativeElement;
+    const mc = this.ocMainCanvas()?.nativeElement;
+    if (ex && wc && mc) {
+      this.oc.start(ex, wc, mc);
+    }
+  }
+
+  ocBlock(): void {
+    this.oc.blockMain();
   }
 
   runWorker(): void {

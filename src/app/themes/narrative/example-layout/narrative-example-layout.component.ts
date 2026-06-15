@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject } from '@angular/core';
+import { Component, computed, effect, inject, viewChild, ElementRef } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -18,6 +18,7 @@ import { WorkerPoolDemoService } from '../../../core/services/worker-pool-demo.s
 import { BackpressureDemoService } from '../../../core/services/backpressure-demo.service';
 import { SharedMemoryDemoService } from '../../../core/services/shared-memory-demo.service';
 import { DegradationDemoService } from '../../../core/services/degradation-demo.service';
+import { OffscreenCanvasDemoService } from '../../../core/services/offscreen-canvas-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { NarrativeButton } from '../primitives/narrative-button.component';
 import { NarrativeCodeBlock } from '../primitives/narrative-code-block.component';
@@ -149,6 +150,42 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                     <p class="n-foot n-danger"><span class="n-bad-mark">✗</span> {{ r.count }} primos · la página se congeló {{ r.ms }} ms</p>
                   } @else {
                     <p class="n-hint">Tocá y la página entera se congela hasta terminar: no podés ni scrollear.</p>
+                  }
+                </section>
+              </div>
+            }
+
+            @case ('offscreen-canvas') {
+              @if (!ocSupported()) {
+                <p class="n-foot n-danger">Backend simulado: este navegador no soporta OffscreenCanvas — los dos relojes corren en el main.</p>
+              }
+              <div class="n-oc-ctl">
+                <narrative-button variant="solid" [disabled]="ocRunning()" (pressed)="ocStart()">Iniciar animación</narrative-button>
+                <narrative-button [disabled]="!ocRunning() || ocBlocked()" (pressed)="ocBlock()">Bloquear main 2,5 s</narrative-button>
+              </div>
+              <div class="n-cmp">
+                <section class="n-col">
+                  <h2>Ejecuta en un Worker</h2>
+                  <p class="n-sub">dibuja en otro hilo · sigue fluido</p>
+                  <div class="n-oc-frame">
+                    <canvas #ocWorker class="n-oc-canvas" width="240" height="240" role="img"
+                      [attr.aria-label]="ocRunning() ? 'Reloj animado por un worker, fluido' : 'Reloj del worker, detenido'"></canvas>
+                  </div>
+                  <p class="n-foot">{{ ocRunning() ? ocWorkerFps() + ' fps · frame ' + ocWorkerFrames() : 'Tocá Iniciar.' }}</p>
+                </section>
+                <section class="n-col">
+                  <h2>Ejecuta en el Main</h2>
+                  <p class="n-sub">dibuja en el main · se congela al bloquear</p>
+                  <div class="n-oc-frame" [class.n-oc-dead]="ocBlocked()">
+                    <canvas #ocMain class="n-oc-canvas" width="240" height="240" role="img"
+                      [attr.aria-label]="ocBlocked() ? 'Reloj del main, congelado' : 'Reloj animado por el main thread'"></canvas>
+                  </div>
+                  @if (ocBlocked()) {
+                    <p class="n-foot n-danger" aria-live="polite">El hilo principal dejó de responder — no pinta frames.</p>
+                  } @else if (ocSkipped()) {
+                    <p class="n-foot n-danger">Saltó {{ ocSkipped() }} frames de golpe al volver.</p>
+                  } @else {
+                    <p class="n-foot">{{ ocRunning() ? ocMainFps() + ' fps · frame ' + ocMainFrames() : 'Tocá Iniciar.' }}</p>
                   }
                 </section>
               </div>
@@ -550,6 +587,30 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
         grid-template-columns: 1fr 1fr;
         gap: 28px;
         margin-bottom: 40px;
+      }
+      .n-oc-ctl {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+      }
+      .n-oc-frame {
+        border: 1px solid var(--ink);
+        border-radius: 6px;
+        background: var(--surface-raised);
+        box-shadow: 0 6px 22px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        line-height: 0;
+      }
+      .n-oc-canvas {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1 / 1;
+      }
+      .n-oc-dead {
+        opacity: 0.5;
+        filter: grayscale(0.7);
       }
       .n-col h2 {
         font-family: var(--font-display);
@@ -1120,6 +1181,19 @@ export class NarrativeExampleLayoutComponent {
   protected readonly degResult = this.degradation.result;
   protected readonly degRunning = this.degradation.running;
 
+  // offscreen-canvas (14)
+  private readonly oc = inject(OffscreenCanvasDemoService);
+  protected readonly ocSupported = this.oc.supported;
+  protected readonly ocRunning = this.oc.running;
+  protected readonly ocBlocked = this.oc.mainBlocked;
+  protected readonly ocWorkerFps = this.oc.workerFps;
+  protected readonly ocMainFps = this.oc.mainFps;
+  protected readonly ocWorkerFrames = this.oc.workerFrames;
+  protected readonly ocMainFrames = this.oc.mainFrames;
+  protected readonly ocSkipped = this.oc.skippedFrames;
+  private readonly ocWorkerCanvas = viewChild<ElementRef<HTMLCanvasElement>>('ocWorker');
+  private readonly ocMainCanvas = viewChild<ElementRef<HTMLCanvasElement>>('ocMain');
+
   constructor() {
     effect(() => {
       const ex = this.example();
@@ -1127,6 +1201,26 @@ export class NarrativeExampleLayoutComponent {
         this.coordinator.openFor(ex);
       }
     });
+    // OffscreenCanvas (14): al entrar arrancamos limpio (el canvas se recrea y
+    // transferControlToOffscreen() es de una sola vez; el estado no sobrevive al re-montaje).
+    effect(() => {
+      if (this.example()?.demo === 'offscreen-canvas') {
+        this.oc.reset();
+      }
+    });
+  }
+
+  ocStart(): void {
+    const ex = this.example();
+    const wc = this.ocWorkerCanvas()?.nativeElement;
+    const mc = this.ocMainCanvas()?.nativeElement;
+    if (ex && wc && mc) {
+      this.oc.start(ex, wc, mc);
+    }
+  }
+
+  ocBlock(): void {
+    this.oc.blockMain();
   }
 
   runWorker(): void {

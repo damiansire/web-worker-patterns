@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject } from '@angular/core';
+import { Component, computed, effect, inject, viewChild, ElementRef } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -18,6 +18,7 @@ import { WorkerPoolDemoService } from '../../../core/services/worker-pool-demo.s
 import { BackpressureDemoService } from '../../../core/services/backpressure-demo.service';
 import { SharedMemoryDemoService } from '../../../core/services/shared-memory-demo.service';
 import { DegradationDemoService } from '../../../core/services/degradation-demo.service';
+import { OffscreenCanvasDemoService } from '../../../core/services/offscreen-canvas-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { EditorialButton } from '../primitives/editorial-button.component';
 import { EditorialCodeBlock } from '../primitives/editorial-code-block.component';
@@ -149,6 +150,42 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
                     <p class="e-foot e-danger"><span class="e-bad-mark">✗</span> {{ r.count }} primos · la página se congeló {{ r.ms }} ms</p>
                   } @else {
                     <p class="e-hint">Tocá y la página entera se congela hasta terminar: no podés ni scrollear.</p>
+                  }
+                </section>
+              </div>
+            }
+
+            @case ('offscreen-canvas') {
+              @if (!ocSupported()) {
+                <p class="e-foot e-danger">Backend simulado: este navegador no soporta OffscreenCanvas — los dos relojes corren en el main.</p>
+              }
+              <div class="e-oc-ctl">
+                <editorial-button variant="solid" [disabled]="ocRunning()" (pressed)="ocStart()">Iniciar animación</editorial-button>
+                <editorial-button [disabled]="!ocRunning() || ocBlocked()" (pressed)="ocBlock()">Bloquear main 2,5 s</editorial-button>
+              </div>
+              <div class="e-cmp">
+                <section class="e-col">
+                  <h2>En un Worker</h2>
+                  <p class="e-sub">dibuja en otro hilo · sigue fluido</p>
+                  <div class="e-oc-frame">
+                    <canvas #ocWorker class="e-oc-canvas" width="240" height="240" role="img"
+                      [attr.aria-label]="ocRunning() ? 'Reloj animado por un worker, fluido' : 'Reloj del worker, detenido'"></canvas>
+                  </div>
+                  <p class="e-foot">{{ ocRunning() ? ocWorkerFps() + ' fps · frame ' + ocWorkerFrames() : 'Tocá Iniciar.' }}</p>
+                </section>
+                <section class="e-col">
+                  <h2>En el Main thread</h2>
+                  <p class="e-sub">dibuja en el main · se congela al bloquear</p>
+                  <div class="e-oc-frame" [class.e-oc-dead]="ocBlocked()">
+                    <canvas #ocMain class="e-oc-canvas" width="240" height="240" role="img"
+                      [attr.aria-label]="ocBlocked() ? 'Reloj del main, congelado' : 'Reloj animado por el main thread'"></canvas>
+                  </div>
+                  @if (ocBlocked()) {
+                    <p class="e-foot e-danger" aria-live="polite">Main congelado — no pinta frames.</p>
+                  } @else if (ocSkipped()) {
+                    <p class="e-foot e-danger">Saltó {{ ocSkipped() }} frames de golpe al volver.</p>
+                  } @else {
+                    <p class="e-foot">{{ ocRunning() ? ocMainFps() + ' fps · frame ' + ocMainFrames() : 'Tocá Iniciar.' }}</p>
                   }
                 </section>
               </div>
@@ -554,6 +591,27 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
         grid-template-columns: 1fr 1fr;
         gap: 32px;
         margin-bottom: 40px;
+      }
+      .e-oc-ctl {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+      }
+      .e-oc-frame {
+        border: 1px solid var(--ink);
+        background: var(--surface-raised);
+        line-height: 0;
+      }
+      .e-oc-canvas {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1 / 1;
+      }
+      .e-oc-dead {
+        opacity: 0.5;
+        filter: grayscale(0.7);
       }
       .e-col h2 {
         font-family: var(--font-display);
@@ -1121,6 +1179,19 @@ export class EditorialExampleLayoutComponent {
   protected readonly degResult = this.degradation.result;
   protected readonly degRunning = this.degradation.running;
 
+  // offscreen-canvas (14)
+  private readonly oc = inject(OffscreenCanvasDemoService);
+  protected readonly ocSupported = this.oc.supported;
+  protected readonly ocRunning = this.oc.running;
+  protected readonly ocBlocked = this.oc.mainBlocked;
+  protected readonly ocWorkerFps = this.oc.workerFps;
+  protected readonly ocMainFps = this.oc.mainFps;
+  protected readonly ocWorkerFrames = this.oc.workerFrames;
+  protected readonly ocMainFrames = this.oc.mainFrames;
+  protected readonly ocSkipped = this.oc.skippedFrames;
+  private readonly ocWorkerCanvas = viewChild<ElementRef<HTMLCanvasElement>>('ocWorker');
+  private readonly ocMainCanvas = viewChild<ElementRef<HTMLCanvasElement>>('ocMain');
+
   constructor() {
     effect(() => {
       const ex = this.example();
@@ -1128,6 +1199,26 @@ export class EditorialExampleLayoutComponent {
         this.coordinator.openFor(ex);
       }
     });
+    // OffscreenCanvas (14): al entrar arrancamos limpio (el canvas se recrea y
+    // transferControlToOffscreen() es de una sola vez; el estado no sobrevive al re-montaje).
+    effect(() => {
+      if (this.example()?.demo === 'offscreen-canvas') {
+        this.oc.reset();
+      }
+    });
+  }
+
+  ocStart(): void {
+    const ex = this.example();
+    const wc = this.ocWorkerCanvas()?.nativeElement;
+    const mc = this.ocMainCanvas()?.nativeElement;
+    if (ex && wc && mc) {
+      this.oc.start(ex, wc, mc);
+    }
+  }
+
+  ocBlock(): void {
+    this.oc.blockMain();
   }
 
   runWorker(): void {

@@ -193,6 +193,22 @@
         ],
         "tip": "The same applies to OffscreenCanvas, WebGL, etc.: detect and degrade, don't assume support."
       }
+    },
+    "14-offscreen-canvas": {
+      "title": "Rendering off the main thread (OffscreenCanvas)",
+      "summary": "A <canvas> can hand its control to a worker with transferControlToOffscreen(). From then on, the worker draws and animates on its own —it has its own render loop— without going through the main thread. The result? The animation stays perfectly smooth even when the main thread is blocked by heavy JavaScript. It's the platform's first example about PIXELS, not numbers: two twin clocks, and only one survives when you freeze the main thread.",
+      "whatToWatch": "Start both clocks: they tick in sync. Now hit «Block main 2.5s». The left clock (worker) keeps sweeping without skipping a frame; the right one (main) freezes like a photo. Look at the time printed inside each canvas: the worker's advanced smoothly; the main's jumped all at once when it unblocked, because those frames were never painted.",
+      "note": "transferControlToOffscreen() is one-way: the <canvas> becomes «detached» on the main thread and only the worker can draw it. The worker has no DOM and no document —it couldn't touch the page if it wanted to— but it does have requestAnimationFrame and its 2D context over the OffscreenCanvas. That's why the browser runs its render loop on its own event loop, independent of the main thread.",
+      "takeaways": {
+        "title": "What you take away",
+        "items": [
+          "transferControlToOffscreen() transfers control of the <canvas> to the worker; from then on the main thread can't draw it",
+          "The worker runs its own render loop (requestAnimationFrame lives inside the worker too): it animates without depending on the main thread",
+          "If the main thread blocks on synchronous JS, the worker's animation doesn't notice; only what the main draws freezes",
+          "The worker has no DOM access: it gets an OffscreenCanvas and its drawing context, nothing else"
+        ],
+        "tip": "Reserve OffscreenCanvas for rendering that must stay smooth under load: data viz, games, live charts. Pass colors/tokens in by message: there's no CSS inside."
+      }
     }
   }
 }

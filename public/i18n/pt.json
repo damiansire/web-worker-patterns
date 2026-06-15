@@ -193,6 +193,22 @@
         ],
         "tip": "O mesmo vale para OffscreenCanvas, WebGL, etc.: detecte e degrade, não assuma suporte."
       }
+    },
+    "14-offscreen-canvas": {
+      "title": "Renderizar fora da thread principal (OffscreenCanvas)",
+      "summary": "Um <canvas> pode ceder seu controle a um worker com transferControlToOffscreen(). A partir daí, o worker desenha e anima por conta própria —tem seu próprio loop de render— sem passar pela thread principal. O resultado? A animação continua perfeitamente fluida mesmo com a thread principal bloqueada por JavaScript pesado. É o primeiro exemplo da plataforma sobre PIXELS, não sobre números: dois relógios gêmeos, e só um sobrevive quando você congela a thread principal.",
+      "whatToWatch": "Inicie os dois relógios: batem juntos. Agora toque «Bloquear main 2,5 s». O relógio da esquerda (worker) continua varrendo sem perder um frame; o da direita (main) congela como uma foto. Olhe o tempo impresso dentro de cada canvas: o do worker avançou suave; o do main saltou de uma vez ao desbloquear, porque esses frames nunca foram pintados.",
+      "note": "transferControlToOffscreen() é de mão única: o <canvas> fica «neutralizado» na thread principal e só o worker pode desenhá-lo. O worker não tem DOM nem document —não poderia tocar a página nem se quisesse—, mas tem requestAnimationFrame e seu contexto 2D sobre o OffscreenCanvas. Por isso o navegador roda seu loop de render no próprio event loop, independente do main.",
+      "takeaways": {
+        "title": "O que você leva",
+        "items": [
+          "transferControlToOffscreen() transfere o controle do <canvas> ao worker; a partir daí a thread principal não pode mais desenhá-lo",
+          "O worker roda seu próprio loop de render (requestAnimationFrame também existe dentro do worker): anima sem depender do main",
+          "Se a thread principal travar com JS síncrono, a animação do worker não percebe; só congela o que o main desenha",
+          "O worker não acessa o DOM: recebe um OffscreenCanvas e seu contexto de desenho, nada mais"
+        ],
+        "tip": "Reserve OffscreenCanvas para renderização que precise seguir fluida sob carga: visualizações, jogos, gráficos ao vivo. Passe as cores/tokens por mensagem: lá dentro não há CSS."
+      }
     }
   }
 }

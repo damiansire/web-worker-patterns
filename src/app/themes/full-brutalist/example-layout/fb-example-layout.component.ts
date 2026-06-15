@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject } from '@angular/core';
+import { Component, computed, effect, inject, viewChild, ElementRef } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -18,6 +18,7 @@ import { WorkerPoolDemoService } from '../../../core/services/worker-pool-demo.s
 import { BackpressureDemoService } from '../../../core/services/backpressure-demo.service';
 import { SharedMemoryDemoService } from '../../../core/services/shared-memory-demo.service';
 import { DegradationDemoService } from '../../../core/services/degradation-demo.service';
+import { OffscreenCanvasDemoService } from '../../../core/services/offscreen-canvas-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { FullBrutalistButton } from '../primitives/fb-button.component';
 import { FullBrutalistCard } from '../primitives/fb-card.component';
@@ -175,6 +176,47 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
                         <p class="b-foot b-danger">✗ {{ r.count }} primos · la página se congeló {{ r.ms }} ms</p>
                       } @else {
                         <p class="b-hint">Tocá y la página entera se congela hasta terminar: no podés ni scrollear.</p>
+                      }
+                    </div>
+                  </div>
+                </fb-card>
+              }
+
+              @case ('offscreen-canvas') {
+                <fb-card title="Render fuera del main">
+                  <p class="b-lead">
+                    {{ content()?.whatToWatch ?? 'Dos relojes gemelos. Bloqueá el main y mirá cuál se congela.' }}
+                  </p>
+                  @if (!ocSupported()) {
+                    <p class="b-foot b-danger">backend simulado · sin OffscreenCanvas los dos relojes corren en el main</p>
+                  }
+                  <div class="b-oc-ctl">
+                    <fb-button variant="solid" [disabled]="ocRunning()" (pressed)="ocStart()">Iniciar animación</fb-button>
+                    <fb-button [disabled]="!ocRunning() || ocBlocked()" (pressed)="ocBlock()">Bloquear main 2,5s</fb-button>
+                  </div>
+                  <div class="b-cmp">
+                    <div class="b-col">
+                      <h2>En un Worker</h2>
+                      <p class="b-col-sub">dibuja en otro hilo · sigue fluido</p>
+                      <div class="b-oc-frame">
+                        <canvas #ocWorker class="b-oc-canvas" width="240" height="240" role="img"
+                          [attr.aria-label]="ocRunning() ? 'Reloj animado por un worker, fluido' : 'Reloj del worker, detenido'"></canvas>
+                      </div>
+                      <p class="b-foot">{{ ocRunning() ? ocWorkerFps() + ' fps · frame ' + ocWorkerFrames() : 'tocá Iniciar' }}</p>
+                    </div>
+                    <div class="b-col">
+                      <h2>En el Main thread</h2>
+                      <p class="b-col-sub">dibuja en el main · se congela al bloquear</p>
+                      <div class="b-oc-frame" [class.b-oc-dead]="ocBlocked()">
+                        <canvas #ocMain class="b-oc-canvas" width="240" height="240" role="img"
+                          [attr.aria-label]="ocBlocked() ? 'Reloj del main, congelado' : 'Reloj animado por el main thread'"></canvas>
+                      </div>
+                      @if (ocBlocked()) {
+                        <p class="b-foot b-danger" aria-live="polite">main congelado — no pinta frames</p>
+                      } @else if (ocSkipped()) {
+                        <p class="b-foot b-danger">saltó {{ ocSkipped() }} frames de golpe al volver</p>
+                      } @else {
+                        <p class="b-foot">{{ ocRunning() ? ocMainFps() + ' fps · frame ' + ocMainFrames() : 'tocá Iniciar' }}</p>
                       }
                     </div>
                   </div>
@@ -683,6 +725,27 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
       .b-cmp {
         display: grid;
         grid-template-columns: 1fr 1fr;
+      }
+      .b-oc-ctl {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+      .b-oc-frame {
+        border: var(--border-width, 2px) solid var(--ink);
+        background: var(--surface-raised);
+        line-height: 0;
+      }
+      .b-oc-canvas {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1 / 1;
+      }
+      .b-oc-dead {
+        opacity: 0.5;
+        filter: grayscale(0.7);
       }
       .b-col {
         padding: 4px 18px;
@@ -1226,6 +1289,19 @@ export class FullBrutalistExampleLayoutComponent {
   protected readonly degResult = this.degradation.result;
   protected readonly degRunning = this.degradation.running;
 
+  // offscreen-canvas (14)
+  private readonly oc = inject(OffscreenCanvasDemoService);
+  protected readonly ocSupported = this.oc.supported;
+  protected readonly ocRunning = this.oc.running;
+  protected readonly ocBlocked = this.oc.mainBlocked;
+  protected readonly ocWorkerFps = this.oc.workerFps;
+  protected readonly ocMainFps = this.oc.mainFps;
+  protected readonly ocWorkerFrames = this.oc.workerFrames;
+  protected readonly ocMainFrames = this.oc.mainFrames;
+  protected readonly ocSkipped = this.oc.skippedFrames;
+  private readonly ocWorkerCanvas = viewChild<ElementRef<HTMLCanvasElement>>('ocWorker');
+  private readonly ocMainCanvas = viewChild<ElementRef<HTMLCanvasElement>>('ocMain');
+
   constructor() {
     effect(() => {
       const ex = this.example();
@@ -1233,6 +1309,26 @@ export class FullBrutalistExampleLayoutComponent {
         this.coordinator.openFor(ex);
       }
     });
+    // OffscreenCanvas (14): al entrar arrancamos limpio (el canvas se recrea y
+    // transferControlToOffscreen() es de una sola vez; el estado no sobrevive al re-montaje).
+    effect(() => {
+      if (this.example()?.demo === 'offscreen-canvas') {
+        this.oc.reset();
+      }
+    });
+  }
+
+  ocStart(): void {
+    const ex = this.example();
+    const wc = this.ocWorkerCanvas()?.nativeElement;
+    const mc = this.ocMainCanvas()?.nativeElement;
+    if (ex && wc && mc) {
+      this.oc.start(ex, wc, mc);
+    }
+  }
+
+  ocBlock(): void {
+    this.oc.blockMain();
   }
 
   runWorker(): void {

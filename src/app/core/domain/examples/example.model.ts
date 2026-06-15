@@ -29,6 +29,8 @@ export type Category =
  *   - backpressure:     productor más rápido que el worker: sin control de flujo la cola se infla; con ack queda acotada (ej. 11)
  *   - shared-memory:    SharedArrayBuffer + Atomics: main y worker comparten la MISMA memoria, sin postMessage (ej. 12)
  *   - degradation:      feature-detect de Worker: corre off-thread si hay, o en el main si no (mismo resultado) (ej. 13)
+ *   - offscreen-canvas: transferControlToOffscreen: el worker dibuja/anima un canvas con su propio
+ *                       rendering loop; sigue fluido aunque el main esté bloqueado (ej. 14)
  */
 export type DemoKind =
   | 'thread-block'
@@ -42,7 +44,8 @@ export type DemoKind =
   | 'worker-pool'
   | 'backpressure'
   | 'shared-memory'
-  | 'degradation';
+  | 'degradation'
+  | 'offscreen-canvas';
 
 export interface WorkerExample {
   /** Slug estable, ej. '01-setinterval-counter'. */
