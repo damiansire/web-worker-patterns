@@ -69,20 +69,30 @@ export class OffscreenCanvasDemoService {
 
     if (this.supported()) {
       // El worker toma el control del canvas y lo anima en su propio hilo.
-      const offscreen = workerCanvas.transferControlToOffscreen();
-      const worker = example.workerFactory!() as unknown as WorkerLike;
-      this.worker = worker;
-      worker.onmessage = (event: MessageEvent) => {
-        const d = event.data as { type?: string; fps?: number; frames?: number };
-        if (d?.type === 'fps') {
-          this.workerFps.set(d.fps ?? 0);
-          this.workerFrames.set(d.frames ?? 0);
-        }
-      };
-      worker.postMessage(
-        { type: 'init', canvas: offscreen, palette: readPalette(workerCanvas, 'worker') },
-        [offscreen as unknown as Transferable],
-      );
+      // transferControlToOffscreen() es de una sola vez por <canvas>: si el nodo ya se
+      // transfirió (re-arranque sobre el mismo elemento) tira InvalidStateError. Lo absorbemos
+      // y seguimos: el reloj del main corre igual, no recreamos el worker sobre un canvas muerto.
+      let offscreen: OffscreenCanvas | null = null;
+      try {
+        offscreen = workerCanvas.transferControlToOffscreen();
+      } catch {
+        offscreen = null;
+      }
+      if (offscreen) {
+        const worker = example.workerFactory!() as unknown as WorkerLike;
+        this.worker = worker;
+        worker.onmessage = (event: MessageEvent) => {
+          const d = event.data as { type?: string; fps?: number; frames?: number };
+          if (d?.type === 'fps') {
+            this.workerFps.set(d.fps ?? 0);
+            this.workerFrames.set(d.frames ?? 0);
+          }
+        };
+        worker.postMessage(
+          { type: 'init', canvas: offscreen, palette: readPalette(workerCanvas, 'worker') },
+          [offscreen as unknown as Transferable],
+        );
+      }
     } else {
       // Sin OffscreenCanvas: el "worker" también lo dibuja el main.
       this.fallbackCtx = workerCanvas.getContext('2d');
