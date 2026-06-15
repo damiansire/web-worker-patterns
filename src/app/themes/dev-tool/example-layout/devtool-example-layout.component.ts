@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal, viewChild, ElementRef } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked, viewChild, ElementRef } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -20,6 +20,7 @@ import { SharedMemoryDemoService } from '../../../core/services/shared-memory-de
 import { DegradationDemoService } from '../../../core/services/degradation-demo.service';
 import { OffscreenCanvasDemoService } from '../../../core/services/offscreen-canvas-demo.service';
 import { CloneCostDemoService } from '../../../core/services/clone-cost-demo.service';
+import { CompositorDemoService } from '../../../core/services/compositor-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import {
   CloneCostChartComponent,
@@ -609,6 +610,57 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                 </div>
               </section>
             }
+
+            @case ('compositor-jank') {
+              <section class="dt-panel">
+                <header class="dt-panel-h">// el otro hilo: compositor · CSS vs JS</header>
+                <p class="dt-panel-b dt-watch">
+                  {{ content()?.whatToWatch ?? 'Bloqueá el main y mirá: la caja CSS sigue girando, la caja JS se congela.' }}
+                </p>
+                <div class="dt-panel-b">
+                  <div class="dt-send">
+                    <devtool-button variant="solid" [disabled]="compMode() !== 'idle'" (pressed)="blockMainComp()">
+                      ▶ bloquear el main
+                    </devtool-button>
+                    <devtool-button [disabled]="compMode() !== 'idle'" (pressed)="blockWorkerComp()">
+                      ▶ bloquear en un worker
+                    </devtool-button>
+                  </div>
+
+                  <div class="dt-comp">
+                    <div class="dt-comp-cell">
+                      <span class="dt-comp-tag">// CSS transform · compositor</span>
+                      <div class="dt-comp-box dt-comp-css"></div>
+                      <span class="dt-comp-sub">sigue girando aunque el main se trabe</span>
+                    </div>
+                    <div class="dt-comp-cell">
+                      <span class="dt-comp-tag">// JS · main thread</span>
+                      <div class="dt-comp-box dt-comp-js" #compJs></div>
+                      <span class="dt-comp-sub">se congela cuando el main se bloquea</span>
+                    </div>
+                    <div class="dt-comp-cell">
+                      <span class="dt-comp-tag">// FPS del main</span>
+                      <div class="dt-comp-fps" [attr.data-low]="mainFps() < 30">{{ mainFps() }}</div>
+                      <span class="dt-comp-sub">~60 libre · ~0 bloqueado</span>
+                    </div>
+                  </div>
+
+                  <div aria-live="polite">
+                    @switch (compMode()) {
+                      @case ('main') {
+                        <p class="dt-bad">▶ bloqueando el MAIN… la caja JS y los FPS están congelados; la CSS no.</p>
+                      }
+                      @case ('worker') {
+                        <p class="dt-ok">▶ el MISMO cómputo corre en un worker… el main sigue libre, todo fluido.</p>
+                      }
+                      @default {
+                        <p class="dt-hint">// tocá «bloquear el main»: se congela todo MENOS la caja CSS (la mueve el compositor, otro hilo) · después probá en un worker: nada se congela</p>
+                      }
+                    }
+                  </div>
+                </div>
+              </section>
+            }
           }
 
           @if (content()?.takeaways; as tk) {
@@ -669,7 +721,7 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
         font-family: var(--font-mono);
         font-size: 18px;
         margin: 12px 0 2px;
-        word-break: break-all;
+        overflow-wrap: anywhere;
       }
       .dt-order {
         color: var(--accent);
@@ -1156,6 +1208,66 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
         margin-bottom: 14px;
       }
 
+      /* ── compositor-jank (ej. 16): CSS box (compositor) vs JS box (main) + FPS ── */
+      .dt-comp {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin: 8px 0 14px;
+      }
+      .dt-comp-cell {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        text-align: center;
+        padding: 16px 10px;
+        border: var(--border-width, 1px) solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-raised);
+      }
+      .dt-comp-tag {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--ink-muted);
+      }
+      .dt-comp-sub {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        line-height: 1.4;
+        color: var(--ink-muted);
+      }
+      .dt-comp-box {
+        width: 52px;
+        height: 52px;
+        border-radius: var(--radius);
+        background: var(--accent);
+      }
+      .dt-comp-css {
+        animation: dt-comp-spin 2s linear infinite;
+      }
+      .dt-comp-fps {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: 52px;
+        line-height: 1;
+        color: var(--accent);
+      }
+      .dt-comp-fps[data-low='true'] {
+        color: var(--thread-blocked);
+      }
+      @keyframes dt-comp-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .dt-comp-css {
+          animation: none;
+        }
+      }
+
       .dt-note {
         font-family: var(--font-mono);
         color: var(--ink-muted);
@@ -1179,6 +1291,7 @@ export class DevToolExampleLayoutComponent {
   private readonly sharedMem = inject(SharedMemoryDemoService);
   private readonly degradation = inject(DegradationDemoService);
   private readonly cloneCost = inject(CloneCostDemoService);
+  private readonly compositor = inject(CompositorDemoService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
   private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
@@ -1195,6 +1308,8 @@ export class DevToolExampleLayoutComponent {
   private readonly BP_WORK = 150_000;
   /** Trabajo del ejemplo 13: si cae al main, debe notarse el freeze. */
   private readonly DEG_WORK = 500_000;
+  /** Trabajo del ejemplo 16: pesado para que el bloqueo dure ~2-3s y se note el jank. */
+  private readonly COMPOSITOR_WORK = 4_000_000;
 
   protected readonly visualizer = inject(THREAD_VISUALIZER);
 
@@ -1302,6 +1417,11 @@ export class DevToolExampleLayoutComponent {
   protected readonly fmtBytes = formatBytes;
   protected readonly cloneLast = computed(() => this.cloneMeasurements().at(-1) ?? null);
 
+  // compositor-jank (16)
+  protected readonly mainFps = this.compositor.mainFps;
+  protected readonly compMode = this.compositor.mode;
+  private readonly compJsBox = viewChild<ElementRef<HTMLElement>>('compJs');
+
   // offscreen-canvas (14)
   private readonly oc = inject(OffscreenCanvasDemoService);
   protected readonly ocSupported = this.oc.supported;
@@ -1327,6 +1447,23 @@ export class DevToolExampleLayoutComponent {
     effect(() => {
       if (this.example()?.demo === 'offscreen-canvas') {
         this.oc.reset();
+      }
+    });
+    // compositor-jank (16): arranca el medidor al entrar y lo frena al salir.
+    // `untracked` es CLAVE: startMeter() lee el signal `metering` en su guarda, y
+    // sin untracked el effect quedaría suscripto a un signal que él mismo escribe
+    // → bucle infinito. Así el effect depende SOLO de example().
+    effect((onCleanup) => {
+      if (this.example()?.demo === 'compositor-jank') {
+        untracked(() => this.compositor.startMeter());
+        onCleanup(() => this.compositor.reset());
+      }
+    });
+    // Registra el elemento de la caja JS cuando el @case lo renderiza (setJsBox es
+    // un campo plano: no lee ni escribe signals → este effect no puede loopear).
+    effect(() => {
+      if (this.example()?.demo === 'compositor-jank') {
+        this.compositor.setJsBox(this.compJsBox()?.nativeElement);
       }
     });
   }
@@ -1520,6 +1657,17 @@ export class DevToolExampleLayoutComponent {
   /** Formatea el round-trip: sub-10ms con un decimal, el resto entero. */
   fmtMs(ms: number): string {
     return ms < 10 ? ms.toFixed(1) : String(Math.round(ms));
+  }
+
+  blockMainComp(): void {
+    this.compositor.blockMain();
+  }
+
+  blockWorkerComp(): void {
+    const ex = this.example();
+    if (ex) {
+      this.compositor.blockWorker(ex, this.COMPOSITOR_WORK);
+    }
   }
 
   send(text: string): void {

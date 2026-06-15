@@ -1,4 +1,13 @@
-import { Component, computed, effect, inject, signal, viewChild, ElementRef } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+  viewChild,
+  ElementRef,
+} from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -20,6 +29,7 @@ import { SharedMemoryDemoService } from '../../../core/services/shared-memory-de
 import { DegradationDemoService } from '../../../core/services/degradation-demo.service';
 import { OffscreenCanvasDemoService } from '../../../core/services/offscreen-canvas-demo.service';
 import { CloneCostDemoService } from '../../../core/services/clone-cost-demo.service';
+import { CompositorDemoService } from '../../../core/services/compositor-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import {
   CloneCostChartComponent,
@@ -629,6 +639,55 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
                 }
               </brutalist-card>
             }
+
+            @case ('compositor-jank') {
+              <brutalist-card title="El otro hilo: compositor">
+                <p class="b-lead">
+                  {{ content()?.whatToWatch ?? 'Bloqueá el main y mirá: la caja CSS sigue girando, la caja JS se congela.' }}
+                </p>
+
+                <div class="b-send">
+                  <brutalist-button variant="solid" [disabled]="compMode() !== 'idle'" (pressed)="blockMainComp()">
+                    Bloquear el main
+                  </brutalist-button>
+                  <brutalist-button [disabled]="compMode() !== 'idle'" (pressed)="blockWorkerComp()">
+                    Bloquear en un worker
+                  </brutalist-button>
+                </div>
+
+                <div class="b-comp">
+                  <div class="b-comp-cell">
+                    <span class="b-comp-tag">CSS transform · compositor</span>
+                    <div class="b-comp-box b-comp-css"></div>
+                    <span class="b-comp-sub">sigue girando aunque el main se trabe</span>
+                  </div>
+                  <div class="b-comp-cell">
+                    <span class="b-comp-tag">JS · main thread</span>
+                    <div class="b-comp-box b-comp-js" #compJs></div>
+                    <span class="b-comp-sub">se congela cuando el main se bloquea</span>
+                  </div>
+                  <div class="b-comp-cell">
+                    <span class="b-comp-tag">FPS del main</span>
+                    <div class="b-comp-fps" [attr.data-low]="mainFps() < 30">{{ mainFps() }}</div>
+                    <span class="b-comp-sub">~60 libre · ~0 bloqueado</span>
+                  </div>
+                </div>
+
+                <div aria-live="polite">
+                  @switch (compMode()) {
+                    @case ('main') {
+                      <p class="b-foot b-danger">▶ bloqueando el MAIN… la caja JS y los FPS están congelados; la CSS no.</p>
+                    }
+                    @case ('worker') {
+                      <p class="b-foot">▶ el MISMO cómputo corre en un worker… el main sigue libre, todo fluido.</p>
+                    }
+                    @default {
+                      <p class="b-hint">Tocá «Bloquear el main»: se congela todo MENOS la caja CSS (la mueve el compositor, otro hilo). Después probá en un worker: nada se congela.</p>
+                    }
+                  }
+                </div>
+              </brutalist-card>
+            }
           }
 
           @if (content()?.takeaways; as tk) {
@@ -686,7 +745,7 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
         font-size: clamp(22px, 4vw, 36px);
         line-height: 1;
         margin: 14px 0 4px;
-        word-break: break-all;
+        overflow-wrap: anywhere;
       }
       .b-cat {
         font-family: var(--font-mono);
@@ -1011,6 +1070,64 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
         margin-bottom: 14px;
       }
 
+      /* ── compositor-jank (ej. 16): CSS box (compositor) vs JS box (main) + FPS ── */
+      .b-comp {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin: 8px 0 14px;
+      }
+      .b-comp-cell {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        text-align: center;
+        padding: 16px 10px;
+        border: var(--border-width) solid var(--border);
+        background: var(--surface-raised);
+      }
+      .b-comp-tag {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .b-comp-sub {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        line-height: 1.4;
+        color: var(--ink-muted);
+      }
+      .b-comp-box {
+        width: 52px;
+        height: 52px;
+        background: var(--accent);
+        border: var(--border-width) solid var(--border);
+      }
+      .b-comp-css {
+        animation: b-spin 2s linear infinite;
+      }
+      .b-comp-fps {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 52px;
+        line-height: 1;
+        color: var(--thread-worker);
+      }
+      .b-comp-fps[data-low='true'] {
+        color: var(--thread-blocked);
+      }
+      @keyframes b-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .b-comp-css {
+          animation: none;
+        }
+      }
+
       /* ── worker-pool (ej. 10): cola de tareas + slots ── */
       .b-pool-queue {
         display: flex;
@@ -1202,6 +1319,7 @@ export class BrutalistExampleLayoutComponent {
   private readonly sharedMem = inject(SharedMemoryDemoService);
   private readonly degradation = inject(DegradationDemoService);
   private readonly cloneCost = inject(CloneCostDemoService);
+  private readonly compositor = inject(CompositorDemoService);
   private readonly contentSvc = inject(ExampleContentService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
@@ -1219,6 +1337,8 @@ export class BrutalistExampleLayoutComponent {
   private readonly BP_WORK = 150_000;
   /** Trabajo del ejemplo 13: si cae al main, debe notarse el freeze. */
   private readonly DEG_WORK = 500_000;
+  /** Trabajo del ejemplo 16: pesado para que el bloqueo dure ~2-3s y se note el jank. */
+  private readonly COMPOSITOR_WORK = 4_000_000;
 
   /** ThreadVisualizer del theme activo, resuelto por DI (§5). */
   protected readonly visualizer = inject(THREAD_VISUALIZER);
@@ -1328,6 +1448,11 @@ export class BrutalistExampleLayoutComponent {
   protected readonly fmtBytes = formatBytes;
   protected readonly cloneLast = computed(() => this.cloneMeasurements().at(-1) ?? null);
 
+  // compositor-jank (16)
+  protected readonly mainFps = this.compositor.mainFps;
+  protected readonly compMode = this.compositor.mode;
+  private readonly compJsBox = viewChild<ElementRef<HTMLElement>>('compJs');
+
   // offscreen-canvas (14)
   private readonly oc = inject(OffscreenCanvasDemoService);
   protected readonly ocSupported = this.oc.supported;
@@ -1356,6 +1481,23 @@ export class BrutalistExampleLayoutComponent {
     effect(() => {
       if (this.example()?.demo === 'offscreen-canvas') {
         this.oc.reset();
+      }
+    });
+    // compositor-jank (16): arranca el medidor al entrar y lo frena al salir.
+    // `untracked` es CLAVE: startMeter() lee el signal `metering` en su guarda, y
+    // sin untracked el effect quedaría suscripto a un signal que él mismo escribe
+    // → bucle infinito. Así el effect depende SOLO de example().
+    effect((onCleanup) => {
+      if (this.example()?.demo === 'compositor-jank') {
+        untracked(() => this.compositor.startMeter());
+        onCleanup(() => this.compositor.reset());
+      }
+    });
+    // Registra el elemento de la caja JS cuando el @case lo renderiza (setJsBox es
+    // un campo plano: no lee ni escribe signals → este effect no puede loopear).
+    effect(() => {
+      if (this.example()?.demo === 'compositor-jank') {
+        this.compositor.setJsBox(this.compJsBox()?.nativeElement);
       }
     });
   }
@@ -1553,6 +1695,17 @@ export class BrutalistExampleLayoutComponent {
   /** Formatea el round-trip: sub-10ms con un decimal, el resto entero. */
   fmtMs(ms: number): string {
     return ms < 10 ? ms.toFixed(1) : String(Math.round(ms));
+  }
+
+  blockMainComp(): void {
+    this.compositor.blockMain();
+  }
+
+  blockWorkerComp(): void {
+    const ex = this.example();
+    if (ex) {
+      this.compositor.blockWorker(ex, this.COMPOSITOR_WORK);
+    }
   }
 
   send(text: string): void {

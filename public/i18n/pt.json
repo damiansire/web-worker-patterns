@@ -241,6 +241,22 @@
         ],
         "tip": "Meça no seu hardware antes de otimizar: o custo do clone depende da máquina e da forma do dado, não de um número mágico da internet."
       }
+    },
+    "16-compositor-vs-main": {
+      "title": "A outra thread: compositor vs main",
+      "summary": "O navegador não é uma única thread. Dentro do renderer, além da main thread (onde rodam seu JavaScript, o layout e o paint) há uma compositor thread que segue compondo a tela por conta própria. Por isso uma animação de transform ou opacity pode seguir fluida a 60fps mesmo com a main thread congelada por JavaScript pesado. Aqui você torna isso visível: bloqueie a main e veja o que congela e o que não.",
+      "whatToWatch": "Três coisas na tela: uma caixa girando por CSS (transform → compositor), uma caixa girando por JavaScript (main) e um medidor de FPS da main. Toque em «Bloquear a main»: a caixa CSS segue girando suave, mas a caixa JS e os FPS congelam de vez — a prova de que há outra thread. Agora toque em «Bloquear em um worker»: o MESMO cálculo, mas em outra thread, e tudo segue fluido.",
+      "note": "O compositor cuida do scroll e das animações de transform/opacity na sua própria thread, então sobrevivem ao jank da main. O que vive na main —animações por JavaScript, layout, top/left/width— NÃO sobrevive: congela até a main se liberar. Tirar o cálculo para um worker libera a main e tudo responde; mas mesmo sem worker, o compositor já te dá fluidez de graça para transform/opacity. Por isso animamos com transform, e não com left/top.",
+      "takeaways": {
+        "title": "Pontos-chave",
+        "items": [
+          "O renderer tem duas threads que importam: a main (JS/layout/paint) e o compositor",
+          "transform e opacity são tratados pelo compositor: seguem fluidos mesmo com a main bloqueada",
+          "Animações por JS, layout e top/left vivem na main: congelam com o jank",
+          "Um worker tira o cálculo da main; o compositor, além disso, dá fluidez de graça para transform/opacity"
+        ],
+        "tip": "Para animar barato e à prova de jank, use transform e opacity (compositor), não left/top/width (disparam layout na main)."
+      }
     }
   }
 }

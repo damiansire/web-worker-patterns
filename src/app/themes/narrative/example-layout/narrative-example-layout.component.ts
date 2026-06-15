@@ -1,4 +1,13 @@
-import { Component, computed, effect, inject, signal, viewChild, ElementRef } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+  viewChild,
+  ElementRef,
+} from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -20,6 +29,7 @@ import { SharedMemoryDemoService } from '../../../core/services/shared-memory-de
 import { DegradationDemoService } from '../../../core/services/degradation-demo.service';
 import { OffscreenCanvasDemoService } from '../../../core/services/offscreen-canvas-demo.service';
 import { CloneCostDemoService } from '../../../core/services/clone-cost-demo.service';
+import { CompositorDemoService } from '../../../core/services/compositor-demo.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import {
   CloneCostChartComponent,
@@ -531,6 +541,47 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                 <p class="n-hint">Movés los sliders y tocás Medir: mandamos payloads cada vez más grandes al worker y cronometramos el ida y vuelta real. Cada punto es una medición tuya, no un número inventado.</p>
               }
             }
+
+            @case ('compositor-jank') {
+              <div class="n-send">
+                <narrative-button variant="solid" [disabled]="compMode() !== 'idle'" (pressed)="blockMainComp()">
+                  Bloquear el main
+                </narrative-button>
+                <narrative-button [disabled]="compMode() !== 'idle'" (pressed)="blockWorkerComp()">
+                  Bloquear en un worker
+                </narrative-button>
+              </div>
+              <div class="n-comp">
+                <div class="n-comp-cell">
+                  <span class="n-comp-tag">CSS transform · compositor</span>
+                  <div class="n-comp-box n-comp-css"></div>
+                  <span class="n-comp-sub">sigue girando aunque el main se trabe</span>
+                </div>
+                <div class="n-comp-cell">
+                  <span class="n-comp-tag">JS · main thread</span>
+                  <div class="n-comp-box n-comp-js" #compJs></div>
+                  <span class="n-comp-sub">se congela cuando el main se bloquea</span>
+                </div>
+                <div class="n-comp-cell">
+                  <span class="n-comp-tag">FPS del main</span>
+                  <div class="n-comp-fps" [attr.data-low]="mainFps() < 30">{{ mainFps() }}</div>
+                  <span class="n-comp-sub">~60 libre · ~0 bloqueado</span>
+                </div>
+              </div>
+              <div aria-live="polite">
+                @switch (compMode()) {
+                  @case ('main') {
+                    <p class="n-foot n-danger">Bloqueando el main: la caja JS y los FPS quedaron congelados; la CSS, no.</p>
+                  }
+                  @case ('worker') {
+                    <p class="n-foot">El mismo cómputo corre en un worker: el main sigue libre, todo fluye.</p>
+                  }
+                  @default {
+                    <p class="n-hint">Tocá «Bloquear el main»: se congela todo menos la caja CSS, que la mueve el compositor en otro hilo. Después probá en un worker: ya nada se congela.</p>
+                  }
+                }
+              </div>
+            }
           }
 
           @if (content()?.takeaways; as tk) {
@@ -590,7 +641,7 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
         font-family: var(--font-mono);
         font-size: clamp(22px, 4vw, 32px);
         margin: 0 0 20px;
-        word-break: break-all;
+        overflow-wrap: anywhere;
       }
       .n-lead {
         font-family: var(--font-body);
@@ -1132,6 +1183,66 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
         margin-bottom: 14px;
       }
 
+      /* ── compositor-jank (ej. 16): caja CSS (compositor) vs caja JS (main) + FPS ── */
+      .n-comp {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin: 8px 0 14px;
+      }
+      .n-comp-cell {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        text-align: center;
+        padding: 16px 10px;
+        border: var(--border-width, 1px) solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-raised);
+      }
+      .n-comp-tag {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .n-comp-sub {
+        font-family: var(--font-display);
+        font-style: italic;
+        font-size: 12px;
+        line-height: 1.4;
+        color: var(--ink-muted);
+      }
+      .n-comp-box {
+        width: 52px;
+        height: 52px;
+        background: var(--accent);
+        border-radius: var(--radius);
+      }
+      .n-comp-css {
+        animation: n-comp-spin 2s linear infinite;
+      }
+      .n-comp-fps {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        font-size: 52px;
+        line-height: 1;
+        color: var(--thread-worker);
+      }
+      .n-comp-fps[data-low='true'] {
+        color: var(--thread-blocked);
+      }
+      @keyframes n-comp-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .n-comp-css {
+          animation: none;
+        }
+      }
+
       .n-note {
         font-family: var(--font-display);
         font-style: italic;
@@ -1156,6 +1267,7 @@ export class NarrativeExampleLayoutComponent {
   private readonly sharedMem = inject(SharedMemoryDemoService);
   private readonly degradation = inject(DegradationDemoService);
   private readonly cloneCost = inject(CloneCostDemoService);
+  private readonly compositor = inject(CompositorDemoService);
 
   /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
   private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
@@ -1172,6 +1284,8 @@ export class NarrativeExampleLayoutComponent {
   private readonly BP_WORK = 150_000;
   /** Trabajo del ejemplo 13: si cae al main, debe notarse el freeze. */
   private readonly DEG_WORK = 500_000;
+  /** Trabajo del ejemplo 16: pesado para que el bloqueo dure ~2-3s y se note el jank. */
+  private readonly COMPOSITOR_WORK = 4_000_000;
 
   protected readonly visualizer = inject(THREAD_VISUALIZER);
 
@@ -1279,6 +1393,11 @@ export class NarrativeExampleLayoutComponent {
   protected readonly fmtBytes = formatBytes;
   protected readonly cloneLast = computed(() => this.cloneMeasurements().at(-1) ?? null);
 
+  // compositor-jank (16)
+  protected readonly mainFps = this.compositor.mainFps;
+  protected readonly compMode = this.compositor.mode;
+  private readonly compJsBox = viewChild<ElementRef<HTMLElement>>('compJs');
+
   // offscreen-canvas (14)
   private readonly oc = inject(OffscreenCanvasDemoService);
   protected readonly ocSupported = this.oc.supported;
@@ -1304,6 +1423,23 @@ export class NarrativeExampleLayoutComponent {
     effect(() => {
       if (this.example()?.demo === 'offscreen-canvas') {
         this.oc.reset();
+      }
+    });
+    // compositor-jank (16): arranca el medidor al entrar y lo frena al salir.
+    // `untracked` es CLAVE: startMeter() lee el signal `metering` en su guarda, y
+    // sin untracked el effect quedaría suscripto a un signal que él mismo escribe
+    // → bucle infinito. Así el effect depende SOLO de example().
+    effect((onCleanup) => {
+      if (this.example()?.demo === 'compositor-jank') {
+        untracked(() => this.compositor.startMeter());
+        onCleanup(() => this.compositor.reset());
+      }
+    });
+    // Registra el elemento de la caja JS cuando el @case lo renderiza (setJsBox es
+    // un campo plano: no lee ni escribe signals → este effect no puede loopear).
+    effect(() => {
+      if (this.example()?.demo === 'compositor-jank') {
+        this.compositor.setJsBox(this.compJsBox()?.nativeElement);
       }
     });
   }
@@ -1497,6 +1633,17 @@ export class NarrativeExampleLayoutComponent {
   /** Formatea el round-trip: sub-10ms con un decimal, el resto entero. */
   fmtMs(ms: number): string {
     return ms < 10 ? ms.toFixed(1) : String(Math.round(ms));
+  }
+
+  blockMainComp(): void {
+    this.compositor.blockMain();
+  }
+
+  blockWorkerComp(): void {
+    const ex = this.example();
+    if (ex) {
+      this.compositor.blockWorker(ex, this.COMPOSITOR_WORK);
+    }
   }
 
   send(text: string): void {

@@ -22,10 +22,12 @@ const dir13 = `${dir}/13-graceful-degradation`;
 const dir02 = `${dir}/02-main-thread`;
 const dir14 = `${dir}/14-offscreen-canvas`;
 const dir15 = `${dir}/15-clone-cost`;
+const dir16 = `${dir}/16-compositor-vs-main`;
 await rm(dir, { recursive: true, force: true });
 await mkdir(dir02, { recursive: true });
 await mkdir(dir14, { recursive: true });
 await mkdir(dir15, { recursive: true });
+await mkdir(dir16, { recursive: true });
 await mkdir(dir03, { recursive: true });
 await mkdir(dir04, { recursive: true });
 await mkdir(dir05, { recursive: true });
@@ -222,6 +224,14 @@ for (const t of themes) {
   await page.getByRole('button', { name: /medir/i }).first().click();
   await page.waitForTimeout(4000); // deja completar el barrido (warm-up + tamaños × reps)
   await page.screenshot({ path: `${dir15}/${t}.png`, fullPage: true });
+  await page.close();
+
+  // Ejemplo 16: compositor vs main. En reposo las dos cajas giran y el FPS marca ~60.
+  // Capturamos el reposo (estado estable y representativo; el bloqueo del main es síncrono).
+  page = await ctx.newPage();
+  await page.goto(`${base}/t/${t}/example/16-compositor-vs-main`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(1200);
+  await page.screenshot({ path: `${dir16}/${t}.png`, fullPage: true });
   await page.close();
   console.log('done', t);
 }

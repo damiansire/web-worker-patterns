@@ -241,6 +241,22 @@
         ],
         "tip": "Measure on your own hardware before optimizing: clone cost depends on the machine and the shape of the data, not on a magic number from the internet."
       }
+    },
+    "16-compositor-vs-main": {
+      "title": "The other thread: compositor vs main",
+      "summary": "The browser isn't a single thread. Inside the renderer, besides the main thread (where your JavaScript, layout and paint run) there's a compositor thread that keeps composing the screen on its own. That's why a transform or opacity animation can stay smooth at 60fps even when the main thread is frozen by heavy JavaScript. Here you make it visible: block the main and watch what freezes and what doesn't.",
+      "whatToWatch": "Three things on screen: a box spinning via CSS (transform → compositor), a box spinning via JavaScript (main), and a main-thread FPS meter. Hit \"Block the main\": the CSS box keeps spinning smoothly, but the JS box and the FPS freeze dead — proof there's another thread. Now hit \"Block in a worker\": the SAME computation, but on another thread, and everything stays fluid.",
+      "note": "The compositor handles scroll and transform/opacity animations on its own thread, so they survive main-thread jank. What lives on the main —JavaScript animations, layout, top/left/width— does NOT: it freezes until the main is free. Moving the work to a worker frees the main and everything responds; but even without a worker, the compositor already gives you transform/opacity smoothness for free. That's why we animate with transform, not left/top.",
+      "takeaways": {
+        "title": "Key takeaways",
+        "items": [
+          "The renderer has two threads that matter: the main (JS/layout/paint) and the compositor",
+          "transform and opacity are handled by the compositor: they stay smooth even when the main is blocked",
+          "JS animations, layout and top/left live on the main: they freeze with jank",
+          "A worker takes compute off the main; the compositor also gives transform/opacity smoothness for free"
+        ],
+        "tip": "To animate cheaply and jank-proof, use transform and opacity (compositor), not left/top/width (they trigger layout on the main)."
+      }
     }
   }
 }
