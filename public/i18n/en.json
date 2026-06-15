@@ -149,8 +149,8 @@
     "11-backpressure-scheduling": {
       "title": "Backpressure",
       "summary": "postMessage doesn't block or warn if the worker can't keep up: if the producer sends faster than the consumer processes, the worker's internal queue grows without bound (memory and latency). Backpressure is flow control: you only send while you have credit and wait for the ack before continuing.",
-      "whatToWatch": "Run both sides with the same 40 tasks. Without backpressure: you fire everything at once and the waiting queue jumps to 40. With backpressure: you wait for the worker's ack (window of 3) and the queue never goes past 3 — the producer moves at the consumer's pace.",
-      "note": "The queue's peak is the problem: without flow control, everything you overproduce sits queued eating memory, and each new message waits behind the whole line (latency). A credit window (send N, wait for ack, send the next) caps the queue at N and keeps latency low. It's the same principle as TCP and streams.",
+      "whatToWatch": "Run both sides with the same 40 tasks. Without backpressure: you fire everything at once, the in-flight peak jumps to 40 and the last reply comes back very late (it waited behind all 40). With backpressure: you wait for the ack (window of 3), the peak never goes past 3 and the last reply's latency stays bounded — the producer moves at the consumer's pace.",
+      "note": "Latency is the consequence measured here: without flow control, everything you overproduce sits queued eating memory and each reply waits behind the whole line — so the LAST one arrives very late. A credit window (send N, wait for ack, send the next) caps the queue at N and keeps that latency low. It's the same principle as TCP and streams.",
       "takeaways": {
         "title": "Key takeaways",
         "items": [

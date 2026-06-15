@@ -68,12 +68,48 @@ describe('BackpressureDemoService', () => {
     expect(svc.bpPeak()!).toBeLessThan(svc.naivePeak()!);
   });
 
-  it('reset limpia los picos', async () => {
+  it('tail latency: sin backpressure la última espera detrás de TODAS; con backpressure queda acotada', async () => {
+    // Modelamos el costo del worker vía el reloj: el tiempo avanza COST por mensaje PROCESADO
+    // (postear es gratis). Así la latencia mide lo que cada respuesta esperó en la cola.
+    const COST = 10;
+    let processed = 0;
+    svc.clock = () => processed * COST;
+    const f = {
+      onmessage: null as ((event: MessageEvent) => void) | null,
+      terminated: false,
+      postMessage(): void {
+        queueMicrotask(() => {
+          processed += 1; // el worker terminó de procesar uno
+          this.onmessage?.({ data: { type: 'result' } } as MessageEvent);
+        });
+      },
+      terminate(): void {
+        this.terminated = true;
+      },
+    };
+    const ex: WorkerExample = { ...example, workerFactory: () => f as unknown as Worker };
+
+    svc.runNaive(ex, 1000);
+    await waitUntilIdle(svc);
+    processed = 0; // nueva tanda: reiniciamos el reloj de procesado
+    svc.runBackpressure(ex, 1000);
+    await waitUntilIdle(svc);
+
+    // Sin control: la última de 40 esperó detrás de las 40 → total * costo.
+    expect(svc.naiveMaxLatency()).toBe(svc.total * COST);
+    // Con control: nunca esperó más que la ventana → window * costo.
+    expect(svc.bpMaxLatency()).toBe(svc.windowSize * COST);
+    expect(svc.naiveMaxLatency()!).toBeGreaterThan(svc.bpMaxLatency()!);
+  });
+
+  it('reset limpia los picos y las latencias', async () => {
     svc.runNaive(example, 1000);
     await waitUntilIdle(svc);
     svc.reset();
     expect(svc.naivePeak()).toBeNull();
     expect(svc.bpPeak()).toBeNull();
+    expect(svc.naiveMaxLatency()).toBeNull();
+    expect(svc.bpMaxLatency()).toBeNull();
     expect(svc.pending()).toBe(0);
   });
 });

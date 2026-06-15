@@ -365,7 +365,7 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
                     <p class="e-foot">en cola: {{ bpPending() }}…</p>
                   } @else if (naivePeak(); as p) {
                     <div class="e-bp-bar" data-kind="naive"><div class="e-bp-fill" [style.width.%]="bpPctOf(p)"></div></div>
-                    <p class="e-foot e-danger">Pico de cola: {{ p }} mensajes en espera.</p>
+                    <p class="e-foot e-danger">Pico en vuelo: {{ p }}. La última tardó {{ naiveMaxLatency() }}ms en volver.</p>
                   } @else {
                     <p class="e-hint">El worker procesa de a uno; el resto se encola sin techo.</p>
                   }
@@ -379,7 +379,7 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
                     <p class="e-foot">en cola: {{ bpPending() }}…</p>
                   } @else if (bpPeak(); as p) {
                     <div class="e-bp-bar" data-kind="bp"><div class="e-bp-fill" [style.width.%]="bpPctOf(p)"></div></div>
-                    <p class="e-foot">Pico de cola: {{ p }} — nunca pasó la ventana.</p>
+                    <p class="e-foot">Pico en vuelo: {{ p }} — la última: {{ bpMaxLatency() }}ms, acotada.</p>
                   } @else {
                     <p class="e-hint">Mandás {{ bpWindow }}, esperás el ack, mandás la próxima: la cola queda acotada.</p>
                   }
@@ -1104,6 +1104,8 @@ export class EditorialExampleLayoutComponent {
   protected readonly bpPending = this.backpressure.pending;
   protected readonly naivePeak = this.backpressure.naivePeak;
   protected readonly bpPeak = this.backpressure.bpPeak;
+  protected readonly naiveMaxLatency = this.backpressure.naiveMaxLatency;
+  protected readonly bpMaxLatency = this.backpressure.bpMaxLatency;
   protected readonly bpTotal = this.backpressure.total;
   protected readonly bpWindow = this.backpressure.windowSize;
 

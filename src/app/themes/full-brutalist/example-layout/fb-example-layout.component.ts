@@ -437,7 +437,7 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
                         <p class="b-foot">en cola: {{ bpPending() }}…</p>
                       } @else if (naivePeak(); as p) {
                         <div class="b-bp-bar" data-kind="naive"><div class="b-bp-fill" [style.width.%]="bpPctOf(p)"></div></div>
-                        <p class="b-foot b-danger">✗ pico de cola: {{ p }} mensajes en espera</p>
+                        <p class="b-foot b-danger">✗ pico en vuelo: {{ p }} · la última tardó {{ naiveMaxLatency() }}ms en volver</p>
                       } @else {
                         <p class="b-hint">Dispara las {{ bpTotal }} de una: el worker procesa de a uno y el resto se encola sin techo.</p>
                       }
@@ -451,7 +451,7 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
                         <p class="b-foot">en cola: {{ bpPending() }}…</p>
                       } @else if (bpPeak(); as p) {
                         <div class="b-bp-bar" data-kind="bp"><div class="b-bp-fill" [style.width.%]="bpPctOf(p)"></div></div>
-                        <p class="b-foot">✓ pico de cola: {{ p }} — nunca pasó la ventana</p>
+                        <p class="b-foot">✓ pico en vuelo: {{ p }} · la última: {{ bpMaxLatency() }}ms, acotada</p>
                       } @else {
                         <p class="b-hint">Manda {{ bpWindow }}, espera el ack, manda la próxima: la cola queda acotada al ritmo del worker.</p>
                       }
@@ -1209,6 +1209,8 @@ export class FullBrutalistExampleLayoutComponent {
   protected readonly bpPending = this.backpressure.pending;
   protected readonly naivePeak = this.backpressure.naivePeak;
   protected readonly bpPeak = this.backpressure.bpPeak;
+  protected readonly naiveMaxLatency = this.backpressure.naiveMaxLatency;
+  protected readonly bpMaxLatency = this.backpressure.bpMaxLatency;
   protected readonly bpTotal = this.backpressure.total;
   protected readonly bpWindow = this.backpressure.windowSize;
 

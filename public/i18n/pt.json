@@ -149,8 +149,8 @@
     "11-backpressure-scheduling": {
       "title": "Backpressure",
       "summary": "postMessage não bloqueia nem avisa se o worker não dá conta: se o produtor manda mais rápido do que o consumidor processa, a fila interna do worker infla sem teto (memória e latência). Backpressure é o controle de fluxo: você manda só enquanto houver crédito e espera o ack antes de continuar.",
-      "whatToWatch": "Rode os dois lados com as mesmas 40 tarefas. Sem backpressure: você dispara tudo de uma e a fila em espera salta para 40. Com backpressure: você espera o ack do worker (janela de 3) e a fila nunca passa de 3 — o produtor vai no ritmo do consumidor.",
-      "note": "O pico da fila é o problema: sem controle de fluxo, tudo o que você produz a mais fica enfileirado consumindo memória, e cada mensagem nova espera atrás da fila toda (latência). Uma janela de crédito (mandar N, esperar ack, mandar o próximo) limita a fila a N e mantém a latência baixa. É o mesmo princípio do TCP e dos streams.",
+      "whatToWatch": "Rode os dois lados com as mesmas 40 tarefas. Sem backpressure: você dispara tudo de uma, o pico em voo salta para 40 e a última resposta volta muito tarde (esperou atrás das 40). Com backpressure: você espera o ack (janela de 3), o pico nunca passa de 3 e a latência da última fica limitada — o produtor vai no ritmo do consumidor.",
+      "note": "A latência é a consequência medida aqui: sem controle de fluxo, tudo o que você produz a mais fica enfileirado consumindo memória e cada resposta espera atrás da fila toda — por isso a ÚLTIMA chega muito tarde. Uma janela de crédito (mandar N, esperar ack, mandar o próximo) limita a fila a N e mantém essa latência baixa. É o mesmo princípio do TCP e dos streams.",
       "takeaways": {
         "title": "Pontos-chave",
         "items": [

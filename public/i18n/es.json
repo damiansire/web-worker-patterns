@@ -149,8 +149,8 @@
     "11-backpressure-scheduling": {
       "title": "Backpressure",
       "summary": "postMessage no bloquea ni avisa si el worker no da abasto: si el productor manda más rápido de lo que el consumidor procesa, la cola interna del worker se infla sin techo (memoria y latencia). El backpressure es el control de flujo: mandás sólo mientras haya crédito y esperás el ack antes de seguir.",
-      "whatToWatch": "Corré los dos lados con las mismas 40 tareas. Sin backpressure: disparás todo de una y la cola en espera salta a 40. Con backpressure: esperás el ack del worker (ventana de 3) y la cola nunca pasa de 3 — el productor va al ritmo del consumidor.",
-      "note": "El pico de la cola es el problema: sin control de flujo, todo lo que producís de más queda encolado consumiendo memoria, y cada mensaje nuevo espera detrás de toda la fila (latencia). Una ventana de crédito (mandar N, esperar ack, mandar el siguiente) acota la cola a N y mantiene la latencia baja. Es el mismo principio que TCP y los streams.",
+      "whatToWatch": "Corré los dos lados con las mismas 40 tareas. Sin backpressure: disparás todo de una, el pico en vuelo salta a 40 y la última respuesta vuelve tardísimo (esperó detrás de las 40). Con backpressure: esperás el ack (ventana de 3), el pico nunca pasa de 3 y la latencia de la última queda acotada — el productor va al ritmo del consumidor.",
+      "note": "La latencia es la consecuencia que se mide acá: sin control de flujo, todo lo que producís de más queda encolado consumiendo memoria y cada respuesta espera detrás de toda la fila — por eso la ÚLTIMA llega tardísimo. Una ventana de crédito (mandar N, esperar ack, mandar el siguiente) acota la cola a N y mantiene esa latencia baja. Es el mismo principio que TCP y los streams.",
       "takeaways": {
         "title": "Puntos clave",
         "items": [

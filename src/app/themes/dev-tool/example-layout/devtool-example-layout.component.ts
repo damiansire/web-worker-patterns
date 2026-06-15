@@ -427,7 +427,7 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                       <p class="dt-ok">// en cola: {{ bpPending() }}…</p>
                     } @else if (naivePeak(); as p) {
                       <div class="dt-bp-bar" data-kind="naive"><div class="dt-bp-fill" [style.width.%]="bpPctOf(p)"></div></div>
-                      <p class="dt-bad">✗ pico de cola: {{ p }} en espera</p>
+                      <p class="dt-bad">✗ pico en vuelo: {{ p }} · última: {{ naiveMaxLatency() }}ms</p>
                     } @else {
                       <p class="dt-hint">// el worker procesa de a uno · el resto se encola sin techo</p>
                     }
@@ -440,7 +440,7 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                       <p class="dt-ok">// en cola: {{ bpPending() }}…</p>
                     } @else if (bpPeak(); as p) {
                       <div class="dt-bp-bar" data-kind="bp"><div class="dt-bp-fill" [style.width.%]="bpPctOf(p)"></div></div>
-                      <p class="dt-ok">✓ pico de cola: {{ p }} · acotado a la ventana</p>
+                      <p class="dt-ok">✓ pico en vuelo: {{ p }} · última: {{ bpMaxLatency() }}ms, acotada</p>
                     } @else {
                       <p class="dt-hint">// manda {{ bpWindow }}, espera ack, manda la próxima · cola acotada</p>
                     }
@@ -1121,6 +1121,8 @@ export class DevToolExampleLayoutComponent {
   protected readonly bpPending = this.backpressure.pending;
   protected readonly naivePeak = this.backpressure.naivePeak;
   protected readonly bpPeak = this.backpressure.bpPeak;
+  protected readonly naiveMaxLatency = this.backpressure.naiveMaxLatency;
+  protected readonly bpMaxLatency = this.backpressure.bpMaxLatency;
   protected readonly bpTotal = this.backpressure.total;
   protected readonly bpWindow = this.backpressure.windowSize;
 

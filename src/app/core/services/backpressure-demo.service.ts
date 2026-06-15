@@ -22,17 +22,27 @@ export type BackpressureMode = 'idle' | 'naive' | 'backpressure';
  */
 @Injectable({ providedIn: 'root' })
 export class BackpressureDemoService {
+  /** Reloj inyectable para tests deterministas. */
+  clock: () => number = () => (typeof performance !== 'undefined' ? performance.now() : 0);
+
   /** Total de mensajes que produce el productor. */
   readonly total = 40;
   /** Ventana de crédito del modo con backpressure (cuántos en vuelo permite). */
   readonly windowSize = 3;
 
-  /** Mensajes en cola ahora (en vuelo: enviados - confirmados). */
+  /** Mensajes en vuelo ahora (enviados - confirmados, desde la óptica del productor). */
   readonly pending = signal(0);
   readonly mode = signal<BackpressureMode>('idle');
-  /** Pico de cola alcanzado en cada modo (la lección). */
+  /** Pico de mensajes en vuelo (sin confirmar) en cada modo. */
   readonly naivePeak = signal<number | null>(null);
   readonly bpPeak = signal<number | null>(null);
+  /**
+   * Latencia de cola (tail): cuánto tardó en volver la PEOR respuesta de la tanda, en ms.
+   * Es la consecuencia física de la cola sin techo — sin control de flujo, la última espera
+   * detrás de todas; con backpressure queda acotada a la ventana. La lección de verdad.
+   */
+  readonly naiveMaxLatency = signal<number | null>(null);
+  readonly bpMaxLatency = signal<number | null>(null);
 
   private worker?: WorkerLike;
   private sent = 0;
@@ -40,6 +50,9 @@ export class BackpressureDemoService {
   private peak = 0;
   private current: 'naive' | 'backpressure' = 'naive';
   private limit = 0;
+  /** Marca de tiempo de cada mensaje enviado, en orden FIFO (el worker responde en orden). */
+  private sendTimes: number[] = [];
+  private maxLatency = 0;
 
   runNaive(example: WorkerExample, limit: number): void {
     this.run(example, limit, 'naive');
@@ -59,6 +72,8 @@ export class BackpressureDemoService {
     this.sent = 0;
     this.acked = 0;
     this.peak = 0;
+    this.maxLatency = 0;
+    this.sendTimes = [];
     this.limit = limit;
     this.current = mode;
     this.pending.set(0);
@@ -76,6 +91,7 @@ export class BackpressureDemoService {
       return;
     }
     this.sent += 1;
+    this.sendTimes.push(this.clock());
     const inFlight = this.sent - this.acked;
     this.pending.set(inFlight);
     if (inFlight > this.peak) {
@@ -87,6 +103,15 @@ export class BackpressureDemoService {
   private onAck(): void {
     this.acked += 1;
     this.pending.set(this.sent - this.acked);
+    // El worker responde FIFO: este ack es del mensaje más viejo sin confirmar. Su latencia
+    // (ahora - cuándo se envió) es lo que esa respuesta esperó en la cola + el procesado.
+    const startedAt = this.sendTimes.shift();
+    if (startedAt != null) {
+      const latency = this.clock() - startedAt;
+      if (latency > this.maxLatency) {
+        this.maxLatency = latency;
+      }
+    }
     // Con backpressure, recién ahora (al liberar crédito) mandamos la próxima.
     if (this.current === 'backpressure') {
       this.post();
@@ -99,8 +124,10 @@ export class BackpressureDemoService {
   private finish(): void {
     if (this.current === 'naive') {
       this.naivePeak.set(this.peak);
+      this.naiveMaxLatency.set(Math.round(this.maxLatency));
     } else {
       this.bpPeak.set(this.peak);
+      this.bpMaxLatency.set(Math.round(this.maxLatency));
     }
     this.worker?.terminate();
     this.worker = undefined;
@@ -114,9 +141,13 @@ export class BackpressureDemoService {
     this.sent = 0;
     this.acked = 0;
     this.peak = 0;
+    this.maxLatency = 0;
+    this.sendTimes = [];
     this.pending.set(0);
     this.naivePeak.set(null);
     this.bpPeak.set(null);
+    this.naiveMaxLatency.set(null);
+    this.bpMaxLatency.set(null);
     this.mode.set('idle');
   }
 }
