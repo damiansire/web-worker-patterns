@@ -1,9 +1,5 @@
-import { InjectionToken, Type } from '@angular/core';
-
 /**
- * Contrato de bloque de código (ARQUITECTURA §5). Cada theme registra su
- * code-block vía `CODE_BLOCK`.
+ * Contrato de bloque de código (ARQUITECTURA §5): cada theme lo implementa con su propio
+ * code-block (`implements CodeBlockContract`). Da type-safety a los primitivos por theme.
  */
 export abstract class CodeBlockContract {}
-
-export const CODE_BLOCK = new InjectionToken<Type<unknown>>('CODE_BLOCK');

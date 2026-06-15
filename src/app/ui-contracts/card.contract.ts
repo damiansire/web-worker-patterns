@@ -1,9 +1,5 @@
-import { InjectionToken, Type } from '@angular/core';
-
 /**
- * Contrato de card (ARQUITECTURA §5). Contenedor de sección que cada theme dibuja
- * a su manera. Se registra vía `CARD`.
+ * Contrato de card (ARQUITECTURA §5): contenedor de sección que cada theme implementa a su
+ * manera (`implements CardContract`). Da type-safety a los primitivos por theme.
  */
 export abstract class CardContract {}
-
-export const CARD = new InjectionToken<Type<unknown>>('CARD');
