@@ -5,14 +5,14 @@
 | **Status** | In progress |
 | **Last updated** | Sunday, 15 March 2026 |
 
-[![Angular](https://img.shields.io/badge/Angular-21-DD0031?style=flat&logo=angular&logoColor=white)](https://angular.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Angular](https://img.shields.io/badge/Angular-22-DD0031?style=flat&logo=angular&logoColor=white)](https://angular.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 > **🌐 This README is also available in other languages:**
 > [Español](docs/README.es.md) | [Português](docs/README.pt.md)
 
-Interactive educational platform about **Web Workers** built with **Angular 21**. Includes 10 progressive examples with live demos, thread visualization, multi-language support (ES/EN/PT), and a cyberpunk visual theme.
+Interactive educational platform about **Web Workers** built with **Angular 22**. Includes 10 progressive examples with live demos, thread visualization, multi-language support (ES/EN/PT), and a cyberpunk visual theme.
 
 ## Quick Start
 
@@ -110,32 +110,30 @@ Routes, sidebar navigation, and the home page update automatically.
 
 ## Tech Stack
 
-- **Angular 21** — Standalone components, Signals, zoneless change detection by default, Vite-based build
-- **TypeScript 5.9**
+- **Angular 22** — Standalone components, Signals, zoneless change detection by default, esbuild-based build
+- **TypeScript 6.0.3**
 - **SCSS** — Design tokens, cyberpunk theme with CSS custom properties
 - **highlight.js** — Syntax highlighting for code blocks
 - **Vitest** — Unit tests
 - **Web Workers API** — Dedicated Workers, Shared Workers, Transferable Objects
 
-This project uses Angular's built-in worker support (Vite/esbuild). Other setups use [worker-plugin](https://github.com/GoogleChromeLabs/worker-plugin) (webpack), [rollup-plugin-off-main-thread](https://github.com/surma/rollup-plugin-off-main-thread), or Parcel's native worker support.
+This project uses Angular's built-in worker support (@angular/build / esbuild). Other setups use [worker-plugin](https://github.com/GoogleChromeLabs/worker-plugin) (webpack), [rollup-plugin-off-main-thread](https://github.com/surma/rollup-plugin-off-main-thread), or Parcel's native worker support.
 
-## Upgrading from Angular 19
+## Angular Version
 
-This project targets **Angular 21**. If you are on an older major version, use the official migrator and then fix any breaking changes:
+This project targets **Angular 22** with `@angular/build` and a dedicated `webWorkerTsConfig` for worker bundles.
+
+If you are upgrading from an older major version, use the Angular update tool and follow the official migration guidance:
 
 ```bash
-# From Angular 19: upgrade stepwise so migrations run (19 → 20 → 21)
-ng update @angular/core@20 @angular/cli@20
-ng update @angular/core@21 @angular/cli@21
+ng update @angular/core @angular/cli
 ```
 
 Then:
 
-- **Zoneless by default**: Angular 21 uses zoneless change detection unless you add `provideZoneChangeDetection()`. This app relies on Signals and `computed()`, so no extra config is needed.
-- **Tests**: `tsconfig.spec.json` excludes `**/*.worker.ts` so worker files (which use `WorkerGlobalScope` / `SharedWorkerGlobalScope`) are not compiled with the DOM `Window` type.
-- **Build**: `@angular/build` (esbuild/Vite) is the default; the project uses `application` builder and `webWorkerTsConfig` for worker bundles.
-
-*This repository was updated from Angular 21 (next/rc) to stable 21.2; the steps above are for upgrading from Angular 19 from scratch and ensuring migrations run via `ng update`.*
+- **Zoneless by default**: Angular 22 uses zoneless change detection unless you add `provideZoneChangeDetection()`. This app relies on Signals and `computed()`, so no extra config is needed.
+- **Tests**: `tsconfig.spec.json` excludes `**/*.worker.ts`, so worker files are not compiled with the DOM `Window` type.
+- **Build**: `@angular/build` is the standard builder and bundles the app with esbuild.
 
 ## Available Scripts
 

@@ -1,6 +1,6 @@
 # Arquitectura multi-theme · web-worker-patterns
 
-Documento de diseño para mantener **4 diseños radicalmente distintos en paralelo** sobre una misma base Angular 21. Pensado para entregarse a Claude Desktop / Claude Code como spec de implementación.
+Documento de diseño para mantener **4 diseños radicalmente distintos en paralelo** sobre una misma base Angular 22. Pensado para entregarse a Claude Desktop / Claude Code como spec de implementación.
 
 Los 4 themes son: `editorial` (poster/arte), `dev-tool` (IDE/terminal), `narrative` (revista) y `brutalist` (brutalismo amarillo). No comparten layout, tipografía, interacción ni librería UI. Lo único que comparten es el **dominio**: los 10 ejemplos, la lógica real de los Web Workers, el estado de los hilos y la traducción ES/EN/PT.
 
@@ -361,7 +361,7 @@ Este es el punto delicado de tu pedido. Tres mecanismos combinados:
 
 ## 8. Stack sugerido por theme
 
-Compartido por todos: Angular 21 (signals, zoneless, standalone), Transloco (i18n), highlight.js (código), `@fontsource/*` para fuentes self-hosted, Vitest.
+Compartido por todos: Angular 22 (signals, zoneless, standalone), Transloco (i18n), highlight.js (código), `@fontsource/*` para fuentes self-hosted, Vitest.
 
 | Theme | Librería UI | Animación / extra | Fuentes |
 |---|---|---|---|
@@ -424,7 +424,7 @@ export const routes: Routes = [
 
 ## 10. Plan de implementación (orden sugerido para Claude Desktop)
 
-1. **Andamiaje.** Angular 21 zoneless, Transloco, estructura de carpetas, lint de boundaries (`core` no importa `themes`).
+1. **Andamiaje.** Angular 22 zoneless, Transloco, estructura de carpetas, lint de boundaries (`core` no importa `themes`).
 2. **Dominio primero.** Migrar los 10 workers reales + `examples.registry` + `ThreadMonitorService` + `ExampleRunnerService`. Sin UI todavía: testear con Vitest que un worker emite ticks y el monitor los registra.
 3. **Contrato de tokens.** Definir los nombres semánticos y un theme "skeleton" gris que los rellene, para validar el puente.
 4. **Motor de theming.** `ThemePack`, `ThemeService` (con inyección/purga de CSS), host con `ngComponentOutlet`, guard de ruta.
@@ -448,4 +448,4 @@ export const routes: Routes = [
 
 ## TL;DR para pasarle a Claude Desktop
 
-Construí una app Angular 21 única donde: (1) un núcleo neutral contiene los workers, el registry de ejemplos y el `ThreadMonitorService` con estado en signals root; (2) un motor de theming carga themes lazy y swapea el CSS de su librería UI sin pisarse, usando cascade layers + `[data-theme]`; (3) cuatro themes implementan shell, layouts y primitivos vía contratos + DI, leyendo tokens semánticos; (4) el theme vive en la ruta y se puede cambiar en runtime sin reiniciar el estado. Empezá por el dominio, después el theme brutalist (sin librería), después uno con librería para validar el aislamiento, y replicá.
+Construí una app Angular 22 única donde: (1) un núcleo neutral contiene los workers, el registry de ejemplos y el `ThreadMonitorService` con estado en signals root; (2) un motor de theming carga themes lazy y swapea el CSS de su librería UI sin pisarse, usando cascade layers + `[data-theme]`; (3) cuatro themes implementan shell, layouts y primitivos vía contratos + DI, leyendo tokens semánticos; (4) el theme vive en la ruta y se puede cambiar en runtime sin reiniciar el estado. Empezá por el dominio, después el theme brutalist (sin librería), después uno con librería para validar el aislamiento, y replicá.

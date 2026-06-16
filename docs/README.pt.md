@@ -1,19 +1,25 @@
 # Mastering Web Workers
 
-[![Angular](https://img.shields.io/badge/Angular-19-DD0031?style=flat&logo=angular&logoColor=white)](https://angular.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Angular](https://img.shields.io/badge/Angular-22-DD0031?style=flat&logo=angular&logoColor=white)](https://angular.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 > **🌐 Este README também está disponível em outros idiomas:**
 > [English](../README.md) | [Español](README.es.md)
 
-Plataforma educacional interativa sobre **Web Workers** construída com Angular 19. Inclui 10 exemplos progressivos com demos ao vivo, visualização de threads, suporte multilíngue (ES/EN/PT) e um tema visual cyberpunk.
+Plataforma educacional interativa sobre **Web Workers** construída com Angular 22. Inclui 10 exemplos progressivos com demos ao vivo, visualização de threads, suporte multilíngue (ES/EN/PT) e um tema visual cyberpunk.
 
 ## Quick Start
 
 ```bash
 git clone https://github.com/damiansire/web-worker-patterns.git
 cd web-worker-patterns
+npm run dev
+```
+
+Alternativa:
+
+```bash
 npm install
 npm start
 ```
@@ -97,7 +103,8 @@ As rotas, a navegação do sidebar e a página inicial são atualizadas automati
 
 ## Stack técnico
 
-- **Angular 19** — Standalone Components, Signals
+- **Angular 22** — Standalone Components, Signals
+- **TypeScript 6.0.3**
 - **SCSS** — Design tokens, tema cyberpunk com variáveis CSS
 - **highlight.js** — Syntax highlighting para os blocos de código
 - **Web Workers API** — Dedicated Workers, Shared Workers, Transferable Objects
