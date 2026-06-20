@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | **Status** | In progress |
-| **Last updated** | Sunday, 15 March 2026 |
+| **Last updated** | Saturday, 20 June 2026 |
 
 [![Angular](https://img.shields.io/badge/Angular-22-DD0031?style=flat&logo=angular&logoColor=white)](https://angular.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -12,7 +12,7 @@
 > **🌐 This README is also available in other languages:**
 > [Español](docs/README.es.md) | [Português](docs/README.pt.md)
 
-Interactive educational platform about **Web Workers** built with **Angular 22**. Includes 10 progressive examples with live demos, thread visualization, multi-language support (ES/EN/PT), and a cyberpunk visual theme.
+Interactive educational platform about **Web Workers** built with **Angular 22**. It ships **16 progressive examples** with live demos and real thread visualization, multi-language support (ES/EN/PT), and **5 swappable visual themes** — the same neutral domain rendered five different ways.
 
 ## Quick Start
 
@@ -35,89 +35,106 @@ Abre `http://localhost:4200` en el navegador.
 
 ## Included Examples
 
-The application organizes examples into 5 categories by complexity level:
+The 16 examples are organized into 5 categories by concept. The grouping below mirrors `src/app/core/domain/examples/examples.registry.ts` — the single source of truth.
 
 ### Understanding
 
 | # | Example | Description |
 |---|---------|-------------|
-| 01 | **SetInterval Counter** | How the event loop works and why setInterval runs on the main thread. |
-| 02 | **Main Thread Blocking** | Demonstrates UI blocking when running heavy computations on the main thread. |
+| 01 | **Counter with setInterval** | How `setInterval` and the event loop work — the baseline to grasp before workers. |
+| 02 | **The main thread & event loop** | One thread runs JS, layout, paint and input; a 50 ms task freezes everything. |
+| 16 | **Compositor vs main** | The compositor thread keeps `transform`/`opacity` animations smooth even while the main thread is frozen. |
 
 ### Communication
 
 | # | Example | Description |
 |---|---------|-------------|
-| 03 | **Basic Communication** | First steps: send and receive messages between the main thread and a Worker. |
-| 04 | **Offloading Computation** | Move heavy computations to a Worker to keep the UI responsive. |
-
-### Management
-
-| # | Example | Description |
-|---|---------|-------------|
-| 05 | **Error Handling** | Catch and handle errors that occur inside Workers. |
-| 06 | **Lifecycle & Termination** | Create, run, and terminate Workers in a controlled manner. |
+| 03 | **Basic communication** | The "Hello World" of workers — `postMessage` in both directions. |
+| 08 | **SharedWorker** | One worker instance shared across tabs/panels, all seeing the same state. |
 
 ### Optimization
 
 | # | Example | Description |
 |---|---------|-------------|
-| 07 | **Transferable Objects** | Transfer data in memory without copying using `ArrayBuffer`. |
+| 04 | **Offload heavy work** | Count primes on a worker so the UI stays responsive — feel the difference side by side. |
+| 07 | **Transferable objects** | Pass an `ArrayBuffer` zero-copy; the sender's buffer is left detached. |
+| 10 | **Worker pool** | A fixed pool of N workers drains a task queue (4 workers, 24 tasks). |
+| 14 | **OffscreenCanvas** | A worker owns the canvas and animates it — smooth even when the main thread blocks. |
+| 15 | **The cost of cloning** | Measure the *real* round-trip of structured clone as data size and complexity grow. |
+
+### Management
+
+| # | Example | Description |
+|---|---------|-------------|
+| 05 | **Error handling** | A worker error doesn't crash the page; the main thread catches it. |
+| 06 | **Lifecycle & termination** | Create, run and `terminate()` — the in-flight step is lost and the worker can't be reused. |
+| 09 | **Limits of parallelism** | `navigator.hardwareConcurrency` caps real parallelism; beyond it, workers share cores. |
 
 ### Advanced
 
 | # | Example | Description |
 |---|---------|-------------|
-| 08 | **Shared Worker** | Share a Worker across multiple browser tabs. |
-| 09 | **Worker Limits** | Discover hardware limits and how many Workers the browser supports. |
-| 10 | **Worker Pool** | Pool pattern: manage a fixed set of Workers with a task queue. |
+| 11 | **Backpressure** | Flow control with credits and acks so the worker's queue doesn't grow without bound. |
+| 12 | **SharedArrayBuffer** | Main and worker share the *same* memory; `Atomics` write/read with no `postMessage`. |
+| 13 | **Graceful degradation** | Detect `typeof Worker` and fall back to the main thread when it's missing. |
+
+## Visual Themes
+
+The same domain is skinned by **5 independent themes**, switchable live from the UI:
+
+**Brutalist** · **Full Brutalist** · **Dev Tool** · **Editorial** · **Narrative**
+
+Each theme provides its own shell, home, example layout, UI primitives and a custom thread visualizer — without the domain ever knowing a theme exists.
 
 ## Project Architecture
 
+The golden rule: **the domain is written once; the presentation is written five times.** `core/` is theme-neutral and **never** imports from `themes/`. The full rationale lives in [`ARQUITECTURA-multi-theme.md`](ARQUITECTURA-multi-theme.md).
+
 ```
 src/app/
-├── core/
-│   ├── components/          # Reusable components (InfoBox, CodeSection, LogPanel, etc.)
-│   ├── layout/              # Header, Sidebar, Footer
-│   ├── models/              # ExampleManifest, shared types
-│   ├── services/            # LanguageService, NavigationService
-│   ├── styles/              # Shared SCSS (_buttons, _containers, _shared)
-│   ├── translations/        # UI translations + per-example content
-│   └── utils/               # Helpers (code-snippet.helper)
-├── examples/
-│   ├── 01-setinterval-counter/
-│   │   ├── manifest.ts                        # Declarative example metadata
-│   │   ├── setinterval-counter.component.ts   # Component logic
-│   │   ├── setinterval-counter.component.html # Template
-│   │   ├── setinterval-counter.component.scss # Styles
-│   │   └── setinterval-counter.snippets.ts    # Code snippets for display
-│   ├── 02-main-thread/
-│   ├── ...
-│   └── examples.registry.ts  # Central registry of all examples
-├── home/                      # Home page with example cards
-├── app.routes.ts              # Routes dynamically generated from the registry
+├── core/                       # Neutral domain — knows nothing about themes
+│   ├── domain/
+│   │   ├── workers/            # Real Web Workers + pure *.logic.ts (unit-tested)
+│   │   └── examples/           # examples.registry.ts (source of truth) + code snippets
+│   ├── services/               # Per-example demo services (signals-based)
+│   ├── i18n/                   # Transloco loader
+│   ├── styles/                 # Shared SCSS (_buttons, _containers, _example-layout)
+│   └── utils/                  # Helpers (code-snippet.helper)
+├── theming/                    # Theme registry, service, guard, token contract
+├── ui-contracts/               # Interfaces every theme primitive must satisfy
+├── ui-primitives/              # Theme-agnostic primitives (charts, language switcher)
+├── themes/                     # Presentation — one folder per theme
+│   ├── brutalist/  full-brutalist/  dev-tool/  editorial/  narrative/
+│   │   ├── shell/  home/  example-layout/  primitives/  styles/
+├── app.routes.ts              # Routes generated from the examples registry
 └── app.ts                     # Root component
+
+public/i18n/                    # en.json · es.json · pt.json (UI + per-example content)
 ```
 
 ### Adding a New Example
 
-1. Create a folder under `src/app/examples/` (e.g., `11-my-example/`)
-2. Create `manifest.ts` with the example metadata (id, category, translations, `loadComponent`)
-3. Create the component, template, styles, and snippets file
-4. Import the `MANIFEST` in `examples.registry.ts` and append it to the array
+A new example is **one neutral domain definition** rendered by all 5 themes. The full pipeline is codified in the `/migrate-example` command (`.claude/commands/migrate-example.md`). In short:
 
-Routes, sidebar navigation, and the home page update automatically.
+1. Add the worker in `core/domain/workers/` (+ a pure `*.logic.ts` with a unit test) and its snippets under `core/domain/examples/snippets/`.
+2. Register it in `core/domain/examples/examples.registry.ts` (`id`, `order`, `category`, `demo`, `workerFactory`).
+3. Add the educational content (title, summary, takeaways) to `public/i18n/{en,es,pt}.json`.
+4. Wire the demo's visualization into the `@case` of each theme's example layout.
+
+Routes, navigation and the home page update automatically from the registry.
 
 ## Tech Stack
 
 - **Angular 22** — Standalone components, Signals, zoneless change detection by default, esbuild-based build
 - **TypeScript 6.0.3**
-- **SCSS** — Design tokens, cyberpunk theme with CSS custom properties
+- **SCSS** — Semantic design tokens (`--surface`, `--ink`, `--accent`, `--thread-*`) per theme
+- **@jsverse/transloco** — Runtime i18n (ES/EN/PT)
 - **highlight.js** — Syntax highlighting for code blocks
-- **Vitest** — Unit tests
-- **Web Workers API** — Dedicated Workers, Shared Workers, Transferable Objects
+- **Vitest** — Unit tests (109 tests on the pure domain logic)
+- **dependency-cruiser** — Enforces the `core/ ⇏ themes/` boundary
+- **Web Workers API** — Dedicated Workers, SharedWorker, Transferable Objects, SharedArrayBuffer + Atomics, OffscreenCanvas
 
-This project uses Angular's built-in worker support (@angular/build / esbuild). Other setups use [worker-plugin](https://github.com/GoogleChromeLabs/worker-plugin) (webpack), [rollup-plugin-off-main-thread](https://github.com/surma/rollup-plugin-off-main-thread), or Parcel's native worker support.
+This project uses Angular's built-in worker support (`@angular/build` / esbuild). Other setups use [worker-plugin](https://github.com/GoogleChromeLabs/worker-plugin) (webpack), [rollup-plugin-off-main-thread](https://github.com/surma/rollup-plugin-off-main-thread), or Parcel's native worker support.
 
 ## Angular Version
 
@@ -138,25 +155,31 @@ Then:
 ## Available Scripts
 
 ```bash
-npm run dev     # Comprueba Node/npm, instala deps si hace falta y arranca el servidor (todas las plataformas)
-npm start       # Dev server en localhost:4200 (requiere npm install previo)
-npm run build   # Build de producción
-npm test        # Tests unitarios
+npm run dev            # Comprueba Node/npm, instala deps si hace falta y arranca el servidor (todas las plataformas)
+npm start              # Dev server en localhost:4200 (requiere npm install previo)
+npm run build          # Build de producción
+npm test               # Tests unitarios (Vitest)
+npm run format         # Formatea el código con Prettier
+npm run format:check   # Verifica el formato sin escribir (gate de CI)
+npm run lint:boundaries# Hace cumplir la regla de oro (core/ ⇏ themes/)
 ```
+
+Quality gates (build, format, tests, boundaries) run on every push/PR via [CI](.github/workflows/ci.yml) and as a local git pre-commit hook — independent of your editor. See [`AGENTS.md`](AGENTS.md) and [`docs/AI-PROCESS.md`](docs/AI-PROCESS.md).
 
 ## Multi-language Support
 
-The application supports English, Spanish, and Portuguese. Translations are managed in:
+The application supports English, Spanish, and Portuguese via [Transloco](https://jsverse.github.io/transloco/). Translations live in:
 
-- `src/app/core/translations/translations.ts` — UI text (sidebar, header, home)
-- `src/app/core/translations/examples/*.content.ts` — Educational content per example
+- `public/i18n/en.json` · `public/i18n/es.json` · `public/i18n/pt.json` — UI text **and** the educational content for every example
 
-Switch languages from the selector in the sidebar.
+Switch languages from the selector in each theme's shell.
 
 ## Documentation
 
 - [Docker Guide](DOCKER.md) — Run the project with Docker
 - [Docker Guide (ES)](docs/DOCKER.es.md) | [Docker Guide (PT)](docs/DOCKER.pt.md)
+- [Multi-theme architecture](ARQUITECTURA-multi-theme.md) — The design source of truth
+- [AI process](docs/AI-PROCESS.md) — Gates, design-review loop, tooling
 
 ### Further reading
 

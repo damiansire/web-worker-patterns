@@ -14,10 +14,13 @@ la memoria de una sesión.
 Antes de cerrar cualquier cambio, todo verde:
 
 ```bash
+npm run format:check       # Prettier: 0 errores de indentación/estilo
 npm run build              # 0 errores, 0 warnings nuevos
 npm test                   # Vitest
 npm run lint:boundaries    # regla de oro: core/ ⇏ themes/
 ```
+
+¿Falla `format:check`? `npm run format` lo arregla in situ.
 
 **El verificador se auto-verifica.** `lint:boundaries` corre por `scripts/lint/boundaries.mjs`,
 que FALLA ruidosamente si el cruiser ve menos de 50 módulos. Por qué: al subir a TypeScript 6,
@@ -47,8 +50,8 @@ cubierto. Por eso hay **dos capas**:
 **a) Vendor-neutral (la red real — se dispara con cualquier editor/IA):**
 - **git pre-commit** (`.githooks/pre-commit`, activado por `npm run setup` / `prepare`): corre
   `npm run lint:boundaries` antes de cada commit. Es git, no depende del editor.
-- **CI** (`.github/workflows/ci.yml`): build + test + boundaries en cada push/PR. Backstop final
-  aunque alguien no tenga el pre-commit local.
+- **CI** (`.github/workflows/ci.yml`): format + build + test + boundaries en cada push/PR.
+  Backstop final aunque alguien no tenga el pre-commit local.
 - `.gitattributes` fuerza LF en hooks/scripts: un `#!/bin/sh` con CRLF falla en Linux/CI.
 
 **b) Por herramienta (feedback temprano, advisory — NO reemplaza a (a)):**

@@ -9,7 +9,7 @@ puntero, no la fuente de verdad.
 - La lógica de Web Workers vive en `core/domain/workers/`, nunca dentro de un theme.
 - Nada de colores/fuentes literales en componentes compartidos: siempre tokens semánticos
   (`--surface`, `--ink`, `--accent`, `--thread-*`).
-- Antes de cerrar un cambio: `npm run build`, `npm test`, `npm run lint:boundaries`.
+- Antes de cerrar un cambio: `npm run format:check`, `npm run build`, `npm test`, `npm run lint:boundaries`.
 
 Fuente de verdad completa: `ARQUITECTURA-multi-theme.md`, `CLAUDE.md`, `docs/AI-PROCESS.md`,
 `AGENTS.md`. La red de aplicación (git pre-commit + CI) corre igual con cualquier IDE/IA.

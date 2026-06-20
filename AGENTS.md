@@ -22,6 +22,7 @@ Leé, en este orden:
 ## Gates antes de cerrar cualquier cambio
 
 ```bash
+npm run format:check       # Prettier; `npm run format` arregla
 npm run build              # 0 errores, 0 warnings nuevos
 npm test                   # Vitest
 npm run lint:boundaries    # hace cumplir la regla de oro; se auto-verifica
