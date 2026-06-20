@@ -1,4 +1,13 @@
-import { Component, computed, effect, inject, signal, untracked, viewChild, ElementRef } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+  viewChild,
+  ElementRef,
+} from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -37,7 +46,13 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
  */
 @Component({
   selector: 'devtool-example-layout',
-  imports: [NgComponentOutlet, RouterLink, DevToolButton, DevToolCodeBlock, CloneCostChartComponent],
+  imports: [
+    NgComponentOutlet,
+    RouterLink,
+    DevToolButton,
+    DevToolCodeBlock,
+    CloneCostChartComponent,
+  ],
   providers: [DEVTOOL_PROVIDERS],
   template: `
     <section class="dt-ex">
@@ -45,7 +60,8 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
 
       @if (example(); as ex) {
         <h1>
-          <span class="dt-order">{{ ex.order.toString().padStart(2, '0') }}</span> {{ content()?.title ?? ex.id }}
+          <span class="dt-order">{{ ex.order.toString().padStart(2, '0') }}</span>
+          {{ content()?.title ?? ex.id }}
         </h1>
         <p class="dt-cat">{{ ex.category }}</p>
 
@@ -65,11 +81,17 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                   <div class="dt-col">
                     <h2>en un worker</h2>
                     <p class="dt-sub">main libre · UI fluida</p>
-                    <devtool-button variant="solid" [disabled]="phase() === 'worker'" (pressed)="runWorker()">
+                    <devtool-button
+                      variant="solid"
+                      [disabled]="phase() === 'worker'"
+                      (pressed)="runWorker()"
+                    >
                       ▶ correr en worker
                     </devtool-button>
                     @if (workerLanes(); as wl) {
-                      <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: wl, elapsedMs: 0 }" />
+                      <ng-container
+                        *ngComponentOutlet="visualizer; inputs: { lanes: wl, elapsedMs: 0 }"
+                      />
                       <p class="dt-ok">✓ {{ workerTicks() }} ticks · sin jank</p>
                     } @else {
                       <p class="dt-hint">// tocá para correr en worker; el main queda libre</p>
@@ -78,9 +100,13 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                   <div class="dt-col">
                     <h2>en el main thread</h2>
                     <p class="dt-sub">main bloqueado · UI congelada</p>
-                    <devtool-button [disabled]="phase() === 'main'" (pressed)="runMain()">▶ bloquear main</devtool-button>
+                    <devtool-button [disabled]="phase() === 'main'" (pressed)="runMain()"
+                      >▶ bloquear main</devtool-button
+                    >
                     @if (mainLanes(); as ml) {
-                      <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: ml, elapsedMs: 0 }" />
+                      <ng-container
+                        *ngComponentOutlet="visualizer; inputs: { lanes: ml, elapsedMs: 0 }"
+                      />
                       <p class="dt-bad">✗ congelado · {{ mainTicks() }} ticks perdidos</p>
                     } @else {
                       <p class="dt-hint">// tocá: la UI se congela ~2,5s, los clicks mueren</p>
@@ -107,7 +133,11 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                       aria-label="Mensaje para enviar al worker"
                       (keyup.enter)="send(msg.value); msg.value = ''"
                     />
-                    <devtool-button variant="solid" [disabled]="pending()" (pressed)="send(msg.value); msg.value = ''">
+                    <devtool-button
+                      variant="solid"
+                      [disabled]="pending()"
+                      (pressed)="send(msg.value); msg.value = ''"
+                    >
                       ▶ enviar
                     </devtool-button>
                     @if (messages().length) {
@@ -118,7 +148,9 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                     <div class="dt-log">
                       @for (m of messages(); track m.direction + m.id) {
                         <div class="dt-line" [attr.data-dir]="m.direction">
-                          <span class="dt-line-tag">{{ m.direction === 'out' ? 'main →' : '← worker' }}</span>
+                          <span class="dt-line-tag">{{
+                            m.direction === 'out' ? 'main →' : '← worker'
+                          }}</span>
                           <span class="dt-line-text">{{ m.text }}</span>
                           @if (m.meta) {
                             <span class="dt-line-meta">· {{ m.meta }}</span>
@@ -136,7 +168,9 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                       }
                     </div>
                   } @else {
-                    <p class="dt-hint">// escribí un mensaje y enviálo: → va al worker, ← vuelve con su round-trip</p>
+                    <p class="dt-hint">
+                      // escribí un mensaje y enviálo: → va al worker, ← vuelve con su round-trip
+                    </p>
                   }
                 </div>
               </section>
@@ -151,15 +185,29 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                 <div class="dt-panel-b">
                   <div class="dt-nrow">
                     <span class="dt-prompt">const N =</span>
-                    <input #n class="dt-input-n" type="number" value="500000" min="10000" step="100000" aria-label="N: contar primos hasta este número" />
-                    <span class="dt-nhint">// contar primos hasta N · subilo y el freeze dura más</span>
+                    <input
+                      #n
+                      class="dt-input-n"
+                      type="number"
+                      value="500000"
+                      min="10000"
+                      step="100000"
+                      aria-label="N: contar primos hasta este número"
+                    />
+                    <span class="dt-nhint"
+                      >// contar primos hasta N · subilo y el freeze dura más</span
+                    >
                   </div>
                 </div>
                 <div class="dt-panel-b dt-cmp">
                   <div class="dt-col">
                     <h2>en un worker</h2>
                     <p class="dt-sub">otro hilo · UI fluida</p>
-                    <devtool-button variant="solid" [disabled]="computePhase() === 'worker'" (pressed)="computeWorker(n.value)">
+                    <devtool-button
+                      variant="solid"
+                      [disabled]="computePhase() === 'worker'"
+                      (pressed)="computeWorker(n.value)"
+                    >
                       ▶ correr en worker
                     </devtool-button>
                     @if (computePhase() === 'worker') {
@@ -167,17 +215,25 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                     } @else if (workerResult(); as r) {
                       <p class="dt-ok">✓ {{ r.count }} primos · {{ r.ms }} ms · sin jank</p>
                     } @else {
-                      <p class="dt-hint">// el cálculo corre en otro hilo; el cronómetro sigue subiendo</p>
+                      <p class="dt-hint">
+                        // el cálculo corre en otro hilo; el cronómetro sigue subiendo
+                      </p>
                     }
                   </div>
                   <div class="dt-col">
                     <h2>en el main thread</h2>
                     <p class="dt-sub">hilo bloqueado · UI congelada</p>
-                    <devtool-button [disabled]="computePhase() === 'main'" (pressed)="computeMain(n.value)">▶ bloquear main</devtool-button>
+                    <devtool-button
+                      [disabled]="computePhase() === 'main'"
+                      (pressed)="computeMain(n.value)"
+                      >▶ bloquear main</devtool-button
+                    >
                     @if (mainResult(); as r) {
                       <p class="dt-bad">✗ {{ r.count }} primos · congelado {{ r.ms }} ms</p>
                     } @else {
-                      <p class="dt-hint">// la página entera se congela hasta terminar: ni scroll</p>
+                      <p class="dt-hint">
+                        // la página entera se congela hasta terminar: ni scroll
+                      </p>
                     }
                   </div>
                 </div>
@@ -188,12 +244,18 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
               <section class="dt-panel">
                 <header class="dt-panel-h">// offscreen render · worker vs main thread</header>
                 @if (!ocSupported()) {
-                  <p class="dt-panel-b dt-bad">// sin OffscreenCanvas: los dos relojes corren en el main</p>
+                  <p class="dt-panel-b dt-bad">
+                    // sin OffscreenCanvas: los dos relojes corren en el main
+                  </p>
                 }
                 <div class="dt-panel-b">
                   <div class="dt-oc-ctl">
-                    <devtool-button variant="solid" [disabled]="ocRunning()" (pressed)="ocStart()">▶ iniciar</devtool-button>
-                    <devtool-button [disabled]="!ocRunning() || ocBlocked()" (pressed)="ocBlock()">▶ block main 2.5s</devtool-button>
+                    <devtool-button variant="solid" [disabled]="ocRunning()" (pressed)="ocStart()"
+                      >▶ iniciar</devtool-button
+                    >
+                    <devtool-button [disabled]="!ocRunning() || ocBlocked()" (pressed)="ocBlock()"
+                      >▶ block main 2.5s</devtool-button
+                    >
                   </div>
                 </div>
                 <div class="dt-panel-b dt-cmp">
@@ -201,24 +263,56 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                     <h2>worker</h2>
                     <p class="dt-sub">offscreen · otro hilo</p>
                     <div class="dt-oc-frame">
-                      <canvas #ocWorker class="dt-oc-canvas" width="240" height="240" role="img"
-                        [attr.aria-label]="ocRunning() ? 'Reloj animado por un worker, fluido' : 'Reloj del worker, detenido'"></canvas>
+                      <canvas
+                        #ocWorker
+                        class="dt-oc-canvas"
+                        width="240"
+                        height="240"
+                        role="img"
+                        [attr.aria-label]="
+                          ocRunning()
+                            ? 'Reloj animado por un worker, fluido'
+                            : 'Reloj del worker, detenido'
+                        "
+                      ></canvas>
                     </div>
-                    <p class="dt-ok">{{ ocRunning() ? 'fps ' + ocWorkerFps() + ' · frame ' + ocWorkerFrames() : '// tocá iniciar' }}</p>
+                    <p class="dt-ok">
+                      {{
+                        ocRunning()
+                          ? 'fps ' + ocWorkerFps() + ' · frame ' + ocWorkerFrames()
+                          : '// tocá iniciar'
+                      }}
+                    </p>
                   </div>
                   <div class="dt-col">
                     <h2>main thread</h2>
                     <p class="dt-sub">se congela al bloquear</p>
                     <div class="dt-oc-frame" [class.dt-oc-dead]="ocBlocked()">
-                      <canvas #ocMain class="dt-oc-canvas" width="240" height="240" role="img"
-                        [attr.aria-label]="ocBlocked() ? 'Reloj del main, congelado' : 'Reloj animado por el main thread'"></canvas>
+                      <canvas
+                        #ocMain
+                        class="dt-oc-canvas"
+                        width="240"
+                        height="240"
+                        role="img"
+                        [attr.aria-label]="
+                          ocBlocked()
+                            ? 'Reloj del main, congelado'
+                            : 'Reloj animado por el main thread'
+                        "
+                      ></canvas>
                     </div>
                     @if (ocBlocked()) {
                       <p class="dt-bad" aria-live="polite">// BLOCKED · no pinta frames</p>
                     } @else if (ocSkipped()) {
                       <p class="dt-bad">// saltó {{ ocSkipped() }} frames al volver</p>
                     } @else {
-                      <p class="dt-ok">{{ ocRunning() ? 'fps ' + ocMainFps() + ' · frame ' + ocMainFrames() : '// tocá iniciar' }}</p>
+                      <p class="dt-ok">
+                        {{
+                          ocRunning()
+                            ? 'fps ' + ocMainFps() + ' · frame ' + ocMainFrames()
+                            : '// tocá iniciar'
+                        }}
+                      </p>
                     }
                   </div>
                 </div>
@@ -236,7 +330,9 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                     <devtool-button variant="solid" [disabled]="errorBusy()" (pressed)="sendOk()">
                       ▶ json válido
                     </devtool-button>
-                    <devtool-button [disabled]="errorBusy()" (pressed)="sendFail()">▶ json roto</devtool-button>
+                    <devtool-button [disabled]="errorBusy()" (pressed)="sendFail()"
+                      >▶ json roto</devtool-button
+                    >
                     @if (errorEvents().length) {
                       <devtool-button (pressed)="resetErrors()">clear</devtool-button>
                     }
@@ -255,9 +351,14 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                         </div>
                       }
                     </div>
-                    <p class="dt-ok">// la app sigue viva: el worker no se murió, seguí mandando tareas</p>
+                    <p class="dt-ok">
+                      // la app sigue viva: el worker no se murió, seguí mandando tareas
+                    </p>
                   } @else {
-                    <p class="dt-hint">// mandá un json válido (✓ claves) y después uno roto (✗ onerror lo captura). la página no se rompe</p>
+                    <p class="dt-hint">
+                      // mandá un json válido (✓ claves) y después uno roto (✗ onerror lo captura).
+                      la página no se rompe
+                    </p>
                   }
                 </div>
               </section>
@@ -271,10 +372,18 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                 }
                 <div class="dt-panel-b">
                   <div class="dt-send">
-                    <devtool-button variant="solid" [disabled]="lifeStatus() === 'running'" (pressed)="startLife()">
+                    <devtool-button
+                      variant="solid"
+                      [disabled]="lifeStatus() === 'running'"
+                      (pressed)="startLife()"
+                    >
                       ▶ iniciar
                     </devtool-button>
-                    <devtool-button [disabled]="lifeStatus() !== 'running'" (pressed)="terminateLife()">■ terminate</devtool-button>
+                    <devtool-button
+                      [disabled]="lifeStatus() !== 'running'"
+                      (pressed)="terminateLife()"
+                      >■ terminate</devtool-button
+                    >
                     @if (lifeStatus() !== 'idle') {
                       <devtool-button (pressed)="resetLife()">reset</devtool-button>
                     }
@@ -287,16 +396,24 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
 
                   @switch (lifeStatus()) {
                     @case ('idle') {
-                      <p class="dt-hint">// tocá iniciar y cortá a mitad con terminate: el paso en curso se descarta</p>
+                      <p class="dt-hint">
+                        // tocá iniciar y cortá a mitad con terminate: el paso en curso se descarta
+                      </p>
                     }
                     @case ('running') {
                       <p class="dt-ok">// running · el worker está vivo emitiendo progreso</p>
                     }
                     @case ('terminated') {
-                      <p class="dt-bad">// terminated en paso {{ lifeStep() }}/{{ lifeSteps() }} · trabajo en curso perdido · el worker ya no existe (iniciá → se crea uno nuevo)</p>
+                      <p class="dt-bad">
+                        // terminated en paso {{ lifeStep() }}/{{ lifeSteps() }} · trabajo en curso
+                        perdido · el worker ya no existe (iniciá → se crea uno nuevo)
+                      </p>
                     }
                     @case ('done') {
-                      <p class="dt-ok">// done {{ lifeSteps() }}/{{ lifeSteps() }} · el worker se cerró solo (self.close)</p>
+                      <p class="dt-ok">
+                        // done {{ lifeSteps() }}/{{ lifeSteps() }} · el worker se cerró solo
+                        (self.close)
+                      </p>
                     }
                   }
                 </div>
@@ -305,7 +422,9 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
 
             @case ('transferable') {
               <section class="dt-panel">
-                <header class="dt-panel-h">// transferir vs clonar · ArrayBuffer ({{ transferMb }} MB)</header>
+                <header class="dt-panel-h">
+                  // transferir vs clonar · ArrayBuffer ({{ transferMb }} MB)
+                </header>
                 @if (content()?.whatToWatch; as ww) {
                   <p class="dt-panel-b dt-watch">{{ ww }}</p>
                 }
@@ -313,25 +432,35 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                   <div class="dt-col">
                     <h2>transfer (zero-copy)</h2>
                     <p class="dt-sub">cambia de dueño · no copia</p>
-                    <devtool-button variant="solid" [disabled]="transferBusy()" (pressed)="runTransfer()">
+                    <devtool-button
+                      variant="solid"
+                      [disabled]="transferBusy()"
+                      (pressed)="runTransfer()"
+                    >
                       ▶ transferir
                     </devtool-button>
                     @if (transferResult(); as r) {
                       <p class="dt-ok">✓ round-trip {{ r.ms }} ms · instantáneo</p>
                       <p class="dt-bad">⚠ main buffer DETACHED · byteLength 0</p>
                     } @else {
-                      <p class="dt-hint">// postMessage(msg, [buf]) · zero-copy, pero el main pierde el buffer</p>
+                      <p class="dt-hint">
+                        // postMessage(msg, [buf]) · zero-copy, pero el main pierde el buffer
+                      </p>
                     }
                   </div>
                   <div class="dt-col">
                     <h2>clone (structured)</h2>
                     <p class="dt-sub">copia byte por byte · el main lo conserva</p>
-                    <devtool-button [disabled]="transferBusy()" (pressed)="runClone()">▶ clonar</devtool-button>
+                    <devtool-button [disabled]="transferBusy()" (pressed)="runClone()"
+                      >▶ clonar</devtool-button
+                    >
                     @if (cloneResult(); as r) {
                       <p class="dt-ok">round-trip {{ r.ms }} ms · copió {{ r.mb }} MB</p>
                       <p class="dt-ok">✓ main conserva su copia ({{ r.mb }} MB)</p>
                     } @else {
-                      <p class="dt-hint">// postMessage(msg) · copia el buffer entero (cuesta para datos grandes)</p>
+                      <p class="dt-hint">
+                        // postMessage(msg) · copia el buffer entero (cuesta para datos grandes)
+                      </p>
                     }
                   </div>
                 </div>
@@ -341,7 +470,8 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
             @case ('shared-worker') {
               <section class="dt-panel">
                 <header class="dt-panel-h">
-                  // shared-worker · {{ swInstanceId() || '…' }} · clients: {{ swClients() }}{{ swSupported() ? '' : ' (simulado)' }}
+                  // shared-worker · {{ swInstanceId() || '…' }} · clients: {{ swClients()
+                  }}{{ swSupported() ? '' : ' (simulado)' }}
                 </header>
                 @if (content()?.whatToWatch; as ww) {
                   <p class="dt-panel-b dt-watch">{{ ww }}</p>
@@ -353,7 +483,9 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                       <p class="dt-sub">puerto {{ panel.label }} · mismo worker</p>
                       <div class="dt-sw-count">{{ swCount() }}</div>
                       <div class="dt-send">
-                        <devtool-button variant="solid" (pressed)="swInc(panel.label)">+1</devtool-button>
+                        <devtool-button variant="solid" (pressed)="swInc(panel.label)"
+                          >+1</devtool-button
+                        >
                         <devtool-button (pressed)="swReset(panel.label)">reset</devtool-button>
                         @if (swPanels().length > 1) {
                           <devtool-button (pressed)="swClose(panel.label)">close</devtool-button>
@@ -369,7 +501,9 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                           }
                         </div>
                       } @else {
-                        <p class="dt-hint">// +1 en un panel salta en TODOS: es la misma variable del worker</p>
+                        <p class="dt-hint">
+                          // +1 en un panel salta en TODOS: es la misma variable del worker
+                        </p>
                       }
                     </div>
                   }
@@ -382,14 +516,24 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
 
             @case ('worker-limits') {
               <section class="dt-panel">
-                <header class="dt-panel-h">// worker limits · navigator.hardwareConcurrency = {{ hardwareConcurrency() }}</header>
+                <header class="dt-panel-h">
+                  // worker limits · navigator.hardwareConcurrency = {{ hardwareConcurrency() }}
+                </header>
                 @if (content()?.whatToWatch; as ww) {
                   <p class="dt-panel-b dt-watch">{{ ww }}</p>
                 }
                 <div class="dt-panel-b">
                   <div class="dt-send">
-                    <devtool-button variant="solid" [disabled]="limitRunning()" (pressed)="runLimits()">
-                      {{ limitRunning() ? '▶ corriendo ' + currentWorkers() + '× …' : '▶ correr escala' }}
+                    <devtool-button
+                      variant="solid"
+                      [disabled]="limitRunning()"
+                      (pressed)="runLimits()"
+                    >
+                      {{
+                        limitRunning()
+                          ? '▶ corriendo ' + currentWorkers() + '× …'
+                          : '▶ correr escala'
+                      }}
                     </devtool-button>
                     @if (limitRuns().length && !limitRunning()) {
                       <devtool-button (pressed)="resetLimits()">reset</devtool-button>
@@ -398,16 +542,27 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                   @if (limitRuns().length) {
                     <div class="dt-lim">
                       @for (run of limitRuns(); track run.workers) {
-                        <div class="dt-lim-row" [attr.data-over]="run.workers > hardwareConcurrency()">
+                        <div
+                          class="dt-lim-row"
+                          [attr.data-over]="run.workers > hardwareConcurrency()"
+                        >
                           <span class="dt-lim-k">{{ run.workers }}×</span>
-                          <div class="dt-lim-bar"><div class="dt-lim-fill" [style.width.%]="limitPct(run.ms)"></div></div>
+                          <div class="dt-lim-bar">
+                            <div class="dt-lim-fill" [style.width.%]="limitPct(run.ms)"></div>
+                          </div>
                           <span class="dt-lim-ms">{{ run.ms }}ms</span>
                         </div>
                       }
                     </div>
-                    <p class="dt-ok">// plano hasta {{ hardwareConcurrency() }} núcleos · pasado eso el tiempo trepa, más workers no ayudan</p>
+                    <p class="dt-ok">
+                      // plano hasta {{ hardwareConcurrency() }} núcleos · pasado eso el tiempo
+                      trepa, más workers no ayudan
+                    </p>
                   } @else {
-                    <p class="dt-hint">// corre 1,2,4,8,16 workers a la vez con el mismo trabajo · mirá dónde el tiempo deja de bajar</p>
+                    <p class="dt-hint">
+                      // corre 1,2,4,8,16 workers a la vez con el mismo trabajo · mirá dónde el
+                      tiempo deja de bajar
+                    </p>
                   }
                 </div>
               </section>
@@ -415,14 +570,24 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
 
             @case ('worker-pool') {
               <section class="dt-panel">
-                <header class="dt-panel-h">// worker pool · {{ poolSize() }} workers · {{ poolTaskCount }} tareas</header>
+                <header class="dt-panel-h">
+                  // worker pool · {{ poolSize() }} workers · {{ poolTaskCount }} tareas
+                </header>
                 @if (content()?.whatToWatch; as ww) {
                   <p class="dt-panel-b dt-watch">{{ ww }}</p>
                 }
                 <div class="dt-panel-b">
                   <div class="dt-send">
-                    <devtool-button variant="solid" [disabled]="poolRunning()" (pressed)="runPool()">
-                      {{ poolRunning() ? '▶ procesando ' + poolProcessed() + '/' + poolTaskCount : '▶ procesar cola' }}
+                    <devtool-button
+                      variant="solid"
+                      [disabled]="poolRunning()"
+                      (pressed)="runPool()"
+                    >
+                      {{
+                        poolRunning()
+                          ? '▶ procesando ' + poolProcessed() + '/' + poolTaskCount
+                          : '▶ procesar cola'
+                      }}
                     </devtool-button>
                     @if (poolTasks().length && !poolRunning()) {
                       <devtool-button (pressed)="resetPool()">reset</devtool-button>
@@ -430,7 +595,9 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                   </div>
 
                   @if (poolTasks().length) {
-                    <p class="dt-sub">// cola — {{ poolProcessed() }} / {{ poolTaskCount }} hechas</p>
+                    <p class="dt-sub">
+                      // cola — {{ poolProcessed() }} / {{ poolTaskCount }} hechas
+                    </p>
                     <div class="dt-pool-queue">
                       @for (task of poolTasks(); track task.id) {
                         <span class="dt-pool-task" [attr.data-state]="task.state">
@@ -444,16 +611,26 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                       @for (slot of poolSlots(); track slot.id) {
                         <div class="dt-pool-slot" [attr.data-busy]="slot.busy">
                           <span class="dt-pool-slot-w">W{{ slot.id }}</span>
-                          <span class="dt-pool-slot-task">{{ slot.busy ? 'T' + slot.taskId : 'idle' }}</span>
+                          <span class="dt-pool-slot-task">{{
+                            slot.busy ? 'T' + slot.taskId : 'idle'
+                          }}</span>
                           <span class="dt-pool-slot-x">×{{ slot.processed }}</span>
                         </div>
                       }
                     </div>
 
-                    <p class="dt-ok">// pool: {{ workersCreated() }} workers creados, reusados {{ poolTaskCount }} veces</p>
-                    <p class="dt-bad">// sin pool: {{ spawnedWithoutPool }} workers (uno por tarea) — ver ejemplo 09</p>
+                    <p class="dt-ok">
+                      // pool: {{ workersCreated() }} workers creados, reusados
+                      {{ poolTaskCount }} veces
+                    </p>
+                    <p class="dt-bad">
+                      // sin pool: {{ spawnedWithoutPool }} workers (uno por tarea) — ver ejemplo 09
+                    </p>
                   } @else {
-                    <p class="dt-hint">// 24 tareas, 4 workers · tocá procesar: los 4 se reusan para drenar la cola (×N = cuántas despachó cada uno)</p>
+                    <p class="dt-hint">
+                      // 24 tareas, 4 workers · tocá procesar: los 4 se reusan para drenar la cola
+                      (×N = cuántas despachó cada uno)
+                    </p>
                   }
                 </div>
               </section>
@@ -461,7 +638,9 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
 
             @case ('backpressure') {
               <section class="dt-panel">
-                <header class="dt-panel-h">// backpressure · {{ bpTotal }} mensajes · ventana {{ bpWindow }}</header>
+                <header class="dt-panel-h">
+                  // backpressure · {{ bpTotal }} mensajes · ventana {{ bpWindow }}
+                </header>
                 @if (content()?.whatToWatch; as ww) {
                   <p class="dt-panel-b dt-watch">{{ ww }}</p>
                 }
@@ -469,29 +648,47 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                   <div class="dt-col">
                     <h2>sin backpressure</h2>
                     <p class="dt-sub">disparás las {{ bpTotal }} de una</p>
-                    <devtool-button variant="solid" [disabled]="bpMode() !== 'idle'" (pressed)="runNaive()">
+                    <devtool-button
+                      variant="solid"
+                      [disabled]="bpMode() !== 'idle'"
+                      (pressed)="runNaive()"
+                    >
                       ▶ disparar todo
                     </devtool-button>
                     @if (bpMode() === 'naive') {
                       <p class="dt-ok">// en cola: {{ bpPending() }}…</p>
                     } @else if (naivePeak(); as p) {
-                      <div class="dt-bp-bar" data-kind="naive"><div class="dt-bp-fill" [style.width.%]="bpPctOf(p)"></div></div>
-                      <p class="dt-bad">✗ pico en vuelo: {{ p }} · última: {{ naiveMaxLatency() }}ms</p>
+                      <div class="dt-bp-bar" data-kind="naive">
+                        <div class="dt-bp-fill" [style.width.%]="bpPctOf(p)"></div>
+                      </div>
+                      <p class="dt-bad">
+                        ✗ pico en vuelo: {{ p }} · última: {{ naiveMaxLatency() }}ms
+                      </p>
                     } @else {
-                      <p class="dt-hint">// el worker procesa de a uno · el resto se encola sin techo</p>
+                      <p class="dt-hint">
+                        // el worker procesa de a uno · el resto se encola sin techo
+                      </p>
                     }
                   </div>
                   <div class="dt-col">
                     <h2>con backpressure</h2>
                     <p class="dt-sub">ventana {{ bpWindow }} · esperás el ack</p>
-                    <devtool-button [disabled]="bpMode() !== 'idle'" (pressed)="runBackpressure()">▶ con control de flujo</devtool-button>
+                    <devtool-button [disabled]="bpMode() !== 'idle'" (pressed)="runBackpressure()"
+                      >▶ con control de flujo</devtool-button
+                    >
                     @if (bpMode() === 'backpressure') {
                       <p class="dt-ok">// en cola: {{ bpPending() }}…</p>
                     } @else if (bpPeak(); as p) {
-                      <div class="dt-bp-bar" data-kind="bp"><div class="dt-bp-fill" [style.width.%]="bpPctOf(p)"></div></div>
-                      <p class="dt-ok">✓ pico en vuelo: {{ p }} · última: {{ bpMaxLatency() }}ms, acotada</p>
+                      <div class="dt-bp-bar" data-kind="bp">
+                        <div class="dt-bp-fill" [style.width.%]="bpPctOf(p)"></div>
+                      </div>
+                      <p class="dt-ok">
+                        ✓ pico en vuelo: {{ p }} · última: {{ bpMaxLatency() }}ms, acotada
+                      </p>
                     } @else {
-                      <p class="dt-hint">// manda {{ bpWindow }}, espera ack, manda la próxima · cola acotada</p>
+                      <p class="dt-hint">
+                        // manda {{ bpWindow }}, espera ack, manda la próxima · cola acotada
+                      </p>
                     }
                   </div>
                 </div>
@@ -509,12 +706,21 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                     <p class="dt-bad">// backend simulado · SharedArrayBuffer necesita COOP/COEP</p>
                   }
                   <div class="dt-sm">
-                    <div class="dt-sm-side"><span class="dt-sm-who">main</span><span class="dt-sub">Atomics.load →</span></div>
+                    <div class="dt-sm-side">
+                      <span class="dt-sm-who">main</span><span class="dt-sub">Atomics.load →</span>
+                    </div>
                     <div class="dt-sm-cell">{{ smValue() }}</div>
-                    <div class="dt-sm-side dt-sm-r"><span class="dt-sm-who">worker</span><span class="dt-sub">← Atomics.add</span></div>
+                    <div class="dt-sm-side dt-sm-r">
+                      <span class="dt-sm-who">worker</span><span class="dt-sub">← Atomics.add</span>
+                    </div>
                   </div>
-                  <div class="dt-bar"><div class="dt-bar-fill" [style.width.%]="smPct()"></div></div>
-                  <p class="dt-bar-label">// 0 postMessage · es la misma memoria, escrita por el worker y leída por el main</p>
+                  <div class="dt-bar">
+                    <div class="dt-bar-fill" [style.width.%]="smPct()"></div>
+                  </div>
+                  <p class="dt-bar-label">
+                    // 0 postMessage · es la misma memoria, escrita por el worker y leída por el
+                    main
+                  </p>
                   <div class="dt-send">
                     <devtool-button variant="solid" [disabled]="smRunning()" (pressed)="startSm()">
                       {{ smRunning() ? '▶ contando ' + smValue() + '/' + smTarget : '▶ arrancar' }}
@@ -529,7 +735,10 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
 
             @case ('degradation') {
               <section class="dt-panel">
-                <header class="dt-panel-h">// graceful degradation · typeof Worker !== 'undefined' ? {{ degSupported() ? 'true' : 'false' }}</header>
+                <header class="dt-panel-h">
+                  // graceful degradation · typeof Worker !== 'undefined' ?
+                  {{ degSupported() ? 'true' : 'false' }}
+                </header>
                 @if (content()?.whatToWatch; as ww) {
                   <p class="dt-panel-b dt-watch">{{ ww }}</p>
                 }
@@ -547,12 +756,20 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                   </div>
                   @if (degResult(); as r) {
                     @if (r.path === 'worker') {
-                      <p class="dt-ok">✓ path: worker · {{ r.value }} primos · {{ r.ms }} ms · UI fluida</p>
+                      <p class="dt-ok">
+                        ✓ path: worker · {{ r.value }} primos · {{ r.ms }} ms · UI fluida
+                      </p>
                     } @else {
-                      <p class="dt-bad">⚠ path: main (fallback) · {{ r.value }} primos · {{ r.ms }} ms · UI congelada, mismo resultado</p>
+                      <p class="dt-bad">
+                        ⚠ path: main (fallback) · {{ r.value }} primos · {{ r.ms }} ms · UI
+                        congelada, mismo resultado
+                      </p>
                     }
                   } @else {
-                    <p class="dt-hint">// mismo código, dos caminos según el feature-detect · tildá el fallback y el resultado es idéntico, sólo cambia si la UI se traba</p>
+                    <p class="dt-hint">
+                      // mismo código, dos caminos según el feature-detect · tildá el fallback y el
+                      resultado es idéntico, sólo cambia si la UI se traba
+                    </p>
                   }
                 </div>
               </section>
@@ -560,26 +777,45 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
 
             @case ('clone-cost') {
               <section class="dt-panel">
-                <header class="dt-panel-h">// structured clone cost · postMessage round-trip</header>
+                <header class="dt-panel-h">
+                  // structured clone cost · postMessage round-trip
+                </header>
                 <p class="dt-panel-b dt-watch">
-                  {{ content()?.whatToWatch ?? 'Movés el tamaño y la complejidad, medís el round-trip real y mirás la curva trepar.' }}
+                  {{
+                    content()?.whatToWatch ??
+                      'Movés el tamaño y la complejidad, medís el round-trip real y mirás la curva trepar.'
+                  }}
                 </p>
                 <div class="dt-panel-b">
                   <div class="cc-ctl">
                     <label class="cc-field">
-                      <span>// tamaño: {{ ccSize() }} {{ ccSize() === 1 ? 'registro' : 'registros' }}</span>
+                      <span
+                        >// tamaño: {{ ccSize() }}
+                        {{ ccSize() === 1 ? 'registro' : 'registros' }}</span
+                      >
                       <input
-                        type="range" min="500" max="20000" step="500"
-                        [value]="ccSize()" [disabled]="cloneRunning()"
+                        type="range"
+                        min="500"
+                        max="20000"
+                        step="500"
+                        [value]="ccSize()"
+                        [disabled]="cloneRunning()"
                         (input)="ccSize.set(+$any($event.target).value)"
                         aria-label="Tamaño del payload en registros"
                       />
                     </label>
                     <label class="cc-field">
-                      <span>// complejidad: {{ ccDepth() }} {{ ccDepth() === 1 ? 'nivel' : 'niveles' }}</span>
+                      <span
+                        >// complejidad: {{ ccDepth() }}
+                        {{ ccDepth() === 1 ? 'nivel' : 'niveles' }}</span
+                      >
                       <input
-                        type="range" min="0" max="8" step="1"
-                        [value]="ccDepth()" [disabled]="cloneRunning()"
+                        type="range"
+                        min="0"
+                        max="8"
+                        step="1"
+                        [value]="ccDepth()"
+                        [disabled]="cloneRunning()"
                         (input)="ccDepth.set(+$any($event.target).value)"
                         aria-label="Complejidad: niveles de anidación"
                       />
@@ -587,7 +823,11 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                   </div>
 
                   <div class="dt-send">
-                    <devtool-button variant="solid" [disabled]="cloneRunning()" (pressed)="runCloneSweep()">
+                    <devtool-button
+                      variant="solid"
+                      [disabled]="cloneRunning()"
+                      (pressed)="runCloneSweep()"
+                    >
                       {{ cloneRunning() ? '▶ midiendo…' : '▶ medir' }}
                     </devtool-button>
                     @if (cloneMeasurements().length && !cloneRunning()) {
@@ -601,11 +841,16 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
 
                   @if (cloneLast(); as last) {
                     <p class="dt-ok">
-                      ✓ {{ cloneMeasurements().length }} mediciones · el payload de {{ fmtBytes(last.serializedBytes) }}
-                      tardó {{ fmtMs(last.ms) }} ms en ir y volver (profundidad {{ cloneDepthRun() }})
+                      ✓ {{ cloneMeasurements().length }} mediciones · el payload de
+                      {{ fmtBytes(last.serializedBytes) }} tardó {{ fmtMs(last.ms) }} ms en ir y
+                      volver (profundidad {{ cloneDepthRun() }})
                     </p>
                   } @else {
-                    <p class="dt-hint">// movés los sliders y tocás medir: mandamos payloads cada vez más grandes al worker y cronometramos el ida y vuelta REAL · cada punto es una medición tuya, no un número inventado</p>
+                    <p class="dt-hint">
+                      // movés los sliders y tocás medir: mandamos payloads cada vez más grandes al
+                      worker y cronometramos el ida y vuelta REAL · cada punto es una medición tuya,
+                      no un número inventado
+                    </p>
                   }
                 </div>
               </section>
@@ -615,14 +860,24 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
               <section class="dt-panel">
                 <header class="dt-panel-h">// el otro hilo: compositor · CSS vs JS</header>
                 <p class="dt-panel-b dt-watch">
-                  {{ content()?.whatToWatch ?? 'Bloqueá el main y mirá: la caja CSS sigue girando, la caja JS se congela.' }}
+                  {{
+                    content()?.whatToWatch ??
+                      'Bloqueá el main y mirá: la caja CSS sigue girando, la caja JS se congela.'
+                  }}
                 </p>
                 <div class="dt-panel-b">
                   <div class="dt-send">
-                    <devtool-button variant="solid" [disabled]="compMode() !== 'idle'" (pressed)="blockMainComp()">
+                    <devtool-button
+                      variant="solid"
+                      [disabled]="compMode() !== 'idle'"
+                      (pressed)="blockMainComp()"
+                    >
                       ▶ bloquear el main
                     </devtool-button>
-                    <devtool-button [disabled]="compMode() !== 'idle'" (pressed)="blockWorkerComp()">
+                    <devtool-button
+                      [disabled]="compMode() !== 'idle'"
+                      (pressed)="blockWorkerComp()"
+                    >
                       ▶ bloquear en un worker
                     </devtool-button>
                   </div>
@@ -640,7 +895,9 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                     </div>
                     <div class="dt-comp-cell">
                       <span class="dt-comp-tag">// FPS del main</span>
-                      <div class="dt-comp-fps" [attr.data-low]="mainFps() < 30">{{ mainFps() }}</div>
+                      <div class="dt-comp-fps" [attr.data-low]="mainFps() < 30">
+                        {{ mainFps() }}
+                      </div>
                       <span class="dt-comp-sub">~60 libre · ~0 bloqueado</span>
                     </div>
                   </div>
@@ -648,13 +905,20 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                   <div aria-live="polite">
                     @switch (compMode()) {
                       @case ('main') {
-                        <p class="dt-bad">▶ bloqueando el MAIN… la caja JS y los FPS están congelados; la CSS no.</p>
+                        <p class="dt-bad">
+                          ▶ bloqueando el MAIN… la caja JS y los FPS están congelados; la CSS no.
+                        </p>
                       }
                       @case ('worker') {
-                        <p class="dt-ok">▶ el MISMO cómputo corre en un worker… el main sigue libre, todo fluido.</p>
+                        <p class="dt-ok">
+                          ▶ el MISMO cómputo corre en un worker… el main sigue libre, todo fluido.
+                        </p>
                       }
                       @default {
-                        <p class="dt-hint">// tocá «bloquear el main»: se congela todo MENOS la caja CSS (la mueve el compositor, otro hilo) · después probá en un worker: nada se congela</p>
+                        <p class="dt-hint">
+                          // tocá «bloquear el main»: se congela todo MENOS la caja CSS (la mueve el
+                          compositor, otro hilo) · después probá en un worker: nada se congela
+                        </p>
                       }
                     }
                   </div>
@@ -1369,9 +1633,7 @@ export class DevToolExampleLayoutComponent {
   protected readonly limitRuns = this.limits.runs;
   protected readonly limitRunning = this.limits.running;
   protected readonly currentWorkers = this.limits.currentWorkers;
-  private readonly limitMaxMs = computed(() =>
-    Math.max(1, ...this.limitRuns().map((r) => r.ms)),
-  );
+  private readonly limitMaxMs = computed(() => Math.max(1, ...this.limitRuns().map((r) => r.ms)));
 
   // worker-pool (10)
   protected readonly poolTasks = this.pool.tasks;

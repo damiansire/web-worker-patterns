@@ -5,7 +5,13 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
 @Component({
   selector: 'narrative-button',
   template: `
-    <button type="button" class="n-btn" [attr.data-variant]="variant()" [disabled]="disabled()" (click)="pressed.emit()">
+    <button
+      type="button"
+      class="n-btn"
+      [attr.data-variant]="variant()"
+      [disabled]="disabled()"
+      (click)="pressed.emit()"
+    >
       <ng-content />
     </button>
   `,
@@ -20,7 +26,9 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
         border: var(--border-width) solid var(--border);
         border-radius: var(--radius);
         cursor: pointer;
-        transition: box-shadow 0.2s, transform 0.2s;
+        transition:
+          box-shadow 0.2s,
+          transform 0.2s;
       }
       .n-btn[data-variant='solid'] {
         background: var(--accent);

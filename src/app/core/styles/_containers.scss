@@ -7,7 +7,9 @@ h1 {
   font-weight: 900;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.2), 0 0 20px rgba(6, 182, 212, 0.2);
+  text-shadow:
+    0 0 10px rgba(255, 255, 255, 0.2),
+    0 0 20px rgba(6, 182, 212, 0.2);
 }
 
 .subtitle {
@@ -54,8 +56,8 @@ h3 {
     letter-spacing: 0.2em;
   }
 
-  input[type="number"],
-  input[type="text"] {
+  input[type='number'],
+  input[type='text'] {
     width: 100%;
     padding: 12px 14px;
     background: #000;
@@ -65,14 +67,18 @@ h3 {
     font-family: var(--font-mono);
     color: var(--cyan-400);
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
 
     &:focus {
       border-color: var(--cyan-500);
       box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
     }
 
-    &::placeholder { color: #334155; }
+    &::placeholder {
+      color: #334155;
+    }
   }
 }
 
@@ -100,7 +106,9 @@ h3 {
     font-family: var(--font-mono);
     color: var(--cyan-400);
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
 
     &:focus {
       border-color: var(--cyan-500);
@@ -112,7 +120,9 @@ h3 {
       cursor: not-allowed;
     }
 
-    &::placeholder { color: #334155; }
+    &::placeholder {
+      color: #334155;
+    }
   }
 }
 
@@ -143,7 +153,7 @@ h3 {
       font-family: var(--font-mono);
     }
 
-    input[type="number"] {
+    input[type='number'] {
       padding: 10px 14px;
       background: #000;
       border: 1px solid #334155;
@@ -175,7 +185,9 @@ h3 {
   line-height: 1.8;
   color: var(--text-secondary);
 
-  strong { color: var(--cyan-400); }
+  strong {
+    color: var(--cyan-400);
+  }
 }
 
 .warning {
@@ -187,7 +199,9 @@ h3 {
   font-size: 13px;
   color: #fbbf24;
 
-  strong { color: #fde68a; }
+  strong {
+    color: #fde68a;
+  }
 }
 
 // ─── Spinner ───────────────────────────────────────────────────────────────────
@@ -202,7 +216,9 @@ h3 {
   margin: 16px auto;
   box-shadow: var(--glow-cyan);
 
-  &.active { display: block; }
+  &.active {
+    display: block;
+  }
 }
 
 // ─── Progress bar (shared) ─────────────────────────────────────────────────────

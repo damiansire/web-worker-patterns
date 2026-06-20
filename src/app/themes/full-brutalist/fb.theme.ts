@@ -8,8 +8,7 @@ import { ThemePack } from '../../theming/theme.types';
 export const FULL_BRUTALIST_THEME: ThemePack = {
   id: 'full-brutalist',
   label: 'Full Brutalist',
-  shell: () =>
-    import('./shell/fb-shell.component').then((m) => m.FullBrutalistShellComponent),
+  shell: () => import('./shell/fb-shell.component').then((m) => m.FullBrutalistShellComponent),
   home: () => import('./home/fb-home.component').then((m) => m.FullBrutalistHomeComponent),
   exampleLayout: () =>
     import('./example-layout/fb-example-layout.component').then(

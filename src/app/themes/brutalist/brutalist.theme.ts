@@ -9,8 +9,7 @@ import { ThemePack } from '../../theming/theme.types';
 export const BRUTALIST_THEME: ThemePack = {
   id: 'brutalist',
   label: 'Brutalist',
-  shell: () =>
-    import('./shell/brutalist-shell.component').then((m) => m.BrutalistShellComponent),
+  shell: () => import('./shell/brutalist-shell.component').then((m) => m.BrutalistShellComponent),
   home: () => import('./home/brutalist-home.component').then((m) => m.BrutalistHomeComponent),
   exampleLayout: () =>
     import('./example-layout/brutalist-example-layout.component').then(

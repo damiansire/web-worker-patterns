@@ -7,12 +7,7 @@ import { Type } from '@angular/core';
  * transitorio `skeleton`, que validó el motor durante la migración, se retiró
  * al completarse los themes reales.)
  */
-export type ThemeId =
-  | 'brutalist'
-  | 'full-brutalist'
-  | 'dev-tool'
-  | 'narrative'
-  | 'editorial';
+export type ThemeId = 'brutalist' | 'full-brutalist' | 'dev-tool' | 'narrative' | 'editorial';
 
 export interface ThemePack {
   id: ThemeId;

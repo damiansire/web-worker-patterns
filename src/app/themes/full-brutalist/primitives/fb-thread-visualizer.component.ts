@@ -19,7 +19,11 @@ import { ThreadVisualizerContract } from '../../../ui-contracts/thread-visualize
           <span class="b-lane-label" [class.is-active]="isActive(lane)">{{ lane.label }}</span>
           <div class="b-track">
             @for (seg of lane.segments; track $index) {
-              <span class="b-cell" [attr.data-state]="seg.state" [style.flexGrow]="grow(seg)"></span>
+              <span
+                class="b-cell"
+                [attr.data-state]="seg.state"
+                [style.flexGrow]="grow(seg)"
+              ></span>
             }
           </div>
         </div>

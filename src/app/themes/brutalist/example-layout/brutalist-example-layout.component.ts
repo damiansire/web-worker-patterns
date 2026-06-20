@@ -75,20 +75,31 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
             @case ('thread-block') {
               <brutalist-card title="Worker vs Main thread">
                 <p class="b-lead">
-                  {{ content()?.whatToWatch ?? 'Mismo contador, dos hilos. Corré los dos y mirá la diferencia.' }}
+                  {{
+                    content()?.whatToWatch ??
+                      'Mismo contador, dos hilos. Corré los dos y mirá la diferencia.'
+                  }}
                 </p>
                 <div class="b-cmp">
                   <div class="b-col">
                     <h2>En un Worker</h2>
                     <p class="b-col-sub">el main queda libre · la UI sigue fluida</p>
-                    <brutalist-button variant="solid" [disabled]="phase() === 'worker'" (pressed)="runWorker()">
+                    <brutalist-button
+                      variant="solid"
+                      [disabled]="phase() === 'worker'"
+                      (pressed)="runWorker()"
+                    >
                       Correr en worker
                     </brutalist-button>
                     @if (workerLanes(); as wl) {
-                      <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: wl, elapsedMs: 0 }" />
+                      <ng-container
+                        *ngComponentOutlet="visualizer; inputs: { lanes: wl, elapsedMs: 0 }"
+                      />
                       <p class="b-foot">✓ {{ workerTicks() }} ticks · la UI nunca se trabó</p>
                     } @else {
-                      <p class="b-hint">Tocá para ver el worker emitir ticks mientras el main queda libre.</p>
+                      <p class="b-hint">
+                        Tocá para ver el worker emitir ticks mientras el main queda libre.
+                      </p>
                     }
                   </div>
 
@@ -99,10 +110,16 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
                       Bloquear main
                     </brutalist-button>
                     @if (mainLanes(); as ml) {
-                      <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: ml, elapsedMs: 0 }" />
-                      <p class="b-foot b-danger">✗ se congeló · {{ mainTicks() }} ticks que no se pintaron</p>
+                      <ng-container
+                        *ngComponentOutlet="visualizer; inputs: { lanes: ml, elapsedMs: 0 }"
+                      />
+                      <p class="b-foot b-danger">
+                        ✗ se congeló · {{ mainTicks() }} ticks que no se pintaron
+                      </p>
                     } @else {
-                      <p class="b-hint">Tocá y la página se congela: el contador no actualiza, los clicks mueren.</p>
+                      <p class="b-hint">
+                        Tocá y la página se congela: el contador no actualiza, los clicks mueren.
+                      </p>
                     }
                   </div>
                 </div>
@@ -112,7 +129,10 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
             @case ('message-exchange') {
               <brutalist-card title="Ida y vuelta">
                 <p class="b-lead">
-                  {{ content()?.whatToWatch ?? 'Enviá un mensaje y mirá el ida y vuelta entre el main y el worker.' }}
+                  {{
+                    content()?.whatToWatch ??
+                      'Enviá un mensaje y mirá el ida y vuelta entre el main y el worker.'
+                  }}
                 </p>
 
                 <div class="b-send">
@@ -125,7 +145,11 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
                     aria-label="Mensaje para enviar al worker"
                     (keyup.enter)="send(msg.value); msg.value = ''"
                   />
-                  <brutalist-button variant="solid" [disabled]="pending()" (pressed)="send(msg.value); msg.value = ''">
+                  <brutalist-button
+                    variant="solid"
+                    [disabled]="pending()"
+                    (pressed)="send(msg.value); msg.value = ''"
+                  >
                     Enviar →
                   </brutalist-button>
                   @if (messages().length) {
@@ -137,7 +161,9 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
                   <div class="b-flow">
                     @for (m of messages(); track m.direction + m.id) {
                       <div class="b-msg" [attr.data-dir]="m.direction">
-                        <span class="b-msg-tag">{{ m.direction === 'out' ? 'MAIN →' : '← WORKER' }}</span>
+                        <span class="b-msg-tag">{{
+                          m.direction === 'out' ? 'MAIN →' : '← WORKER'
+                        }}</span>
                         <span class="b-msg-text">{{ m.text }}</span>
                         @if (m.meta) {
                           <span class="b-msg-meta">· {{ m.meta }}</span>
@@ -155,7 +181,10 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
                     }
                   </div>
                 } @else {
-                  <p class="b-hint">Escribí un mensaje y enviálo: va al worker (→) y vuelve la respuesta (←) con su round-trip.</p>
+                  <p class="b-hint">
+                    Escribí un mensaje y enviálo: va al worker (→) y vuelve la respuesta (←) con su
+                    round-trip.
+                  </p>
                 }
               </brutalist-card>
             }
@@ -163,41 +192,70 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
             @case ('offload') {
               <brutalist-card title="Cómputo pesado">
                 <p class="b-lead">
-                  {{ content()?.whatToWatch ?? 'El mismo cálculo pesado en los dos hilos. Mirá cuál congela la UI.' }}
+                  {{
+                    content()?.whatToWatch ??
+                      'El mismo cálculo pesado en los dos hilos. Mirá cuál congela la UI.'
+                  }}
                 </p>
 
                 <div class="b-nrow">
                   <span class="b-nlabel">N =</span>
-                  <input #n type="number" class="b-input-n" value="500000" min="10000" step="100000" aria-label="N: contar primos hasta este número" />
-                  <span class="b-nhint">contar primos hasta N (subilo para que el freeze dure más)</span>
+                  <input
+                    #n
+                    type="number"
+                    class="b-input-n"
+                    value="500000"
+                    min="10000"
+                    step="100000"
+                    aria-label="N: contar primos hasta este número"
+                  />
+                  <span class="b-nhint"
+                    >contar primos hasta N (subilo para que el freeze dure más)</span
+                  >
                 </div>
 
                 <div class="b-cmp">
                   <div class="b-col">
                     <h2>En un Worker</h2>
                     <p class="b-col-sub">corre en otro hilo · la UI sigue fluida</p>
-                    <brutalist-button variant="solid" [disabled]="computePhase() === 'worker'" (pressed)="computeWorker(n.value)">
+                    <brutalist-button
+                      variant="solid"
+                      [disabled]="computePhase() === 'worker'"
+                      (pressed)="computeWorker(n.value)"
+                    >
                       Calcular en worker
                     </brutalist-button>
                     @if (computePhase() === 'worker') {
                       <p class="b-foot">calculando… ⏱ {{ liveMs() }} ms · la UI responde</p>
                     } @else if (workerResult(); as r) {
-                      <p class="b-foot">✓ {{ r.count }} primos · {{ r.ms }} ms · la UI nunca se trabó</p>
+                      <p class="b-foot">
+                        ✓ {{ r.count }} primos · {{ r.ms }} ms · la UI nunca se trabó
+                      </p>
                     } @else {
-                      <p class="b-hint">Tocá: el cálculo corre en otro hilo y el cronómetro sigue subiendo — el main queda libre.</p>
+                      <p class="b-hint">
+                        Tocá: el cálculo corre en otro hilo y el cronómetro sigue subiendo — el main
+                        queda libre.
+                      </p>
                     }
                   </div>
 
                   <div class="b-col">
                     <h2>En el Main thread</h2>
                     <p class="b-col-sub">bloquea el hilo · la UI se congela</p>
-                    <brutalist-button [disabled]="computePhase() === 'main'" (pressed)="computeMain(n.value)">
+                    <brutalist-button
+                      [disabled]="computePhase() === 'main'"
+                      (pressed)="computeMain(n.value)"
+                    >
                       Calcular en el main
                     </brutalist-button>
                     @if (mainResult(); as r) {
-                      <p class="b-foot b-danger">✗ {{ r.count }} primos · la página se congeló {{ r.ms }} ms</p>
+                      <p class="b-foot b-danger">
+                        ✗ {{ r.count }} primos · la página se congeló {{ r.ms }} ms
+                      </p>
                     } @else {
-                      <p class="b-hint">Tocá y la página entera se congela hasta terminar: no podés ni scrollear.</p>
+                      <p class="b-hint">
+                        Tocá y la página entera se congela hasta terminar: no podés ni scrollear.
+                      </p>
                     }
                   </div>
                 </div>
@@ -207,38 +265,84 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
             @case ('offscreen-canvas') {
               <brutalist-card title="Render fuera del main">
                 <p class="b-lead">
-                  {{ content()?.whatToWatch ?? 'Dos relojes gemelos. Bloqueá el main y mirá cuál se congela.' }}
+                  {{
+                    content()?.whatToWatch ??
+                      'Dos relojes gemelos. Bloqueá el main y mirá cuál se congela.'
+                  }}
                 </p>
                 @if (!ocSupported()) {
-                  <p class="b-foot b-danger">backend simulado · este navegador no soporta OffscreenCanvas: los dos relojes corren en el main</p>
+                  <p class="b-foot b-danger">
+                    backend simulado · este navegador no soporta OffscreenCanvas: los dos relojes
+                    corren en el main
+                  </p>
                 }
                 <div class="b-oc-ctl">
-                  <brutalist-button variant="solid" [disabled]="ocRunning()" (pressed)="ocStart()">Iniciar animación</brutalist-button>
-                  <brutalist-button [disabled]="!ocRunning() || ocBlocked()" (pressed)="ocBlock()">Bloquear main 2,5s</brutalist-button>
+                  <brutalist-button variant="solid" [disabled]="ocRunning()" (pressed)="ocStart()"
+                    >Iniciar animación</brutalist-button
+                  >
+                  <brutalist-button [disabled]="!ocRunning() || ocBlocked()" (pressed)="ocBlock()"
+                    >Bloquear main 2,5s</brutalist-button
+                  >
                 </div>
                 <div class="b-cmp">
                   <div class="b-col">
                     <h2>En un Worker</h2>
                     <p class="b-col-sub">dibuja en otro hilo · sigue fluido</p>
                     <div class="b-oc-frame">
-                      <canvas #ocWorker class="b-oc-canvas" width="240" height="240" role="img"
-                        [attr.aria-label]="ocRunning() ? 'Reloj animado por un worker, fluido' : 'Reloj del worker, detenido'"></canvas>
+                      <canvas
+                        #ocWorker
+                        class="b-oc-canvas"
+                        width="240"
+                        height="240"
+                        role="img"
+                        [attr.aria-label]="
+                          ocRunning()
+                            ? 'Reloj animado por un worker, fluido'
+                            : 'Reloj del worker, detenido'
+                        "
+                      ></canvas>
                     </div>
-                    <p class="b-foot">{{ ocRunning() ? ocWorkerFps() + ' fps · frame ' + ocWorkerFrames() : 'tocá Iniciar' }}</p>
+                    <p class="b-foot">
+                      {{
+                        ocRunning()
+                          ? ocWorkerFps() + ' fps · frame ' + ocWorkerFrames()
+                          : 'tocá Iniciar'
+                      }}
+                    </p>
                   </div>
                   <div class="b-col">
                     <h2>En el Main thread</h2>
                     <p class="b-col-sub">dibuja en el main · se congela al bloquear</p>
                     <div class="b-oc-frame" [class.b-oc-dead]="ocBlocked()">
-                      <canvas #ocMain class="b-oc-canvas" width="240" height="240" role="img"
-                        [attr.aria-label]="ocBlocked() ? 'Reloj del main, congelado' : 'Reloj animado por el main thread'"></canvas>
+                      <canvas
+                        #ocMain
+                        class="b-oc-canvas"
+                        width="240"
+                        height="240"
+                        role="img"
+                        [attr.aria-label]="
+                          ocBlocked()
+                            ? 'Reloj del main, congelado'
+                            : 'Reloj animado por el main thread'
+                        "
+                      ></canvas>
                     </div>
                     @if (ocBlocked()) {
-                      <p class="b-foot b-danger" aria-live="polite">main congelado — no pinta frames</p>
+                      <p class="b-foot b-danger" aria-live="polite">
+                        main congelado — no pinta frames
+                      </p>
                     } @else if (ocSkipped()) {
-                      <p class="b-foot b-danger">saltó {{ ocSkipped() }} frames de golpe al volver</p>
+                      <p class="b-foot b-danger">
+                        saltó {{ ocSkipped() }} frames de golpe al volver
+                      </p>
                     } @else {
-                      <p class="b-foot">{{ ocRunning() ? ocMainFps() + ' fps · frame ' + ocMainFrames() : 'tocá Iniciar' }}</p>
+                      <p class="b-foot">
+                        {{
+                          ocRunning()
+                            ? ocMainFps() + ' fps · frame ' + ocMainFrames()
+                            : 'tocá Iniciar'
+                        }}
+                      </p>
                     }
                   </div>
                 </div>
@@ -248,7 +352,10 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
             @case ('error-handling') {
               <brutalist-card title="Errores que no rompen">
                 <p class="b-lead">
-                  {{ content()?.whatToWatch ?? 'Tirá una tarea que falla y mirá cómo el main captura el error sin romperse.' }}
+                  {{
+                    content()?.whatToWatch ??
+                      'Tirá una tarea que falla y mirá cómo el main captura el error sin romperse.'
+                  }}
                 </p>
 
                 <div class="b-send">
@@ -277,9 +384,14 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
                       </div>
                     }
                   </div>
-                  <p class="b-foot">▸ La app sigue viva: el worker no se murió, seguí tirando tareas.</p>
+                  <p class="b-foot">
+                    ▸ La app sigue viva: el worker no se murió, seguí tirando tareas.
+                  </p>
                 } @else {
-                  <p class="b-hint">Probá el JSON válido (✓ devuelve las claves) y después el roto (✗ el main lo captura con onerror). La página no se rompe.</p>
+                  <p class="b-hint">
+                    Probá el JSON válido (✓ devuelve las claves) y después el roto (✗ el main lo
+                    captura con onerror). La página no se rompe.
+                  </p>
                 }
               </brutalist-card>
             }
@@ -287,14 +399,24 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
             @case ('lifecycle') {
               <brutalist-card title="Ciclo de vida">
                 <p class="b-lead">
-                  {{ content()?.whatToWatch ?? 'Arrancá la tarea larga y cortala a mitad: el trabajo en curso se pierde.' }}
+                  {{
+                    content()?.whatToWatch ??
+                      'Arrancá la tarea larga y cortala a mitad: el trabajo en curso se pierde.'
+                  }}
                 </p>
 
                 <div class="b-send">
-                  <brutalist-button variant="solid" [disabled]="lifeStatus() === 'running'" (pressed)="startLife()">
+                  <brutalist-button
+                    variant="solid"
+                    [disabled]="lifeStatus() === 'running'"
+                    (pressed)="startLife()"
+                  >
                     Iniciar tarea
                   </brutalist-button>
-                  <brutalist-button [disabled]="lifeStatus() !== 'running'" (pressed)="terminateLife()">
+                  <brutalist-button
+                    [disabled]="lifeStatus() !== 'running'"
+                    (pressed)="terminateLife()"
+                  >
                     Terminar (terminate)
                   </brutalist-button>
                   @if (lifeStatus() !== 'idle') {
@@ -309,16 +431,26 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
 
                 @switch (lifeStatus()) {
                   @case ('idle') {
-                    <p class="b-hint">Tocá Iniciar: el worker corre una tarea larga por pasos. Cortala a mitad con Terminar y mirá qué pasa.</p>
+                    <p class="b-hint">
+                      Tocá Iniciar: el worker corre una tarea larga por pasos. Cortala a mitad con
+                      Terminar y mirá qué pasa.
+                    </p>
                   }
                   @case ('running') {
                     <p class="b-foot">▶ corriendo… el worker está vivo emitiendo progreso.</p>
                   }
                   @case ('terminated') {
-                    <p class="b-foot b-danger">✗ Terminado en el paso {{ lifeStep() }}/{{ lifeSteps() }} — el trabajo en curso se descartó y el worker ya no existe. Iniciá de nuevo: se crea uno nuevo.</p>
+                    <p class="b-foot b-danger">
+                      ✗ Terminado en el paso {{ lifeStep() }}/{{ lifeSteps() }} — el trabajo en
+                      curso se descartó y el worker ya no existe. Iniciá de nuevo: se crea uno
+                      nuevo.
+                    </p>
                   }
                   @case ('done') {
-                    <p class="b-foot">✓ Completado {{ lifeSteps() }}/{{ lifeSteps() }} — el worker terminó su trabajo y se cerró solo (self.close).</p>
+                    <p class="b-foot">
+                      ✓ Completado {{ lifeSteps() }}/{{ lifeSteps() }} — el worker terminó su
+                      trabajo y se cerró solo (self.close).
+                    </p>
                   }
                 }
               </brutalist-card>
@@ -327,7 +459,10 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
             @case ('transferable') {
               <brutalist-card title="Transferir vs Clonar">
                 <p class="b-lead">
-                  {{ content()?.whatToWatch ?? 'El mismo buffer, dos formas de mandarlo. Mirá el round-trip y qué le pasa al buffer del main.' }}
+                  {{
+                    content()?.whatToWatch ??
+                      'El mismo buffer, dos formas de mandarlo. Mirá el round-trip y qué le pasa al buffer del main.'
+                  }}
                 </p>
                 <p class="b-bar-label">buffer de prueba: {{ transferMb }} MB</p>
 
@@ -335,26 +470,44 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
                   <div class="b-col">
                     <h2>Transferir (zero-copy)</h2>
                     <p class="b-col-sub">cambia de dueño · no copia</p>
-                    <brutalist-button variant="solid" [disabled]="transferBusy()" (pressed)="runTransfer()">
+                    <brutalist-button
+                      variant="solid"
+                      [disabled]="transferBusy()"
+                      (pressed)="runTransfer()"
+                    >
                       Transferir buffer
                     </brutalist-button>
                     @if (transferResult(); as r) {
-                      <p class="b-foot">✓ round-trip {{ r.ms }} ms — instantáneo aunque sea grande</p>
-                      <p class="b-foot b-danger">⚠ el buffer del main quedó DETACHED (0 B): cambió de dueño</p>
+                      <p class="b-foot">
+                        ✓ round-trip {{ r.ms }} ms — instantáneo aunque sea grande
+                      </p>
+                      <p class="b-foot b-danger">
+                        ⚠ el buffer del main quedó DETACHED (0 B): cambió de dueño
+                      </p>
                     } @else {
-                      <p class="b-hint">Pasás el buffer en la transfer list: no se copia, pero el main pierde la propiedad (queda en 0 bytes).</p>
+                      <p class="b-hint">
+                        Pasás el buffer en la transfer list: no se copia, pero el main pierde la
+                        propiedad (queda en 0 bytes).
+                      </p>
                     }
                   </div>
 
                   <div class="b-col">
                     <h2>Clonar (structured clone)</h2>
                     <p class="b-col-sub">copia byte por byte · el main lo conserva</p>
-                    <brutalist-button [disabled]="transferBusy()" (pressed)="runClone()">Clonar buffer</brutalist-button>
+                    <brutalist-button [disabled]="transferBusy()" (pressed)="runClone()"
+                      >Clonar buffer</brutalist-button
+                    >
                     @if (cloneResult(); as r) {
-                      <p class="b-foot">round-trip {{ r.ms }} ms — más lento: copió {{ r.mb }} MB</p>
+                      <p class="b-foot">
+                        round-trip {{ r.ms }} ms — más lento: copió {{ r.mb }} MB
+                      </p>
                       <p class="b-foot">✓ el main conserva su copia intacta ({{ r.mb }} MB)</p>
                     } @else {
-                      <p class="b-hint">Sin transfer list, postMessage copia el buffer entero. El main se queda con el suyo, pero la copia cuesta.</p>
+                      <p class="b-hint">
+                        Sin transfer list, postMessage copia el buffer entero. El main se queda con
+                        el suyo, pero la copia cuesta.
+                      </p>
                     }
                   </div>
                 </div>
@@ -364,14 +517,19 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
             @case ('shared-worker') {
               <brutalist-card title="Un worker, varias conexiones">
                 <p class="b-lead">
-                  {{ content()?.whatToWatch ?? 'El mismo contador en los dos paneles: es UNA variable adentro del worker.' }}
+                  {{
+                    content()?.whatToWatch ??
+                      'El mismo contador en los dos paneles: es UNA variable adentro del worker.'
+                  }}
                 </p>
 
                 <div class="b-sw-banner">
                   <span class="b-sw-id">⬡ SharedWorker {{ swInstanceId() || '…' }}</span>
                   <span class="b-sw-clients">clientes conectados: {{ swClients() }}</span>
                   @if (!swSupported()) {
-                    <span class="b-sw-sim">backend simulado · tu navegador no soporta SharedWorker</span>
+                    <span class="b-sw-sim"
+                      >backend simulado · tu navegador no soporta SharedWorker</span
+                    >
                   }
                 </div>
 
@@ -382,10 +540,14 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
                       <p class="b-col-sub">puerto {{ panel.label }} · mismo worker</p>
                       <div class="b-sw-count">{{ swCount() }}</div>
                       <div class="b-send">
-                        <brutalist-button variant="solid" (pressed)="swInc(panel.label)">+1</brutalist-button>
+                        <brutalist-button variant="solid" (pressed)="swInc(panel.label)"
+                          >+1</brutalist-button
+                        >
                         <brutalist-button (pressed)="swReset(panel.label)">reset</brutalist-button>
                         @if (swPanels().length > 1) {
-                          <brutalist-button (pressed)="swClose(panel.label)">cerrar</brutalist-button>
+                          <brutalist-button (pressed)="swClose(panel.label)"
+                            >cerrar</brutalist-button
+                          >
                         }
                       </div>
                       @if (panel.logs.length) {
@@ -398,7 +560,10 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
                           }
                         </div>
                       } @else {
-                        <p class="b-hint">Tocá +1: el número salta en los DOS paneles. Es el mismo contador, no dos copias.</p>
+                        <p class="b-hint">
+                          Tocá +1: el número salta en los DOS paneles. Es el mismo contador, no dos
+                          copias.
+                        </p>
                       }
                     </div>
                   }
@@ -411,13 +576,22 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
             @case ('worker-limits') {
               <brutalist-card title="Cuántos workers ayudan">
                 <p class="b-lead">
-                  {{ content()?.whatToWatch ?? 'Corremos K workers a la vez con el mismo trabajo. Mirá dónde el tiempo deja de bajar.' }}
+                  {{
+                    content()?.whatToWatch ??
+                      'Corremos K workers a la vez con el mismo trabajo. Mirá dónde el tiempo deja de bajar.'
+                  }}
                 </p>
                 <p class="b-bar-label">Tu CPU: {{ hardwareConcurrency() }} núcleos lógicos</p>
 
                 <div class="b-send">
-                  <brutalist-button variant="solid" [disabled]="limitRunning()" (pressed)="runLimits()">
-                    {{ limitRunning() ? 'corriendo ' + currentWorkers() + '× …' : 'Correr la escala' }}
+                  <brutalist-button
+                    variant="solid"
+                    [disabled]="limitRunning()"
+                    (pressed)="runLimits()"
+                  >
+                    {{
+                      limitRunning() ? 'corriendo ' + currentWorkers() + '× …' : 'Correr la escala'
+                    }}
                   </brutalist-button>
                   @if (limitRuns().length && !limitRunning()) {
                     <brutalist-button (pressed)="resetLimits()">Reset</brutalist-button>
@@ -429,14 +603,22 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
                     @for (run of limitRuns(); track run.workers) {
                       <div class="b-lim-row" [attr.data-over]="run.workers > hardwareConcurrency()">
                         <span class="b-lim-k">{{ run.workers }}×</span>
-                        <div class="b-lim-bar"><div class="b-lim-fill" [style.width.%]="limitPct(run.ms)"></div></div>
+                        <div class="b-lim-bar">
+                          <div class="b-lim-fill" [style.width.%]="limitPct(run.ms)"></div>
+                        </div>
                         <span class="b-lim-ms">{{ run.ms }} ms</span>
                       </div>
                     }
                   </div>
-                  <p class="b-foot">▸ Plano hasta {{ hardwareConcurrency() }} (tus núcleos); pasado eso el tiempo trepa — más workers no ayudan.</p>
+                  <p class="b-foot">
+                    ▸ Plano hasta {{ hardwareConcurrency() }} (tus núcleos); pasado eso el tiempo
+                    trepa — más workers no ayudan.
+                  </p>
                 } @else {
-                  <p class="b-hint">Corre 1, 2, 4, 8 y 16 workers a la vez con el mismo cómputo. El tiempo se mantiene plano mientras entren en tus núcleos.</p>
+                  <p class="b-hint">
+                    Corre 1, 2, 4, 8 y 16 workers a la vez con el mismo cómputo. El tiempo se
+                    mantiene plano mientras entren en tus núcleos.
+                  </p>
                 }
               </brutalist-card>
             }
@@ -444,12 +626,23 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
             @case ('worker-pool') {
               <brutalist-card title="Pool de workers">
                 <p class="b-lead">
-                  {{ content()?.whatToWatch ?? '4 workers se reusan para drenar 24 tareas. Mirá el contador de cada uno subir.' }}
+                  {{
+                    content()?.whatToWatch ??
+                      '4 workers se reusan para drenar 24 tareas. Mirá el contador de cada uno subir.'
+                  }}
                 </p>
 
                 <div class="b-send">
-                  <brutalist-button variant="solid" [disabled]="poolRunning()" (pressed)="runPool()">
-                    {{ poolRunning() ? 'procesando… ' + poolProcessed() + '/' + poolTaskCount : 'Procesar la cola' }}
+                  <brutalist-button
+                    variant="solid"
+                    [disabled]="poolRunning()"
+                    (pressed)="runPool()"
+                  >
+                    {{
+                      poolRunning()
+                        ? 'procesando… ' + poolProcessed() + '/' + poolTaskCount
+                        : 'Procesar la cola'
+                    }}
                   </brutalist-button>
                   @if (poolTasks().length && !poolRunning()) {
                     <brutalist-button (pressed)="resetPool()">Reset</brutalist-button>
@@ -457,7 +650,9 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
                 </div>
 
                 @if (poolTasks().length) {
-                  <p class="b-bar-label">Cola — {{ poolProcessed() }} / {{ poolTaskCount }} hechas</p>
+                  <p class="b-bar-label">
+                    Cola — {{ poolProcessed() }} / {{ poolTaskCount }} hechas
+                  </p>
                   <div class="b-pool-queue">
                     @for (task of poolTasks(); track task.id) {
                       <span class="b-pool-task" [attr.data-state]="task.state">
@@ -471,16 +666,27 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
                     @for (slot of poolSlots(); track slot.id) {
                       <div class="b-pool-slot" [attr.data-busy]="slot.busy">
                         <span class="b-pool-slot-w">W{{ slot.id }}</span>
-                        <span class="b-pool-slot-task">{{ slot.busy ? 'T' + slot.taskId : 'libre' }}</span>
+                        <span class="b-pool-slot-task">{{
+                          slot.busy ? 'T' + slot.taskId : 'libre'
+                        }}</span>
                         <span class="b-pool-slot-x">× {{ slot.processed }}</span>
                       </div>
                     }
                   </div>
 
-                  <p class="b-foot">▸ CON POOL: {{ workersCreated() }} workers creados, reusados {{ poolTaskCount }} veces.</p>
-                  <p class="b-foot b-danger">SIN POOL: {{ spawnedWithoutPool }} workers (uno por tarea) — el ejemplo 09 mostró por qué eso no escala.</p>
+                  <p class="b-foot">
+                    ▸ CON POOL: {{ workersCreated() }} workers creados, reusados
+                    {{ poolTaskCount }} veces.
+                  </p>
+                  <p class="b-foot b-danger">
+                    SIN POOL: {{ spawnedWithoutPool }} workers (uno por tarea) — el ejemplo 09
+                    mostró por qué eso no escala.
+                  </p>
                 } @else {
-                  <p class="b-hint">24 tareas, 4 workers. Tocá Procesar: los 4 se reusan para drenar la cola entera (× cuenta cuántas despachó cada uno). No se crea un worker por tarea.</p>
+                  <p class="b-hint">
+                    24 tareas, 4 workers. Tocá Procesar: los 4 se reusan para drenar la cola entera
+                    (× cuenta cuántas despachó cada uno). No se crea un worker por tarea.
+                  </p>
                 }
               </brutalist-card>
             }
@@ -488,36 +694,60 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
             @case ('backpressure') {
               <brutalist-card title="Backpressure">
                 <p class="b-lead">
-                  {{ content()?.whatToWatch ?? 'El mismo trabajo de dos formas. Mirá hasta dónde crece la cola en espera.' }}
+                  {{
+                    content()?.whatToWatch ??
+                      'El mismo trabajo de dos formas. Mirá hasta dónde crece la cola en espera.'
+                  }}
                 </p>
                 <div class="b-cmp">
                   <div class="b-col">
                     <h2>Sin backpressure</h2>
                     <p class="b-col-sub">disparás las {{ bpTotal }} de una</p>
-                    <brutalist-button variant="solid" [disabled]="bpMode() !== 'idle'" (pressed)="runNaive()">
+                    <brutalist-button
+                      variant="solid"
+                      [disabled]="bpMode() !== 'idle'"
+                      (pressed)="runNaive()"
+                    >
                       Disparar todo
                     </brutalist-button>
                     @if (bpMode() === 'naive') {
                       <p class="b-foot">en cola: {{ bpPending() }}…</p>
                     } @else if (naivePeak(); as p) {
-                      <div class="b-bp-bar" data-kind="naive"><div class="b-bp-fill" [style.width.%]="bpPctOf(p)"></div></div>
-                      <p class="b-foot b-danger">✗ pico en vuelo: {{ p }} · la última tardó {{ naiveMaxLatency() }}ms en volver</p>
+                      <div class="b-bp-bar" data-kind="naive">
+                        <div class="b-bp-fill" [style.width.%]="bpPctOf(p)"></div>
+                      </div>
+                      <p class="b-foot b-danger">
+                        ✗ pico en vuelo: {{ p }} · la última tardó {{ naiveMaxLatency() }}ms en
+                        volver
+                      </p>
                     } @else {
-                      <p class="b-hint">Dispara las {{ bpTotal }} de una: el worker procesa de a uno y el resto se encola sin techo.</p>
+                      <p class="b-hint">
+                        Dispara las {{ bpTotal }} de una: el worker procesa de a uno y el resto se
+                        encola sin techo.
+                      </p>
                     }
                   </div>
 
                   <div class="b-col">
                     <h2>Con backpressure</h2>
                     <p class="b-col-sub">ventana de {{ bpWindow }} · esperás el ack</p>
-                    <brutalist-button [disabled]="bpMode() !== 'idle'" (pressed)="runBackpressure()">Con control de flujo</brutalist-button>
+                    <brutalist-button [disabled]="bpMode() !== 'idle'" (pressed)="runBackpressure()"
+                      >Con control de flujo</brutalist-button
+                    >
                     @if (bpMode() === 'backpressure') {
                       <p class="b-foot">en cola: {{ bpPending() }}…</p>
                     } @else if (bpPeak(); as p) {
-                      <div class="b-bp-bar" data-kind="bp"><div class="b-bp-fill" [style.width.%]="bpPctOf(p)"></div></div>
-                      <p class="b-foot">✓ pico en vuelo: {{ p }} · la última: {{ bpMaxLatency() }}ms, acotada</p>
+                      <div class="b-bp-bar" data-kind="bp">
+                        <div class="b-bp-fill" [style.width.%]="bpPctOf(p)"></div>
+                      </div>
+                      <p class="b-foot">
+                        ✓ pico en vuelo: {{ p }} · la última: {{ bpMaxLatency() }}ms, acotada
+                      </p>
                     } @else {
-                      <p class="b-hint">Manda {{ bpWindow }}, espera el ack, manda la próxima: la cola queda acotada al ritmo del worker.</p>
+                      <p class="b-hint">
+                        Manda {{ bpWindow }}, espera el ack, manda la próxima: la cola queda acotada
+                        al ritmo del worker.
+                      </p>
                     }
                   </div>
                 </div>
@@ -527,10 +757,15 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
             @case ('shared-memory') {
               <brutalist-card title="Memoria compartida">
                 <p class="b-lead">
-                  {{ content()?.whatToWatch ?? 'El worker escribe un número en la memoria compartida; el main lo lee directo, sin postMessage.' }}
+                  {{
+                    content()?.whatToWatch ??
+                      'El worker escribe un número en la memoria compartida; el main lo lee directo, sin postMessage.'
+                  }}
                 </p>
                 @if (!smSupported()) {
-                  <p class="b-foot b-danger">backend simulado · SharedArrayBuffer necesita cabeceras COOP/COEP</p>
+                  <p class="b-foot b-danger">
+                    backend simulado · SharedArrayBuffer necesita cabeceras COOP/COEP
+                  </p>
                 }
 
                 <div class="b-sm">
@@ -545,7 +780,10 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
                   </div>
                 </div>
                 <div class="b-bar"><div class="b-bar-fill" [style.width.%]="smPct()"></div></div>
-                <p class="b-bar-label">0 mensajes intercambiados · es la misma memoria, escrita por el worker y leída por el main</p>
+                <p class="b-bar-label">
+                  0 mensajes intercambiados · es la misma memoria, escrita por el worker y leída por
+                  el main
+                </p>
 
                 <div class="b-send">
                   <brutalist-button variant="solid" [disabled]="smRunning()" (pressed)="startSm()">
@@ -561,13 +799,22 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
             @case ('degradation') {
               <brutalist-card title="Degradación elegante">
                 <p class="b-lead">
-                  {{ content()?.whatToWatch ?? 'El mismo trabajo corre off-thread si hay Worker, o en el main si no. Mismo resultado, distinta UX.' }}
+                  {{
+                    content()?.whatToWatch ??
+                      'El mismo trabajo corre off-thread si hay Worker, o en el main si no. Mismo resultado, distinta UX.'
+                  }}
                 </p>
-                <p class="b-bar-label">typeof Worker → {{ degSupported() ? 'disponible ✓' : 'no disponible' }}</p>
+                <p class="b-bar-label">
+                  typeof Worker → {{ degSupported() ? 'disponible ✓' : 'no disponible' }}
+                </p>
 
                 <div class="b-send">
                   <brutalist-button (pressed)="toggleFallback()">
-                    {{ degForce() ? '☑ simulando navegador sin Worker' : '☐ simular navegador sin Worker' }}
+                    {{
+                      degForce()
+                        ? '☑ simulando navegador sin Worker'
+                        : '☐ simular navegador sin Worker'
+                    }}
                   </brutalist-button>
                   <brutalist-button variant="solid" [disabled]="degRunning()" (pressed)="runDeg()">
                     {{ degRunning() ? 'procesando…' : 'Procesar' }}
@@ -579,12 +826,21 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
 
                 @if (degResult(); as r) {
                   @if (r.path === 'worker') {
-                    <p class="b-foot">✓ Corrió en un WORKER · {{ r.value }} primos · {{ r.ms }} ms · la UI no se trabó</p>
+                    <p class="b-foot">
+                      ✓ Corrió en un WORKER · {{ r.value }} primos · {{ r.ms }} ms · la UI no se
+                      trabó
+                    </p>
                   } @else {
-                    <p class="b-foot b-danger">⚠ Fallback: corrió en el MAIN · {{ r.value }} primos · {{ r.ms }} ms · la UI se congeló, pero el resultado es el mismo</p>
+                    <p class="b-foot b-danger">
+                      ⚠ Fallback: corrió en el MAIN · {{ r.value }} primos · {{ r.ms }} ms · la UI
+                      se congeló, pero el resultado es el mismo
+                    </p>
                   }
                 } @else {
-                  <p class="b-hint">Mismo código, dos caminos según el feature-detect. Tildá el fallback y volvé a procesar: el resultado es idéntico, sólo cambia si la UI se traba.</p>
+                  <p class="b-hint">
+                    Mismo código, dos caminos según el feature-detect. Tildá el fallback y volvé a
+                    procesar: el resultado es idéntico, sólo cambia si la UI se traba.
+                  </p>
                 }
               </brutalist-card>
             }
@@ -592,24 +848,40 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
             @case ('clone-cost') {
               <brutalist-card title="Costo de clonar">
                 <p class="b-lead">
-                  {{ content()?.whatToWatch ?? 'Movés el tamaño y la complejidad, medís el round-trip real y mirás la curva trepar.' }}
+                  {{
+                    content()?.whatToWatch ??
+                      'Movés el tamaño y la complejidad, medís el round-trip real y mirás la curva trepar.'
+                  }}
                 </p>
 
                 <div class="b-cc-ctl">
                   <label class="b-cc-field">
-                    <span>Tamaño: {{ ccSize() }} {{ ccSize() === 1 ? 'registro' : 'registros' }}</span>
+                    <span
+                      >Tamaño: {{ ccSize() }} {{ ccSize() === 1 ? 'registro' : 'registros' }}</span
+                    >
                     <input
-                      type="range" min="500" max="20000" step="500"
-                      [value]="ccSize()" [disabled]="cloneRunning()"
+                      type="range"
+                      min="500"
+                      max="20000"
+                      step="500"
+                      [value]="ccSize()"
+                      [disabled]="cloneRunning()"
                       (input)="ccSize.set(+$any($event.target).value)"
                       aria-label="Tamaño del payload en registros"
                     />
                   </label>
                   <label class="b-cc-field">
-                    <span>Complejidad: {{ ccDepth() }} {{ ccDepth() === 1 ? 'nivel' : 'niveles' }}</span>
+                    <span
+                      >Complejidad: {{ ccDepth() }}
+                      {{ ccDepth() === 1 ? 'nivel' : 'niveles' }}</span
+                    >
                     <input
-                      type="range" min="0" max="8" step="1"
-                      [value]="ccDepth()" [disabled]="cloneRunning()"
+                      type="range"
+                      min="0"
+                      max="8"
+                      step="1"
+                      [value]="ccDepth()"
+                      [disabled]="cloneRunning()"
                       (input)="ccDepth.set(+$any($event.target).value)"
                       aria-label="Complejidad: niveles de anidación"
                     />
@@ -617,7 +889,11 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
                 </div>
 
                 <div class="b-send">
-                  <brutalist-button variant="solid" [disabled]="cloneRunning()" (pressed)="runCloneSweep()">
+                  <brutalist-button
+                    variant="solid"
+                    [disabled]="cloneRunning()"
+                    (pressed)="runCloneSweep()"
+                  >
                     {{ cloneRunning() ? 'midiendo…' : 'Medir' }}
                   </brutalist-button>
                   @if (cloneMeasurements().length && !cloneRunning()) {
@@ -631,11 +907,16 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
 
                 @if (cloneLast(); as last) {
                   <p class="b-foot">
-                    ✓ {{ cloneMeasurements().length }} mediciones · el payload de {{ fmtBytes(last.serializedBytes) }}
-                    tardó {{ fmtMs(last.ms) }} ms en ir y volver (profundidad {{ cloneDepthRun() }})
+                    ✓ {{ cloneMeasurements().length }} mediciones · el payload de
+                    {{ fmtBytes(last.serializedBytes) }} tardó {{ fmtMs(last.ms) }} ms en ir y
+                    volver (profundidad {{ cloneDepthRun() }})
                   </p>
                 } @else {
-                  <p class="b-hint">Movés los sliders y tocás Medir: mandamos payloads cada vez más grandes al worker y cronometramos el ida y vuelta REAL. Cada punto es una medición tuya, no un número inventado.</p>
+                  <p class="b-hint">
+                    Movés los sliders y tocás Medir: mandamos payloads cada vez más grandes al
+                    worker y cronometramos el ida y vuelta REAL. Cada punto es una medición tuya, no
+                    un número inventado.
+                  </p>
                 }
               </brutalist-card>
             }
@@ -643,14 +924,24 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
             @case ('compositor-jank') {
               <brutalist-card title="El otro hilo: compositor">
                 <p class="b-lead">
-                  {{ content()?.whatToWatch ?? 'Bloqueá el main y mirá: la caja CSS sigue girando, la caja JS se congela.' }}
+                  {{
+                    content()?.whatToWatch ??
+                      'Bloqueá el main y mirá: la caja CSS sigue girando, la caja JS se congela.'
+                  }}
                 </p>
 
                 <div class="b-send">
-                  <brutalist-button variant="solid" [disabled]="compMode() !== 'idle'" (pressed)="blockMainComp()">
+                  <brutalist-button
+                    variant="solid"
+                    [disabled]="compMode() !== 'idle'"
+                    (pressed)="blockMainComp()"
+                  >
                     Bloquear el main
                   </brutalist-button>
-                  <brutalist-button [disabled]="compMode() !== 'idle'" (pressed)="blockWorkerComp()">
+                  <brutalist-button
+                    [disabled]="compMode() !== 'idle'"
+                    (pressed)="blockWorkerComp()"
+                  >
                     Bloquear en un worker
                   </brutalist-button>
                 </div>
@@ -676,13 +967,20 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
                 <div aria-live="polite">
                   @switch (compMode()) {
                     @case ('main') {
-                      <p class="b-foot b-danger">▶ bloqueando el MAIN… la caja JS y los FPS están congelados; la CSS no.</p>
+                      <p class="b-foot b-danger">
+                        ▶ bloqueando el MAIN… la caja JS y los FPS están congelados; la CSS no.
+                      </p>
                     }
                     @case ('worker') {
-                      <p class="b-foot">▶ el MISMO cómputo corre en un worker… el main sigue libre, todo fluido.</p>
+                      <p class="b-foot">
+                        ▶ el MISMO cómputo corre en un worker… el main sigue libre, todo fluido.
+                      </p>
                     }
                     @default {
-                      <p class="b-hint">Tocá «Bloquear el main»: se congela todo MENOS la caja CSS (la mueve el compositor, otro hilo). Después probá en un worker: nada se congela.</p>
+                      <p class="b-hint">
+                        Tocá «Bloquear el main»: se congela todo MENOS la caja CSS (la mueve el
+                        compositor, otro hilo). Después probá en un worker: nada se congela.
+                      </p>
                     }
                   }
                 </div>
@@ -1400,9 +1698,7 @@ export class BrutalistExampleLayoutComponent {
   protected readonly limitRuns = this.limits.runs;
   protected readonly limitRunning = this.limits.running;
   protected readonly currentWorkers = this.limits.currentWorkers;
-  private readonly limitMaxMs = computed(() =>
-    Math.max(1, ...this.limitRuns().map((r) => r.ms)),
-  );
+  private readonly limitMaxMs = computed(() => Math.max(1, ...this.limitRuns().map((r) => r.ms)));
 
   // worker-pool (10)
   protected readonly poolTasks = this.pool.tasks;

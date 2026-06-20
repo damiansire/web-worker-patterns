@@ -5,7 +5,13 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
 @Component({
   selector: 'editorial-button',
   template: `
-    <button type="button" class="e-btn" [attr.data-variant]="variant()" [disabled]="disabled()" (click)="pressed.emit()">
+    <button
+      type="button"
+      class="e-btn"
+      [attr.data-variant]="variant()"
+      [disabled]="disabled()"
+      (click)="pressed.emit()"
+    >
       <ng-content />
     </button>
   `,
@@ -21,7 +27,9 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
         border: var(--border-width) solid var(--ink);
         border-radius: var(--radius);
         cursor: pointer;
-        transition: background 0.18s, color 0.18s;
+        transition:
+          background 0.18s,
+          color 0.18s;
       }
       .e-btn[data-variant='solid'] {
         background: var(--accent);

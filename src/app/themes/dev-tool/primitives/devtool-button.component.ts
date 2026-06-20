@@ -5,7 +5,13 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
 @Component({
   selector: 'devtool-button',
   template: `
-    <button type="button" class="dt-btn" [attr.data-variant]="variant()" [disabled]="disabled()" (click)="pressed.emit()">
+    <button
+      type="button"
+      class="dt-btn"
+      [attr.data-variant]="variant()"
+      [disabled]="disabled()"
+      (click)="pressed.emit()"
+    >
       <ng-content />
     </button>
   `,
@@ -20,7 +26,9 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
         border: var(--border-width) solid var(--border);
         border-radius: var(--radius);
         cursor: pointer;
-        transition: border-color 0.12s, background 0.12s;
+        transition:
+          border-color 0.12s,
+          background 0.12s;
       }
       .dt-btn:hover:not(:disabled) {
         border-color: var(--accent);

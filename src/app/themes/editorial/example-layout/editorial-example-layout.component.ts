@@ -1,4 +1,13 @@
-import { Component, computed, effect, inject, signal, untracked, viewChild, ElementRef } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+  viewChild,
+  ElementRef,
+} from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -64,26 +73,42 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
                 <section class="e-col">
                   <h2>En un Worker</h2>
                   <p class="e-sub">el main queda libre · la UI sigue fluida</p>
-                  <editorial-button variant="solid" [disabled]="phase() === 'worker'" (pressed)="runWorker()">
+                  <editorial-button
+                    variant="solid"
+                    [disabled]="phase() === 'worker'"
+                    (pressed)="runWorker()"
+                  >
                     Ejecutar en worker
                   </editorial-button>
                   @if (workerLanes(); as wl) {
-                    <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: wl, elapsedMs: 0 }" />
+                    <ng-container
+                      *ngComponentOutlet="visualizer; inputs: { lanes: wl, elapsedMs: 0 }"
+                    />
                     <p class="e-foot">{{ workerTicks() }} ticks · la UI nunca se trabó</p>
                   } @else {
-                    <p class="e-hint">Tocá para ver el worker emitir ticks mientras el main queda libre.</p>
+                    <p class="e-hint">
+                      Tocá para ver el worker emitir ticks mientras el main queda libre.
+                    </p>
                   }
                 </section>
 
                 <section class="e-col">
                   <h2>En el Main thread</h2>
                   <p class="e-sub">el main se bloquea · la UI se congela ~2,5s</p>
-                  <editorial-button [disabled]="phase() === 'main'" (pressed)="runMain()">Bloquear main</editorial-button>
+                  <editorial-button [disabled]="phase() === 'main'" (pressed)="runMain()"
+                    >Bloquear main</editorial-button
+                  >
                   @if (mainLanes(); as ml) {
-                    <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: ml, elapsedMs: 0 }" />
-                    <p class="e-foot e-danger">se congeló · {{ mainTicks() }} ticks que no se pintaron</p>
+                    <ng-container
+                      *ngComponentOutlet="visualizer; inputs: { lanes: ml, elapsedMs: 0 }"
+                    />
+                    <p class="e-foot e-danger">
+                      se congeló · {{ mainTicks() }} ticks que no se pintaron
+                    </p>
                   } @else {
-                    <p class="e-hint">Tocá y la página se congela: el contador no actualiza, los clicks mueren.</p>
+                    <p class="e-hint">
+                      Tocá y la página se congela: el contador no actualiza, los clicks mueren.
+                    </p>
                   }
                 </section>
               </div>
@@ -99,7 +124,11 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
                   aria-label="Mensaje para enviar al worker"
                   (keyup.enter)="send(msg.value); msg.value = ''"
                 />
-                <editorial-button variant="solid" [disabled]="pending()" (pressed)="send(msg.value); msg.value = ''">
+                <editorial-button
+                  variant="solid"
+                  [disabled]="pending()"
+                  (pressed)="send(msg.value); msg.value = ''"
+                >
                   Enviar
                 </editorial-button>
                 @if (messages().length) {
@@ -111,7 +140,9 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
                   @for (m of messages(); track m.direction + m.id) {
                     <div class="e-msg" [attr.data-dir]="m.direction">
                       <p class="e-msg-line">
-                        <span class="e-msg-who">{{ m.direction === 'out' ? 'Main →' : '← Worker' }}</span>
+                        <span class="e-msg-who">{{
+                          m.direction === 'out' ? 'Main →' : '← Worker'
+                        }}</span>
                         <span class="e-msg-text">{{ m.text }}</span>
                         @if (m.meta) {
                           <span class="e-msg-meta"> · {{ m.meta }}</span>
@@ -124,45 +155,78 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
                   }
                   @if (pending()) {
                     <div class="e-msg e-msg-wait" data-dir="in">
-                      <p class="e-msg-line"><span class="e-msg-who">← Worker</span> <span class="e-msg-text">procesando…</span></p>
+                      <p class="e-msg-line">
+                        <span class="e-msg-who">← Worker</span>
+                        <span class="e-msg-text">procesando…</span>
+                      </p>
                     </div>
                   }
                 </div>
               } @else {
-                <p class="e-hint">Enviá un mensaje: viaja al worker (→) y vuelve la respuesta (←) con su round-trip.</p>
+                <p class="e-hint">
+                  Enviá un mensaje: viaja al worker (→) y vuelve la respuesta (←) con su round-trip.
+                </p>
               }
             }
 
             @case ('offload') {
               <div class="e-nrow">
                 <label class="e-nlabel" for="e-n">Contar primos hasta N =</label>
-                <input #n id="e-n" class="e-input-n" type="number" value="500000" min="10000" step="100000" />
+                <input
+                  #n
+                  id="e-n"
+                  class="e-input-n"
+                  type="number"
+                  value="500000"
+                  min="10000"
+                  step="100000"
+                />
                 <span class="e-nhint">subilo y el freeze del main dura más</span>
               </div>
               <div class="e-cmp">
                 <section class="e-col">
                   <h2>En un Worker</h2>
                   <p class="e-sub">corre en otro hilo · la UI sigue fluida</p>
-                  <editorial-button variant="solid" [disabled]="computePhase() === 'worker'" (pressed)="computeWorker(n.value)">
+                  <editorial-button
+                    variant="solid"
+                    [disabled]="computePhase() === 'worker'"
+                    (pressed)="computeWorker(n.value)"
+                  >
                     Calcular en worker
                   </editorial-button>
                   @if (computePhase() === 'worker') {
-                    <p class="e-foot">calculando… {{ liveMs() }} ms · la UI responde mientras tanto</p>
+                    <p class="e-foot">
+                      calculando… {{ liveMs() }} ms · la UI responde mientras tanto
+                    </p>
                   } @else if (workerResult(); as r) {
-                    <p class="e-foot e-ok"><span class="e-ok-mark">✓</span> {{ r.count }} primos · {{ r.ms }} ms · la UI nunca se trabó</p>
+                    <p class="e-foot e-ok">
+                      <span class="e-ok-mark">✓</span> {{ r.count }} primos · {{ r.ms }} ms · la UI
+                      nunca se trabó
+                    </p>
                   } @else {
-                    <p class="e-hint">Tocá: el cálculo corre en otro hilo y el cronómetro sigue subiendo en vivo.</p>
+                    <p class="e-hint">
+                      Tocá: el cálculo corre en otro hilo y el cronómetro sigue subiendo en vivo.
+                    </p>
                   }
                 </section>
 
                 <section class="e-col">
                   <h2>En el Main thread</h2>
                   <p class="e-sub">bloquea el hilo · la página se congela</p>
-                  <editorial-button [disabled]="computePhase() === 'main'" (pressed)="computeMain(n.value)">Calcular en el main</editorial-button>
+                  <editorial-button
+                    [disabled]="computePhase() === 'main'"
+                    (pressed)="computeMain(n.value)"
+                    >Calcular en el main</editorial-button
+                  >
                   @if (mainResult(); as r) {
-                    <p class="e-foot e-danger"><span class="e-bad-mark">✗</span> {{ r.count }} primos · la página se congeló {{ r.ms }} ms</p>
+                    <p class="e-foot e-danger">
+                      <span class="e-bad-mark">✗</span> {{ r.count }} primos · la página se congeló
+                      {{ r.ms }} ms
+                    </p>
                   } @else {
-                    <p class="e-hint">Tocá y la página entera se congela hasta terminar: no podés ni scrollear.</p>
+                    <p class="e-hint">
+                      Tocá y la página entera se congela hasta terminar: no podés ni scrollear.
+                    </p>
                   }
                 </section>
               </div>
@@ -170,35 +234,78 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
 
             @case ('offscreen-canvas') {
               @if (!ocSupported()) {
-                <p class="e-foot e-danger">Backend simulado: este navegador no soporta OffscreenCanvas — los dos relojes corren en el main.</p>
+                <p class="e-foot e-danger">
+                  Backend simulado: este navegador no soporta OffscreenCanvas — los dos relojes
+                  corren en el main.
+                </p>
               }
               <div class="e-oc-ctl">
-                <editorial-button variant="solid" [disabled]="ocRunning()" (pressed)="ocStart()">Iniciar animación</editorial-button>
-                <editorial-button [disabled]="!ocRunning() || ocBlocked()" (pressed)="ocBlock()">Bloquear main 2,5 s</editorial-button>
+                <editorial-button variant="solid" [disabled]="ocRunning()" (pressed)="ocStart()"
+                  >Iniciar animación</editorial-button
+                >
+                <editorial-button [disabled]="!ocRunning() || ocBlocked()" (pressed)="ocBlock()"
+                  >Bloquear main 2,5 s</editorial-button
+                >
               </div>
               <div class="e-cmp">
                 <section class="e-col">
                   <h2>En un Worker</h2>
                   <p class="e-sub">dibuja en otro hilo · sigue fluido</p>
                   <div class="e-oc-frame">
-                    <canvas #ocWorker class="e-oc-canvas" width="240" height="240" role="img"
-                      [attr.aria-label]="ocRunning() ? 'Reloj animado por un worker, fluido' : 'Reloj del worker, detenido'"></canvas>
+                    <canvas
+                      #ocWorker
+                      class="e-oc-canvas"
+                      width="240"
+                      height="240"
+                      role="img"
+                      [attr.aria-label]="
+                        ocRunning()
+                          ? 'Reloj animado por un worker, fluido'
+                          : 'Reloj del worker, detenido'
+                      "
+                    ></canvas>
                   </div>
-                  <p class="e-foot">{{ ocRunning() ? ocWorkerFps() + ' fps · frame ' + ocWorkerFrames() : 'Tocá Iniciar.' }}</p>
+                  <p class="e-foot">
+                    {{
+                      ocRunning()
+                        ? ocWorkerFps() + ' fps · frame ' + ocWorkerFrames()
+                        : 'Tocá Iniciar.'
+                    }}
+                  </p>
                 </section>
                 <section class="e-col">
                   <h2>En el Main thread</h2>
                   <p class="e-sub">dibuja en el main · se congela al bloquear</p>
                   <div class="e-oc-frame" [class.e-oc-dead]="ocBlocked()">
-                    <canvas #ocMain class="e-oc-canvas" width="240" height="240" role="img"
-                      [attr.aria-label]="ocBlocked() ? 'Reloj del main, congelado' : 'Reloj animado por el main thread'"></canvas>
+                    <canvas
+                      #ocMain
+                      class="e-oc-canvas"
+                      width="240"
+                      height="240"
+                      role="img"
+                      [attr.aria-label]="
+                        ocBlocked()
+                          ? 'Reloj del main, congelado'
+                          : 'Reloj animado por el main thread'
+                      "
+                    ></canvas>
                   </div>
                   @if (ocBlocked()) {
-                    <p class="e-foot e-danger" aria-live="polite">Main congelado — no pinta frames.</p>
+                    <p class="e-foot e-danger" aria-live="polite">
+                      Main congelado — no pinta frames.
+                    </p>
                   } @else if (ocSkipped()) {
-                    <p class="e-foot e-danger">Saltó {{ ocSkipped() }} frames de golpe al volver.</p>
+                    <p class="e-foot e-danger">
+                      Saltó {{ ocSkipped() }} frames de golpe al volver.
+                    </p>
                   } @else {
-                    <p class="e-foot">{{ ocRunning() ? ocMainFps() + ' fps · frame ' + ocMainFrames() : 'Tocá Iniciar.' }}</p>
+                    <p class="e-foot">
+                      {{
+                        ocRunning()
+                          ? ocMainFps() + ' fps · frame ' + ocMainFrames()
+                          : 'Tocá Iniciar.'
+                      }}
+                    </p>
                   }
                 </section>
               </div>
@@ -209,7 +316,9 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
                 <editorial-button variant="solid" [disabled]="errorBusy()" (pressed)="sendOk()">
                   Enviar JSON válido
                 </editorial-button>
-                <editorial-button [disabled]="errorBusy()" (pressed)="sendFail()">Enviar JSON roto</editorial-button>
+                <editorial-button [disabled]="errorBusy()" (pressed)="sendFail()"
+                  >Enviar JSON roto</editorial-button
+                >
                 @if (errorEvents().length) {
                   <editorial-button (pressed)="resetErrors()">Reiniciar</editorial-button>
                 }
@@ -230,18 +339,30 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
                     </div>
                   }
                 </div>
-                <p class="e-foot">La app sigue viva: el worker no se murió, podés seguir corriendo tareas.</p>
+                <p class="e-foot">
+                  La app sigue viva: el worker no se murió, podés seguir corriendo tareas.
+                </p>
               } @else {
-                <p class="e-hint">Enviá un JSON válido (✓ devuelve sus claves) y después uno roto (✗ el main lo captura con onerror). La página no se rompe.</p>
+                <p class="e-hint">
+                  Enviá un JSON válido (✓ devuelve sus claves) y después uno roto (✗ el main lo
+                  captura con onerror). La página no se rompe.
+                </p>
               }
             }
 
             @case ('lifecycle') {
               <div class="e-send">
-                <editorial-button variant="solid" [disabled]="lifeStatus() === 'running'" (pressed)="startLife()">
+                <editorial-button
+                  variant="solid"
+                  [disabled]="lifeStatus() === 'running'"
+                  (pressed)="startLife()"
+                >
                   Iniciar tarea
                 </editorial-button>
-                <editorial-button [disabled]="lifeStatus() !== 'running'" (pressed)="terminateLife()">
+                <editorial-button
+                  [disabled]="lifeStatus() !== 'running'"
+                  (pressed)="terminateLife()"
+                >
                   Terminar
                 </editorial-button>
                 @if (lifeStatus() !== 'idle') {
@@ -256,16 +377,25 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
 
               @switch (lifeStatus()) {
                 @case ('idle') {
-                  <p class="e-hint">Iniciá la tarea: el worker avanza por pasos. Cortala a mitad con Terminar y mirá qué queda.</p>
+                  <p class="e-hint">
+                    Iniciá la tarea: el worker avanza por pasos. Cortala a mitad con Terminar y mirá
+                    qué queda.
+                  </p>
                 }
                 @case ('running') {
                   <p class="e-foot">El worker está vivo, emitiendo su progreso paso a paso.</p>
                 }
                 @case ('terminated') {
-                  <p class="e-foot e-danger">Terminado en el paso {{ lifeStep() }}/{{ lifeSteps() }}: el trabajo en curso se descartó y el worker ya no existe. Para volver a correr, Iniciar crea uno nuevo.</p>
+                  <p class="e-foot e-danger">
+                    Terminado en el paso {{ lifeStep() }}/{{ lifeSteps() }}: el trabajo en curso se
+                    descartó y el worker ya no existe. Para volver a correr, Iniciar crea uno nuevo.
+                  </p>
                 }
                 @case ('done') {
-                  <p class="e-foot">Completado, {{ lifeSteps() }}/{{ lifeSteps() }}: el worker terminó su trabajo y se cerró solo con self.close().</p>
+                  <p class="e-foot">
+                    Completado, {{ lifeSteps() }}/{{ lifeSteps() }}: el worker terminó su trabajo y
+                    se cerró solo con self.close().
+                  </p>
                 }
               }
             }
@@ -276,26 +406,43 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
                 <section class="e-col">
                   <h2>Transferir (zero-copy)</h2>
                   <p class="e-sub">cambia de dueño · no copia</p>
-                  <editorial-button variant="solid" [disabled]="transferBusy()" (pressed)="runTransfer()">
+                  <editorial-button
+                    variant="solid"
+                    [disabled]="transferBusy()"
+                    (pressed)="runTransfer()"
+                  >
                     Transferir buffer
                   </editorial-button>
                   @if (transferResult(); as r) {
-                    <p class="e-foot"><span class="e-ok-mark">✓</span> round-trip {{ r.ms }} ms — instantáneo aunque sea grande</p>
-                    <p class="e-foot e-danger">El buffer del main quedó detached (0 B): perdió la propiedad.</p>
+                    <p class="e-foot">
+                      <span class="e-ok-mark">✓</span> round-trip {{ r.ms }} ms — instantáneo aunque
+                      sea grande
+                    </p>
+                    <p class="e-foot e-danger">
+                      El buffer del main quedó detached (0 B): perdió la propiedad.
+                    </p>
                   } @else {
-                    <p class="e-hint">Pasás el buffer en la transfer list: no se copia, pero el main pierde la propiedad y queda en 0 bytes.</p>
+                    <p class="e-hint">
+                      Pasás el buffer en la transfer list: no se copia, pero el main pierde la
+                      propiedad y queda en 0 bytes.
+                    </p>
                   }
                 </section>
 
                 <section class="e-col">
                   <h2>Clonar (structured clone)</h2>
                   <p class="e-sub">copia byte por byte · el main lo conserva</p>
-                  <editorial-button [disabled]="transferBusy()" (pressed)="runClone()">Clonar buffer</editorial-button>
+                  <editorial-button [disabled]="transferBusy()" (pressed)="runClone()"
+                    >Clonar buffer</editorial-button
+                  >
                   @if (cloneResult(); as r) {
                     <p class="e-foot">round-trip {{ r.ms }} ms — más lento: copió {{ r.mb }} MB</p>
                     <p class="e-foot">El main conserva su copia intacta ({{ r.mb }} MB).</p>
                   } @else {
-                    <p class="e-hint">Sin transfer list, postMessage copia el buffer entero. El main se queda con el suyo, pero la copia cuesta.</p>
+                    <p class="e-hint">
+                      Sin transfer list, postMessage copia el buffer entero. El main se queda con el
+                      suyo, pero la copia cuesta.
+                    </p>
                   }
                 </section>
               </div>
@@ -306,7 +453,9 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
                 <span class="e-sw-id">SharedWorker {{ swInstanceId() || '…' }}</span>
                 <span class="e-sw-clients">clientes conectados: {{ swClients() }}</span>
                 @if (!swSupported()) {
-                  <span class="e-sw-sim">backend simulado · el navegador no soporta SharedWorker</span>
+                  <span class="e-sw-sim"
+                    >backend simulado · el navegador no soporta SharedWorker</span
+                  >
                 }
               </div>
               <div class="e-cmp">
@@ -316,7 +465,9 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
                     <p class="e-sub">puerto {{ panel.label }} · mismo worker</p>
                     <div class="e-sw-count">{{ swCount() }}</div>
                     <div class="e-send">
-                      <editorial-button variant="solid" (pressed)="swInc(panel.label)">+1</editorial-button>
+                      <editorial-button variant="solid" (pressed)="swInc(panel.label)"
+                        >+1</editorial-button
+                      >
                       <editorial-button (pressed)="swReset(panel.label)">Reset</editorial-button>
                       @if (swPanels().length > 1) {
                         <editorial-button (pressed)="swClose(panel.label)">Cerrar</editorial-button>
@@ -326,12 +477,17 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
                       <div class="e-dialogue">
                         @for (log of panel.logs.slice(-4); track log.id) {
                           <div class="e-evt" data-status="ok">
-                            <p class="e-evt-line"><span class="e-evt-in">{{ log.by }}</span> sumó → {{ log.count }}</p>
+                            <p class="e-evt-line">
+                              <span class="e-evt-in">{{ log.by }}</span> sumó → {{ log.count }}
+                            </p>
                           </div>
                         }
                       </div>
                     } @else {
-                      <p class="e-hint">Sumá acá: el número salta en los dos paneles. Es el mismo contador, no dos copias.</p>
+                      <p class="e-hint">
+                        Sumá acá: el número salta en los dos paneles. Es el mismo contador, no dos
+                        copias.
+                      </p>
                     }
                   </section>
                 }
@@ -342,8 +498,14 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
             @case ('worker-limits') {
               <p class="e-lim-cpu">Tu CPU: {{ hardwareConcurrency() }} núcleos lógicos</p>
               <div class="e-send">
-                <editorial-button variant="solid" [disabled]="limitRunning()" (pressed)="runLimits()">
-                  {{ limitRunning() ? 'Corriendo ' + currentWorkers() + '× …' : 'Correr la escala' }}
+                <editorial-button
+                  variant="solid"
+                  [disabled]="limitRunning()"
+                  (pressed)="runLimits()"
+                >
+                  {{
+                    limitRunning() ? 'Corriendo ' + currentWorkers() + '× …' : 'Correr la escala'
+                  }}
                 </editorial-button>
                 @if (limitRuns().length && !limitRunning()) {
                   <editorial-button (pressed)="resetLimits()">Reiniciar</editorial-button>
@@ -354,21 +516,33 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
                   @for (run of limitRuns(); track run.workers) {
                     <div class="e-lim-row" [attr.data-over]="run.workers > hardwareConcurrency()">
                       <span class="e-lim-k">{{ run.workers }}×</span>
-                      <div class="e-lim-bar"><div class="e-lim-fill" [style.width.%]="limitPct(run.ms)"></div></div>
+                      <div class="e-lim-bar">
+                        <div class="e-lim-fill" [style.width.%]="limitPct(run.ms)"></div>
+                      </div>
                       <span class="e-lim-ms">{{ run.ms }} ms</span>
                     </div>
                   }
                 </div>
-                <p class="e-foot">Plano hasta {{ hardwareConcurrency() }} (tus núcleos); pasado eso el tiempo trepa — más workers no ayudan.</p>
+                <p class="e-foot">
+                  Plano hasta {{ hardwareConcurrency() }} (tus núcleos); pasado eso el tiempo trepa
+                  — más workers no ayudan.
+                </p>
               } @else {
-                <p class="e-hint">Corré 1, 2, 4, 8 y 16 workers a la vez con el mismo cómputo. El tiempo se mantiene plano mientras entren en tus núcleos.</p>
+                <p class="e-hint">
+                  Corré 1, 2, 4, 8 y 16 workers a la vez con el mismo cómputo. El tiempo se mantiene
+                  plano mientras entren en tus núcleos.
+                </p>
               }
             }
 
             @case ('worker-pool') {
               <div class="e-send">
                 <editorial-button variant="solid" [disabled]="poolRunning()" (pressed)="runPool()">
-                  {{ poolRunning() ? 'Procesando… ' + poolProcessed() + '/' + poolTaskCount : 'Procesar la cola' }}
+                  {{
+                    poolRunning()
+                      ? 'Procesando… ' + poolProcessed() + '/' + poolTaskCount
+                      : 'Procesar la cola'
+                  }}
                 </editorial-button>
                 @if (poolTasks().length && !poolRunning()) {
                   <editorial-button (pressed)="resetPool()">Reiniciar</editorial-button>
@@ -376,7 +550,9 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
               </div>
 
               @if (poolTasks().length) {
-                <p class="e-lim-cpu">La cola — {{ poolProcessed() }} / {{ poolTaskCount }} hechas</p>
+                <p class="e-lim-cpu">
+                  La cola — {{ poolProcessed() }} / {{ poolTaskCount }} hechas
+                </p>
                 <div class="e-pool-queue">
                   @for (task of poolTasks(); track task.id) {
                     <span class="e-pool-task" [attr.data-state]="task.state">
@@ -390,16 +566,27 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
                   @for (slot of poolSlots(); track slot.id) {
                     <div class="e-pool-slot" [attr.data-busy]="slot.busy">
                       <span class="e-pool-slot-w">W{{ slot.id }}</span>
-                      <span class="e-pool-slot-task">{{ slot.busy ? 'T' + slot.taskId : 'libre' }}</span>
+                      <span class="e-pool-slot-task">{{
+                        slot.busy ? 'T' + slot.taskId : 'libre'
+                      }}</span>
                       <span class="e-pool-slot-x">× {{ slot.processed }}</span>
                     </div>
                   }
                 </div>
 
-                <p class="e-foot">Con pool: {{ workersCreated() }} workers creados, reusados {{ poolTaskCount }} veces.</p>
-                <p class="e-foot e-danger">Sin pool: {{ spawnedWithoutPool }} workers, uno por tarea — el ejemplo 09 mostró por qué eso no escala.</p>
+                <p class="e-foot">
+                  Con pool: {{ workersCreated() }} workers creados, reusados
+                  {{ poolTaskCount }} veces.
+                </p>
+                <p class="e-foot e-danger">
+                  Sin pool: {{ spawnedWithoutPool }} workers, uno por tarea — el ejemplo 09 mostró
+                  por qué eso no escala.
+                </p>
               } @else {
-                <p class="e-hint">24 tareas, 4 workers. Tocá Procesar: los 4 se reusan para drenar la cola entera (× cuenta cuántas despachó cada uno). No se crea un worker por tarea.</p>
+                <p class="e-hint">
+                  24 tareas, 4 workers. Tocá Procesar: los 4 se reusan para drenar la cola entera (×
+                  cuenta cuántas despachó cada uno). No se crea un worker por tarea.
+                </p>
               }
             }
 
@@ -408,14 +595,22 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
                 <section class="e-col">
                   <h2>Sin backpressure</h2>
                   <p class="e-sub">disparás las {{ bpTotal }} de una</p>
-                  <editorial-button variant="solid" [disabled]="bpMode() !== 'idle'" (pressed)="runNaive()">
+                  <editorial-button
+                    variant="solid"
+                    [disabled]="bpMode() !== 'idle'"
+                    (pressed)="runNaive()"
+                  >
                     Disparar todo
                   </editorial-button>
                   @if (bpMode() === 'naive') {
                     <p class="e-foot">en cola: {{ bpPending() }}…</p>
                   } @else if (naivePeak(); as p) {
-                    <div class="e-bp-bar" data-kind="naive"><div class="e-bp-fill" [style.width.%]="bpPctOf(p)"></div></div>
-                    <p class="e-foot e-danger">Pico en vuelo: {{ p }}. La última tardó {{ naiveMaxLatency() }}ms en volver.</p>
+                    <div class="e-bp-bar" data-kind="naive">
+                      <div class="e-bp-fill" [style.width.%]="bpPctOf(p)"></div>
+                    </div>
+                    <p class="e-foot e-danger">
+                      Pico en vuelo: {{ p }}. La última tardó {{ naiveMaxLatency() }}ms en volver.
+                    </p>
                   } @else {
                     <p class="e-hint">El worker procesa de a uno; el resto se encola sin techo.</p>
                   }
@@ -424,14 +619,23 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
                 <section class="e-col">
                   <h2>Con backpressure</h2>
                   <p class="e-sub">ventana de {{ bpWindow }} · esperás el ack</p>
-                  <editorial-button [disabled]="bpMode() !== 'idle'" (pressed)="runBackpressure()">Con control de flujo</editorial-button>
+                  <editorial-button [disabled]="bpMode() !== 'idle'" (pressed)="runBackpressure()"
+                    >Con control de flujo</editorial-button
+                  >
                   @if (bpMode() === 'backpressure') {
                     <p class="e-foot">en cola: {{ bpPending() }}…</p>
                   } @else if (bpPeak(); as p) {
-                    <div class="e-bp-bar" data-kind="bp"><div class="e-bp-fill" [style.width.%]="bpPctOf(p)"></div></div>
-                    <p class="e-foot">Pico en vuelo: {{ p }} — la última: {{ bpMaxLatency() }}ms, acotada.</p>
+                    <div class="e-bp-bar" data-kind="bp">
+                      <div class="e-bp-fill" [style.width.%]="bpPctOf(p)"></div>
+                    </div>
+                    <p class="e-foot">
+                      Pico en vuelo: {{ p }} — la última: {{ bpMaxLatency() }}ms, acotada.
+                    </p>
                   } @else {
-                    <p class="e-hint">Mandás {{ bpWindow }}, esperás el ack, mandás la próxima: la cola queda acotada.</p>
+                    <p class="e-hint">
+                      Mandás {{ bpWindow }}, esperás el ack, mandás la próxima: la cola queda
+                      acotada.
+                    </p>
                   }
                 </section>
               </div>
@@ -439,7 +643,9 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
 
             @case ('shared-memory') {
               @if (!smSupported()) {
-                <p class="e-foot e-danger">Backend simulado · SharedArrayBuffer necesita cabeceras COOP/COEP.</p>
+                <p class="e-foot e-danger">
+                  Backend simulado · SharedArrayBuffer necesita cabeceras COOP/COEP.
+                </p>
               }
               <div class="e-sm">
                 <div class="e-sm-side">
@@ -453,7 +659,10 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
                 </div>
               </div>
               <div class="e-bar"><div class="e-bar-fill" [style.width.%]="smPct()"></div></div>
-              <p class="e-bar-label">0 mensajes intercambiados — es la misma memoria, escrita por el worker y leída por el main.</p>
+              <p class="e-bar-label">
+                0 mensajes intercambiados — es la misma memoria, escrita por el worker y leída por
+                el main.
+              </p>
               <div class="e-send">
                 <editorial-button variant="solid" [disabled]="smRunning()" (pressed)="startSm()">
                   {{ smRunning() ? 'Contando… ' + smValue() + '/' + smTarget : 'Arrancar' }}
@@ -465,7 +674,9 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
             }
 
             @case ('degradation') {
-              <p class="e-lim-cpu">typeof Worker → {{ degSupported() ? 'disponible ✓' : 'no disponible' }}</p>
+              <p class="e-lim-cpu">
+                typeof Worker → {{ degSupported() ? 'disponible ✓' : 'no disponible' }}
+              </p>
               <div class="e-send">
                 <editorial-button (pressed)="toggleFallback()">
                   {{ degForce() ? '☑ simulando sin Worker' : '☐ simular sin Worker' }}
@@ -479,31 +690,53 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
               </div>
               @if (degResult(); as r) {
                 @if (r.path === 'worker') {
-                  <p class="e-foot"><span class="e-ok-mark">✓</span> Corrió en un worker: {{ r.value }} primos · {{ r.ms }} ms · la UI no se trabó.</p>
+                  <p class="e-foot">
+                    <span class="e-ok-mark">✓</span> Corrió en un worker: {{ r.value }} primos ·
+                    {{ r.ms }} ms · la UI no se trabó.
+                  </p>
                 } @else {
-                  <p class="e-foot e-danger"><span class="e-bad-mark">⚠</span> Fallback: corrió en el main: {{ r.value }} primos · {{ r.ms }} ms · la UI se congeló, pero el resultado es el mismo.</p>
+                  <p class="e-foot e-danger">
+                    <span class="e-bad-mark">⚠</span> Fallback: corrió en el main:
+                    {{ r.value }} primos · {{ r.ms }} ms · la UI se congeló, pero el resultado es el
+                    mismo.
+                  </p>
                 }
               } @else {
-                <p class="e-hint">Mismo código, dos caminos según el feature-detect. Tildá el fallback y volvé a procesar: el resultado es idéntico, sólo cambia si la UI se traba.</p>
+                <p class="e-hint">
+                  Mismo código, dos caminos según el feature-detect. Tildá el fallback y volvé a
+                  procesar: el resultado es idéntico, sólo cambia si la UI se traba.
+                </p>
               }
             }
 
             @case ('clone-cost') {
               <div class="e-cc-ctl">
                 <label class="e-cc-field">
-                  <span>Tamaño: {{ ccSize() }} {{ ccSize() === 1 ? 'registro' : 'registros' }}</span>
+                  <span
+                    >Tamaño: {{ ccSize() }} {{ ccSize() === 1 ? 'registro' : 'registros' }}</span
+                  >
                   <input
-                    type="range" min="500" max="20000" step="500"
-                    [value]="ccSize()" [disabled]="cloneRunning()"
+                    type="range"
+                    min="500"
+                    max="20000"
+                    step="500"
+                    [value]="ccSize()"
+                    [disabled]="cloneRunning()"
                     (input)="ccSize.set(+$any($event.target).value)"
                     aria-label="Tamaño del payload en registros"
                   />
                 </label>
                 <label class="e-cc-field">
-                  <span>Complejidad: {{ ccDepth() }} {{ ccDepth() === 1 ? 'nivel' : 'niveles' }}</span>
+                  <span
+                    >Complejidad: {{ ccDepth() }} {{ ccDepth() === 1 ? 'nivel' : 'niveles' }}</span
+                  >
                   <input
-                    type="range" min="0" max="8" step="1"
-                    [value]="ccDepth()" [disabled]="cloneRunning()"
+                    type="range"
+                    min="0"
+                    max="8"
+                    step="1"
+                    [value]="ccDepth()"
+                    [disabled]="cloneRunning()"
                     (input)="ccDepth.set(+$any($event.target).value)"
                     aria-label="Complejidad: niveles de anidación"
                   />
@@ -511,7 +744,11 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
               </div>
 
               <div class="e-send">
-                <editorial-button variant="solid" [disabled]="cloneRunning()" (pressed)="runCloneSweep()">
+                <editorial-button
+                  variant="solid"
+                  [disabled]="cloneRunning()"
+                  (pressed)="runCloneSweep()"
+                >
                   {{ cloneRunning() ? 'midiendo…' : 'Medir' }}
                 </editorial-button>
                 @if (cloneMeasurements().length && !cloneRunning()) {
@@ -525,17 +762,26 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
 
               @if (cloneLast(); as last) {
                 <p class="e-foot">
-                  {{ cloneMeasurements().length }} mediciones · el payload de {{ fmtBytes(last.serializedBytes) }}
-                  tardó {{ fmtMs(last.ms) }} ms en ir y volver (profundidad {{ cloneDepthRun() }})
+                  {{ cloneMeasurements().length }} mediciones · el payload de
+                  {{ fmtBytes(last.serializedBytes) }} tardó {{ fmtMs(last.ms) }} ms en ir y volver
+                  (profundidad {{ cloneDepthRun() }})
                 </p>
               } @else {
-                <p class="e-hint">Movés los sliders y tocás Medir: mandamos payloads cada vez más grandes al worker y cronometramos el ida y vuelta real. Cada punto es una medición tuya, no un número inventado.</p>
+                <p class="e-hint">
+                  Movés los sliders y tocás Medir: mandamos payloads cada vez más grandes al worker
+                  y cronometramos el ida y vuelta real. Cada punto es una medición tuya, no un
+                  número inventado.
+                </p>
               }
             }
 
             @case ('compositor-jank') {
               <div class="e-send">
-                <editorial-button variant="solid" [disabled]="compMode() !== 'idle'" (pressed)="blockMainComp()">
+                <editorial-button
+                  variant="solid"
+                  [disabled]="compMode() !== 'idle'"
+                  (pressed)="blockMainComp()"
+                >
                   Bloquear el main
                 </editorial-button>
                 <editorial-button [disabled]="compMode() !== 'idle'" (pressed)="blockWorkerComp()">
@@ -562,13 +808,20 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
               <div aria-live="polite">
                 @switch (compMode()) {
                   @case ('main') {
-                    <p class="e-foot e-danger">Bloqueando el main: la caja JS y los FPS están congelados; la CSS no.</p>
+                    <p class="e-foot e-danger">
+                      Bloqueando el main: la caja JS y los FPS están congelados; la CSS no.
+                    </p>
                   }
                   @case ('worker') {
-                    <p class="e-foot">El mismo cómputo corre en un worker: el main sigue libre, todo fluido.</p>
+                    <p class="e-foot">
+                      El mismo cómputo corre en un worker: el main sigue libre, todo fluido.
+                    </p>
                   }
                   @default {
-                    <p class="e-hint">Tocá «Bloquear el main»: se congela todo menos la caja CSS (la mueve el compositor, otro hilo). Después probá en un worker: nada se congela.</p>
+                    <p class="e-hint">
+                      Tocá «Bloquear el main»: se congela todo menos la caja CSS (la mueve el
+                      compositor, otro hilo). Después probá en un worker: nada se congela.
+                    </p>
                   }
                 }
               </div>
@@ -1336,9 +1589,7 @@ export class EditorialExampleLayoutComponent {
   protected readonly limitRuns = this.limits.runs;
   protected readonly limitRunning = this.limits.running;
   protected readonly currentWorkers = this.limits.currentWorkers;
-  private readonly limitMaxMs = computed(() =>
-    Math.max(1, ...this.limitRuns().map((r) => r.ms)),
-  );
+  private readonly limitMaxMs = computed(() => Math.max(1, ...this.limitRuns().map((r) => r.ms)));
 
   // worker-pool (10)
   protected readonly poolTasks = this.pool.tasks;

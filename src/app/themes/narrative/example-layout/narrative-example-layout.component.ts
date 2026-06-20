@@ -73,26 +73,42 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                 <section class="n-col">
                   <h2>En un Worker</h2>
                   <p class="n-sub">el main queda libre · la UI sigue fluida</p>
-                  <narrative-button variant="solid" [disabled]="phase() === 'worker'" (pressed)="runWorker()">
+                  <narrative-button
+                    variant="solid"
+                    [disabled]="phase() === 'worker'"
+                    (pressed)="runWorker()"
+                  >
                     Ejecutar en worker
                   </narrative-button>
                   @if (workerLanes(); as wl) {
-                    <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: wl, elapsedMs: 0 }" />
+                    <ng-container
+                      *ngComponentOutlet="visualizer; inputs: { lanes: wl, elapsedMs: 0 }"
+                    />
                     <p class="n-foot">{{ workerTicks() }} ticks · la UI nunca se trabó</p>
                   } @else {
-                    <p class="n-hint">Tocá para ver el worker emitir ticks mientras el main queda libre.</p>
+                    <p class="n-hint">
+                      Tocá para ver el worker emitir ticks mientras el main queda libre.
+                    </p>
                   }
                 </section>
 
                 <section class="n-col">
                   <h2>En el Main thread</h2>
                   <p class="n-sub">el main se bloquea · la UI se congela ~2,5s</p>
-                  <narrative-button [disabled]="phase() === 'main'" (pressed)="runMain()">Bloquear main</narrative-button>
+                  <narrative-button [disabled]="phase() === 'main'" (pressed)="runMain()"
+                    >Bloquear main</narrative-button
+                  >
                   @if (mainLanes(); as ml) {
-                    <ng-container *ngComponentOutlet="visualizer; inputs: { lanes: ml, elapsedMs: 0 }" />
-                    <p class="n-foot n-danger">se congeló · {{ mainTicks() }} ticks que no se pintaron</p>
+                    <ng-container
+                      *ngComponentOutlet="visualizer; inputs: { lanes: ml, elapsedMs: 0 }"
+                    />
+                    <p class="n-foot n-danger">
+                      se congeló · {{ mainTicks() }} ticks que no se pintaron
+                    </p>
                   } @else {
-                    <p class="n-hint">Tocá y la página se congela: el contador no actualiza, los clicks mueren.</p>
+                    <p class="n-hint">
+                      Tocá y la página se congela: el contador no actualiza, los clicks mueren.
+                    </p>
                   }
                 </section>
               </div>
@@ -108,7 +124,11 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                   aria-label="Mensaje para enviar al worker"
                   (keyup.enter)="send(msg.value); msg.value = ''"
                 />
-                <narrative-button variant="solid" [disabled]="pending()" (pressed)="send(msg.value); msg.value = ''">
+                <narrative-button
+                  variant="solid"
+                  [disabled]="pending()"
+                  (pressed)="send(msg.value); msg.value = ''"
+                >
                   Enviar
                 </narrative-button>
                 @if (messages().length) {
@@ -120,7 +140,9 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                   @for (m of messages(); track m.direction + m.id) {
                     <div class="n-msg" [attr.data-dir]="m.direction">
                       <p class="n-msg-line">
-                        <span class="n-msg-who">{{ m.direction === 'out' ? 'Main →' : '← Worker' }}</span>
+                        <span class="n-msg-who">{{
+                          m.direction === 'out' ? 'Main →' : '← Worker'
+                        }}</span>
                         <span class="n-msg-text">{{ m.text }}</span>
                         @if (m.meta) {
                           <span class="n-msg-meta"> · {{ m.meta }}</span>
@@ -133,45 +155,78 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                   }
                   @if (pending()) {
                     <div class="n-msg n-msg-wait" data-dir="in">
-                      <p class="n-msg-line"><span class="n-msg-who">← Worker</span> <span class="n-msg-text">procesando…</span></p>
+                      <p class="n-msg-line">
+                        <span class="n-msg-who">← Worker</span>
+                        <span class="n-msg-text">procesando…</span>
+                      </p>
                     </div>
                   }
                 </div>
               } @else {
-                <p class="n-hint">Enviá un mensaje: viaja al worker (→) y vuelve la respuesta (←) con su round-trip.</p>
+                <p class="n-hint">
+                  Enviá un mensaje: viaja al worker (→) y vuelve la respuesta (←) con su round-trip.
+                </p>
               }
             }
 
             @case ('offload') {
               <div class="n-nrow">
                 <label class="n-nlabel" for="n-n">Contar primos hasta N =</label>
-                <input #n id="n-n" class="n-input-n" type="number" value="500000" min="10000" step="100000" />
+                <input
+                  #n
+                  id="n-n"
+                  class="n-input-n"
+                  type="number"
+                  value="500000"
+                  min="10000"
+                  step="100000"
+                />
                 <span class="n-nhint">subilo y el freeze del main dura más</span>
               </div>
               <div class="n-cmp">
                 <section class="n-col">
                   <h2>En un Worker</h2>
                   <p class="n-sub">corre en otro hilo · la UI sigue fluida</p>
-                  <narrative-button variant="solid" [disabled]="computePhase() === 'worker'" (pressed)="computeWorker(n.value)">
+                  <narrative-button
+                    variant="solid"
+                    [disabled]="computePhase() === 'worker'"
+                    (pressed)="computeWorker(n.value)"
+                  >
                     Calcular en worker
                   </narrative-button>
                   @if (computePhase() === 'worker') {
-                    <p class="n-foot">calculando… {{ liveMs() }} ms · la UI responde mientras tanto</p>
+                    <p class="n-foot">
+                      calculando… {{ liveMs() }} ms · la UI responde mientras tanto
+                    </p>
                   } @else if (workerResult(); as r) {
-                    <p class="n-foot n-ok"><span class="n-ok-mark">✓</span> {{ r.count }} primos · {{ r.ms }} ms · la UI nunca se trabó</p>
+                    <p class="n-foot n-ok">
+                      <span class="n-ok-mark">✓</span> {{ r.count }} primos · {{ r.ms }} ms · la UI
+                      nunca se trabó
+                    </p>
                   } @else {
-                    <p class="n-hint">Tocá: el cálculo corre en otro hilo y el cronómetro sigue subiendo en vivo.</p>
+                    <p class="n-hint">
+                      Tocá: el cálculo corre en otro hilo y el cronómetro sigue subiendo en vivo.
+                    </p>
                   }
                 </section>
 
                 <section class="n-col">
                   <h2>En el Main thread</h2>
                   <p class="n-sub">bloquea el hilo · la página se congela</p>
-                  <narrative-button [disabled]="computePhase() === 'main'" (pressed)="computeMain(n.value)">Calcular en el main</narrative-button>
+                  <narrative-button
+                    [disabled]="computePhase() === 'main'"
+                    (pressed)="computeMain(n.value)"
+                    >Calcular en el main</narrative-button
+                  >
                   @if (mainResult(); as r) {
-                    <p class="n-foot n-danger"><span class="n-bad-mark">✗</span> {{ r.count }} primos · la página se congeló {{ r.ms }} ms</p>
+                    <p class="n-foot n-danger">
+                      <span class="n-bad-mark">✗</span> {{ r.count }} primos · la página se congeló
+                      {{ r.ms }} ms
+                    </p>
                   } @else {
-                    <p class="n-hint">Tocá y la página entera se congela hasta terminar: no podés ni scrollear.</p>
+                    <p class="n-hint">
+                      Tocá y la página entera se congela hasta terminar: no podés ni scrollear.
+                    </p>
                   }
                 </section>
               </div>
@@ -179,35 +234,78 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
 
             @case ('offscreen-canvas') {
               @if (!ocSupported()) {
-                <p class="n-foot n-danger">Backend simulado: este navegador no soporta OffscreenCanvas — los dos relojes corren en el main.</p>
+                <p class="n-foot n-danger">
+                  Backend simulado: este navegador no soporta OffscreenCanvas — los dos relojes
+                  corren en el main.
+                </p>
               }
               <div class="n-oc-ctl">
-                <narrative-button variant="solid" [disabled]="ocRunning()" (pressed)="ocStart()">Iniciar animación</narrative-button>
-                <narrative-button [disabled]="!ocRunning() || ocBlocked()" (pressed)="ocBlock()">Bloquear main 2,5 s</narrative-button>
+                <narrative-button variant="solid" [disabled]="ocRunning()" (pressed)="ocStart()"
+                  >Iniciar animación</narrative-button
+                >
+                <narrative-button [disabled]="!ocRunning() || ocBlocked()" (pressed)="ocBlock()"
+                  >Bloquear main 2,5 s</narrative-button
+                >
               </div>
               <div class="n-cmp">
                 <section class="n-col">
                   <h2>Ejecuta en un Worker</h2>
                   <p class="n-sub">dibuja en otro hilo · sigue fluido</p>
                   <div class="n-oc-frame">
-                    <canvas #ocWorker class="n-oc-canvas" width="240" height="240" role="img"
-                      [attr.aria-label]="ocRunning() ? 'Reloj animado por un worker, fluido' : 'Reloj del worker, detenido'"></canvas>
+                    <canvas
+                      #ocWorker
+                      class="n-oc-canvas"
+                      width="240"
+                      height="240"
+                      role="img"
+                      [attr.aria-label]="
+                        ocRunning()
+                          ? 'Reloj animado por un worker, fluido'
+                          : 'Reloj del worker, detenido'
+                      "
+                    ></canvas>
                   </div>
-                  <p class="n-foot">{{ ocRunning() ? ocWorkerFps() + ' fps · frame ' + ocWorkerFrames() : 'Tocá Iniciar.' }}</p>
+                  <p class="n-foot">
+                    {{
+                      ocRunning()
+                        ? ocWorkerFps() + ' fps · frame ' + ocWorkerFrames()
+                        : 'Tocá Iniciar.'
+                    }}
+                  </p>
                 </section>
                 <section class="n-col">
                   <h2>Ejecuta en el Main</h2>
                   <p class="n-sub">dibuja en el main · se congela al bloquear</p>
                   <div class="n-oc-frame" [class.n-oc-dead]="ocBlocked()">
-                    <canvas #ocMain class="n-oc-canvas" width="240" height="240" role="img"
-                      [attr.aria-label]="ocBlocked() ? 'Reloj del main, congelado' : 'Reloj animado por el main thread'"></canvas>
+                    <canvas
+                      #ocMain
+                      class="n-oc-canvas"
+                      width="240"
+                      height="240"
+                      role="img"
+                      [attr.aria-label]="
+                        ocBlocked()
+                          ? 'Reloj del main, congelado'
+                          : 'Reloj animado por el main thread'
+                      "
+                    ></canvas>
                   </div>
                   @if (ocBlocked()) {
-                    <p class="n-foot n-danger" aria-live="polite">El hilo principal dejó de responder — no pinta frames.</p>
+                    <p class="n-foot n-danger" aria-live="polite">
+                      El hilo principal dejó de responder — no pinta frames.
+                    </p>
                   } @else if (ocSkipped()) {
-                    <p class="n-foot n-danger">Saltó {{ ocSkipped() }} frames de golpe al volver.</p>
+                    <p class="n-foot n-danger">
+                      Saltó {{ ocSkipped() }} frames de golpe al volver.
+                    </p>
                   } @else {
-                    <p class="n-foot">{{ ocRunning() ? ocMainFps() + ' fps · frame ' + ocMainFrames() : 'Tocá Iniciar.' }}</p>
+                    <p class="n-foot">
+                      {{
+                        ocRunning()
+                          ? ocMainFps() + ' fps · frame ' + ocMainFrames()
+                          : 'Tocá Iniciar.'
+                      }}
+                    </p>
                   }
                 </section>
               </div>
@@ -218,7 +316,9 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                 <narrative-button variant="solid" [disabled]="errorBusy()" (pressed)="sendOk()">
                   Enviar JSON válido
                 </narrative-button>
-                <narrative-button [disabled]="errorBusy()" (pressed)="sendFail()">Enviar JSON roto</narrative-button>
+                <narrative-button [disabled]="errorBusy()" (pressed)="sendFail()"
+                  >Enviar JSON roto</narrative-button
+                >
                 @if (errorEvents().length) {
                   <narrative-button (pressed)="resetErrors()">Reiniciar</narrative-button>
                 }
@@ -239,18 +339,30 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                     </div>
                   }
                 </div>
-                <p class="n-foot">La app sigue viva: el worker no se murió, podés seguir corriendo tareas.</p>
+                <p class="n-foot">
+                  La app sigue viva: el worker no se murió, podés seguir corriendo tareas.
+                </p>
               } @else {
-                <p class="n-hint">Enviá un JSON válido (✓ devuelve sus claves) y después uno roto (✗ el main lo captura con onerror). La página no se rompe.</p>
+                <p class="n-hint">
+                  Enviá un JSON válido (✓ devuelve sus claves) y después uno roto (✗ el main lo
+                  captura con onerror). La página no se rompe.
+                </p>
               }
             }
 
             @case ('lifecycle') {
               <div class="n-send">
-                <narrative-button variant="solid" [disabled]="lifeStatus() === 'running'" (pressed)="startLife()">
+                <narrative-button
+                  variant="solid"
+                  [disabled]="lifeStatus() === 'running'"
+                  (pressed)="startLife()"
+                >
                   Iniciar tarea
                 </narrative-button>
-                <narrative-button [disabled]="lifeStatus() !== 'running'" (pressed)="terminateLife()">
+                <narrative-button
+                  [disabled]="lifeStatus() !== 'running'"
+                  (pressed)="terminateLife()"
+                >
                   Terminar
                 </narrative-button>
                 @if (lifeStatus() !== 'idle') {
@@ -265,16 +377,25 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
 
               @switch (lifeStatus()) {
                 @case ('idle') {
-                  <p class="n-hint">Iniciá la tarea: el worker avanza por pasos. Cortala a mitad con Terminar y mirá qué queda.</p>
+                  <p class="n-hint">
+                    Iniciá la tarea: el worker avanza por pasos. Cortala a mitad con Terminar y mirá
+                    qué queda.
+                  </p>
                 }
                 @case ('running') {
                   <p class="n-foot">El worker está vivo, emitiendo su progreso paso a paso.</p>
                 }
                 @case ('terminated') {
-                  <p class="n-foot n-danger">Terminado en el paso {{ lifeStep() }}/{{ lifeSteps() }}: el trabajo en curso se descartó y el worker ya no existe. Para volver a correr, Iniciar crea uno nuevo.</p>
+                  <p class="n-foot n-danger">
+                    Terminado en el paso {{ lifeStep() }}/{{ lifeSteps() }}: el trabajo en curso se
+                    descartó y el worker ya no existe. Para volver a correr, Iniciar crea uno nuevo.
+                  </p>
                 }
                 @case ('done') {
-                  <p class="n-foot">Completado, {{ lifeSteps() }}/{{ lifeSteps() }}: el worker terminó su trabajo y se cerró solo con self.close().</p>
+                  <p class="n-foot">
+                    Completado, {{ lifeSteps() }}/{{ lifeSteps() }}: el worker terminó su trabajo y
+                    se cerró solo con self.close().
+                  </p>
                 }
               }
             }
@@ -285,26 +406,43 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                 <section class="n-col">
                   <h2>Transferir (zero-copy)</h2>
                   <p class="n-sub">cambia de dueño · no copia</p>
-                  <narrative-button variant="solid" [disabled]="transferBusy()" (pressed)="runTransfer()">
+                  <narrative-button
+                    variant="solid"
+                    [disabled]="transferBusy()"
+                    (pressed)="runTransfer()"
+                  >
                     Transferir buffer
                   </narrative-button>
                   @if (transferResult(); as r) {
-                    <p class="n-foot"><span class="n-ok-mark">✓</span> round-trip {{ r.ms }} ms — instantáneo aunque sea grande</p>
-                    <p class="n-foot n-danger">El buffer del main quedó detached (0 B): perdió la propiedad.</p>
+                    <p class="n-foot">
+                      <span class="n-ok-mark">✓</span> round-trip {{ r.ms }} ms — instantáneo aunque
+                      sea grande
+                    </p>
+                    <p class="n-foot n-danger">
+                      El buffer del main quedó detached (0 B): perdió la propiedad.
+                    </p>
                   } @else {
-                    <p class="n-hint">Pasás el buffer en la transfer list: no se copia, pero el main pierde la propiedad y queda en 0 bytes.</p>
+                    <p class="n-hint">
+                      Pasás el buffer en la transfer list: no se copia, pero el main pierde la
+                      propiedad y queda en 0 bytes.
+                    </p>
                   }
                 </section>
 
                 <section class="n-col">
                   <h2>Clonar (structured clone)</h2>
                   <p class="n-sub">copia byte por byte · el main lo conserva</p>
-                  <narrative-button [disabled]="transferBusy()" (pressed)="runClone()">Clonar buffer</narrative-button>
+                  <narrative-button [disabled]="transferBusy()" (pressed)="runClone()"
+                    >Clonar buffer</narrative-button
+                  >
                   @if (cloneResult(); as r) {
                     <p class="n-foot">round-trip {{ r.ms }} ms — más lento: copió {{ r.mb }} MB</p>
                     <p class="n-foot">El main conserva su copia intacta ({{ r.mb }} MB).</p>
                   } @else {
-                    <p class="n-hint">Sin transfer list, postMessage copia el buffer entero. El main se queda con el suyo, pero la copia cuesta.</p>
+                    <p class="n-hint">
+                      Sin transfer list, postMessage copia el buffer entero. El main se queda con el
+                      suyo, pero la copia cuesta.
+                    </p>
                   }
                 </section>
               </div>
@@ -315,7 +453,9 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                 <span class="n-sw-id">SharedWorker {{ swInstanceId() || '…' }}</span>
                 <span class="n-sw-clients">clientes conectados: {{ swClients() }}</span>
                 @if (!swSupported()) {
-                  <span class="n-sw-sim">backend simulado · el navegador no soporta SharedWorker</span>
+                  <span class="n-sw-sim"
+                    >backend simulado · el navegador no soporta SharedWorker</span
+                  >
                 }
               </div>
               <div class="n-cmp">
@@ -325,7 +465,9 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                     <p class="n-sub">puerto {{ panel.label }} · mismo worker</p>
                     <div class="n-sw-count">{{ swCount() }}</div>
                     <div class="n-send">
-                      <narrative-button variant="solid" (pressed)="swInc(panel.label)">+1</narrative-button>
+                      <narrative-button variant="solid" (pressed)="swInc(panel.label)"
+                        >+1</narrative-button
+                      >
                       <narrative-button (pressed)="swReset(panel.label)">Reset</narrative-button>
                       @if (swPanels().length > 1) {
                         <narrative-button (pressed)="swClose(panel.label)">Cerrar</narrative-button>
@@ -335,12 +477,17 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                       <div class="n-dialogue">
                         @for (log of panel.logs.slice(-4); track log.id) {
                           <div class="n-evt" data-status="ok">
-                            <p class="n-evt-line"><span class="n-evt-in">{{ log.by }}</span> sumó → {{ log.count }}</p>
+                            <p class="n-evt-line">
+                              <span class="n-evt-in">{{ log.by }}</span> sumó → {{ log.count }}
+                            </p>
                           </div>
                         }
                       </div>
                     } @else {
-                      <p class="n-hint">Sumá acá: el número salta en los dos paneles. Es el mismo contador, no dos copias.</p>
+                      <p class="n-hint">
+                        Sumá acá: el número salta en los dos paneles. Es el mismo contador, no dos
+                        copias.
+                      </p>
                     }
                   </section>
                 }
@@ -351,8 +498,14 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
             @case ('worker-limits') {
               <p class="n-lim-cpu">Tu CPU: {{ hardwareConcurrency() }} núcleos lógicos</p>
               <div class="n-send">
-                <narrative-button variant="solid" [disabled]="limitRunning()" (pressed)="runLimits()">
-                  {{ limitRunning() ? 'Corriendo ' + currentWorkers() + '× …' : 'Correr la escala' }}
+                <narrative-button
+                  variant="solid"
+                  [disabled]="limitRunning()"
+                  (pressed)="runLimits()"
+                >
+                  {{
+                    limitRunning() ? 'Corriendo ' + currentWorkers() + '× …' : 'Correr la escala'
+                  }}
                 </narrative-button>
                 @if (limitRuns().length && !limitRunning()) {
                   <narrative-button (pressed)="resetLimits()">Reiniciar</narrative-button>
@@ -363,21 +516,33 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                   @for (run of limitRuns(); track run.workers) {
                     <div class="n-lim-row" [attr.data-over]="run.workers > hardwareConcurrency()">
                       <span class="n-lim-k">{{ run.workers }}×</span>
-                      <div class="n-lim-bar"><div class="n-lim-fill" [style.width.%]="limitPct(run.ms)"></div></div>
+                      <div class="n-lim-bar">
+                        <div class="n-lim-fill" [style.width.%]="limitPct(run.ms)"></div>
+                      </div>
                       <span class="n-lim-ms">{{ run.ms }} ms</span>
                     </div>
                   }
                 </div>
-                <p class="n-foot">Plano hasta {{ hardwareConcurrency() }} (tus núcleos); pasado eso el tiempo trepa — más workers no ayudan.</p>
+                <p class="n-foot">
+                  Plano hasta {{ hardwareConcurrency() }} (tus núcleos); pasado eso el tiempo trepa
+                  — más workers no ayudan.
+                </p>
               } @else {
-                <p class="n-hint">Corré 1, 2, 4, 8 y 16 workers a la vez con el mismo cómputo. El tiempo se mantiene plano mientras entren en tus núcleos.</p>
+                <p class="n-hint">
+                  Corré 1, 2, 4, 8 y 16 workers a la vez con el mismo cómputo. El tiempo se mantiene
+                  plano mientras entren en tus núcleos.
+                </p>
               }
             }
 
             @case ('worker-pool') {
               <div class="n-send">
                 <narrative-button variant="solid" [disabled]="poolRunning()" (pressed)="runPool()">
-                  {{ poolRunning() ? 'Procesando… ' + poolProcessed() + '/' + poolTaskCount : 'Procesar la cola' }}
+                  {{
+                    poolRunning()
+                      ? 'Procesando… ' + poolProcessed() + '/' + poolTaskCount
+                      : 'Procesar la cola'
+                  }}
                 </narrative-button>
                 @if (poolTasks().length && !poolRunning()) {
                   <narrative-button (pressed)="resetPool()">Reiniciar</narrative-button>
@@ -385,7 +550,9 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
               </div>
 
               @if (poolTasks().length) {
-                <p class="n-lim-cpu">La cola — {{ poolProcessed() }} / {{ poolTaskCount }} hechas</p>
+                <p class="n-lim-cpu">
+                  La cola — {{ poolProcessed() }} / {{ poolTaskCount }} hechas
+                </p>
                 <div class="n-pool-queue">
                   @for (task of poolTasks(); track task.id) {
                     <span class="n-pool-task" [attr.data-state]="task.state">
@@ -399,16 +566,27 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                   @for (slot of poolSlots(); track slot.id) {
                     <div class="n-pool-slot" [attr.data-busy]="slot.busy">
                       <span class="n-pool-slot-w">W{{ slot.id }}</span>
-                      <span class="n-pool-slot-task">{{ slot.busy ? 'T' + slot.taskId : 'libre' }}</span>
+                      <span class="n-pool-slot-task">{{
+                        slot.busy ? 'T' + slot.taskId : 'libre'
+                      }}</span>
                       <span class="n-pool-slot-x">× {{ slot.processed }}</span>
                     </div>
                   }
                 </div>
 
-                <p class="n-foot">Con pool: {{ workersCreated() }} workers creados, reusados {{ poolTaskCount }} veces.</p>
-                <p class="n-foot n-danger">Sin pool: {{ spawnedWithoutPool }} workers, uno por tarea — el ejemplo 09 mostró por qué eso no escala.</p>
+                <p class="n-foot">
+                  Con pool: {{ workersCreated() }} workers creados, reusados
+                  {{ poolTaskCount }} veces.
+                </p>
+                <p class="n-foot n-danger">
+                  Sin pool: {{ spawnedWithoutPool }} workers, uno por tarea — el ejemplo 09 mostró
+                  por qué eso no escala.
+                </p>
               } @else {
-                <p class="n-hint">24 tareas, 4 workers. Tocá Procesar: los 4 se reusan para drenar la cola entera (× cuenta cuántas despachó cada uno). No se crea un worker por tarea.</p>
+                <p class="n-hint">
+                  24 tareas, 4 workers. Tocá Procesar: los 4 se reusan para drenar la cola entera (×
+                  cuenta cuántas despachó cada uno). No se crea un worker por tarea.
+                </p>
               }
             }
 
@@ -417,14 +595,22 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                 <section class="n-col">
                   <h2>Sin backpressure</h2>
                   <p class="n-sub">disparás las {{ bpTotal }} de una</p>
-                  <narrative-button variant="solid" [disabled]="bpMode() !== 'idle'" (pressed)="runNaive()">
+                  <narrative-button
+                    variant="solid"
+                    [disabled]="bpMode() !== 'idle'"
+                    (pressed)="runNaive()"
+                  >
                     Disparar todo
                   </narrative-button>
                   @if (bpMode() === 'naive') {
                     <p class="n-foot">en cola: {{ bpPending() }}…</p>
                   } @else if (naivePeak(); as p) {
-                    <div class="n-bp-bar" data-kind="naive"><div class="n-bp-fill" [style.width.%]="bpPctOf(p)"></div></div>
-                    <p class="n-foot n-danger">Pico en vuelo: {{ p }}. La última tardó {{ naiveMaxLatency() }}ms en volver.</p>
+                    <div class="n-bp-bar" data-kind="naive">
+                      <div class="n-bp-fill" [style.width.%]="bpPctOf(p)"></div>
+                    </div>
+                    <p class="n-foot n-danger">
+                      Pico en vuelo: {{ p }}. La última tardó {{ naiveMaxLatency() }}ms en volver.
+                    </p>
                   } @else {
                     <p class="n-hint">El worker procesa de a uno; el resto se encola sin techo.</p>
                   }
@@ -433,14 +619,23 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                 <section class="n-col">
                   <h2>Con backpressure</h2>
                   <p class="n-sub">ventana de {{ bpWindow }} · esperás el ack</p>
-                  <narrative-button [disabled]="bpMode() !== 'idle'" (pressed)="runBackpressure()">Con control de flujo</narrative-button>
+                  <narrative-button [disabled]="bpMode() !== 'idle'" (pressed)="runBackpressure()"
+                    >Con control de flujo</narrative-button
+                  >
                   @if (bpMode() === 'backpressure') {
                     <p class="n-foot">en cola: {{ bpPending() }}…</p>
                   } @else if (bpPeak(); as p) {
-                    <div class="n-bp-bar" data-kind="bp"><div class="n-bp-fill" [style.width.%]="bpPctOf(p)"></div></div>
-                    <p class="n-foot">Pico en vuelo: {{ p }} — la última: {{ bpMaxLatency() }}ms, acotada.</p>
+                    <div class="n-bp-bar" data-kind="bp">
+                      <div class="n-bp-fill" [style.width.%]="bpPctOf(p)"></div>
+                    </div>
+                    <p class="n-foot">
+                      Pico en vuelo: {{ p }} — la última: {{ bpMaxLatency() }}ms, acotada.
+                    </p>
                   } @else {
-                    <p class="n-hint">Mandás {{ bpWindow }}, esperás el ack, mandás la próxima: la cola queda acotada.</p>
+                    <p class="n-hint">
+                      Mandás {{ bpWindow }}, esperás el ack, mandás la próxima: la cola queda
+                      acotada.
+                    </p>
                   }
                 </section>
               </div>
@@ -448,7 +643,9 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
 
             @case ('shared-memory') {
               @if (!smSupported()) {
-                <p class="n-foot n-danger">Backend simulado · SharedArrayBuffer necesita cabeceras COOP/COEP.</p>
+                <p class="n-foot n-danger">
+                  Backend simulado · SharedArrayBuffer necesita cabeceras COOP/COEP.
+                </p>
               }
               <div class="n-sm">
                 <div class="n-sm-side">
@@ -462,7 +659,10 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                 </div>
               </div>
               <div class="n-bar"><div class="n-bar-fill" [style.width.%]="smPct()"></div></div>
-              <p class="n-bar-label">0 mensajes intercambiados — es la misma memoria, escrita por el worker y leída por el main.</p>
+              <p class="n-bar-label">
+                0 mensajes intercambiados — es la misma memoria, escrita por el worker y leída por
+                el main.
+              </p>
               <div class="n-send">
                 <narrative-button variant="solid" [disabled]="smRunning()" (pressed)="startSm()">
                   {{ smRunning() ? 'Contando… ' + smValue() + '/' + smTarget : 'Arrancar' }}
@@ -474,7 +674,9 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
             }
 
             @case ('degradation') {
-              <p class="n-lim-cpu">typeof Worker → {{ degSupported() ? 'disponible ✓' : 'no disponible' }}</p>
+              <p class="n-lim-cpu">
+                typeof Worker → {{ degSupported() ? 'disponible ✓' : 'no disponible' }}
+              </p>
               <div class="n-send">
                 <narrative-button (pressed)="toggleFallback()">
                   {{ degForce() ? '☑ simulando sin Worker' : '☐ simular sin Worker' }}
@@ -488,31 +690,53 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
               </div>
               @if (degResult(); as r) {
                 @if (r.path === 'worker') {
-                  <p class="n-foot"><span class="n-ok-mark">✓</span> Corrió en un worker: {{ r.value }} primos · {{ r.ms }} ms · la UI no se trabó.</p>
+                  <p class="n-foot">
+                    <span class="n-ok-mark">✓</span> Corrió en un worker: {{ r.value }} primos ·
+                    {{ r.ms }} ms · la UI no se trabó.
+                  </p>
                 } @else {
-                  <p class="n-foot n-danger"><span class="n-bad-mark">⚠</span> Fallback: corrió en el main: {{ r.value }} primos · {{ r.ms }} ms · la UI se congeló, pero el resultado es el mismo.</p>
+                  <p class="n-foot n-danger">
+                    <span class="n-bad-mark">⚠</span> Fallback: corrió en el main:
+                    {{ r.value }} primos · {{ r.ms }} ms · la UI se congeló, pero el resultado es el
+                    mismo.
+                  </p>
                 }
               } @else {
-                <p class="n-hint">Mismo código, dos caminos según el feature-detect. Tildá el fallback y volvé a procesar: el resultado es idéntico, sólo cambia si la UI se traba.</p>
+                <p class="n-hint">
+                  Mismo código, dos caminos según el feature-detect. Tildá el fallback y volvé a
+                  procesar: el resultado es idéntico, sólo cambia si la UI se traba.
+                </p>
               }
             }
 
             @case ('clone-cost') {
               <div class="n-cc-ctl">
                 <label class="n-cc-field">
-                  <span>Tamaño: {{ ccSize() }} {{ ccSize() === 1 ? 'registro' : 'registros' }}</span>
+                  <span
+                    >Tamaño: {{ ccSize() }} {{ ccSize() === 1 ? 'registro' : 'registros' }}</span
+                  >
                   <input
-                    type="range" min="500" max="20000" step="500"
-                    [value]="ccSize()" [disabled]="cloneRunning()"
+                    type="range"
+                    min="500"
+                    max="20000"
+                    step="500"
+                    [value]="ccSize()"
+                    [disabled]="cloneRunning()"
                     (input)="ccSize.set(+$any($event.target).value)"
                     aria-label="Tamaño del payload en registros"
                   />
                 </label>
                 <label class="n-cc-field">
-                  <span>Complejidad: {{ ccDepth() }} {{ ccDepth() === 1 ? 'nivel' : 'niveles' }}</span>
+                  <span
+                    >Complejidad: {{ ccDepth() }} {{ ccDepth() === 1 ? 'nivel' : 'niveles' }}</span
+                  >
                   <input
-                    type="range" min="0" max="8" step="1"
-                    [value]="ccDepth()" [disabled]="cloneRunning()"
+                    type="range"
+                    min="0"
+                    max="8"
+                    step="1"
+                    [value]="ccDepth()"
+                    [disabled]="cloneRunning()"
                     (input)="ccDepth.set(+$any($event.target).value)"
                     aria-label="Complejidad: niveles de anidación"
                   />
@@ -520,7 +744,11 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
               </div>
 
               <div class="n-send">
-                <narrative-button variant="solid" [disabled]="cloneRunning()" (pressed)="runCloneSweep()">
+                <narrative-button
+                  variant="solid"
+                  [disabled]="cloneRunning()"
+                  (pressed)="runCloneSweep()"
+                >
                   {{ cloneRunning() ? 'Midiendo…' : 'Medir' }}
                 </narrative-button>
                 @if (cloneMeasurements().length && !cloneRunning()) {
@@ -534,17 +762,26 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
 
               @if (cloneLast(); as last) {
                 <p class="n-foot">
-                  <span class="n-ok-mark">✓</span> {{ cloneMeasurements().length }} mediciones · el payload de {{ fmtBytes(last.serializedBytes) }}
-                  tardó {{ fmtMs(last.ms) }} ms en ir y volver (profundidad {{ cloneDepthRun() }}).
+                  <span class="n-ok-mark">✓</span> {{ cloneMeasurements().length }} mediciones · el
+                  payload de {{ fmtBytes(last.serializedBytes) }} tardó {{ fmtMs(last.ms) }} ms en
+                  ir y volver (profundidad {{ cloneDepthRun() }}).
                 </p>
               } @else {
-                <p class="n-hint">Movés los sliders y tocás Medir: mandamos payloads cada vez más grandes al worker y cronometramos el ida y vuelta real. Cada punto es una medición tuya, no un número inventado.</p>
+                <p class="n-hint">
+                  Movés los sliders y tocás Medir: mandamos payloads cada vez más grandes al worker
+                  y cronometramos el ida y vuelta real. Cada punto es una medición tuya, no un
+                  número inventado.
+                </p>
               }
             }
 
             @case ('compositor-jank') {
               <div class="n-send">
-                <narrative-button variant="solid" [disabled]="compMode() !== 'idle'" (pressed)="blockMainComp()">
+                <narrative-button
+                  variant="solid"
+                  [disabled]="compMode() !== 'idle'"
+                  (pressed)="blockMainComp()"
+                >
                   Bloquear el main
                 </narrative-button>
                 <narrative-button [disabled]="compMode() !== 'idle'" (pressed)="blockWorkerComp()">
@@ -571,13 +808,20 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
               <div aria-live="polite">
                 @switch (compMode()) {
                   @case ('main') {
-                    <p class="n-foot n-danger">Bloqueando el main: la caja JS y los FPS quedaron congelados; la CSS, no.</p>
+                    <p class="n-foot n-danger">
+                      Bloqueando el main: la caja JS y los FPS quedaron congelados; la CSS, no.
+                    </p>
                   }
                   @case ('worker') {
-                    <p class="n-foot">El mismo cómputo corre en un worker: el main sigue libre, todo fluye.</p>
+                    <p class="n-foot">
+                      El mismo cómputo corre en un worker: el main sigue libre, todo fluye.
+                    </p>
                   }
                   @default {
-                    <p class="n-hint">Tocá «Bloquear el main»: se congela todo menos la caja CSS, que la mueve el compositor en otro hilo. Después probá en un worker: ya nada se congela.</p>
+                    <p class="n-hint">
+                      Tocá «Bloquear el main»: se congela todo menos la caja CSS, que la mueve el
+                      compositor en otro hilo. Después probá en un worker: ya nada se congela.
+                    </p>
                   }
                 }
               </div>
@@ -1345,9 +1589,7 @@ export class NarrativeExampleLayoutComponent {
   protected readonly limitRuns = this.limits.runs;
   protected readonly limitRunning = this.limits.running;
   protected readonly currentWorkers = this.limits.currentWorkers;
-  private readonly limitMaxMs = computed(() =>
-    Math.max(1, ...this.limitRuns().map((r) => r.ms)),
-  );
+  private readonly limitMaxMs = computed(() => Math.max(1, ...this.limitRuns().map((r) => r.ms)));
 
   // worker-pool (10)
   protected readonly poolTasks = this.pool.tasks;

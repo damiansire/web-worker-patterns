@@ -8,7 +8,13 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
 @Component({
   selector: 'fb-button',
   template: `
-    <button type="button" class="b-btn" [attr.data-variant]="variant()" [disabled]="disabled()" (click)="pressed.emit()">
+    <button
+      type="button"
+      class="b-btn"
+      [attr.data-variant]="variant()"
+      [disabled]="disabled()"
+      (click)="pressed.emit()"
+    >
       <ng-content />
     </button>
   `,
@@ -27,7 +33,9 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
         border-radius: var(--radius);
         box-shadow: 4px 4px 0 var(--border);
         cursor: pointer;
-        transition: transform 0.05s, box-shadow 0.05s;
+        transition:
+          transform 0.05s,
+          box-shadow 0.05s;
       }
       .b-btn[data-variant='solid'] {
         background: var(--accent);
