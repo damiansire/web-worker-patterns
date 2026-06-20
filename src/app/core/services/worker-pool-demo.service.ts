@@ -71,9 +71,7 @@ export class WorkerPoolDemoService {
     this.tasks.set(
       Array.from({ length: this.taskCount }, (_, i) => ({ id: i + 1, state: 'pending' as const })),
     );
-    this.slots.set(
-      Array.from({ length: n }, (_, i) => ({ id: i + 1, busy: false, processed: 0 })),
-    );
+    this.slots.set(Array.from({ length: n }, (_, i) => ({ id: i + 1, busy: false, processed: 0 })));
     this.queue = this.tasks().map((t) => t.id);
     this.running.set(true);
 

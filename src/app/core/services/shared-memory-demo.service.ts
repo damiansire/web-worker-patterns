@@ -49,7 +49,12 @@ export class SharedMemoryDemoService {
       this.view = new Int32Array(sab);
       const worker = example.workerFactory() as unknown as WorkerLike;
       this.worker = worker;
-      worker.postMessage({ command: 'start', sab, target: this.target, intervalMs: this.intervalMs });
+      worker.postMessage({
+        command: 'start',
+        sab,
+        target: this.target,
+        intervalMs: this.intervalMs,
+      });
     } else {
       // Fallback simulado: un buffer local que "alguien" incrementa por timer.
       this.view = new Int32Array(new ArrayBuffer(4));

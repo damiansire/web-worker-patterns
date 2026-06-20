@@ -53,7 +53,7 @@ const TAU = Math.PI * 2;
 /** Ángulo de la manecilla de segundos (barrido continuo), 0 = arriba (12 en punto). */
 export function handAngle(elapsedMs: number): number {
   const seconds = elapsedMs / 1000;
-  const fraction = ((seconds % 60) + 60) % 60 / 60; // robusto a negativos
+  const fraction = (((seconds % 60) + 60) % 60) / 60; // robusto a negativos
   return fraction * TAU - Math.PI / 2;
 }
 

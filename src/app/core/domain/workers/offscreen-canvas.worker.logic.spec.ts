@@ -1,4 +1,10 @@
-import { handAngle, formatElapsed, drawClock, Ctx2D, ClockPalette } from './offscreen-canvas.worker.logic';
+import {
+  handAngle,
+  formatElapsed,
+  drawClock,
+  Ctx2D,
+  ClockPalette,
+} from './offscreen-canvas.worker.logic';
 
 describe('offscreen-canvas worker logic', () => {
   it('handAngle: 0 = arriba (12 en punto), 15s = un cuarto de vuelta', () => {

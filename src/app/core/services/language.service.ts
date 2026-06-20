@@ -14,18 +14,37 @@ export interface GeoNotification {
 
 /** Country codes where we default to Spanish (Spain + Latin America except Brazil). */
 const SPANISH_COUNTRY_CODES = new Set([
-  'ES', 'MX', 'AR', 'CO', 'CL', 'PE', 'VE', 'EC', 'GT', 'CU', 'BO', 'DO', 'HN',
-  'PY', 'SV', 'NI', 'CR', 'PA', 'UY', 'PR', 'GQ'
+  'ES',
+  'MX',
+  'AR',
+  'CO',
+  'CL',
+  'PE',
+  'VE',
+  'EC',
+  'GT',
+  'CU',
+  'BO',
+  'DO',
+  'HN',
+  'PY',
+  'SV',
+  'NI',
+  'CR',
+  'PA',
+  'UY',
+  'PR',
+  'GQ',
 ]);
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class LanguageService {
   readonly languages: { code: LanguageCode; label: string; nativeLabel: string }[] = [
     { code: 'es', label: 'Spanish', nativeLabel: 'Español' },
     { code: 'en', label: 'English', nativeLabel: 'English' },
-    { code: 'pt', label: 'Portuguese', nativeLabel: 'Português' }
+    { code: 'pt', label: 'Portuguese', nativeLabel: 'Português' },
   ];
 
   private readonly language = signal<LanguageCode | null>(null);
@@ -61,7 +80,7 @@ export class LanguageService {
    */
   private detectLanguageByGeo(): void {
     fetch(GEO_API_URL, { mode: 'cors' })
-      .then(res => res.json())
+      .then((res) => res.json())
       .then((data: { country_code?: string; country_name?: string }) => {
         const code = (data?.country_code ?? '').toUpperCase();
         const countryName = (data?.country_name ?? code).trim() || null;
@@ -100,7 +119,6 @@ export class LanguageService {
   }
 
   private isSupported(code: string): code is LanguageCode {
-    return this.languages.some(lang => lang.code === code);
+    return this.languages.some((lang) => lang.code === code);
   }
 }
-

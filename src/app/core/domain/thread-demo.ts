@@ -23,7 +23,11 @@ export function buildWorkerLanes(ticks: number, intervalMs: number): ThreadLane[
 export function buildBlockedLanes(ticks: number, intervalMs: number): ThreadLane[] {
   const total = ticks * intervalMs;
   return [
-    { id: 'main', label: 'Main thread', segments: [{ startMs: 0, endMs: total, state: 'blocked' }] },
+    {
+      id: 'main',
+      label: 'Main thread',
+      segments: [{ startMs: 0, endMs: total, state: 'blocked' }],
+    },
     { id: 'worker', label: 'Worker', segments: [] },
   ];
 }

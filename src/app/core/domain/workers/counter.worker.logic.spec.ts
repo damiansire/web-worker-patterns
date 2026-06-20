@@ -8,7 +8,10 @@ describe('counter worker logic', () => {
   it('emits incrementing ticks on the requested interval', () => {
     const ticks: CounterTick[] = [];
     let clock = 0;
-    const counter = createCounter((t) => ticks.push(t), () => clock);
+    const counter = createCounter(
+      (t) => ticks.push(t),
+      () => clock,
+    );
 
     counter.start(100);
     clock = 100;
@@ -22,7 +25,10 @@ describe('counter worker logic', () => {
 
   it('stops emitting after stop()', () => {
     const ticks: CounterTick[] = [];
-    const counter = createCounter((t) => ticks.push(t), () => 0);
+    const counter = createCounter(
+      (t) => ticks.push(t),
+      () => 0,
+    );
 
     counter.start(100);
     vi.advanceTimersByTime(100);
@@ -34,7 +40,10 @@ describe('counter worker logic', () => {
 
   it('reset() returns the count to zero', () => {
     const ticks: CounterTick[] = [];
-    const counter = createCounter((t) => ticks.push(t), () => 0);
+    const counter = createCounter(
+      (t) => ticks.push(t),
+      () => 0,
+    );
 
     counter.start(100);
     vi.advanceTimersByTime(200); // ticks 1, 2

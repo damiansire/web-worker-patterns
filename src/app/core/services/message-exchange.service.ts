@@ -17,8 +17,7 @@ interface WorkerLike {
 @Injectable({ providedIn: 'root' })
 export class MessageExchangeService {
   /** Reloj inyectable para tests deterministas. */
-  clock: () => number = () =>
-    typeof performance !== 'undefined' ? performance.now() : 0;
+  clock: () => number = () => (typeof performance !== 'undefined' ? performance.now() : 0);
 
   private worker?: WorkerLike;
   private openId?: string;

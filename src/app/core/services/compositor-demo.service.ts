@@ -72,7 +72,10 @@ export class CompositorDemoService {
     this.rafId = requestAnimationFrame(loop);
 
     // Publicación de FPS desacoplada del rAF: un signal cada ~250ms, no por frame.
-    this.fpsTimer = setInterval(() => this.mainFps.set(fpsInWindow(this.frames, this.clock())), 250);
+    this.fpsTimer = setInterval(
+      () => this.mainFps.set(fpsInWindow(this.frames, this.clock())),
+      250,
+    );
   }
 
   stopMeter(): void {

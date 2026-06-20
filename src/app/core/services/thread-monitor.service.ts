@@ -29,8 +29,7 @@ export class ThreadMonitorService {
    * Reloj inyectable para mantener el servicio determinista en tests.
    * En runtime usa `performance.now()`.
    */
-  clock: () => number = () =>
-    typeof performance !== 'undefined' ? performance.now() : 0;
+  clock: () => number = () => (typeof performance !== 'undefined' ? performance.now() : 0);
 
   private t0 = 0;
   private readonly labels = new Map<string, string>();

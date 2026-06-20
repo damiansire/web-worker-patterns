@@ -37,7 +37,13 @@ export const EXAMPLES: WorkerExample[] = [
       new Worker(new URL('../workers/counter.worker', import.meta.url), { type: 'module' }),
     snippets: COUNTER_SNIPPETS,
   },
-  { id: '02-main-thread', order: 2, category: 'understanding', i18nKey: 'examples.02-main-thread', snippets: {} },
+  {
+    id: '02-main-thread',
+    order: 2,
+    category: 'understanding',
+    i18nKey: 'examples.02-main-thread',
+    snippets: {},
+  },
   {
     id: '03-basic-communication',
     order: 3,
@@ -160,7 +166,9 @@ export const EXAMPLES: WorkerExample[] = [
     i18nKey: 'examples.14-offscreen-canvas',
     demo: 'offscreen-canvas',
     workerFactory: () =>
-      new Worker(new URL('../workers/offscreen-canvas.worker', import.meta.url), { type: 'module' }),
+      new Worker(new URL('../workers/offscreen-canvas.worker', import.meta.url), {
+        type: 'module',
+      }),
     snippets: OFFSCREEN_CANVAS_SNIPPETS,
   },
   {

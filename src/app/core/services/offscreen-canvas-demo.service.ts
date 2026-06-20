@@ -53,7 +53,11 @@ export class OffscreenCanvasDemoService {
    * estaba corriendo (p.ej. el layout se re-montó al cambiar de theme), reinicia sobre los
    * canvas nuevos.
    */
-  start(example: WorkerExample, workerCanvas: HTMLCanvasElement, mainCanvas: HTMLCanvasElement): void {
+  start(
+    example: WorkerExample,
+    workerCanvas: HTMLCanvasElement,
+    mainCanvas: HTMLCanvasElement,
+  ): void {
     if (this.supported() && !example.workerFactory) {
       return;
     }
@@ -159,7 +163,9 @@ export class OffscreenCanvasDemoService {
     }
 
     if (now - this.lastReport >= 500) {
-      const fps = Math.round(((this.mainFrameCount - this.lastReportFrames) * 1000) / (now - this.lastReport));
+      const fps = Math.round(
+        ((this.mainFrameCount - this.lastReportFrames) * 1000) / (now - this.lastReport),
+      );
       this.mainFps.set(this.mainBlocked() ? 0 : fps);
       this.mainFrames.set(this.mainFrameCount);
       if (this.fallbackCtx) {
@@ -193,7 +199,10 @@ function readPalette(el: HTMLElement, side: 'worker' | 'main'): ClockPalette {
     surface: v('--surface-raised', v('--surface', '#fff')),
     ink: v('--ink', '#111'),
     accent: v('--accent', '#e23'),
-    hand: side === 'worker' ? v('--thread-worker', v('--accent', '#2a7')) : v('--thread-main', v('--ink', '#888')),
+    hand:
+      side === 'worker'
+        ? v('--thread-worker', v('--accent', '#2a7'))
+        : v('--thread-main', v('--ink', '#888')),
     label: side === 'worker' ? 'worker' : 'main',
   };
 }

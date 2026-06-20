@@ -1,4 +1,9 @@
-import { buildPayload, countNodes, describePayload, serializedBytes } from './clone-cost.worker.logic';
+import {
+  buildPayload,
+  countNodes,
+  describePayload,
+  serializedBytes,
+} from './clone-cost.worker.logic';
 
 describe('clone-cost worker logic', () => {
   describe('buildPayload', () => {

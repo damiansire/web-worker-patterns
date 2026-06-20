@@ -29,7 +29,13 @@ export interface CloneCostPoint {
       [attr.aria-label]="ariaLabel()"
     >
       <!-- ejes -->
-      <line class="cc-axis" [attr.x1]="padL" [attr.y1]="padT" [attr.x2]="padL" [attr.y2]="H - padB" />
+      <line
+        class="cc-axis"
+        [attr.x1]="padL"
+        [attr.y1]="padT"
+        [attr.x2]="padL"
+        [attr.y2]="H - padB"
+      />
       <line
         class="cc-axis"
         [attr.x1]="padL"
@@ -63,7 +69,13 @@ export interface CloneCostPoint {
       <text class="cc-axislabel" [attr.x]="midX" [attr.y]="H - 2" text-anchor="middle">
         {{ xLabel() }}
       </text>
-      <text class="cc-axislabel" [attr.transform]="yLabelTransform" [attr.x]="11" [attr.y]="midY" text-anchor="middle">
+      <text
+        class="cc-axislabel"
+        [attr.transform]="yLabelTransform"
+        [attr.x]="11"
+        [attr.y]="midY"
+        text-anchor="middle"
+      >
         {{ yLabel() }}
       </text>
     </svg>

@@ -55,9 +55,7 @@ describe('ErrorDemoService', () => {
 
     fake.succeed(2);
     expect(svc.busy()).toBe(false);
-    expect(svc.events()).toEqual([
-      { id: 0, status: 'ok', input: '{"a":1,"b":2}', keys: 2 },
-    ]);
+    expect(svc.events()).toEqual([{ id: 0, status: 'ok', input: '{"a":1,"b":2}', keys: 2 }]);
   });
 
   it('captura el error del worker sin romper, y lo silencia en consola', () => {
