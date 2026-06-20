@@ -125,7 +125,7 @@ Routes, navigation and the home page update automatically from the registry.
 
 ## Tech Stack
 
-- **Angular 22** — Standalone components, Signals, zoneless change detection by default, esbuild-based build
+- **Angular 22** — Standalone components, Signals, zoneless change detection (opt-in via `provideZonelessChangeDetection()`), esbuild-based build
 - **TypeScript 6.0.3**
 - **SCSS** — Semantic design tokens (`--surface`, `--ink`, `--accent`, `--thread-*`) per theme
 - **@jsverse/transloco** — Runtime i18n (ES/EN/PT)
@@ -148,7 +148,7 @@ ng update @angular/core @angular/cli
 
 Then:
 
-- **Zoneless by default**: Angular 22 uses zoneless change detection unless you add `provideZoneChangeDetection()`. This app relies on Signals and `computed()`, so no extra config is needed.
+- **Zoneless (opt-in)**: Angular is not zoneless by default; this app enables it with `provideZonelessChangeDetection()` in `app.config.ts` (which is why it ships no zone.js in polyfills). It relies on Signals and `computed()` for change detection.
 - **Tests**: `tsconfig.spec.json` excludes `**/*.worker.ts`, so worker files are not compiled with the DOM `Window` type.
 - **Build**: `@angular/build` is the standard builder and bundles the app with esbuild.
 
