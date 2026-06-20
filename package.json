@@ -10,6 +10,8 @@
     "test": "node scripts/test/guard-tests.mjs",
     "test:raw": "ng test",
     "lint:boundaries": "node scripts/lint/boundaries.mjs",
+    "format": "prettier --write \"src/**/*.{ts,html,scss,json}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,html,scss,json}\"",
     "screenshots": "node scripts/shots-all.mjs",
     "setup": "node scripts/setup-git-hooks.mjs",
     "prepare": "node scripts/setup-git-hooks.mjs"
@@ -48,6 +50,7 @@
     "dependency-cruiser": "^17.4.3",
     "jsdom": "^27.0.0",
     "playwright": "^1.60.0",
+    "prettier": "^3.8.4",
     "typescript": "~6.0.3",
     "vitest": "^4.0.0"
   }

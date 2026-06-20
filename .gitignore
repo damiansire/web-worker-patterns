@@ -16,7 +16,8 @@ npm-debug.log*
 yarn-error.log
 yarn-error.log*
 yarn-debug.log*
-package-lock.json
+# package-lock.json se versiona a propósito: CI corre `npm ci`, que exige un lockfile
+# commiteado (builds reproducibles). No lo ignores.
 yarn.lock
 
 # IDEs and editors

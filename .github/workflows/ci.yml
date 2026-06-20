@@ -17,6 +17,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Formato (Prettier, sin errores de indentación)
+        run: npm run format:check
       - name: Boundaries (regla de oro, self-test)
         run: npm run lint:boundaries
       - name: Tests
