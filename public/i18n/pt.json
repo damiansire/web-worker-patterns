@@ -38,7 +38,7 @@
       "title": "Comunicação básica",
       "summary": "O \"Olá Mundo\" dos Web Workers: você escreve uma mensagem e a envia ao worker. O worker a recebe, processa e responde de volta. É assim que as threads se comunicam — postMessage nas duas direções.",
       "whatToWatch": "→ sai da thread principal para o worker, ← a resposta processada volta. O número em ms é o round-trip REAL: cruzar a thread custa uma fração de milissegundo — quase nada.",
-      "note": "O worker roda em seu próprio isolate de V8 (heap e coletor de lixo próprios): main e worker NÃO compartilham objetos JS, por isso postMessage CLONA os dados (structured clone) — é serializado na saída e desserializado na entrada, então o worker recebe uma CÓPIA, não a referência. O custo não é cruzar a thread — isso é sub-ms — e sim copiar: cresce com o tamanho e a complexidade do payload (não há um limiar mágico; quanto maior, mais caro). Para dados grandes, transferables movem sem copiar (exemplo 07).",
+      "note": "O worker roda como seu próprio agente, com heap e coletor de lixo próprios (no Chromium, um isolate de V8): main e worker NÃO compartilham objetos JS, por isso postMessage CLONA os dados (structured clone) — é serializado na saída e desserializado na entrada, então o worker recebe uma CÓPIA, não a referência. O custo não é cruzar a thread — isso é sub-ms — e sim copiar: cresce com o tamanho e a complexidade do payload (não há um limiar mágico; quanto maior, mais caro). Para dados grandes, transferables movem sem copiar (exemplo 07).",
       "takeaways": {
         "title": "Pontos-chave",
         "items": [
@@ -86,7 +86,7 @@
       "title": "Ciclo de vida e terminação",
       "summary": "Um worker não vive para sempre: você o cria, ele roda, e você o termina. Aqui você inicia uma tarefa longa que avança passo a passo e pode cortá-la no meio. terminate() mata o worker na hora — o passo em andamento se perde e esse worker não pode ser reutilizado.",
       "whatToWatch": "Inicie a tarefa e veja a barra subir. Toque em Terminar no meio: o progresso congela onde estava e o worker deixa de existir. Para rodar de novo é preciso criar um novo (o botão Iniciar faz isso). Se deixar terminar, o worker se fecha sozinho com self.close().",
-      "note": "Criar o worker não foi de graça: o navegador provisionou um isolate de V8 com seu contexto e heap. terminate() é abrupto: sem limpeza, sem despedida — o worker morre com seu trabalho em andamento (o setTimeout pendente vai junto) e essa thread, com seu isolate e memória, é liberada. Um worker terminado não reinicia: cria-se outro. De dentro, o worker pode se fechar com self.close() quando termina seu trabalho.",
+      "note": "Criar o worker não foi de graça: o navegador provisionou um agente novo com seu contexto e heap (no Chromium, um isolate de V8). terminate() é abrupto: sem limpeza, sem despedida — o worker morre com seu trabalho em andamento (o setTimeout pendente vai junto) e essa thread, com seu isolate e memória, é liberada. Um worker terminado não reinicia: cria-se outro. De dentro, o worker pode se fechar com self.close() quando termina seu trabalho.",
       "takeaways": {
         "title": "Pontos-chave",
         "items": [
@@ -95,7 +95,7 @@
           "Um worker terminado não é reutilizado: crie um novo para rodar de novo",
           "self.close() deixa o worker se fechar sozinho quando termina"
         ],
-        "tip": "Termine os workers que não usa mais: cada um ocupa uma thread e seu próprio isolate de V8 (com heap próprio) mesmo ocioso."
+        "tip": "Termine os workers que não usa mais: cada um ocupa uma thread e seu próprio heap isolado (no Chromium, um isolate de V8) mesmo ocioso."
       }
     },
     "07-transferable-objects": {

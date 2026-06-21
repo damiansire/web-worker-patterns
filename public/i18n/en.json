@@ -38,7 +38,7 @@
       "title": "Basic communication",
       "summary": "The \"Hello World\" of Web Workers: you type a message and send it to the worker. The worker receives it, processes it, and replies back. That's how threads talk to each other — postMessage in both directions.",
       "whatToWatch": "→ leaves the main thread toward the worker, ← the processed reply comes back. The ms number is the REAL round-trip: crossing the thread costs a fraction of a millisecond — almost nothing.",
-      "note": "The worker runs in its own V8 isolate (its own heap and garbage collector): main and worker do NOT share JS objects, which is why postMessage CLONES the data (structured clone) — it's serialized on the way out and deserialized on the way in, so the worker gets a COPY, not the reference. The cost isn't crossing the thread — that's sub-ms — it's copying: it grows with the size and complexity of the payload (there's no magic threshold; the bigger it is, the costlier). For large data, transferables move without copying (example 07).",
+      "note": "The worker runs as its own agent, with its own heap and garbage collector (in Chromium, a V8 isolate): main and worker do NOT share JS objects, which is why postMessage CLONES the data (structured clone) — it's serialized on the way out and deserialized on the way in, so the worker gets a COPY, not the reference. The cost isn't crossing the thread — that's sub-ms — it's copying: it grows with the size and complexity of the payload (there's no magic threshold; the bigger it is, the costlier). For large data, transferables move without copying (example 07).",
       "takeaways": {
         "title": "Key takeaways",
         "items": [
@@ -86,7 +86,7 @@
       "title": "Lifecycle and termination",
       "summary": "A worker doesn't live forever: you create it, it runs, and you terminate it. Here you start a long task that advances step by step and can cut it off midway. terminate() kills the worker instantly — the in-flight step is lost and that worker can't be reused.",
       "whatToWatch": "Start the task and watch the bar climb. Hit Terminate midway: progress freezes where it was and the worker stops existing. To run again you must create a new one (the Start button does that). If you let it finish, the worker closes itself with self.close().",
-      "note": "Creating the worker wasn't free: the browser provisioned a V8 isolate with its own context and heap. terminate() is abrupt: no cleanup, no goodbye — the worker dies with its in-flight work (the pending setTimeout goes with it) and that thread, with its isolate and memory, is freed. A terminated worker can't be restarted: you make a new one. From the inside, a worker can close itself with self.close() once its work is done.",
+      "note": "Creating the worker wasn't free: the browser provisioned a fresh agent with its own context and heap (a V8 isolate in Chromium). terminate() is abrupt: no cleanup, no goodbye — the worker dies with its in-flight work (the pending setTimeout goes with it) and that thread, with its isolate and memory, is freed. A terminated worker can't be restarted: you make a new one. From the inside, a worker can close itself with self.close() once its work is done.",
       "takeaways": {
         "title": "Key takeaways",
         "items": [
@@ -95,7 +95,7 @@
           "A terminated worker can't be reused: create a new one to run again",
           "self.close() lets the worker close itself when it's done"
         ],
-        "tip": "Terminate workers you no longer use: each one holds a thread and its own V8 isolate (with its own heap) even while idle."
+        "tip": "Terminate workers you no longer use: each one holds a thread and its own isolated heap (a V8 isolate in Chromium) even while idle."
       }
     },
     "07-transferable-objects": {
