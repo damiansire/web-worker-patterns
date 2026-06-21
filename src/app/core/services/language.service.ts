@@ -37,6 +37,22 @@ const SPANISH_COUNTRY_CODES = new Set([
   'GQ',
 ]);
 
+interface GeoResponse {
+  country_code?: string;
+  country_name?: string;
+}
+
+/** Type guard del JSON externo del endpoint de geolocalización (forma no garantizada). */
+function isGeoResponse(value: unknown): value is GeoResponse {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  const v = value as Record<string, unknown>;
+  const okCode = v['country_code'] === undefined || typeof v['country_code'] === 'string';
+  const okName = v['country_name'] === undefined || typeof v['country_name'] === 'string';
+  return okCode && okName;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -81,9 +97,12 @@ export class LanguageService {
   private detectLanguageByGeo(): void {
     fetch(GEO_API_URL, { mode: 'cors' })
       .then((res) => res.json())
-      .then((data: { country_code?: string; country_name?: string }) => {
-        const code = (data?.country_code ?? '').toUpperCase();
-        const countryName = (data?.country_name ?? code).trim() || null;
+      .then((raw: unknown) => {
+        // Dato externo: no confiamos en su forma. Validamos con un type guard antes de
+        // usarlo, en vez de un cast ciego (el endpoint podría cambiar o devolver error JSON).
+        const data = isGeoResponse(raw) ? raw : {};
+        const code = (data.country_code ?? '').toUpperCase();
+        const countryName = (data.country_name ?? code).trim() || null;
         let lang: LanguageCode = 'en';
         if (code === 'BR') {
           lang = 'pt';

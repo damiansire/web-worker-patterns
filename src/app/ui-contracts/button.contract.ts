@@ -1,4 +1,8 @@
-import { type InputSignal, type OutputEmitterRef } from '@angular/core';
+import {
+  type InputSignal,
+  type InputSignalWithTransform,
+  type OutputEmitterRef,
+} from '@angular/core';
 
 export type ButtonVariant = 'solid' | 'ghost';
 
@@ -12,6 +16,8 @@ export type ButtonVariant = 'solid' | 'ghost';
  */
 export abstract class ButtonContract {
   abstract readonly variant: InputSignal<ButtonVariant>;
-  abstract readonly disabled: InputSignal<boolean>;
+  // Acepta `<btn disabled>` (atributo HTML) además de `[disabled]="bool"`: el valor de
+  // entrada es unknown y booleanAttribute lo coacciona a boolean (de ahí el With-Transform).
+  abstract readonly disabled: InputSignalWithTransform<boolean, unknown>;
   abstract readonly pressed: OutputEmitterRef<void>;
 }
