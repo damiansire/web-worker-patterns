@@ -123,7 +123,7 @@ As rotas, a navegação e a home se atualizam sozinhas a partir do registry.
 - **SCSS** — Tokens de design semânticos (`--surface`, `--ink`, `--accent`, `--thread-*`) por theme
 - **@jsverse/transloco** — i18n em runtime (ES/EN/PT)
 - **highlight.js** — Realce de sintaxe nos blocos de código
-- **Vitest** — Testes unitários (109 testes sobre a lógica pura do domínio)
+- **Vitest** — Testes unitários (111 testes: 29 sobre a lógica pura do domínio, o resto sobre serviços e temas)
 - **dependency-cruiser** — Faz cumprir o limite `core/ ⇏ themes/`
 - **Web Workers API** — Dedicated Workers, SharedWorker, Transferable Objects, SharedArrayBuffer + Atomics, OffscreenCanvas
 
