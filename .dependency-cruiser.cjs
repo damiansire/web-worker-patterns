@@ -18,6 +18,17 @@ module.exports = {
         'core/ o a un primitivo compartido por tokens (ver ARQUITECTURA §2).',
       from: { path: '^src/app/core/' },
       to: { path: '^src/app/themes/' }
+    },
+    {
+      name: 'contracts-no-themes-ni-primitives',
+      severity: 'error',
+      comment:
+        'ui-contracts/ es la capa neutral de contratos (la API que los themes ' +
+        'implementan). Sólo puede mirar hacia core/. Si importa de themes/ o de ' +
+        'ui-primitives/, la dependencia quedó al revés: el contrato no debe conocer ' +
+        'a sus implementaciones (estilo Taiga: kit -> core -> cdk, nunca al revés).',
+      from: { path: '^src/app/ui-contracts/' },
+      to: { path: '^src/app/(themes|ui-primitives)/' }
     }
   ],
   options: {

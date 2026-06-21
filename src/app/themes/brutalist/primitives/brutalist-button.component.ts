@@ -1,17 +1,20 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { ButtonContract } from '../../../ui-contracts/button.contract';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ButtonBehavior } from '../../../ui-contracts/button-behavior.directive';
 
 /** Botón brutalista: bordes negros gruesos, sin radius, sombra dura. */
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'brutalist-button',
+  hostDirectives: [
+    { directive: ButtonBehavior, inputs: ['variant', 'disabled'], outputs: ['pressed'] },
+  ],
   template: `
     <button
       type="button"
       class="b-btn"
-      [attr.data-variant]="variant()"
-      [disabled]="disabled()"
-      (click)="pressed.emit()"
+      [attr.data-variant]="behavior.variant()"
+      [disabled]="behavior.disabled()"
+      (click)="behavior.pressed.emit()"
     >
       <ng-content />
     </button>
@@ -55,8 +58,6 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
     `,
   ],
 })
-export class BrutalistButton implements ButtonContract {
-  readonly variant = input<'solid' | 'ghost'>('ghost');
-  readonly disabled = input(false);
-  readonly pressed = output<void>();
+export class BrutalistButton {
+  protected readonly behavior = inject(ButtonBehavior);
 }

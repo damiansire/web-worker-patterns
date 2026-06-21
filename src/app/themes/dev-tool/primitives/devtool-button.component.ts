@@ -1,17 +1,20 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { ButtonContract } from '../../../ui-contracts/button.contract';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ButtonBehavior } from '../../../ui-contracts/button-behavior.directive';
 
 /** Botón dev-tool: estilo IDE/terminal, sutil, mono. */
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'devtool-button',
+  hostDirectives: [
+    { directive: ButtonBehavior, inputs: ['variant', 'disabled'], outputs: ['pressed'] },
+  ],
   template: `
     <button
       type="button"
       class="dt-btn"
-      [attr.data-variant]="variant()"
-      [disabled]="disabled()"
-      (click)="pressed.emit()"
+      [attr.data-variant]="behavior.variant()"
+      [disabled]="behavior.disabled()"
+      (click)="behavior.pressed.emit()"
     >
       <ng-content />
     </button>
@@ -50,8 +53,6 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
     `,
   ],
 })
-export class DevToolButton implements ButtonContract {
-  readonly variant = input<'solid' | 'ghost'>('ghost');
-  readonly disabled = input(false);
-  readonly pressed = output<void>();
+export class DevToolButton {
+  protected readonly behavior = inject(ButtonBehavior);
 }
