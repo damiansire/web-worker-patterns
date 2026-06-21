@@ -9,6 +9,12 @@ class FakeWorker {
 
   postMessage(message: unknown, transfer?: Transferable[]): void {
     this.posted.push({ message: message as { mode: string }, transfer });
+    // Un worker real NEUTRALIZA los objetos de la transfer list: el buffer del
+    // emisor queda detached (byteLength 0). Lo reproducimos con structuredClone +
+    // transfer, así el test verifica el detach real y no un valor hardcodeado.
+    if (transfer && transfer.length > 0) {
+      structuredClone(message, { transfer });
+    }
   }
   terminate(): void {
     this.terminated = true;
@@ -58,6 +64,8 @@ describe('TransferDemoService', () => {
     const r = svc.transferResult();
     expect(r?.ms).toBe(0.4);
     expect(r?.mb).toBe(32);
+    // La tesis del ejemplo 07: transferir DETACHA el buffer del main (cambió de dueño).
+    expect(r?.detached).toBe(true);
     expect(svc.busy()).toBe(false);
     expect(workers[0].terminated).toBe(true);
   });
