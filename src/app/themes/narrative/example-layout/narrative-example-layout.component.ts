@@ -1,43 +1,16 @@
 import {
   ChangeDetectionStrategy,
-  DestroyRef,
   Component,
-  computed,
   effect,
   inject,
-  signal,
-  untracked,
   viewChild,
   ElementRef,
 } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs/operators';
-import { findExample } from '../../../core/domain/examples/examples.registry';
-import { ExampleRunnerService } from '../../../core/services/example-runner.service';
-import { ExampleContentService } from '../../../core/services/example-content.service';
-import { MessageExchangeService } from '../../../core/services/message-exchange.service';
-import { ExampleWorkerCoordinator } from '../../../core/services/example-worker-coordinator.service';
-import { ComputeDemoService } from '../../../core/services/compute-demo.service';
-import { ErrorDemoService } from '../../../core/services/error-demo.service';
-import { LifecycleDemoService } from '../../../core/services/lifecycle-demo.service';
-import { TransferDemoService } from '../../../core/services/transfer-demo.service';
-import { SharedWorkerDemoService } from '../../../core/services/shared-worker-demo.service';
-import { WorkerLimitsDemoService } from '../../../core/services/worker-limits-demo.service';
-import { WorkerPoolDemoService } from '../../../core/services/worker-pool-demo.service';
-import { BackpressureDemoService } from '../../../core/services/backpressure-demo.service';
-import { SharedMemoryDemoService } from '../../../core/services/shared-memory-demo.service';
-import { DegradationDemoService } from '../../../core/services/degradation-demo.service';
-import { OffscreenCanvasDemoService } from '../../../core/services/offscreen-canvas-demo.service';
-import { CloneCostDemoService } from '../../../core/services/clone-cost-demo.service';
-import { CompositorDemoService } from '../../../core/services/compositor-demo.service';
+import { RouterLink } from '@angular/router';
+import { ExampleLayoutController } from '../../../core/presentation/example-layout.controller';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
-import {
-  CloneCostChartComponent,
-  CloneCostPoint,
-  formatBytes,
-} from '../../../ui-primitives/clone-cost-chart.component';
+import { CloneCostChartComponent } from '../../../ui-primitives/clone-cost-chart.component';
 import { NarrativeButton } from '../primitives/narrative-button.component';
 import { NarrativeCodeBlock } from '../primitives/narrative-code-block.component';
 import { NARRATIVE_PROVIDERS } from '../narrative.providers';
@@ -53,7 +26,7 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
     NarrativeCodeBlock,
     CloneCostChartComponent,
   ],
-  providers: [NARRATIVE_PROVIDERS],
+  providers: [NARRATIVE_PROVIDERS, ExampleLayoutController],
   template: `
     <article class="n-ex">
       <a class="n-back" routerLink="/t/narrative">← volver al sumario</a>
@@ -1499,426 +1472,296 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
   ],
 })
 export class NarrativeExampleLayoutComponent {
-  private readonly route = inject(ActivatedRoute);
-  private readonly runner = inject(ExampleRunnerService);
-  private readonly exchange = inject(MessageExchangeService);
-  private readonly coordinator = inject(ExampleWorkerCoordinator);
-  private readonly compute = inject(ComputeDemoService);
-  private readonly errors = inject(ErrorDemoService);
-  private readonly lifecycle = inject(LifecycleDemoService);
-  private readonly transfer = inject(TransferDemoService);
-  private readonly shared = inject(SharedWorkerDemoService);
-  private readonly limits = inject(WorkerLimitsDemoService);
-  private readonly pool = inject(WorkerPoolDemoService);
-  private readonly backpressure = inject(BackpressureDemoService);
-  private readonly sharedMem = inject(SharedMemoryDemoService);
-  private readonly degradation = inject(DegradationDemoService);
-  private readonly cloneCost = inject(CloneCostDemoService);
-  private readonly compositor = inject(CompositorDemoService);
+  /** Toda la orquestación vive en el controller compartido (scoped a este componente). */
+  protected readonly ctl = inject(ExampleLayoutController);
 
-  /** Payloads de muestra para la demo de manejo de errores (ej. 05). */
-  private readonly VALID_PAYLOAD = '{"user":"ada","role":"admin"}';
-  private readonly BROKEN_PAYLOAD = '{user: ada, role}';
-  /** Pasos de la tarea larga del ejemplo 06. */
-  private readonly LIFECYCLE_STEPS = 12;
-  /** Tamaño del buffer de prueba del ejemplo 07. */
-  protected readonly transferMb = 64;
-  /** Trabajo (primos hasta N) que corre cada worker en el ejemplo 09. */
-  private readonly LIMITS_WORK = 600_000;
-  /** Trabajo por tarea del pool (ej. 10): mediano, para que el drenado se vea. */
-  private readonly POOL_WORK = 400_000;
-  /** Trabajo por mensaje del ejemplo 11 (consumidor algo lento). */
-  private readonly BP_WORK = 150_000;
-  /** Trabajo del ejemplo 13: si cae al main, debe notarse el freeze. */
-  private readonly DEG_WORK = 500_000;
-  /** Trabajo del ejemplo 16: pesado para que el bloqueo dure ~2-3s y se note el jank. */
-  private readonly COMPOSITOR_WORK = 4_000_000;
-
+  /** ThreadVisualizer del theme activo, resuelto por DI (§5). */
   protected readonly visualizer = inject(THREAD_VISUALIZER);
 
-  private readonly id = toSignal(this.route.paramMap.pipe(map((p) => p.get('id') ?? '')), {
-    initialValue: '',
-  });
-  protected readonly example = computed(() => findExample(this.id()));
-  protected readonly snippets = computed(() =>
-    Object.entries(this.example()?.snippets ?? {}).map(([label, code]) => ({ label, code })),
-  );
-  protected readonly content = inject(ExampleContentService).contentFor(this.id);
-
-  // thread-block (01)
-  protected readonly workerLanes = this.runner.workerLanes;
-  protected readonly mainLanes = this.runner.mainLanes;
-  protected readonly workerTicks = this.runner.workerTicks;
-  protected readonly mainTicks = this.runner.mainTicks;
-  protected readonly phase = this.runner.phase;
-
-  // message-exchange (03)
-  protected readonly messages = this.exchange.messages;
-  protected readonly pending = this.exchange.pending;
-
-  // offload (04)
-  protected readonly workerResult = this.compute.workerResult;
-  protected readonly mainResult = this.compute.mainResult;
-  protected readonly liveMs = this.compute.liveMs;
-  protected readonly computePhase = this.compute.phase;
-
-  // error-handling (05)
-  protected readonly errorEvents = this.errors.events;
-  protected readonly errorBusy = this.errors.busy;
-
-  // lifecycle (06)
-  protected readonly lifeStatus = this.lifecycle.status;
-  protected readonly lifeStep = this.lifecycle.step;
-  protected readonly lifeSteps = this.lifecycle.steps;
-  protected readonly lifePct = computed(() => {
-    const total = this.lifeSteps();
-    return total > 0 ? Math.round((this.lifeStep() / total) * 100) : 0;
-  });
-
-  // transferable (07)
-  protected readonly transferResult = this.transfer.transferResult;
-  protected readonly cloneResult = this.transfer.cloneResult;
-  protected readonly transferBusy = this.transfer.busy;
-
-  // shared-worker (08)
-  protected readonly swInstanceId = this.shared.instanceId;
-  protected readonly swClients = this.shared.clients;
-  protected readonly swCount = this.shared.count;
-  protected readonly swPanels = this.shared.panels;
-  protected readonly swSupported = this.shared.supported;
-
-  // worker-limits (09)
-  protected readonly hardwareConcurrency = this.limits.hardwareConcurrency;
-  protected readonly limitRuns = this.limits.runs;
-  protected readonly limitRunning = this.limits.running;
-  protected readonly currentWorkers = this.limits.currentWorkers;
-  private readonly limitMaxMs = computed(() => Math.max(1, ...this.limitRuns().map((r) => r.ms)));
-
-  // worker-pool (10)
-  protected readonly poolTasks = this.pool.tasks;
-  protected readonly poolSlots = this.pool.slots;
-  protected readonly poolRunning = this.pool.running;
-  protected readonly poolProcessed = this.pool.processed;
-  protected readonly poolSize = this.pool.poolSize;
-  protected readonly poolTaskCount = this.pool.taskCount;
-  protected readonly workersCreated = this.pool.workersCreated;
-  protected readonly spawnedWithoutPool = this.pool.spawnedWithoutPool;
-
-  // backpressure (11)
-  protected readonly bpMode = this.backpressure.mode;
-  protected readonly bpPending = this.backpressure.pending;
-  protected readonly naivePeak = this.backpressure.naivePeak;
-  protected readonly bpPeak = this.backpressure.bpPeak;
-  protected readonly naiveMaxLatency = this.backpressure.naiveMaxLatency;
-  protected readonly bpMaxLatency = this.backpressure.bpMaxLatency;
-  protected readonly bpTotal = this.backpressure.total;
-  protected readonly bpWindow = this.backpressure.windowSize;
-
-  // shared-memory (12)
-  protected readonly smValue = this.sharedMem.value;
-  protected readonly smRunning = this.sharedMem.running;
-  protected readonly smSupported = this.sharedMem.supported;
-  protected readonly smTarget = this.sharedMem.target;
-
-  // degradation (13)
-  protected readonly degSupported = this.degradation.supported;
-  protected readonly degForce = this.degradation.forceFallback;
-  protected readonly degResult = this.degradation.result;
-  protected readonly degRunning = this.degradation.running;
-
-  // clone-cost (15)
-  protected readonly ccSize = signal(8000);
-  protected readonly ccDepth = signal(1);
-  protected readonly cloneMeasurements = this.cloneCost.measurements;
-  protected readonly cloneRunning = this.cloneCost.running;
-  protected readonly cloneDepthRun = this.cloneCost.depth;
-  protected readonly chartPoints = computed<CloneCostPoint[]>(() =>
-    this.cloneMeasurements().map((m) => ({ x: m.serializedBytes, y: m.ms })),
-  );
-  protected readonly fmtBytes = formatBytes;
-  protected readonly cloneLast = computed(() => this.cloneMeasurements().at(-1) ?? null);
-
-  // compositor-jank (16)
-  protected readonly mainFps = this.compositor.mainFps;
-  protected readonly compMode = this.compositor.mode;
+  // El componente sólo posee las refs al DOM del theme; la lógica la maneja el controller.
   private readonly compJsBox = viewChild<ElementRef<HTMLElement>>('compJs');
-
-  // offscreen-canvas (14)
-  private readonly oc = inject(OffscreenCanvasDemoService);
-  protected readonly ocSupported = this.oc.supported;
-  protected readonly ocRunning = this.oc.running;
-  protected readonly ocBlocked = this.oc.mainBlocked;
-  protected readonly ocWorkerFps = this.oc.workerFps;
-  protected readonly ocMainFps = this.oc.mainFps;
-  protected readonly ocWorkerFrames = this.oc.workerFrames;
-  protected readonly ocMainFrames = this.oc.mainFrames;
-  protected readonly ocSkipped = this.oc.skippedFrames;
   private readonly ocWorkerCanvas = viewChild<ElementRef<HTMLCanvasElement>>('ocWorker');
   private readonly ocMainCanvas = viewChild<ElementRef<HTMLCanvasElement>>('ocMain');
 
-  constructor() {
-    inject(DestroyRef).onDestroy(() => {
-      // Teardown real de cada servicio: terminar workers y limpiar estado al
-      // desmontar. Cada llamada usa el método de teardown que el servicio
-      // expone de verdad (no existe un `stop()` genérico).
-      this.runner.stop();
-      this.pool.reset();
-      this.exchange.reset();
-      this.compute.reset();
-      this.lifecycle.reset();
-      this.backpressure.reset();
-      this.limits.reset();
-      this.shared.close();
-      this.sharedMem.reset();
-      this.degradation.reset();
-      this.cloneCost.reset();
-      this.compositor.reset();
-      this.oc.reset();
-    });
+  // ── Alias del estado y handlers del controller (el template los lee sin prefijo) ──
+  protected readonly example = this.ctl.example;
+  protected readonly content = this.ctl.content;
+  protected readonly snippets = this.ctl.snippets;
 
+  // thread-block (01)
+  protected readonly workerLanes = this.ctl.workerLanes;
+  protected readonly mainLanes = this.ctl.mainLanes;
+  protected readonly workerTicks = this.ctl.workerTicks;
+  protected readonly mainTicks = this.ctl.mainTicks;
+  protected readonly phase = this.ctl.phase;
+
+  // message-exchange (03)
+  protected readonly messages = this.ctl.messages;
+  protected readonly pending = this.ctl.pending;
+  protected readonly exchangeError = this.ctl.exchangeError;
+
+  // offload (04)
+  protected readonly workerResult = this.ctl.workerResult;
+  protected readonly mainResult = this.ctl.mainResult;
+  protected readonly liveMs = this.ctl.liveMs;
+  protected readonly computePhase = this.ctl.computePhase;
+  protected readonly computeError = this.ctl.computeError;
+
+  // error-handling (05)
+  protected readonly errorEvents = this.ctl.errorEvents;
+  protected readonly errorBusy = this.ctl.errorBusy;
+
+  // lifecycle (06)
+  protected readonly lifeStatus = this.ctl.lifeStatus;
+  protected readonly lifeStep = this.ctl.lifeStep;
+  protected readonly lifeSteps = this.ctl.lifeSteps;
+  protected readonly lifePct = this.ctl.lifePct;
+
+  // transferable (07)
+  protected readonly transferMb = this.ctl.transferMb;
+  protected readonly transferResult = this.ctl.transferResult;
+  protected readonly cloneResult = this.ctl.cloneResult;
+  protected readonly transferBusy = this.ctl.transferBusy;
+
+  // shared-worker (08)
+  protected readonly swInstanceId = this.ctl.swInstanceId;
+  protected readonly swClients = this.ctl.swClients;
+  protected readonly swCount = this.ctl.swCount;
+  protected readonly swPanels = this.ctl.swPanels;
+  protected readonly swSupported = this.ctl.swSupported;
+
+  // worker-limits (09)
+  protected readonly hardwareConcurrency = this.ctl.hardwareConcurrency;
+  protected readonly limitRuns = this.ctl.limitRuns;
+  protected readonly limitRunning = this.ctl.limitRunning;
+  protected readonly currentWorkers = this.ctl.currentWorkers;
+  protected readonly limitError = this.ctl.limitError;
+
+  // worker-pool (10)
+  protected readonly poolTasks = this.ctl.poolTasks;
+  protected readonly poolSlots = this.ctl.poolSlots;
+  protected readonly poolRunning = this.ctl.poolRunning;
+  protected readonly poolProcessed = this.ctl.poolProcessed;
+  protected readonly poolSize = this.ctl.poolSize;
+  protected readonly poolTaskCount = this.ctl.poolTaskCount;
+  protected readonly workersCreated = this.ctl.workersCreated;
+  protected readonly spawnedWithoutPool = this.ctl.spawnedWithoutPool;
+
+  // backpressure (11)
+  protected readonly bpMode = this.ctl.bpMode;
+  protected readonly bpPending = this.ctl.bpPending;
+  protected readonly naivePeak = this.ctl.naivePeak;
+  protected readonly bpPeak = this.ctl.bpPeak;
+  protected readonly naiveMaxLatency = this.ctl.naiveMaxLatency;
+  protected readonly bpMaxLatency = this.ctl.bpMaxLatency;
+  protected readonly bpTotal = this.ctl.bpTotal;
+  protected readonly bpWindow = this.ctl.bpWindow;
+  protected readonly bpError = this.ctl.bpError;
+
+  // shared-memory (12)
+  protected readonly smValue = this.ctl.smValue;
+  protected readonly smRunning = this.ctl.smRunning;
+  protected readonly smSupported = this.ctl.smSupported;
+  protected readonly smTarget = this.ctl.smTarget;
+
+  // degradation (13)
+  protected readonly degSupported = this.ctl.degSupported;
+  protected readonly degForce = this.ctl.degForce;
+  protected readonly degResult = this.ctl.degResult;
+  protected readonly degRunning = this.ctl.degRunning;
+
+  // offscreen-canvas (14)
+  protected readonly ocSupported = this.ctl.ocSupported;
+  protected readonly ocRunning = this.ctl.ocRunning;
+  protected readonly ocBlocked = this.ctl.ocBlocked;
+  protected readonly ocWorkerFps = this.ctl.ocWorkerFps;
+  protected readonly ocMainFps = this.ctl.ocMainFps;
+  protected readonly ocWorkerFrames = this.ctl.ocWorkerFrames;
+  protected readonly ocMainFrames = this.ctl.ocMainFrames;
+  protected readonly ocSkipped = this.ctl.ocSkipped;
+
+  // clone-cost (15)
+  protected readonly ccSize = this.ctl.ccSize;
+  protected readonly ccDepth = this.ctl.ccDepth;
+  protected readonly cloneMeasurements = this.ctl.cloneMeasurements;
+  protected readonly cloneRunning = this.ctl.cloneRunning;
+  protected readonly cloneDepthRun = this.ctl.cloneDepthRun;
+  protected readonly chartPoints = this.ctl.chartPoints;
+  protected readonly fmtBytes = this.ctl.fmtBytes;
+  protected readonly cloneLast = this.ctl.cloneLast;
+
+  // compositor-jank (16)
+  protected readonly mainFps = this.ctl.mainFps;
+  protected readonly compMode = this.ctl.compMode;
+
+  constructor() {
+    // Registra la caja JS del compositor cuando el @case la renderiza.
     effect(() => {
-      const ex = this.example();
-      if (ex) {
-        this.coordinator.openFor(ex);
-      }
-    });
-    // OffscreenCanvas (14): al entrar arrancamos limpio (el canvas se recrea y
-    // transferControlToOffscreen() es de una sola vez; el estado no sobrevive al re-montaje).
-    effect(() => {
-      if (this.example()?.demo === 'offscreen-canvas') {
-        this.oc.reset();
-      }
-    });
-    // compositor-jank (16): arranca el medidor al entrar y lo frena al salir.
-    // `untracked` es CLAVE: startMeter() lee el signal `metering` en su guarda, y
-    // sin untracked el effect quedaría suscripto a un signal que él mismo escribe
-    // → bucle infinito. Así el effect depende SOLO de example().
-    effect((onCleanup) => {
       if (this.example()?.demo === 'compositor-jank') {
-        untracked(() => this.compositor.startMeter());
-        onCleanup(() => this.compositor.reset());
-      }
-    });
-    // Registra el elemento de la caja JS cuando el @case lo renderiza (setJsBox es
-    // un campo plano: no lee ni escribe signals → este effect no puede loopear).
-    effect(() => {
-      if (this.example()?.demo === 'compositor-jank') {
-        this.compositor.setJsBox(this.compJsBox()?.nativeElement);
+        this.ctl.setCompositorJsBox(this.compJsBox()?.nativeElement);
       }
     });
   }
 
+  // ── Handlers que dependen de las refs al DOM del theme ──
   ocStart(): void {
-    const ex = this.example();
     const wc = this.ocWorkerCanvas()?.nativeElement;
     const mc = this.ocMainCanvas()?.nativeElement;
-    if (ex && wc && mc) {
-      this.oc.start(ex, wc, mc);
+    if (wc && mc) {
+      this.ctl.startOffscreen(wc, mc);
     }
   }
 
   ocBlock(): void {
-    this.oc.blockMain();
+    this.ctl.blockOffscreen();
   }
 
+  // ── Resto de handlers: delegan al controller (el template los invoca sin prefijo) ──
   runWorker(): void {
-    const ex = this.example();
-    if (ex) {
-      this.runner.runWorkerDemo(ex);
-    }
+    this.ctl.runWorker();
   }
 
   runMain(): void {
-    this.runner.runMainBlockingDemo();
+    this.ctl.runMain();
   }
 
   computeWorker(value: string): void {
-    const ex = this.example();
-    if (ex) {
-      this.compute.runWorker(ex, this.parseN(value));
-    }
+    this.ctl.computeWorker(value);
   }
 
   computeMain(value: string): void {
-    this.compute.runMain(this.parseN(value));
-  }
-
-  private parseN(value: string): number {
-    const n = Number(value);
-    return Number.isFinite(n) && n > 0 ? Math.min(n, 5_000_000) : 500_000;
+    this.ctl.computeMain(value);
   }
 
   sendOk(): void {
-    this.errors.run(this.VALID_PAYLOAD);
+    this.ctl.sendOk();
   }
 
   sendFail(): void {
-    this.errors.run(this.BROKEN_PAYLOAD);
+    this.ctl.sendFail();
   }
 
   resetErrors(): void {
-    const ex = this.example();
-    this.errors.reset();
-    if (ex?.demo === 'error-handling') {
-      this.errors.open(ex);
-    }
+    this.ctl.resetErrors();
   }
 
   startLife(): void {
-    const ex = this.example();
-    if (ex) {
-      this.lifecycle.start(ex, this.LIFECYCLE_STEPS);
-    }
+    this.ctl.startLife();
   }
 
   terminateLife(): void {
-    this.lifecycle.terminate();
+    this.ctl.terminateLife();
   }
 
   resetLife(): void {
-    this.lifecycle.reset();
+    this.ctl.resetLife();
   }
 
   runTransfer(): void {
-    const ex = this.example();
-    if (ex) {
-      this.transfer.runTransfer(ex, this.transferMb);
-    }
+    this.ctl.runTransfer();
   }
 
   runClone(): void {
-    const ex = this.example();
-    if (ex) {
-      this.transfer.runClone(ex, this.transferMb);
-    }
+    this.ctl.runClone();
   }
 
   swInc(label: string): void {
-    this.shared.inc(label);
+    this.ctl.swInc(label);
   }
 
   swReset(label: string): void {
-    this.shared.reset(label);
+    this.ctl.swReset(label);
   }
 
   swAdd(): void {
-    this.shared.addPanel();
+    this.ctl.swAdd();
   }
 
   swClose(label: string): void {
-    this.shared.closePanel(label);
+    this.ctl.swClose(label);
   }
 
   runLimits(): void {
-    const ex = this.example();
-    if (ex) {
-      void this.limits.runScale(ex, this.LIMITS_WORK);
-    }
+    this.ctl.runLimits();
   }
 
   resetLimits(): void {
-    this.limits.reset();
+    this.ctl.resetLimits();
   }
 
   limitPct(ms: number): number {
-    return Math.round((ms / this.limitMaxMs()) * 100);
+    return this.ctl.limitPct(ms);
   }
 
   runPool(): void {
-    const ex = this.example();
-    if (ex) {
-      this.pool.start(ex, this.POOL_WORK);
-    }
+    this.ctl.runPool();
   }
 
   resetPool(): void {
-    this.pool.reset();
+    this.ctl.resetPool();
   }
 
   runNaive(): void {
-    const ex = this.example();
-    if (ex) {
-      this.backpressure.runNaive(ex, this.BP_WORK);
-    }
+    this.ctl.runNaive();
   }
 
   runBackpressure(): void {
-    const ex = this.example();
-    if (ex) {
-      this.backpressure.runBackpressure(ex, this.BP_WORK);
-    }
+    this.ctl.runBackpressure();
   }
 
   bpPctOf(peak: number): number {
-    return Math.max(4, Math.round((peak / this.bpTotal) * 100));
+    return this.ctl.bpPctOf(peak);
   }
 
   startSm(): void {
-    const ex = this.example();
-    if (ex) {
-      this.sharedMem.start(ex);
-    }
+    this.ctl.startSm();
   }
 
   resetSm(): void {
-    this.sharedMem.reset();
+    this.ctl.resetSm();
   }
 
   smPct(): number {
-    return Math.round((this.smValue() / this.smTarget) * 100);
+    return this.ctl.smPct();
   }
 
   toggleFallback(): void {
-    this.degradation.toggleFallback();
+    this.ctl.toggleFallback();
   }
 
   runDeg(): void {
-    const ex = this.example();
-    if (ex) {
-      this.degradation.run(ex, this.DEG_WORK);
-    }
+    this.ctl.runDeg();
   }
 
   resetDeg(): void {
-    this.degradation.reset();
+    this.ctl.resetDeg();
   }
 
   runCloneSweep(): void {
-    const ex = this.example();
-    if (ex) {
-      this.cloneCost.runSweep(ex, { maxSize: this.ccSize(), depth: this.ccDepth() });
-    }
+    this.ctl.runCloneSweep();
   }
 
   resetClone(): void {
-    this.cloneCost.reset();
+    this.ctl.resetClone();
   }
 
-  /** Formatea el round-trip: sub-10ms con un decimal, el resto entero. */
   fmtMs(ms: number): string {
-    return ms < 10 ? ms.toFixed(1) : String(Math.round(ms));
+    return this.ctl.fmtMs(ms);
   }
 
   blockMainComp(): void {
-    this.compositor.blockMain();
+    this.ctl.blockMainComp();
   }
 
   blockWorkerComp(): void {
-    const ex = this.example();
-    if (ex) {
-      this.compositor.blockWorker(ex, this.COMPOSITOR_WORK);
-    }
+    this.ctl.blockWorkerComp();
   }
 
   send(text: string): void {
-    this.exchange.send(text);
+    this.ctl.send(text);
   }
 
   resetExchange(): void {
-    const ex = this.example();
-    this.exchange.reset();
-    if (ex?.demo === 'message-exchange') {
-      this.exchange.open(ex);
-    }
+    this.ctl.resetExchange();
   }
 }
