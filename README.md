@@ -130,7 +130,7 @@ Routes, navigation and the home page update automatically from the registry.
 - **SCSS** — Semantic design tokens (`--surface`, `--ink`, `--accent`, `--thread-*`) per theme
 - **@jsverse/transloco** — Runtime i18n (ES/EN/PT)
 - **highlight.js** — Syntax highlighting for code blocks
-- **Vitest** — Unit tests (111 tests: 29 on the pure domain logic, the rest on services and themes)
+- **Vitest** — Unit tests (100+ tests across the pure domain logic, the services and the themes)
 - **dependency-cruiser** — Enforces the `core/ ⇏ themes/` boundary
 - **Web Workers API** — Dedicated Workers, SharedWorker, Transferable Objects, SharedArrayBuffer + Atomics, OffscreenCanvas
 

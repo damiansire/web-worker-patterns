@@ -7,6 +7,15 @@ on:
     branches: [main]
   pull_request:
 
+# Permisos mínimos: el workflow sólo lee el repo (no escribe nada).
+permissions:
+  contents: read
+
+# Cancela corridas viejas del mismo ref cuando llega un push nuevo (no malgastar runners).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   gates:
     runs-on: ubuntu-latest
@@ -17,6 +26,14 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Cachea la build incremental de Angular: cambiar un spec no recompila todo.
+      - name: Cache Angular build
+        uses: actions/cache@v4
+        with:
+          path: .angular/cache
+          key: angular-cache-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            angular-cache-${{ runner.os }}-
       - name: Formato (Prettier, sin errores de indentación)
         run: npm run format:check
       - name: Boundaries (regla de oro, self-test)

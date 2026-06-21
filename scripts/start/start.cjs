@@ -82,14 +82,23 @@ function main() {
     log('Dependencies up to date (skipping npm install).');
   }
 
+  // Seguro por defecto: bindeamos a localhost (sólo esta máquina). Exponer a la red
+  // (0.0.0.0, p.ej. para probar desde el celular) es opt-in con WWP_HOST=0.0.0.0,
+  // y lo avisamos explícitamente para que nadie quede expuesto sin saberlo.
+  const HOST = process.env.WWP_HOST || 'localhost';
+  const exposed = HOST === '0.0.0.0' || HOST === '::';
+
   console.log('');
   log(`Starting Angular dev server at http://localhost:${PORT}`, 'warn');
+  if (exposed) {
+    log(`Binding to ${HOST}: the dev server is reachable from your LOCAL NETWORK.`, 'warn');
+  }
   console.log('   Press Ctrl+C to stop.');
   console.log('');
 
   const child = spawn(
     'npm',
-    ['run', 'start', '--', '--host', '0.0.0.0', '--port', String(PORT)],
+    ['run', 'start', '--', '--host', HOST, '--port', String(PORT)],
     { stdio: 'inherit', shell: true }
   );
 
