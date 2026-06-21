@@ -1655,19 +1655,20 @@ export class EditorialExampleLayoutComponent {
 
   constructor() {
     inject(DestroyRef).onDestroy(() => {
-      this.runner?.stop?.();
-      this.pool?.reset?.();
-      this.exchange?.stop?.();
-      this.compute?.stop?.();
-      this.lifecycle?.stop?.();
-      this.backpressure?.reset?.();
-      this.limits?.reset?.();
-      this.shared?.stop?.();
-      this.sharedMem?.stop?.();
-      this.degradation?.stop?.();
-      this.cloneCost?.stop?.();
-      this.compositor?.stop?.();
-      this.oc?.stop?.();
+      // Teardown real de cada servicio (no existe un `stop()` genérico).
+      this.runner.stop();
+      this.pool.reset();
+      this.exchange.reset();
+      this.compute.reset();
+      this.lifecycle.reset();
+      this.backpressure.reset();
+      this.limits.reset();
+      this.shared.close();
+      this.sharedMem.reset();
+      this.degradation.reset();
+      this.cloneCost.reset();
+      this.compositor.reset();
+      this.oc.reset();
     });
 
     effect(() => {

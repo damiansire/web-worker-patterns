@@ -133,7 +133,9 @@ export class ExampleRunnerService {
   stop(): void {
     if (this.worker) {
       this.worker.postMessage({ command: 'stop' });
-      // Remove this.worker.terminate(); so it can stop gracefully.
+      // Terminamos el worker: sin terminate() el hilo queda vivo (leak) y el
+      // estado `terminated` que la UI/los tests observan nunca se cumple.
+      this.worker.terminate();
       this.worker = undefined;
     }
     this._runningId.set(null);

@@ -180,7 +180,8 @@ export class SharedWorkerDemoService {
     };
   }
 
-  private close(): void {
+  /** Cierra TODAS las conexiones y resetea el estado (teardown completo de la demo). */
+  close(): void {
     for (const c of this.conns) {
       c.post({ type: 'bye' });
       c.close();

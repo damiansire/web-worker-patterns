@@ -23,6 +23,24 @@ if (!existsSync(ng)) {
   process.exit(1);
 }
 
+// Gate de build PRIMERO: `tsc`/`ng test` pueden estar verdes mientras `ng build`
+// (compilación AOT de plantillas) está roto. Ese falso verde fue justamente el P0
+// que tapó un teardown llamando métodos inexistentes. Si `ng build` falla, el gate
+// falla acá y no llegamos siquiera a correr tests sobre un build roto.
+const build = spawnSync(process.execPath, [ng, 'build'], {
+  encoding: 'utf8',
+  maxBuffer: 64 * 1024 * 1024,
+});
+process.stdout.write((build.stdout ?? '') + (build.stderr ?? ''));
+if (build.status !== 0) {
+  console.error(
+    `\n✗ test gate: 'ng build' falló (exit ${build.status}). ` +
+      'Un build roto NO es un pase limpio aunque `ng test`/`tsc` estén verdes.',
+  );
+  process.exit(build.status || 1);
+}
+console.log('\n✓ test gate: ng build OK. Sigo con los tests…\n');
+
 const res = spawnSync(process.execPath, [ng, 'test'], {
   encoding: 'utf8',
   maxBuffer: 64 * 1024 * 1024,
