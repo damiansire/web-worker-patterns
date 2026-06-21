@@ -1,12 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { WorkerExample } from '../domain/examples/example.model';
+import { WorkerLike } from '../domain/workers/worker-like';
 import { countPrimesUpTo } from '../domain/workers/primes.worker.logic';
-
-interface WorkerLike {
-  postMessage(message: unknown): void;
-  terminate(): void;
-  onmessage: ((event: MessageEvent) => void) | null;
-}
 
 export interface ComputeResult {
   count: number;
@@ -39,6 +34,8 @@ export class ComputeDemoService {
   /** Cronómetro en vivo mientras el worker calcula (sube solo si el main está libre). */
   readonly liveMs = signal(0);
   readonly phase = signal<ComputePhase>('idle');
+  /** Mensaje del último fallo de worker (null = ninguno). Lo muestra la UI. */
+  readonly error = signal<string | null>(null);
 
   /** Corre el cómputo EN UN WORKER: la UI no se traba; el cronómetro sube en vivo. */
   runWorker(example: WorkerExample, limit: number): void {
@@ -48,6 +45,7 @@ export class ComputeDemoService {
     this.stopLive();
     this.phase.set('worker');
     this.workerResult.set(null);
+    this.error.set(null);
 
     const worker = example.workerFactory() as unknown as WorkerLike;
     this.worker = worker;
@@ -71,6 +69,18 @@ export class ComputeDemoService {
         this.worker = undefined;
       }
     };
+    // Camino de error: si el worker falla al instanciarse o computar, sin esto el
+    // cronómetro seguiría corriendo y phase quedaría en 'worker' para siempre,
+    // bloqueando toda re-corrida. Lo tratamos como término: paramos, liberamos y avisamos.
+    worker.onerror = (event) => {
+      (event as { preventDefault?: () => void })?.preventDefault?.();
+      this.stopLive();
+      const message = (event as { message?: string })?.message;
+      this.error.set(message ?? 'El worker falló durante el cómputo');
+      this.phase.set('idle');
+      worker.terminate();
+      this.worker = undefined;
+    };
     worker.postMessage({ command: 'compute', limit });
   }
 
@@ -92,6 +102,7 @@ export class ComputeDemoService {
     this.mainResult.set(null);
     this.liveMs.set(0);
     this.phase.set('idle');
+    this.error.set(null);
   }
 
   private stopLive(): void {

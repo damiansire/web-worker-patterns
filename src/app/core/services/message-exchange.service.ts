@@ -1,12 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { WorkerExample } from '../domain/examples/example.model';
 import { ExchangeMessage } from '../domain/communication';
-
-interface WorkerLike {
-  postMessage(message: unknown): void;
-  terminate(): void;
-  onmessage: ((event: MessageEvent) => void) | null;
-}
+import { WorkerLike } from '../domain/workers/worker-like';
 
 /**
  * Intercambio de mensajes main <-> worker (ejemplo 03). Mantiene un log
@@ -27,6 +22,8 @@ export class MessageExchangeService {
   readonly messages = this._messages.asReadonly();
   /** True mientras esperamos la respuesta de un envío. */
   readonly pending = signal(false);
+  /** Mensaje del último fallo de worker (null = ninguno). Lo muestra la UI. */
+  readonly error = signal<string | null>(null);
 
   /**
    * Abre el worker del ejemplo. Si ya está abierto para el mismo ejemplo, es un
@@ -44,6 +41,19 @@ export class MessageExchangeService {
     this.worker = worker;
     this.openId = example.id;
     worker.onmessage = (event: MessageEvent) => this.receive(event.data);
+    worker.onerror = (event) => this.onError(event);
+  }
+
+  /**
+   * El worker falló (onerror — p.ej. no se pudo instanciar). Sin esto, pending()
+   * quedaría en true para siempre tras un send: el input se vería trabado esperando
+   * una respuesta que nunca llega. Registramos el error y liberamos pending.
+   */
+  private onError(event: unknown): void {
+    (event as { preventDefault?: () => void })?.preventDefault?.();
+    const message = (event as { message?: string })?.message;
+    this.error.set(message ?? 'El worker falló');
+    this.pending.set(false);
   }
 
   /** Envía un mensaje al worker (lo registra como saliente). */
@@ -87,5 +97,6 @@ export class MessageExchangeService {
     this.nextId = 0;
     this._messages.set([]);
     this.pending.set(false);
+    this.error.set(null);
   }
 }

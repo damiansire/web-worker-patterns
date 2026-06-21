@@ -4,6 +4,7 @@ import { WorkerExample } from '../domain/examples/example.model';
 
 class FakeWorker {
   onmessage: ((event: MessageEvent) => void) | null = null;
+  onerror: ((event: unknown) => void) | null = null;
   posted: unknown[] = [];
   terminated = false;
   postMessage(message: unknown): void {
@@ -14,6 +15,9 @@ class FakeWorker {
   }
   reply(data: unknown): void {
     this.onmessage?.({ data } as MessageEvent);
+  }
+  fail(message: string): void {
+    this.onerror?.({ message });
   }
 }
 
@@ -72,6 +76,17 @@ describe('MessageExchangeService', () => {
     svc.open(example);
     svc.send('   ');
     expect(svc.messages()).toHaveLength(0);
+  });
+
+  it('un fallo del worker (onerror) libera pending y registra el error', () => {
+    svc.open(example);
+    svc.send('hola');
+    expect(svc.pending()).toBe(true);
+
+    fake.fail('boom');
+
+    expect(svc.pending()).toBe(false);
+    expect(svc.error()).toBe('boom');
   });
 
   it('open() is a no-op for the same example, so the conversation survives a re-mount', () => {

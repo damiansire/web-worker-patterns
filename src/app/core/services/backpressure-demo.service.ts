@@ -1,11 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { WorkerExample } from '../domain/examples/example.model';
-
-interface WorkerLike {
-  postMessage(message: unknown): void;
-  terminate(): void;
-  onmessage: ((event: MessageEvent) => void) | null;
-}
+import { WorkerLike } from '../domain/workers/worker-like';
 
 export type BackpressureMode = 'idle' | 'naive' | 'backpressure';
 
@@ -43,6 +38,8 @@ export class BackpressureDemoService {
    */
   readonly naiveMaxLatency = signal<number | null>(null);
   readonly bpMaxLatency = signal<number | null>(null);
+  /** Mensaje del último fallo de worker (null = ninguno). Lo muestra la UI. */
+  readonly error = signal<string | null>(null);
 
   private worker?: WorkerLike;
   private sent = 0;
@@ -67,8 +64,10 @@ export class BackpressureDemoService {
       return;
     }
     this.worker?.terminate();
+    this.error.set(null);
     this.worker = example.workerFactory() as unknown as WorkerLike;
     this.worker.onmessage = () => this.onAck();
+    this.worker.onerror = (event) => this.onError(event);
     this.sent = 0;
     this.acked = 0;
     this.peak = 0;
@@ -121,6 +120,21 @@ export class BackpressureDemoService {
     }
   }
 
+  /**
+   * El worker de primos falló (onerror). Sin esto, mode() quedaría fijo en 'naive'/
+   * 'backpressure' para siempre (running == true), bloqueando toda re-corrida y dejando
+   * pending con un valor viejo. Registramos el error y liberamos el estado a 'idle'.
+   */
+  private onError(event: unknown): void {
+    (event as { preventDefault?: () => void })?.preventDefault?.();
+    const message = (event as { message?: string })?.message;
+    this.error.set(message ?? 'El worker falló durante la tanda');
+    this.worker?.terminate();
+    this.worker = undefined;
+    this.pending.set(0);
+    this.mode.set('idle');
+  }
+
   private finish(): void {
     if (this.current === 'naive') {
       this.naivePeak.set(this.peak);
@@ -148,6 +162,7 @@ export class BackpressureDemoService {
     this.bpPeak.set(null);
     this.naiveMaxLatency.set(null);
     this.bpMaxLatency.set(null);
+    this.error.set(null);
     this.mode.set('idle');
   }
 }

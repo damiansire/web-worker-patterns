@@ -4,6 +4,7 @@ import { WorkerExample } from '../domain/examples/example.model';
 
 class FakeWorker {
   onmessage: ((event: MessageEvent) => void) | null = null;
+  onerror: ((event: unknown) => void) | null = null;
   posted: unknown[] = [];
   terminated = false;
   postMessage(message: unknown): void {
@@ -14,6 +15,9 @@ class FakeWorker {
   }
   result(data: unknown): void {
     this.onmessage?.({ data } as MessageEvent);
+  }
+  fail(message: string): void {
+    this.onerror?.({ message });
   }
 }
 
@@ -59,6 +63,18 @@ describe('ComputeDemoService', () => {
     fake.result({ type: 'result', count: 95, limit: 500 });
     expect(svc.workerResult()).toEqual({ count: 95, ms: 350, limit: 500 });
     expect(svc.phase()).toBe('idle');
+    expect(fake.terminated).toBe(true);
+  });
+
+  it('un fallo del worker (onerror) libera la fase y registra el error (no queda colgado en "worker")', () => {
+    t = 100;
+    svc.runWorker(example, 500);
+    expect(svc.phase()).toBe('worker');
+
+    fake.fail('boom');
+
+    expect(svc.phase()).toBe('idle');
+    expect(svc.error()).toBe('boom');
     expect(fake.terminated).toBe(true);
   });
 

@@ -4,11 +4,25 @@ import { WorkerExample } from '../domain/examples/example.model';
 
 class FakeWorker {
   onmessage: ((event: MessageEvent) => void) | null = null;
+  onerror: ((event: unknown) => void) | null = null;
   terminated = false;
   postMessage(message: unknown): void {
     void message;
     // Responde de inmediato (síncrono): onmessage ya está seteado en runK.
     this.onmessage?.({ data: { type: 'result', count: 1 } } as MessageEvent);
+  }
+  terminate(): void {
+    this.terminated = true;
+  }
+}
+
+/** Worker que SIEMPRE falla (dispara onerror) en vez de responder. */
+class FailingWorker {
+  onmessage: ((event: MessageEvent) => void) | null = null;
+  onerror: ((event: unknown) => void) | null = null;
+  terminated = false;
+  postMessage(): void {
+    this.onerror?.({ message: 'boom' });
   }
   terminate(): void {
     this.terminated = true;
@@ -65,5 +79,26 @@ describe('WorkerLimitsDemoService', () => {
     svc.reset();
     expect(svc.runs()).toEqual([]);
     expect(svc.currentWorkers()).toBe(0);
+  });
+
+  it('un worker que falla (onerror) no cuelga la escala: running vuelve a false y queda el error', async () => {
+    const failing: FailingWorker[] = [];
+    const failingExample: WorkerExample = {
+      ...example,
+      workerFactory: () => {
+        const w = new FailingWorker();
+        failing.push(w);
+        return w as unknown as Worker;
+      },
+    };
+
+    await svc.runScale(failingExample, 1000);
+
+    // pese a que TODOS los workers fallan, la escala no queda colgada.
+    expect(svc.running()).toBe(false);
+    expect(svc.currentWorkers()).toBe(0);
+    expect(svc.error()).toBe('boom');
+    // y los workers creados se terminaron (sin leak de hilos).
+    expect(failing.every((w) => w.terminated)).toBe(true);
   });
 });

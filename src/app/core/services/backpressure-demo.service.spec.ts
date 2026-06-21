@@ -4,6 +4,7 @@ import { WorkerExample } from '../domain/examples/example.model';
 
 class FakeWorker {
   onmessage: ((event: MessageEvent) => void) | null = null;
+  onerror: ((event: unknown) => void) | null = null;
   terminated = false;
   posted = 0;
   postMessage(): void {
@@ -11,6 +12,19 @@ class FakeWorker {
     // Ack ASÍNCRONO (microtask): así el productor naive alcanza a disparar todo
     // antes de que llegue el primer ack (la cola se infla de verdad).
     queueMicrotask(() => this.onmessage?.({ data: { type: 'result' } } as MessageEvent));
+  }
+  terminate(): void {
+    this.terminated = true;
+  }
+}
+
+/** Worker que falla (dispara onerror) en el primer mensaje. */
+class FailingWorker {
+  onmessage: ((event: MessageEvent) => void) | null = null;
+  onerror: ((event: unknown) => void) | null = null;
+  terminated = false;
+  postMessage(): void {
+    queueMicrotask(() => this.onerror?.({ message: 'boom' }));
   }
   terminate(): void {
     this.terminated = true;
@@ -100,6 +114,19 @@ describe('BackpressureDemoService', () => {
     // Con control: nunca esperó más que la ventana → window * costo.
     expect(svc.bpMaxLatency()).toBe(svc.windowSize * COST);
     expect(svc.naiveMaxLatency()!).toBeGreaterThan(svc.bpMaxLatency()!);
+  });
+
+  it('un worker que falla (onerror) no cuelga la demo: mode vuelve a idle y queda el error', async () => {
+    const failing = new FailingWorker();
+    const ex: WorkerExample = { ...example, workerFactory: () => failing as unknown as Worker };
+
+    svc.runNaive(ex, 1000);
+    await waitUntilIdle(svc);
+
+    expect(svc.mode()).toBe('idle');
+    expect(svc.pending()).toBe(0);
+    expect(svc.error()).toBe('boom');
+    expect(failing.terminated).toBe(true);
   });
 
   it('reset limpia los picos y las latencias', async () => {
