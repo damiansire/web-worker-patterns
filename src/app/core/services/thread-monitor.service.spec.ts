@@ -39,6 +39,29 @@ describe('ThreadMonitorService', () => {
     expect(monitor.lanes()[0].label).toBe('Worker');
   });
 
+  it('start() limpia los carriles del run anterior: una segunda corrida no acumula segmentos viejos', () => {
+    monitor.start();
+    t = 100;
+    monitor.push('worker', 'worker');
+    t = 200;
+    monitor.push('worker', 'idle');
+    expect(monitor.lanes().find((l) => l.id === 'worker')!.segments.length).toBe(2);
+
+    // Segunda corrida: start() debe arrancar de cero (sin esto, los segmentos viejos
+    // quedarían con timestamps relativos al t0 anterior → timeline imposible).
+    t = 1000;
+    monitor.start();
+    expect(monitor.lanes()).toEqual([]);
+
+    t = 1100;
+    monitor.push('worker', 'worker');
+    const seg = monitor.lanes().find((l) => l.id === 'worker')!.segments;
+    expect(seg.length).toBe(1);
+    // startMs es relativo al nuevo t0 (1000), no negativo ni heredado del run anterior.
+    expect(seg[0].startMs).toBe(100);
+    expect(seg[0].startMs).toBeGreaterThanOrEqual(0);
+  });
+
   it('reset clears lanes and elapsed time', () => {
     monitor.start();
     t = 50;
