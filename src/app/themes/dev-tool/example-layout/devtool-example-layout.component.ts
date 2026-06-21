@@ -1,4 +1,6 @@
-import { DestroyRef, 
+import {
+  ChangeDetectionStrategy,
+  DestroyRef,
   Component,
   computed,
   effect,
@@ -45,6 +47,7 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
  * paneles tipo IDE; ThreadVisualizer por DI (§5) y código en el code-block del theme.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'devtool-example-layout',
   imports: [
     NgComponentOutlet,

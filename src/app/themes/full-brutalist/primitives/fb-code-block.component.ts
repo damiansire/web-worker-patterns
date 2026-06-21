@@ -1,4 +1,4 @@
-import { Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import hljs from 'highlight.js/lib/core';
 import typescript from 'highlight.js/lib/languages/typescript';
 import { CodeBlockContract } from '../../../ui-contracts/code-block.contract';
@@ -12,6 +12,7 @@ hljs.registerLanguage('typescript', typescript);
  * el texto base y los comentarios se fuerzan a un gris claro para que no se apaguen.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'fb-code-block',
   template: `
     <figure class="b-code">

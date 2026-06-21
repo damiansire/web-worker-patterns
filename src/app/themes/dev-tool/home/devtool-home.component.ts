@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { EXAMPLES } from '../../../core/domain/examples/examples.registry';
 
 /** Home dev-tool: explorador denso tipo IDE (toolbar + árbol de archivos). */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'devtool-home',
   imports: [RouterLink],
   template: `

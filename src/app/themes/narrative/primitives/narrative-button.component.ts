@@ -1,8 +1,9 @@
-import { Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { ButtonContract } from '../../../ui-contracts/button.contract';
 
 /** Botón narrative: editorial de revista, serif, subrayado animado. */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'narrative-button',
   template: `
     <button

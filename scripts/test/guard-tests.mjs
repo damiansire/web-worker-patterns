@@ -23,6 +23,28 @@ if (!existsSync(ng)) {
   process.exit(1);
 }
 
+// Gate de lint PRIMERO: ESLint defiende los invariantes que el repo predica
+// (no-console en la lib, OnPush obligatorio, a11y de teclado en plantillas). Si el
+// lint falla, no tiene sentido seguir: el código viola una regla del propio repo.
+const eslint = path.resolve('node_modules/eslint/bin/eslint.js');
+if (!existsSync(eslint)) {
+  console.error(`✗ test gate: no encuentro ESLint en ${eslint}. ¿npm install?`);
+  process.exit(1);
+}
+const lint = spawnSync(process.execPath, [eslint, '.'], {
+  encoding: 'utf8',
+  maxBuffer: 64 * 1024 * 1024,
+});
+process.stdout.write((lint.stdout ?? '') + (lint.stderr ?? ''));
+if (lint.status !== 0) {
+  console.error(
+    `\n✗ test gate: 'eslint .' falló (exit ${lint.status}). ` +
+      'El código viola un invariante del repo (no-console / OnPush / a11y de teclado).',
+  );
+  process.exit(lint.status || 1);
+}
+console.log('\n✓ test gate: ESLint OK (invariantes intactos). Sigo con el build…\n');
+
 // Gate de build PRIMERO: `tsc`/`ng test` pueden estar verdes mientras `ng build`
 // (compilación AOT de plantillas) está roto. Ese falso verde fue justamente el P0
 // que tapó un teardown llamando métodos inexistentes. Si `ng build` falla, el gate

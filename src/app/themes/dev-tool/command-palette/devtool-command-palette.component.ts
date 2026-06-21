@@ -1,4 +1,11 @@
-import { Component, computed, inject, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  output,
+  signal,
+} from '@angular/core';
 import { A11yModule } from '@angular/cdk/a11y';
 import { Router } from '@angular/router';
 import { EXAMPLES } from '../../../core/domain/examples/examples.registry';
@@ -9,6 +16,7 @@ import { EXAMPLES } from '../../../core/domain/examples/examples.registry';
  * prueba de integración real de una librería UI (CDK) en la arquitectura.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'devtool-command-palette',
   imports: [A11yModule],
   template: `
@@ -32,6 +40,13 @@ import { EXAMPLES } from '../../../core/domain/examples/examples.registry';
       />
       <ul class="dt-palette-list" role="listbox" aria-label="Ejemplos">
         @for (ex of filtered(); track ex.id; let i = $index) {
+          <!--
+            Patrón listbox ARIA: el teclado se maneja a nivel del diálogo
+            (onKeydown: ArrowUp/Down/Enter/Escape), NO por opción. Las opciones
+            de un listbox no son tabbables — el foco vive en el input. El click es
+            solo una ayuda con mouse, así que desactivamos las reglas de teclado acá.
+          -->
+          <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
           <li
             role="option"
             [attr.aria-selected]="i === active()"

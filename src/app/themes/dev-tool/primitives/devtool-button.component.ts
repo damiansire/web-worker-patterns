@@ -1,8 +1,9 @@
-import { Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { ButtonContract } from '../../../ui-contracts/button.contract';
 
 /** Botón dev-tool: estilo IDE/terminal, sutil, mono. */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'devtool-button',
   template: `
     <button

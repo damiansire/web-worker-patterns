@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { CardContract } from '../../../ui-contracts/card.contract';
 
 /**
@@ -7,6 +7,7 @@ import { CardContract } from '../../../ui-contracts/card.contract';
  * expuesta del layout, que aporta las líneas duras entre secciones.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'fb-card',
   template: `
     <section class="b-card">

@@ -1,4 +1,6 @@
-import { DestroyRef, 
+import {
+  ChangeDetectionStrategy,
+  DestroyRef,
   Component,
   computed,
   effect,
@@ -42,6 +44,7 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
 
 /** Example-layout editorial. Hilos como contraste worker-vs-main (#2) + código. */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'editorial-example-layout',
   imports: [
     NgComponentOutlet,

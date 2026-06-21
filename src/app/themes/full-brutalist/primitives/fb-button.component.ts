@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { ButtonContract } from '../../../ui-contracts/button.contract';
 
 /**
@@ -6,6 +6,7 @@ import { ButtonContract } from '../../../ui-contracts/button.contract';
  * Disabled = estado apagado explícito (gris sobre negro, plano), nunca pastel.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'fb-button',
   template: `
     <button

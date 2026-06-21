@@ -1,4 +1,4 @@
-import { Component, effect, inject, signal, Type } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, signal, Type } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { TranslocoService } from '@jsverse/transloco';
 import { ThemeService } from './theming/theme.service';
@@ -10,6 +10,7 @@ import { LanguageService } from './core/services/language.service';
  * estado de dominio (workers, monitor) vive en signals root y no se reinicia.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-root',
   imports: [NgComponentOutlet],
   template: `

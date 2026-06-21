@@ -1,4 +1,4 @@
-import { Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import hljs from 'highlight.js/lib/core';
 import typescript from 'highlight.js/lib/languages/typescript';
 import { CodeBlockContract } from '../../../ui-contracts/code-block.contract';
@@ -7,6 +7,7 @@ hljs.registerLanguage('typescript', typescript);
 
 /** Bloque de código dev-tool: panel de editor con barra de título. */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'devtool-code-block',
   template: `
     <div class="dt-code">

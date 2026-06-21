@@ -1,4 +1,6 @@
-import { DestroyRef, 
+import {
+  ChangeDetectionStrategy,
+  DestroyRef,
   Component,
   computed,
   effect,
@@ -49,6 +51,7 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
  *   3. muestra el código (snippets del registry) en el code-block del theme.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'fb-example-layout',
   imports: [
     NgComponentOutlet,

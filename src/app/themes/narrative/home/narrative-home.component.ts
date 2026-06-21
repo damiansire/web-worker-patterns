@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { EXAMPLES } from '../../../core/domain/examples/examples.registry';
 
 /** Home narrative: sumario centrado tipo revista, en columna estrecha. */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'narrative-home',
   imports: [RouterLink],
   template: `

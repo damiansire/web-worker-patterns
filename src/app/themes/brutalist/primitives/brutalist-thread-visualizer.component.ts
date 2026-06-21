@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { ThreadLane, ThreadSegment } from '../../../core/services/thread-monitor.service';
 import { ThreadVisualizerContract } from '../../../ui-contracts/thread-visualizer.contract';
@@ -10,6 +10,7 @@ import { ThreadVisualizerContract } from '../../../ui-contracts/thread-visualize
  * Implementa `ThreadVisualizerContract`: lo monta el example-layout vía DI.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'brutalist-thread-visualizer',
   imports: [DecimalPipe],
   template: `

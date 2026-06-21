@@ -1,8 +1,9 @@
-import { Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { ButtonContract } from '../../../ui-contracts/button.contract';
 
 /** Botón editorial: pill suave, tipografía de display, acento cálido. */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'editorial-button',
   template: `
     <button

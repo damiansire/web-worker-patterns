@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ThemeService } from './theme.service';
 import { THEME_REGISTRY } from './theme.tokens';
@@ -11,6 +11,7 @@ import { ThemeId } from './theme.types';
  * segmento `:theme` de la URL y reusa el mismo estado de dominio (§9).
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'theme-selector',
   template: `
     <nav class="ts" aria-label="Theme">

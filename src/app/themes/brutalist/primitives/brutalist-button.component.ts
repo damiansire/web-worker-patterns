@@ -1,8 +1,9 @@
-import { Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { ButtonContract } from '../../../ui-contracts/button.contract';
 
 /** Botón brutalista: bordes negros gruesos, sin radius, sombra dura. */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'brutalist-button',
   template: `
     <button

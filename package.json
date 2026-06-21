@@ -9,6 +9,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "node scripts/test/guard-tests.mjs",
     "test:raw": "ng test",
+    "lint": "eslint .",
     "lint:boundaries": "node scripts/lint/boundaries.mjs",
     "format": "prettier --write \"src/**/*.{ts,html,scss,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,html,scss,json}\"",
@@ -44,14 +45,18 @@
     "tslib": "^2.3.0"
   },
   "devDependencies": {
+    "@angular-eslint/template-parser": "^22.0.0",
     "@angular/build": "^22.0.1",
     "@angular/cli": "^22.0.1",
     "@angular/compiler-cli": "^22.0.1",
+    "angular-eslint": "^22.0.0",
     "dependency-cruiser": "^17.4.3",
+    "eslint": "^10.5.0",
     "jsdom": "^27.0.0",
     "playwright": "^1.60.0",
     "prettier": "^3.8.4",
     "typescript": "~6.0.3",
+    "typescript-eslint": "^8.61.1",
     "vitest": "^4.0.0"
   }
 }

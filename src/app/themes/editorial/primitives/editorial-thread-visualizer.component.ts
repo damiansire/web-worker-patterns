@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { ThreadLane, ThreadSegment } from '../../../core/services/thread-monitor.service';
 import { ThreadVisualizerContract } from '../../../ui-contracts/thread-visualizer.contract';
@@ -8,6 +8,7 @@ import { ThreadVisualizerContract } from '../../../ui-contracts/thread-visualize
  * por hilo, paleta cálida. Lee solo tokens semánticos.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'editorial-thread-visualizer',
   imports: [DecimalPipe],
   template: `

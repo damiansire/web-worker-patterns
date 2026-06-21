@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { EXAMPLES } from '../../../core/domain/examples/examples.registry';
 
 /** Home brutalista: grilla de celdas duras, números mono, hover invertido. */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'brutalist-home',
   imports: [RouterLink],
   template: `

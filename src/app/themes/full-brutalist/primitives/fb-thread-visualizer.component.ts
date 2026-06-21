@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { ThreadLane, ThreadSegment } from '../../../core/services/thread-monitor.service';
 import { ThreadVisualizerContract } from '../../../ui-contracts/thread-visualizer.contract';
@@ -10,6 +10,7 @@ import { ThreadVisualizerContract } from '../../../ui-contracts/thread-visualize
  * acento. De un vistazo se ve cuál hilo está activo. Solo tokens semánticos.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'fb-thread-visualizer',
   imports: [DecimalPipe],
   template: `

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy } from '@angular/core';
 import { RouterOutlet, RouterLink } from '@angular/router';
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
@@ -13,6 +13,7 @@ import { ExampleRunnerService } from '../../../core/services/example-runner.serv
  * lazy vía ThemePack.stylesheets y se purga al salir del theme (ARQUITECTURA §7).
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'devtool-shell',
   imports: [RouterOutlet, RouterLink, ThemeSelectorComponent, LanguageSwitcherComponent],
   host: { '(document:keydown)': 'onKeydown($event)' },

@@ -68,7 +68,6 @@ export class OffscreenCanvasDemoService {
     }
     this.teardown();
 
-    const size = mainCanvas.width;
     this.mainPalette = readPalette(mainCanvas, 'main');
     this.mainCtx = mainCanvas.getContext('2d');
     this.mainStart = this.clock();

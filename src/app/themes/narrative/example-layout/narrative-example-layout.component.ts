@@ -1,4 +1,6 @@
-import { DestroyRef, 
+import {
+  ChangeDetectionStrategy,
+  DestroyRef,
   Component,
   computed,
   effect,
@@ -42,6 +44,7 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
 
 /** Example-layout narrative. Hilos como contraste worker-vs-main (#2) + código. */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'narrative-example-layout',
   imports: [
     NgComponentOutlet,

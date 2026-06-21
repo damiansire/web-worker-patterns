@@ -1,8 +1,9 @@
-import { Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { CardContract } from '../../../ui-contracts/card.contract';
 
 /** Card brutalista: caja de borde negro grueso con sombra dura y título opcional. */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'brutalist-card',
   template: `
     <section class="b-card">

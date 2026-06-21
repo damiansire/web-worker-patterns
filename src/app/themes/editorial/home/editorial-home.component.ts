@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { EXAMPLES } from '../../../core/domain/examples/examples.registry';
 
 /** Home editorial: índice tipo sumario de revista, números grandes serif. */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'editorial-home',
   imports: [RouterLink],
   template: `

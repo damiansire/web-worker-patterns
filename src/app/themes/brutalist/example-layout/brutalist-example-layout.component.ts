@@ -1,4 +1,6 @@
-import { DestroyRef, 
+import {
+  ChangeDetectionStrategy,
+  DestroyRef,
   Component,
   computed,
   effect,
@@ -48,6 +50,7 @@ import { BRUTALIST_PROVIDERS } from '../brutalist.providers';
  * El resto (intro, puntos clave, nota, código) es neutral y viene del contenido.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'brutalist-example-layout',
   imports: [
     NgComponentOutlet,

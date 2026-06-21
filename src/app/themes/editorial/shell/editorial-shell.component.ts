@@ -1,10 +1,11 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterOutlet, RouterLink } from '@angular/router';
 import { ThemeSelectorComponent } from '../../../theming/theme-selector.component';
 import { LanguageSwitcherComponent } from '../../../ui-primitives/language-switcher.component';
 
 /** Shell editorial: cabecera tipo portada de revista de arte. */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'editorial-shell',
   imports: [RouterOutlet, RouterLink, ThemeSelectorComponent, LanguageSwitcherComponent],
   template: `

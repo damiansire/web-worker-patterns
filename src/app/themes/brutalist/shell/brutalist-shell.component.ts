@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterOutlet, RouterLink } from '@angular/router';
 import { ThemeSelectorComponent } from '../../../theming/theme-selector.component';
 import { LanguageSwitcherComponent } from '../../../ui-primitives/language-switcher.component';
@@ -8,6 +8,7 @@ import { LanguageSwitcherComponent } from '../../../ui-primitives/language-switc
  * el outlet del contenido debajo. Sin librería UI.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'brutalist-shell',
   imports: [RouterOutlet, RouterLink, ThemeSelectorComponent, LanguageSwitcherComponent],
   template: `
