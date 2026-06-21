@@ -344,7 +344,16 @@ The container uses:
 
 - Nginx Alpine (only ~5MB)
 - Optimized cache configuration
-- Correct CORS headers for workers
+
+### Security headers
+
+The nginx config (`nginx.conf`) emits, on every response:
+
+- `Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy: require-corp` — these make the document **cross-origin isolated** (`crossOriginIsolated === true`), which is the real prerequisite for `SharedArrayBuffer` / `Atomics`. The shared-memory demo (example 12) only takes the real path when this is true; otherwise it falls back to the simulated backend.
+- `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`
+- A restrictive `Content-Security-Policy` (`default-src 'self'`, `worker-src 'self' blob:`, `object-src 'none'`, `frame-ancestors 'none'`)
+
+You can verify them on a running container with `curl -I http://localhost:9000`.
 
 ## FAQ
 

@@ -17,19 +17,13 @@ FROM nginx:alpine
 # Copy built app from previous stage (Angular outputs to dist/web-worker-patterns/browser)
 COPY --from=build /app/dist/web-worker-patterns/browser /usr/share/nginx/html
 
-# SPA: serve index.html for all routes
-RUN echo 'server { \
-    listen 80; \
-    server_name localhost; \
-    root /usr/share/nginx/html; \
-    index index.html; \
-    location / { \
-        try_files $uri $uri/ /index.html; \
-    } \
-    location ~* \.(js|css)$ { \
-        add_header Cache-Control "public, max-age=1h"; \
-    } \
-}' > /etc/nginx/conf.d/default.conf
+# SPA: serve index.html for all routes.
+# Las cabeceras COOP/COEP son OBLIGATORIAS: sin ellas el documento NO queda
+# cross-origin-isolated y SharedArrayBuffer/Atomics no comparten memoria (la demo 12
+# cae al backend simulado). Las demás son hardening de base (hay sinks [innerHTML] en
+# los code-block): nosniff, anti-clickjacking, referrer y una CSP restrictiva que igual
+# permite blob: para los workers.
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 

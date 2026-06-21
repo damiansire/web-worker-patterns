@@ -1,11 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { WorkerExample } from '../domain/examples/example.model';
-
-interface WorkerLike {
-  postMessage(message: unknown): void;
-  terminate(): void;
-  onmessage: ((event: MessageEvent) => void) | null;
-}
+import { WorkerLike } from '../domain/workers/worker-like';
 
 /**
  * Demo de memoria compartida (ejemplo 12). El main y el worker comparten un
@@ -24,8 +19,17 @@ export class SharedMemoryDemoService {
   /** Valor que el main LEE de la memoria compartida. */
   readonly value = signal(0);
   readonly running = signal(false);
-  /** False cuando no hay SharedArrayBuffer (se usa el backend simulado). */
-  readonly supported = signal(typeof SharedArrayBuffer !== 'undefined');
+  /**
+   * False cuando no se puede compartir memoria de verdad (se usa el backend simulado).
+   * El gate fiable NO es `typeof SharedArrayBuffer` (el constructor puede existir y aún
+   * así fallar al compartir): es `crossOriginIsolated`, que sólo es true cuando el
+   * documento sirvió COOP/COEP. Sin aislamiento, instanciar/compartir un SAB tira o no
+   * comparte en silencio — así que sólo entramos al camino real si AMBOS son ciertos.
+   */
+  readonly supported = signal(
+    typeof SharedArrayBuffer !== 'undefined' &&
+      (globalThis as { crossOriginIsolated?: boolean }).crossOriginIsolated === true,
+  );
   /** A cuánto llega la cuenta. */
   readonly target = 50;
 
