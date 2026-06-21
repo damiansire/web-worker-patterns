@@ -2,8 +2,8 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | In progress |
-| **Last updated** | Saturday, 20 June 2026 |
+| **Status** | Stable |
+| **Last updated** | Sunday, 22 June 2026 |
 
 [![Angular](https://img.shields.io/badge/Angular-22-DD0031?style=flat&logo=angular&logoColor=white)](https://angular.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -158,13 +158,14 @@ Then:
 npm run dev            # Comprueba Node/npm, instala deps si hace falta y arranca el servidor (todas las plataformas)
 npm start              # Dev server en localhost:4200 (requiere npm install previo)
 npm run build          # Build de producción
-npm test               # Tests unitarios (Vitest)
+npm test               # Gate: ESLint + ng build + tests unitarios (Vitest)
+npm run lint           # ESLint: no-console, OnPush obligatorio, a11y de teclado
 npm run format         # Formatea el código con Prettier
 npm run format:check   # Verifica el formato sin escribir (gate de CI)
 npm run lint:boundaries# Hace cumplir la regla de oro (core/ ⇏ themes/)
 ```
 
-Quality gates (build, format, tests, boundaries) run on every push/PR via [CI](.github/workflows/ci.yml) and as a local git pre-commit hook — independent of your editor. See [`AGENTS.md`](AGENTS.md) and [`docs/AI-PROCESS.md`](docs/AI-PROCESS.md).
+Quality gates (lint, build, format, tests, boundaries) run on every push/PR via [CI](.github/workflows/ci.yml) and as a local git pre-commit hook — independent of your editor. ESLint hace cumplir los invariantes que el repo predica: `no-console` en la lib, `ChangeDetectionStrategy.OnPush` en todos los componentes (la app es zoneless) y a11y de teclado en las plantillas. See [`AGENTS.md`](AGENTS.md) and [`docs/AI-PROCESS.md`](docs/AI-PROCESS.md).
 
 ## Multi-language Support
 
