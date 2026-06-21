@@ -1,12 +1,6 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { WorkerExample } from '../domain/examples/example.model';
-
-interface WorkerLike {
-  postMessage(message: unknown): void;
-  terminate(): void;
-  onmessage: ((event: MessageEvent) => void) | null;
-  onerror: ((event: unknown) => void) | null;
-}
+import { WorkerLike } from '../domain/workers/worker-like';
 
 export interface PoolTask {
   id: number;

@@ -1,12 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { WorkerExample } from '../domain/examples/example.model';
-
-interface WorkerLike {
-  postMessage(message: unknown): void;
-  terminate(): void;
-  onmessage: ((event: MessageEvent) => void) | null;
-  onerror: ((event: { message?: string; preventDefault?: () => void }) => void) | null;
-}
+import { WorkerLike } from '../domain/workers/worker-like';
 
 /** Una corrida de la tarea: salió OK (claves parseadas) o falló (error capturado). */
 export interface ErrorDemoEvent {
@@ -81,16 +75,17 @@ export class ErrorDemoService {
     this.busy.set(false);
   }
 
-  private onError(event: { message?: string; preventDefault?: () => void }): void {
+  private onError(event: unknown): void {
+    const err = event as { message?: string; preventDefault?: () => void };
     // Silenciamos el log de consola del navegador: ya lo mostramos en la UI.
-    event.preventDefault?.();
+    err.preventDefault?.();
     this._events.update((e) => [
       ...e,
       {
         id: this.pendingId,
         status: 'error',
         input: this.pendingInput,
-        message: event.message ?? 'Error desconocido en el worker',
+        message: err.message ?? 'Error desconocido en el worker',
       },
     ]);
     this.busy.set(false);

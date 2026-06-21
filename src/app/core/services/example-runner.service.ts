@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { WorkerExample } from '../domain/examples/example.model';
-import { ThreadLane } from './thread-monitor.service';
+import { ThreadLane } from '../domain/thread-lane';
+import { WorkerLike } from '../domain/workers/worker-like';
 import { ThreadMonitorService } from './thread-monitor.service';
 import { buildBlockedLanes, buildWorkerLanes, busyBlock } from '../domain/thread-demo';
 
@@ -12,12 +13,6 @@ export type RunPhase = 'idle' | 'worker' | 'main';
  * themes. El estado vive en signals root, así que cambiar de theme con un worker
  * corriendo no reinicia nada.
  */
-
-interface WorkerLike {
-  postMessage(message: unknown): void;
-  terminate(): void;
-  onmessage: ((event: MessageEvent) => void) | null;
-}
 
 @Injectable({ providedIn: 'root' })
 export class ExampleRunnerService {

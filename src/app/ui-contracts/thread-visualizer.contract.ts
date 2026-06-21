@@ -1,5 +1,5 @@
 import { InjectionToken, InputSignal, Type } from '@angular/core';
-import { ThreadLane } from '../core/services/thread-monitor.service';
+import { ThreadLane } from '../core/domain/thread-lane';
 
 /**
  * Contrato del ThreadVisualizer (ARQUITECTURA §5).

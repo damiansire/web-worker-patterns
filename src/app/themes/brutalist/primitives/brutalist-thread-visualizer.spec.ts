@@ -1,7 +1,7 @@
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { BrutalistThreadVisualizer } from './brutalist-thread-visualizer.component';
-import { ThreadLane } from '../../../core/services/thread-monitor.service';
+import { ThreadLane } from '../../../core/domain/thread-lane';
 
 describe('BrutalistThreadVisualizer', () => {
   it('renders one cell per segment and marks worker state', async () => {

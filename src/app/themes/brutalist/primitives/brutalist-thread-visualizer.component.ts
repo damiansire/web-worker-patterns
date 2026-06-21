@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
-import { ThreadLane, ThreadSegment } from '../../../core/services/thread-monitor.service';
+import { ThreadLane, ThreadSegment } from '../../../core/domain/thread-lane';
 import { ThreadVisualizerContract } from '../../../ui-contracts/thread-visualizer.contract';
 
 /**

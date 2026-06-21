@@ -1,17 +1,12 @@
 import { Injectable, signal } from '@angular/core';
 import { WorkerExample } from '../domain/examples/example.model';
+import { WorkerLike } from '../domain/workers/worker-like';
 import {
   buildPayload,
   countNodes,
   serializedBytes,
   PayloadConfig,
 } from '../domain/workers/clone-cost.worker.logic';
-
-interface WorkerLike {
-  postMessage(message: unknown): void;
-  terminate(): void;
-  onmessage: ((event: MessageEvent) => void) | null;
-}
 
 export interface CloneMeasure {
   size: number;

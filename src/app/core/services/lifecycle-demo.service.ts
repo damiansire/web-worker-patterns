@@ -1,11 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { WorkerExample } from '../domain/examples/example.model';
-
-interface WorkerLike {
-  postMessage(message: unknown): void;
-  terminate(): void;
-  onmessage: ((event: MessageEvent) => void) | null;
-}
+import { WorkerLike } from '../domain/workers/worker-like';
 
 export type LifecycleStatus = 'idle' | 'running' | 'terminated' | 'done';
 

@@ -6,12 +6,7 @@ import {
   observedFrameBudgetMs,
   skippedFrames,
 } from '../domain/workers/offscreen-canvas.worker.logic';
-
-interface WorkerLike {
-  postMessage(message: unknown, transfer?: Transferable[]): void;
-  terminate(): void;
-  onmessage: ((event: MessageEvent) => void) | null;
-}
+import { WorkerLike } from '../domain/workers/worker-like';
 
 /**
  * Demo de OffscreenCanvas (ejemplo 14). Dos relojes gemelos:
@@ -122,6 +117,14 @@ export class OffscreenCanvasDemoService {
     // Diferimos el bloqueo un macrotask para que la UI alcance a pintar el estado "bloqueado"
     // antes de que el main se congele (si bloqueáramos sincrónico, nunca se vería).
     setTimeout(() => {
+      // El main está por congelarse: el rAF no va a correr durante el busy-wait, así que
+      // su reporte de FPS (cada 500ms) no se actualiza y el contador quedaría mostrando el
+      // valor viejo (~60) justo en el momento didáctico "main muerto". Lo forzamos a 0 YA.
+      // En fallback el "worker" también lo pinta el main, así que también se congela.
+      this.mainFps.set(0);
+      if (this.fallbackCtx) {
+        this.workerFps.set(0);
+      }
       const framesBefore = this.mainFrameCount;
       const before = this.clock();
       const end = before + ms;

@@ -1,12 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { WorkerExample } from '../domain/examples/example.model';
+import { WorkerLike } from '../domain/workers/worker-like';
 import { countPrimesUpTo } from '../domain/workers/primes.worker.logic';
-
-interface WorkerLike {
-  postMessage(message: unknown): void;
-  terminate(): void;
-  onmessage: ((event: MessageEvent) => void) | null;
-}
 
 export interface DegradationResult {
   value: number;

@@ -1,4 +1,4 @@
-import { ThreadLane, ThreadSegment } from '../services/thread-monitor.service';
+import { ThreadLane, ThreadSegment } from './thread-lane';
 
 /**
  * Helpers neutrales para la demo de contraste worker vs main thread (backlog #2).

@@ -2,13 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { WorkerExample } from '../domain/examples/example.model';
 import { busyBlock } from '../domain/thread-demo';
 import { fpsInWindow, trimOldFrames } from '../domain/workers/compositor-demo.logic';
-
-interface WorkerLike {
-  postMessage(message: unknown): void;
-  terminate(): void;
-  onmessage: ((event: MessageEvent) => void) | null;
-  onerror: ((event: unknown) => void) | null;
-}
+import { WorkerLike } from '../domain/workers/worker-like';
 
 export type CompositorMode = 'idle' | 'main' | 'worker';
 

@@ -1,4 +1,5 @@
 import { Injectable, signal } from '@angular/core';
+import { ThreadLane, ThreadSegment, ThreadState } from '../domain/thread-lane';
 
 /**
  * Monitor de hilos (ARQUITECTURA §3.2).
@@ -6,22 +7,12 @@ import { Injectable, signal } from '@angular/core';
  * El servicio EMITE datos de actividad de hilos como signals; no pinta nada.
  * Cada theme dibuja estos mismos `lanes` a su manera (barras diagonales en
  * editorial, celdas duras en brutalist, etc). El contrato `ThreadLane[]` es la
- * frontera entre dominio y presentación.
+ * frontera entre dominio y presentación: vive en `core/domain/thread-lane.ts`.
  */
 
-export type ThreadState = 'main' | 'worker' | 'blocked' | 'idle';
-
-export interface ThreadSegment {
-  startMs: number;
-  endMs: number;
-  state: ThreadState;
-}
-
-export interface ThreadLane {
-  id: string; // 'main' | 'timer' | 'worker' | ...
-  label: string;
-  segments: ThreadSegment[];
-}
+// Re-export por conveniencia/back-compat: los consumidores históricos importaban
+// estos tipos desde el servicio. El origen canónico es core/domain/thread-lane.ts.
+export type { ThreadState, ThreadSegment, ThreadLane };
 
 @Injectable({ providedIn: 'root' })
 export class ThreadMonitorService {
@@ -43,10 +34,16 @@ export class ThreadMonitorService {
     this.labels.set(id, label);
   }
 
-  /** Marca el inicio de la línea de tiempo. */
+  /**
+   * Marca el inicio de la línea de tiempo. LIMPIA los carriles: sin esto, una
+   * segunda corrida acumularía segmentos del run anterior con timestamps relativos
+   * al t0 viejo, y el último segmento se cerraría con endMs < startMs (duración
+   * negativa) — el visualizador dibujaría una timeline imposible.
+   */
   start(at?: number): void {
     this.t0 = at ?? this.clock();
     this.elapsedMs.set(0);
+    this._lanes.set([]);
   }
 
   /**
