@@ -91,6 +91,9 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
             }
 
             @case ('message-exchange') {
+              @if (exchangeError(); as err) {
+                <p class="e-foot e-danger" role="alert">⚠ {{ err }}</p>
+              }
               <div class="e-send">
                 <input
                   #msg
@@ -146,6 +149,9 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
             }
 
             @case ('offload') {
+              @if (computeError(); as err) {
+                <p class="e-foot e-danger" role="alert">⚠ {{ err }}</p>
+              }
               <div class="e-nrow">
                 <label class="e-nlabel" for="e-n">Contar primos hasta N =</label>
                 <input
@@ -487,6 +493,9 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
                   <editorial-button (pressed)="resetLimits()">Reiniciar</editorial-button>
                 }
               </div>
+              @if (limitError(); as err) {
+                <p class="e-foot e-danger" role="alert">⚠ {{ err }}</p>
+              }
               @if (limitRuns().length) {
                 <div class="e-lim">
                   @for (run of limitRuns(); track run.workers) {
@@ -567,6 +576,9 @@ import { EDITORIAL_PROVIDERS } from '../editorial.providers';
             }
 
             @case ('backpressure') {
+              @if (bpError(); as err) {
+                <p class="e-foot e-danger" role="alert">⚠ {{ err }}</p>
+              }
               <div class="e-cmp">
                 <section class="e-col">
                   <h2>Sin backpressure</h2>

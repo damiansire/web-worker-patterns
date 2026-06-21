@@ -98,6 +98,9 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                 @if (content()?.whatToWatch; as ww) {
                   <p class="dt-panel-b dt-watch">{{ ww }}</p>
                 }
+                @if (exchangeError(); as err) {
+                  <p class="dt-panel-b dt-bad" role="alert">// error: {{ err }}</p>
+                }
                 <div class="dt-panel-b">
                   <div class="dt-send">
                     <span class="dt-prompt">$</span>
@@ -157,6 +160,9 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                 <header class="dt-panel-h">// cómputo pesado · worker vs main thread</header>
                 @if (content()?.whatToWatch; as ww) {
                   <p class="dt-panel-b dt-watch">{{ ww }}</p>
+                }
+                @if (computeError(); as err) {
+                  <p class="dt-panel-b dt-bad" role="alert">// error: {{ err }}</p>
                 }
                 <div class="dt-panel-b">
                   <div class="dt-nrow">
@@ -498,6 +504,9 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                 @if (content()?.whatToWatch; as ww) {
                   <p class="dt-panel-b dt-watch">{{ ww }}</p>
                 }
+                @if (limitError(); as err) {
+                  <p class="dt-panel-b dt-bad" role="alert">// error: {{ err }}</p>
+                }
                 <div class="dt-panel-b">
                   <div class="dt-send">
                     <devtool-button
@@ -619,6 +628,9 @@ import { DEVTOOL_PROVIDERS } from '../devtool.providers';
                 </header>
                 @if (content()?.whatToWatch; as ww) {
                   <p class="dt-panel-b dt-watch">{{ ww }}</p>
+                }
+                @if (bpError(); as err) {
+                  <p class="dt-panel-b dt-bad" role="alert">// error: {{ err }}</p>
                 }
                 <div class="dt-panel-b dt-cmp">
                   <div class="dt-col">

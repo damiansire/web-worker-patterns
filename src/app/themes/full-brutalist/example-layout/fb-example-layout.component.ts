@@ -117,6 +117,9 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
                         'Enviá un mensaje y mirá el ida y vuelta entre el main y el worker.'
                     }}
                   </p>
+                  @if (exchangeError(); as err) {
+                    <p class="b-foot b-danger" role="alert">⚠ {{ err }}</p>
+                  }
                   <div class="b-send">
                     <input
                       #msg
@@ -178,6 +181,9 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
                         'El mismo cálculo pesado en los dos hilos. Mirá cuál congela la UI.'
                     }}
                   </p>
+                  @if (computeError(); as err) {
+                    <p class="b-foot b-danger" role="alert">⚠ {{ err }}</p>
+                  }
 
                   <div class="b-nrow">
                     <span class="b-nlabel">N =</span>
@@ -565,6 +571,9 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
                       <fb-button (pressed)="resetLimits()">Reset</fb-button>
                     }
                   </div>
+                  @if (limitError(); as err) {
+                    <p class="b-foot b-danger" role="alert">⚠ {{ err }}</p>
+                  }
 
                   @if (limitRuns().length) {
                     <div class="b-lim">
@@ -666,6 +675,9 @@ import { FULL_BRUTALIST_PROVIDERS } from '../fb.providers';
                         'El mismo trabajo de dos formas. Mirá hasta dónde crece la cola en espera.'
                     }}
                   </p>
+                  @if (bpError(); as err) {
+                    <p class="b-foot b-danger" role="alert">⚠ {{ err }}</p>
+                  }
                   <div class="b-cmp">
                     <div class="b-col">
                       <h2>Sin backpressure</h2>

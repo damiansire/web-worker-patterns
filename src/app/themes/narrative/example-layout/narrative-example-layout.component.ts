@@ -91,6 +91,9 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
             }
 
             @case ('message-exchange') {
+              @if (exchangeError(); as err) {
+                <p class="n-foot n-danger" role="alert">⚠ {{ err }}</p>
+              }
               <div class="n-send">
                 <input
                   #msg
@@ -146,6 +149,9 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
             }
 
             @case ('offload') {
+              @if (computeError(); as err) {
+                <p class="n-foot n-danger" role="alert">⚠ {{ err }}</p>
+              }
               <div class="n-nrow">
                 <label class="n-nlabel" for="n-n">Contar primos hasta N =</label>
                 <input
@@ -487,6 +493,9 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
                   <narrative-button (pressed)="resetLimits()">Reiniciar</narrative-button>
                 }
               </div>
+              @if (limitError(); as err) {
+                <p class="n-foot n-danger" role="alert">⚠ {{ err }}</p>
+              }
               @if (limitRuns().length) {
                 <div class="n-lim">
                   @for (run of limitRuns(); track run.workers) {
@@ -567,6 +576,9 @@ import { NARRATIVE_PROVIDERS } from '../narrative.providers';
             }
 
             @case ('backpressure') {
+              @if (bpError(); as err) {
+                <p class="n-foot n-danger" role="alert">⚠ {{ err }}</p>
+              }
               <div class="n-cmp">
                 <section class="n-col">
                   <h2>Sin backpressure</h2>
