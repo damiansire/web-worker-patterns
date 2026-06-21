@@ -4,11 +4,25 @@ import { WorkerExample } from '../domain/examples/example.model';
 
 class FakeWorker {
   onmessage: ((event: MessageEvent) => void) | null = null;
+  onerror: ((event: unknown) => void) | null = null;
   terminated = false;
   postMessage(): void {
     // Responde en un microtask (asíncrono, como un worker real), así el trabajo
     // se reparte entre los slots del pool en vez de drenar todo un solo worker.
     queueMicrotask(() => this.onmessage?.({ data: { type: 'result' } } as MessageEvent));
+  }
+  terminate(): void {
+    this.terminated = true;
+  }
+}
+
+/** Worker que SIEMPRE falla (dispara onerror) en vez de responder. */
+class FailingWorker {
+  onmessage: ((event: MessageEvent) => void) | null = null;
+  onerror: ((event: unknown) => void) | null = null;
+  terminated = false;
+  postMessage(): void {
+    queueMicrotask(() => this.onerror?.(new ErrorEvent('error')));
   }
   terminate(): void {
     this.terminated = true;
@@ -77,6 +91,26 @@ describe('WorkerPoolDemoService', () => {
     expect(svc.workersCreated()).toBe(svc.poolSize());
     expect(svc.spawnedWithoutPool).toBe(svc.taskCount);
     expect(svc.workersCreated()).toBeLessThan(svc.spawnedWithoutPool);
+  });
+
+  it('un worker que falla (onerror) no cuelga el pool: la cola drena y running() vuelve a false', async () => {
+    const failing: FailingWorker[] = [];
+    const failingExample: WorkerExample = {
+      ...example,
+      workerFactory: () => {
+        const w = new FailingWorker();
+        failing.push(w);
+        return w as unknown as Worker;
+      },
+    };
+
+    svc.start(failingExample, 1000);
+    await waitUntil(() => !svc.running());
+
+    // pese a que TODOS los workers fallan, el scheduler no queda colgado.
+    expect(svc.running()).toBe(false);
+    expect(svc.processed()).toBe(svc.taskCount);
+    expect(svc.slots().every((s) => !s.busy)).toBe(true);
   });
 
   it('reset limpia la cola y los slots', async () => {

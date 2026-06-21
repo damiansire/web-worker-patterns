@@ -5,6 +5,7 @@ interface WorkerLike {
   postMessage(message: unknown): void;
   terminate(): void;
   onmessage: ((event: MessageEvent) => void) | null;
+  onerror: ((event: unknown) => void) | null;
 }
 
 export interface PoolTask {
@@ -79,6 +80,10 @@ export class WorkerPoolDemoService {
       const worker = example.workerFactory!() as unknown as WorkerLike;
       this.workers.push(worker);
       worker.onmessage = () => this.onSlotDone(i, limit);
+      // Camino de error: si el worker falla, NO podemos dejar el slot ocupado para
+      // siempre (la cola no drenaría y running() quedaría en true). Liberamos el slot
+      // y seguimos despachando para que el scheduler no se cuelgue por un worker roto.
+      worker.onerror = () => this.onSlotError(i, limit);
       // Arranque escalonado: cada slot toma su primera tarea un poco después que
       // el anterior, para que el drenado se vea en diagonal y no en bloque.
       const offset = Math.round((this.stepDelayMs / n) * i);
@@ -132,6 +137,24 @@ export class WorkerPoolDemoService {
       this.dispatch(slotIdx, limit);
     }, this.stepDelayMs);
     this.timers.add(t);
+  }
+
+  /**
+   * Un worker del slot falló (onerror). Marca su tarea como hecha (para que la cola
+   * avance y el contador no se trabe), suma el procesado y despacha la próxima. Sin
+   * esto, el slot quedaría busy para siempre y running() nunca volvería a false.
+   */
+  private onSlotError(slotIdx: number, limit: number): void {
+    const taskId = this.slots()[slotIdx]?.taskId;
+    if (taskId != null) {
+      this.tasks.update((ts) =>
+        ts.map((task) => (task.id === taskId ? { ...task, state: 'done' as const } : task)),
+      );
+    }
+    this.slots.update((s) =>
+      s.map((sl, i) => (i === slotIdx ? { ...sl, processed: sl.processed + 1 } : sl)),
+    );
+    this.dispatch(slotIdx, limit);
   }
 
   private maybeFinish(): void {

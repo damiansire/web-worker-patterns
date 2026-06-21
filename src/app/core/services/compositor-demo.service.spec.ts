@@ -4,6 +4,7 @@ import { WorkerExample } from '../domain/examples/example.model';
 
 class FakeWorker {
   onmessage: ((event: MessageEvent) => void) | null = null;
+  onerror: ((event: unknown) => void) | null = null;
   posted: unknown[] = [];
   terminated = false;
   postMessage(message: unknown): void {
@@ -14,6 +15,9 @@ class FakeWorker {
   }
   result(data: unknown): void {
     this.onmessage?.({ data } as MessageEvent);
+  }
+  fail(): void {
+    this.onerror?.(new ErrorEvent('error'));
   }
 }
 
@@ -59,6 +63,21 @@ describe('CompositorDemoService', () => {
     svc.blockWorker(example, 500);
     svc.blockWorker(example, 500);
     expect(fake.posted).toHaveLength(1);
+  });
+
+  it('a worker error returns mode to idle so the demo can re-run', () => {
+    svc.blockWorker(example, 500);
+    expect(svc.mode()).toBe('worker');
+
+    fake.fail();
+    expect(svc.mode()).toBe('idle');
+    expect(fake.terminated).toBe(true);
+
+    // y se puede volver a disparar (el guard mode() !== 'idle' ya no bloquea).
+    const next = new FakeWorker();
+    const nextExample: WorkerExample = { ...example, workerFactory: () => next as unknown as Worker };
+    svc.blockWorker(nextExample, 500);
+    expect(next.posted).toHaveLength(1);
   });
 
   it('reset clears worker state and stops metering', () => {

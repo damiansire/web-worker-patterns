@@ -7,6 +7,7 @@ interface WorkerLike {
   postMessage(message: unknown): void;
   terminate(): void;
   onmessage: ((event: MessageEvent) => void) | null;
+  onerror: ((event: unknown) => void) | null;
 }
 
 export type CompositorMode = 'idle' | 'main' | 'worker';
@@ -114,6 +115,13 @@ export class CompositorDemoService {
         this.worker = undefined;
         this.mode.set('idle');
       }
+    };
+    // Si el worker falla, volvemos a 'idle' igual: sin esto, mode quedaría en 'worker'
+    // para siempre y el guard mode() !== 'idle' bloquearía cualquier re-corrida.
+    worker.onerror = () => {
+      worker.terminate();
+      this.worker = undefined;
+      this.mode.set('idle');
     };
     worker.postMessage({ command: 'compute', limit });
   }
