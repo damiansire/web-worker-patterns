@@ -133,7 +133,7 @@
     "09-worker-limits": {
       "title": "Limits of parallelism",
       "summary": "Workers run truly in parallel, but only as far as your CPU goes. navigator.hardwareConcurrency tells you how many threads can run at once. Past that number, workers don't run \"more in parallel\": they share the same cores. Here we run K copies of the same computation at once and measure how long they take.",
-      "whatToWatch": "Watch the times column. While K stays under your cores, the time stays about the same (they all fit in parallel). When K exceeds them, the time climbs: there's nowhere left to run them, so they take turns. The threshold is exactly your hardwareConcurrency.",
+      "whatToWatch": "Watch the times column. While K stays under your cores, the time stays about the same (they all fit in parallel). When K exceeds them, the time climbs: there's nowhere left to run them, so they take turns. The knee shows up around your core count (navigator.hardwareConcurrency), often a bit below it.",
       "note": "navigator.hardwareConcurrency is a hint, not a guarantee: the OS shares cores across everything running. Spawning extra workers doesn't speed up the computation and does cost memory and startup overhead. Rule of thumb: for CPU work, no more workers than cores. That's what a pool is for (example 10).",
       "takeaways": {
         "title": "Key takeaways",

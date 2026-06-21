@@ -133,7 +133,7 @@
     "09-worker-limits": {
       "title": "Límites del paralelismo",
       "summary": "Los workers corren en paralelo de verdad, pero hasta donde llega tu CPU. navigator.hardwareConcurrency dice cuántos hilos pueden correr a la vez. Pasado ese número, los workers no corren \"más en paralelo\": se reparten los mismos núcleos. Acá corremos K copias del mismo cómputo a la vez y medimos cuánto tardan.",
-      "whatToWatch": "Mirá la columna de tiempos. Mientras K no pasa tus núcleos, el tiempo se mantiene casi igual (entran todos en paralelo). Cuando K los supera, el tiempo trepa: ya no hay dónde correrlos, se turnan. El umbral es justo tu hardwareConcurrency.",
+      "whatToWatch": "Mirá la columna de tiempos. Mientras K no pasa tus núcleos, el tiempo se mantiene casi igual (entran todos en paralelo). Cuando K los supera, el tiempo trepa: ya no hay dónde correrlos, se turnan. El codo aparece cerca de tu cantidad de núcleos (navigator.hardwareConcurrency), a menudo un poco por debajo.",
       "note": "navigator.hardwareConcurrency es una pista, no una garantía: el sistema operativo reparte los núcleos entre todo lo que corre. Crear workers de más no acelera el cómputo y sí gasta memoria y overhead de arranque. La regla práctica: para trabajo de CPU, no más workers que núcleos. Para eso conviene un pool (ejemplo 10).",
       "takeaways": {
         "title": "Puntos clave",
