@@ -229,7 +229,7 @@
     "15-clone-cost": {
       "title": "O custo de clonar mensagens",
       "summary": "postMessage não passa os dados por referência: ele os CLONA (structured clone). Esse custo não é \"cruzar a thread\" —isso é sub-ms— e sim serializar e desserializar o grafo, e cresce com o TAMANHO (quantos dados) e a COMPLEXIDADE (quantos nós, quão aninhado). Não te damos uma curva inventada: você move os dois controles, medimos o round-trip REAL na sua máquina e plotamos.",
-      "whatToWatch": "Mova o tamanho e a complexidade, toque em Medir e a app manda payloads cada vez maiores ao worker, cronometrando o ida e volta real. Cada ponto é uma medição: o eixo X são os bytes serializados, o eixo Y os milissegundos. Veja a curva subir — e aumente a complexidade para ver como encarece com o mesmo tamanho.",
+      "whatToWatch": "Mova o tamanho e a complexidade, toque em Medir e a app manda payloads cada vez maiores ao worker, cronometrando o ida e volta real. Cada ponto é uma medição: o eixo X é o tamanho do payload em bytes de JSON —um proxy do peso do clone, não o tamanho exato—, o eixo Y os milissegundos. Veja a curva subir — e aumente a complexidade para ver como encarece com o mesmo tamanho.",
       "note": "O worker devolve o payload tal como está, sem trabalhar: assim a única coisa medida é o structured clone (clona ao sair da thread principal e clona de novo ao voltar). Não há um limiar mágico —nenhum \"até 10KB está bem\"—: é uma rampa que sobe com o tamanho e a forma do grafo. Quando o payload pesa, duas saídas: transferir sem copiar (exemplo 07) ou compartilhar memória (exemplo 12).",
       "takeaways": {
         "title": "Pontos-chave",

@@ -8,8 +8,9 @@
  * nodos / qué tan anidado). Acá no inventamos una curva: construimos payloads
  * deterministas y dejamos que la UI mida el round-trip REAL en la máquina del
  * que aprende. Esta lógica solo arma el payload y lo describe (nodos y bytes
- * serializados) — magnitudes deterministas que sirven de eje X de la gráfica y
- * de base para los tests.
+ * UTF-8 del JSON, un proxy del peso del clon — no su tamaño exacto, que el
+ * structured clone calcula en su propio formato binario) — magnitudes
+ * deterministas que sirven de eje X de la gráfica y de base para los tests.
  */
 
 export interface PayloadConfig {
@@ -22,7 +23,11 @@ export interface PayloadConfig {
 export interface PayloadStats {
   /** Nodos del grafo (contenedores + valores hoja): lo que el clon debe recorrer. */
   nodeCount: number;
-  /** Tamaño serializado real en bytes (JSON): proxy honesto del peso del clon. */
+  /**
+   * Bytes UTF-8 del JSON del payload: un PROXY del peso del clon, no su tamaño exacto.
+   * El structured clone usa un formato binario propio (no JSON), así que el peso real del
+   * clon diverge de este número; lo usamos como eje X comparable, no como medición del clon.
+   */
   serializedBytes: number;
 }
 
@@ -69,9 +74,13 @@ export function countNodes(value: unknown): number {
   return count;
 }
 
-/** Tamaño serializado real en bytes (longitud del JSON): medición, no estimación. */
+/**
+ * Bytes UTF-8 del JSON del payload. `String.length` cuenta unidades UTF-16, no bytes,
+ * así que medimos los bytes reales con TextEncoder. Sigue siendo un PROXY del peso del
+ * clon (el structured clone no es JSON): un eje X comparable, no el tamaño exacto del clon.
+ */
 export function serializedBytes(value: unknown): number {
-  return JSON.stringify(value).length;
+  return new TextEncoder().encode(JSON.stringify(value)).length;
 }
 
 /** Describe un config con magnitudes deterministas (eje X de la gráfica + tests). */

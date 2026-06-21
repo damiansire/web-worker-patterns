@@ -229,7 +229,7 @@
     "15-clone-cost": {
       "title": "The cost of cloning messages",
       "summary": "postMessage doesn't pass data by reference: it CLONES it (structured clone). That cost isn't \"crossing the thread\" —that's sub-ms— it's serializing and deserializing the graph, and it grows with SIZE (how much data) and COMPLEXITY (how many nodes, how nested). We don't hand you a made-up curve: you move the two controls, we measure the REAL round-trip on your machine and plot it.",
-      "whatToWatch": "Move size and complexity, hit Measure, and the app sends ever-larger payloads to the worker, timing the real round-trip. Each point is a measurement: the X axis is serialized bytes, the Y axis milliseconds. Watch the curve climb — and raise the complexity to see it get costlier at the same size.",
+      "whatToWatch": "Move size and complexity, hit Measure, and the app sends ever-larger payloads to the worker, timing the real round-trip. Each point is a measurement: the X axis is the payload's JSON size in bytes — a proxy for the clone's weight, not its exact size — the Y axis milliseconds. Watch the curve climb — and raise the complexity to see it get costlier at the same size.",
       "note": "The worker returns the payload as-is, doing no work: so the only thing measured is the structured clone (it clones leaving the main thread and clones again coming back). There's no magic threshold —no \"up to 10KB is fine\"—: it's a ramp that rises with the size and shape of the graph. When the payload is heavy, two ways out: transfer without copying (example 07) or share memory (example 12).",
       "takeaways": {
         "title": "Key takeaways",
