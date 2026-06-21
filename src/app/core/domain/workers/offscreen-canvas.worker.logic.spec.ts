@@ -2,6 +2,8 @@ import {
   handAngle,
   formatElapsed,
   drawClock,
+  observedFrameBudgetMs,
+  skippedFrames,
   Ctx2D,
   ClockPalette,
 } from './offscreen-canvas.worker.logic';
@@ -19,6 +21,25 @@ describe('offscreen-canvas worker logic', () => {
     expect(formatElapsed(0)).toBe('0.00s');
     expect(formatElapsed(12340)).toBe('12.34s');
     expect(formatElapsed(-50)).toBe('0.00s');
+  });
+
+  it('observedFrameBudgetMs: deriva el presupuesto por frame de la cadencia real (no 60Hz fijo)', () => {
+    // 60 frames en 1s → ~16.7ms/frame; 120 frames en 1s → ~8.3ms/frame.
+    expect(observedFrameBudgetMs(1000, 60)).toBeCloseTo(16.67, 1);
+    expect(observedFrameBudgetMs(1000, 120)).toBeCloseTo(8.33, 1);
+    // sin muestra todavía → cae a 60Hz.
+    expect(observedFrameBudgetMs(0, 0)).toBeCloseTo(1000 / 60, 5);
+    expect(observedFrameBudgetMs(500, 0)).toBeCloseTo(1000 / 60, 5);
+  });
+
+  it('skippedFrames: cuenta los frames saltados a la cadencia observada, no a 60Hz', () => {
+    // Bloqueo de 1s a 60Hz, 0 pintados → ~60 saltados.
+    expect(skippedFrames(1000, 1000 / 60, 0)).toBe(60);
+    // El MISMO bloqueo en 120Hz salta el DOBLE (lo que el hardcode de 60Hz subcontaba).
+    expect(skippedFrames(1000, 1000 / 120, 0)).toBe(120);
+    // descuenta los que sí se pintaron y nunca da negativo.
+    expect(skippedFrames(1000, 1000 / 60, 10)).toBe(50);
+    expect(skippedFrames(100, 1000 / 60, 999)).toBe(0);
   });
 
   it('drawClock: limpia el frame e imprime el tiempo y el contador de frames en el píxel', () => {

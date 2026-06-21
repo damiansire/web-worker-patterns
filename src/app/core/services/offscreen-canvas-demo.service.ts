@@ -1,6 +1,11 @@
 import { Injectable, signal } from '@angular/core';
 import { WorkerExample } from '../domain/examples/example.model';
-import { drawClock, ClockPalette } from '../domain/workers/offscreen-canvas.worker.logic';
+import {
+  drawClock,
+  ClockPalette,
+  observedFrameBudgetMs,
+  skippedFrames,
+} from '../domain/workers/offscreen-canvas.worker.logic';
 
 interface WorkerLike {
   postMessage(message: unknown, transfer?: Transferable[]): void;
@@ -125,9 +130,13 @@ export class OffscreenCanvasDemoService {
         /* busy-wait: acá el main está muerto, no repinta ni responde */
       }
       this.mainBlocked.set(false);
-      // El main saltó todos los frames que habría pintado: ~ms a 60fps.
-      const expected = Math.round((this.clock() - before) / 16.7);
-      this.skippedFrames.set(Math.max(0, expected - (this.mainFrameCount - framesBefore)));
+      // Los frames que el main habría pintado durante el bloqueo. NO asumimos 60Hz fijo:
+      // derivamos el presupuesto por frame de la cadencia REAL observada antes del bloqueo
+      // (≈16.7ms a 60Hz, ≈8.3ms a 120Hz), así no subcontamos en pantallas de alta tasa.
+      const frameBudgetMs = observedFrameBudgetMs(before - this.mainStart, framesBefore);
+      const blockedMs = this.clock() - before;
+      const framesPainted = this.mainFrameCount - framesBefore;
+      this.skippedFrames.set(skippedFrames(blockedMs, frameBudgetMs, framesPainted));
     }, 0);
   }
 

@@ -62,6 +62,34 @@ export function formatElapsed(elapsedMs: number): string {
   return `${(Math.max(0, elapsedMs) / 1000).toFixed(2)}s`;
 }
 
+/** Presupuesto por frame (ms) por defecto: 60Hz. */
+const DEFAULT_FRAME_BUDGET_MS = 1000 / 60;
+
+/**
+ * Presupuesto por frame (ms) derivado de la cadencia REAL observada, no de 60Hz fijo:
+ * `elapsedMs / frames`. En 120Hz da ~8.3ms, en 60Hz ~16.7ms. Si todavía no hay muestra
+ * (frames o tiempo no positivos), cae a 60Hz.
+ */
+export function observedFrameBudgetMs(elapsedMs: number, frames: number): number {
+  return frames > 0 && elapsedMs > 0 ? elapsedMs / frames : DEFAULT_FRAME_BUDGET_MS;
+}
+
+/**
+ * Frames que el main "saltó" durante un bloqueo: los que habría pintado a la cadencia
+ * observada (`blockedMs / frameBudgetMs`) menos los que realmente pintó. Nunca negativo.
+ */
+export function skippedFrames(
+  blockedMs: number,
+  frameBudgetMs: number,
+  framesPainted: number,
+): number {
+  if (frameBudgetMs <= 0) {
+    return 0;
+  }
+  const expected = Math.round(blockedMs / frameBudgetMs);
+  return Math.max(0, expected - framesPainted);
+}
+
 /**
  * Dibuja un cuadro del reloj: cara, ticks, manecilla de segundos en barrido, y —la prueba
  * forense— el tiempo transcurrido y el contador de frames impresos EN el píxel. Si el hilo
