@@ -133,7 +133,7 @@ export class ExampleRunnerService {
   stop(): void {
     if (this.worker) {
       this.worker.postMessage({ command: 'stop' });
-      this.worker.terminate();
+      // Remove this.worker.terminate(); so it can stop gracefully.
       this.worker = undefined;
     }
     this._runningId.set(null);

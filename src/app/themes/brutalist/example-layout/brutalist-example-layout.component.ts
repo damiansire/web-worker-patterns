@@ -1,4 +1,4 @@
-import {
+import { DestroyRef, 
   Component,
   computed,
   effect,
@@ -1763,6 +1763,22 @@ export class BrutalistExampleLayoutComponent {
   private readonly ocMainCanvas = viewChild<ElementRef<HTMLCanvasElement>>('ocMain');
 
   constructor() {
+    inject(DestroyRef).onDestroy(() => {
+      this.runner?.stop?.();
+      this.pool?.reset?.();
+      this.exchange?.stop?.();
+      this.compute?.stop?.();
+      this.lifecycle?.stop?.();
+      this.backpressure?.reset?.();
+      this.limits?.reset?.();
+      this.shared?.stop?.();
+      this.sharedMem?.stop?.();
+      this.degradation?.stop?.();
+      this.cloneCost?.stop?.();
+      this.compositor?.stop?.();
+      this.oc?.stop?.();
+    });
+
     // Abre el worker del ejemplo activo (no-op si ya está abierto para el mismo
     // ejemplo → la conversación/log sobrevive al cambio de theme).
     effect(() => {
