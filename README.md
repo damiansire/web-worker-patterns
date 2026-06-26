@@ -19,8 +19,8 @@ Interactive educational platform about **Web Workers** built with **Angular 22**
 **On any system (Windows, macOS, Linux):**
 
 ```bash
-git clone https://github.com/damiansire/angular-web-worker-patterns.git
-cd angular-web-worker-patterns
+git clone https://github.com/damiansire/web-worker-patterns.git
+cd web-worker-patterns
 npm run dev
 ```
 
