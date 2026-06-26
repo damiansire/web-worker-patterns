@@ -16,22 +16,22 @@ Interactive educational platform about **Web Workers** built with **Angular 22**
 
 ## Quick Start
 
-**En cualquier sistema (Windows, macOS, Linux):**
+**On any system (Windows, macOS, Linux):**
 
 ```bash
-git clone https://github.com/damiansire/web-worker-patterns.git
-cd web-worker-patterns
+git clone https://github.com/damiansire/angular-web-worker-patterns.git
+cd angular-web-worker-patterns
 npm run dev
 ```
 
-`npm run dev` comprueba Node.js (≥18) y npm (≥9), instala dependencias si hace falta y arranca el servidor en `http://localhost:4200`.
+`npm run dev` checks Node.js (≥18) and npm (≥9), installs dependencies if needed, and starts the server at `http://localhost:4200`.
 
-Alternativas:
-- **Solo arrancar** (si ya hiciste `npm install`): `npm start`
-- **Windows:** doble clic en `scripts/start/start.bat` o en una terminal: `npm run dev`
-- **macOS/Linux:** en una terminal: `./scripts/start/start.sh` o `npm run dev`
+Alternatives:
+- **Just start** (if you already ran `npm install`): `npm start`
+- **Windows:** double-click `scripts/start/start.bat`, or in a terminal: `npm run dev`
+- **macOS/Linux:** in a terminal: `./scripts/start/start.sh` or `npm run dev`
 
-Abre `http://localhost:4200` en el navegador.
+Open `http://localhost:4200` in your browser.
 
 ## Included Examples
 
@@ -155,17 +155,17 @@ Then:
 ## Available Scripts
 
 ```bash
-npm run dev            # Comprueba Node/npm, instala deps si hace falta y arranca el servidor (todas las plataformas)
-npm start              # Dev server en localhost:4200 (requiere npm install previo)
-npm run build          # Build de producción
-npm test               # Gate: ESLint + ng build + tests unitarios (Vitest)
-npm run lint           # ESLint: no-console, OnPush obligatorio, a11y de teclado
-npm run format         # Formatea el código con Prettier
-npm run format:check   # Verifica el formato sin escribir (gate de CI)
-npm run lint:boundaries# Hace cumplir la regla de oro (core/ ⇏ themes/)
+npm run dev            # Checks Node/npm, installs deps if needed and starts the server (all platforms)
+npm start              # Dev server at localhost:4200 (requires a prior npm install)
+npm run build          # Production build
+npm test               # Gate: ESLint + ng build + unit tests (Vitest)
+npm run lint           # ESLint: no-console, mandatory OnPush, keyboard a11y
+npm run format         # Format the code with Prettier
+npm run format:check   # Check formatting without writing (CI gate)
+npm run lint:boundaries# Enforce the golden rule (core/ ⇏ themes/)
 ```
 
-Quality gates (lint, build, format, tests, boundaries) run on every push/PR via [CI](.github/workflows/ci.yml) and as a local git pre-commit hook — independent of your editor. ESLint hace cumplir los invariantes que el repo predica: `no-console` en la lib, `ChangeDetectionStrategy.OnPush` en todos los componentes (la app es zoneless) y a11y de teclado en las plantillas. See [`AGENTS.md`](AGENTS.md) and [`docs/AI-PROCESS.md`](docs/AI-PROCESS.md).
+Quality gates (lint, build, format, tests, boundaries) run on every push/PR via [CI](.github/workflows/ci.yml) and as a local git pre-commit hook — independent of your editor. ESLint enforces the invariants the repo preaches: `no-console` in the lib, `ChangeDetectionStrategy.OnPush` on every component (the app is zoneless), and keyboard a11y in templates. See [`AGENTS.md`](AGENTS.md) and [`docs/AI-PROCESS.md`](docs/AI-PROCESS.md).
 
 ## Multi-language Support
 
