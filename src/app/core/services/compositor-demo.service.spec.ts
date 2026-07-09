@@ -75,7 +75,10 @@ describe('CompositorDemoService', () => {
 
     // y se puede volver a disparar (el guard mode() !== 'idle' ya no bloquea).
     const next = new FakeWorker();
-    const nextExample: WorkerExample = { ...example, workerFactory: () => next as unknown as Worker };
+    const nextExample: WorkerExample = {
+      ...example,
+      workerFactory: () => next as unknown as Worker,
+    };
     svc.blockWorker(nextExample, 500);
     expect(next.posted).toHaveLength(1);
   });
