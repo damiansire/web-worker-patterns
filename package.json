@@ -1,5 +1,5 @@
 {
-  "name": "angular-web-worker-patterns",
+  "name": "web-worker-patterns",
   "version": "0.0.0",
   "description": "An interactive educational platform demonstrating advanced Web Worker patterns and architectural strategies in Angular.",
   "author": "Damian Sire <damiansire@gmail.com>",
