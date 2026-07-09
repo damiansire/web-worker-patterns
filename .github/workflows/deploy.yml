@@ -1,0 +1,47 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Permisos mínimos para publicar en Pages con el source "GitHub Actions".
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Un solo deploy a la vez; no cancela el que esté en curso.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # base-href apunta al sub-path del project page: sin esto los assets y el
+      # router se referencian desde la raíz del dominio y dan 404 bajo /<repo>/.
+      - run: npm run build -- --base-href /web-worker-patterns/
+      # Fallback SPA: Pages sirve 404.html ante una ruta desconocida (deep-link o
+      # reload). Copiar el index deja que el router de Angular resuelva la ruta.
+      - run: cp dist/web-worker-patterns/browser/index.html dist/web-worker-patterns/browser/404.html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/web-worker-patterns/browser
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
