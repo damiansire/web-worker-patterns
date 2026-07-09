@@ -9,6 +9,8 @@
 
 Plataforma educacional interativa sobre **Web Workers** construída com **Angular 22**. Inclui **16 exemplos progressivos** com demos ao vivo e visualização real de threads, suporte multilíngue (ES/EN/PT) e **5 temas visuais intercambiáveis** — o mesmo domínio neutro renderizado de cinco formas diferentes.
 
+**▶ Demo ao vivo: [damiansire.github.io/web-worker-patterns](https://damiansire.github.io/web-worker-patterns/)**
+
 ## Quick Start
 
 ```bash

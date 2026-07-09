@@ -1,0 +1,38 @@
+name: Links
+
+# Prevención de drift en la documentación: valida que los badges y enlaces del
+# README (y sus traducciones) sigan resolviendo. Un badge roto o un link muerto
+# grita "abandonado" — esto lo caza en cada push/PR antes de que se publique.
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**.md'
+      - '.lychee.toml'
+      - '.github/workflows/links.yml'
+  pull_request:
+    paths:
+      - '**.md'
+      - '.lychee.toml'
+      - '.github/workflows/links.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: links-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  link-checker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Link Checker
+        uses: lycheeverse/lychee-action@v2
+        with:
+          # Config en .lychee.toml (excludes de localhost, etc.).
+          # Chequea el README y sus traducciones — la doc de cara al usuario.
+          args: --config .lychee.toml README.md docs/README.es.md docs/README.pt.md
+          fail: true

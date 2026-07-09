@@ -1,0 +1,22 @@
+# Config de lychee (link-checker) — usada por .github/workflows/links.yml
+# Objetivo: cazar badges rotos y links muertos en la doc, sin falsos positivos.
+
+# El servidor de dev sólo existe en la máquina del usuario: no es un link a validar.
+exclude = [
+  "^https?://localhost",
+  "^https?://127\\.0\\.0\\.1",
+]
+
+# No fallar por anclas internas (#seccion): no las verificamos.
+include_fragments = false
+
+# Algunos hosts responden 403/429 a bots pero el recurso existe (p. ej. web.dev).
+accept = [200, 206, 429]
+
+# Reintentos para tolerar hipos de red, no marcar vivo como muerto.
+max_retries = 3
+retry_wait_time = 2
+
+# Cachea resultados entre corridas para no golpear los mismos hosts.
+cache = true
+max_cache_age = "1d"
