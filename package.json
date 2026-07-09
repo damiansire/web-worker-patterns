@@ -1,7 +1,7 @@
 {
-  "name": "web-worker-patterns",
+  "name": "angular-web-worker-patterns",
   "version": "0.0.0",
-  "description": "Plataforma educativa interactiva sobre patrones de Web Workers en Angular.",
+  "description": "An interactive educational platform demonstrating advanced Web Worker patterns and architectural strategies in Angular.",
   "author": "Damian Sire <damiansire@gmail.com>",
   "license": "MIT",
   "repository": {
