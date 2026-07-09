@@ -17,6 +17,18 @@ function makeService(packs: ThemePack[]): ThemeService {
 }
 
 describe('ThemeService', () => {
+  // The service seeds its active theme from localStorage (`readStoredTheme() ??
+  // 'editorial'`). Tests share jsdom's localStorage, so a theme persisted by one
+  // test must not leak into the next — clear it before each. Guarded because one
+  // test swaps localStorage for a mock.
+  beforeEach(() => {
+    try {
+      localStorage.clear();
+    } catch {
+      /* a test replaced localStorage; nothing to clear */
+    }
+  });
+
   it('switches the active theme and sets data-theme on <html>', () => {
     const svc = makeService([pack('editorial'), pack('brutalist')]);
     svc.setTheme('brutalist');
@@ -33,12 +45,14 @@ describe('ThemeService', () => {
 
   it('persists the active theme to localStorage', () => {
     const store = new Map<string, string>();
+    const original = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
     Object.defineProperty(globalThis, 'localStorage', {
       configurable: true,
       value: {
         getItem: (k: string) => store.get(k) ?? null,
         setItem: (k: string, v: string) => store.set(k, v),
         removeItem: (k: string) => store.delete(k),
+        clear: () => store.clear(),
       },
     });
     try {
@@ -46,7 +60,8 @@ describe('ThemeService', () => {
       svc.setTheme('brutalist');
       expect(store.get('wwp-theme')).toBe('brutalist');
     } finally {
-      delete (globalThis as { localStorage?: unknown }).localStorage;
+      // Restore jsdom's real localStorage so later tests (and beforeEach) keep working.
+      if (original) Object.defineProperty(globalThis, 'localStorage', original);
     }
   });
 
