@@ -42,5 +42,9 @@ jobs:
         run: npm run lint
       - name: Tests
         run: npm test
+      - name: Metrics drift check (README test count)
+        run: |
+          node scripts/update-metrics.mjs
+          git diff --exit-code README.md
       - name: Build
         run: npm run build
