@@ -1,6 +1,8 @@
 import { TestBed } from '@angular/core/testing';
+import { Worker as NodeWorker } from 'node:worker_threads';
 import { ComputeDemoService } from './compute-demo.service';
 import { WorkerExample } from '../domain/examples/example.model';
+import { countPrimesUpTo } from '../domain/workers/primes.worker.logic';
 
 class FakeWorker {
   onmessage: ((event: MessageEvent) => void) | null = null;
@@ -85,4 +87,73 @@ describe('ComputeDemoService', () => {
     expect(svc.workerResult()).toBeNull();
     expect(svc.liveMs()).toBe(0);
   });
+});
+
+/**
+ * Medición REAL (no el reloj inyectado de arriba, sin worker mockeado): la
+ * afirmación del ejemplo 04 es "en el main la UI se congela, en un worker
+ * sigue fluida". Antes eso era sólo un claim visual; acá queda versionado como
+ * un número concreto: contamos ticks de un `setInterval` MIENTRAS corre el
+ * mismo cómputo (`countPrimesUpTo`, la función real del worker), primero
+ * bloqueando el hilo y después en un hilo de SO real. jsdom no tiene `Worker`
+ * del DOM, así que usamos `node:worker_threads` (mismo motivo que
+ * `worker-real-concurrency.spec.ts`): lo que hace falta probar es que el
+ * event loop del "main" queda libre, y eso es independiente de si el hilo
+ * secundario es un `Worker` de DOM o un hilo de `worker_threads`.
+ */
+describe('ComputeDemoService — medición real: hilo principal bloqueado vs worker libre', () => {
+  it('en el main, contar primos BLOQUEA: cero ticks del event loop corren durante el cómputo', () => {
+    let ticks = 0;
+    const tick = setInterval(() => ticks++, 1);
+    try {
+      const t0 = performance.now();
+      const count = countPrimesUpTo(200000); // mismo cómputo que corre el worker real
+      const ms = performance.now() - t0;
+
+      expect(count).toBeGreaterThan(0);
+      expect(ms).toBeGreaterThan(0); // tiempo real medido, no inyectado
+      // el bloqueo real: ningún timer pudo disparar mientras el main calculaba.
+      expect(ticks).toBe(0);
+    } finally {
+      clearInterval(tick);
+    }
+  });
+
+  it(
+    'en un worker real, el main queda libre: los ticks del event loop siguen ' +
+      'corriendo mientras el worker cuenta primos',
+    async () => {
+      const worker = new NodeWorker(
+        `
+          const { parentPort } = require('node:worker_threads');
+          const countPrimesUpTo = ${countPrimesUpTo.toString()};
+          parentPort.on('message', (msg) => {
+            parentPort.postMessage(countPrimesUpTo(msg.limit));
+          });
+        `,
+        { eval: true },
+      );
+
+      let ticks = 0;
+      const tick = setInterval(() => ticks++, 1);
+      try {
+        const t0 = performance.now();
+        const count = await new Promise<number>((resolve, reject) => {
+          worker.on('message', (raw) => resolve(raw as number));
+          worker.on('error', reject);
+          worker.postMessage({ limit: 300000 });
+        });
+        const ms = performance.now() - t0;
+
+        expect(count).toBeGreaterThan(0);
+        expect(ms).toBeGreaterThan(0); // tiempo real medido
+        // el main quedó libre: el event loop siguió tickeando MIENTRAS calculaba.
+        expect(ticks).toBeGreaterThan(0);
+      } finally {
+        clearInterval(tick);
+        await worker.terminate();
+      }
+    },
+    10000,
+  );
 });
