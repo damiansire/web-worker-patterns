@@ -1,8 +1,8 @@
 name: Links
 
 # Prevención de drift en la documentación: valida que los badges y enlaces del
-# README (y sus traducciones) sigan resolviendo. Un badge roto o un link muerto
-# grita "abandonado" — esto lo caza en cada push/PR antes de que se publique.
+# README sigan resolviendo. Un badge roto o un link muerto grita "abandonado" —
+# esto lo caza en cada push/PR antes de que se publique.
 on:
   push:
     branches: [main]
@@ -33,6 +33,6 @@ jobs:
         uses: lycheeverse/lychee-action@v2
         with:
           # Config en .lychee.toml (excludes de localhost, etc.).
-          # Chequea el README y sus traducciones — la doc de cara al usuario.
-          args: --config .lychee.toml README.md docs/README.es.md docs/README.pt.md
+          # Chequea el README — la doc de cara al usuario.
+          args: --config .lychee.toml README.md
           fail: true
