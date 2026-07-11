@@ -21,9 +21,11 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withFetch()),
     provideTransloco({
       config: {
-        availableLangs: ['es', 'en', 'pt'],
-        defaultLang: 'en',
-        fallbackLang: 'en',
+        // Un solo idioma por ahora (es). El motor de i18n queda intacto: sumar
+        // idiomas es agregarlos acá + su JSON en public/i18n/ + al LanguageService.
+        availableLangs: ['es'],
+        defaultLang: 'es',
+        fallbackLang: 'es',
         reRenderOnLangChange: true,
         prodMode: !isDevMode(),
       },
