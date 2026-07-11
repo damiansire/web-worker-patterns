@@ -1,0 +1,8 @@
+/** Estilos globales del theme default, en su cascade layer (§7a). */
+@layer theme-default {
+  [data-theme='default'] body {
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-body);
+  }
+}

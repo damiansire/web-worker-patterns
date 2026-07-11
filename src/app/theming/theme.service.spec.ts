@@ -18,9 +18,10 @@ function makeService(packs: ThemePack[]): ThemeService {
 
 describe('ThemeService', () => {
   // The service seeds its active theme from localStorage (`readStoredTheme() ??
-  // 'editorial'`). Tests share jsdom's localStorage, so a theme persisted by one
+  // 'default'`). Tests share jsdom's localStorage, so a theme persisted by one
   // test must not leak into the next — clear it before each. Guarded because one
-  // test swaps localStorage for a mock.
+  // test swaps localStorage for a mock. Los ids `alpha`/`beta` son fakes: el
+  // motor es data-driven (ids arbitrarios via el registry), no un enum fijo.
   beforeEach(() => {
     try {
       localStorage.clear();
@@ -30,17 +31,17 @@ describe('ThemeService', () => {
   });
 
   it('switches the active theme and sets data-theme on <html>', () => {
-    const svc = makeService([pack('editorial'), pack('brutalist')]);
-    svc.setTheme('brutalist');
-    expect(svc.activeId()).toBe('brutalist');
-    expect(svc.active().id).toBe('brutalist');
-    expect(document.documentElement.dataset['theme']).toBe('brutalist');
+    const svc = makeService([pack('alpha'), pack('beta')]);
+    svc.setTheme('beta');
+    expect(svc.activeId()).toBe('beta');
+    expect(svc.active().id).toBe('beta');
+    expect(document.documentElement.dataset['theme']).toBe('beta');
   });
 
   it('ignores unknown theme ids', () => {
-    const svc = makeService([pack('editorial')]);
-    svc.setTheme('does-not-exist' as ThemeId);
-    expect(svc.activeId()).toBe('editorial');
+    const svc = makeService([pack('default')]);
+    svc.setTheme('does-not-exist');
+    expect(svc.activeId()).toBe('default');
   });
 
   it('persists the active theme to localStorage', () => {
@@ -56,9 +57,9 @@ describe('ThemeService', () => {
       },
     });
     try {
-      const svc = makeService([pack('editorial'), pack('brutalist')]);
-      svc.setTheme('brutalist');
-      expect(store.get('wwp-theme')).toBe('brutalist');
+      const svc = makeService([pack('alpha'), pack('beta')]);
+      svc.setTheme('beta');
+      expect(store.get('wwp-theme')).toBe('beta');
     } finally {
       // Restore jsdom's real localStorage so later tests (and beforeEach) keep working.
       if (original) Object.defineProperty(globalThis, 'localStorage', original);
@@ -67,17 +68,17 @@ describe('ThemeService', () => {
 
   it('injects the active theme stylesheets and purges the previous ones', () => {
     const svc = makeService([
-      pack('narrative'),
-      pack('brutalist', ['/themes/brutalist.css']),
-      pack('editorial', ['/themes/editorial.css']),
+      pack('gamma'),
+      pack('beta', ['/themes/beta.css']),
+      pack('alpha', ['/themes/alpha.css']),
     ]);
 
-    svc.setTheme('brutalist');
-    expect(document.head.querySelector('link[data-theme-css="brutalist"]')).toBeTruthy();
+    svc.setTheme('beta');
+    expect(document.head.querySelector('link[data-theme-css="beta"]')).toBeTruthy();
 
-    svc.setTheme('editorial');
-    expect(document.head.querySelector('link[data-theme-css="editorial"]')).toBeTruthy();
+    svc.setTheme('alpha');
+    expect(document.head.querySelector('link[data-theme-css="alpha"]')).toBeTruthy();
     // El CSS del theme anterior se purga al salir.
-    expect(document.head.querySelector('link[data-theme-css="brutalist"]')).toBeNull();
+    expect(document.head.querySelector('link[data-theme-css="beta"]')).toBeNull();
   });
 });

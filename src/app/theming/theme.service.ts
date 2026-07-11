@@ -25,8 +25,8 @@ export class ThemeService {
   private readonly registry = inject(THEME_REGISTRY);
 
   // El theme persistido (localStorage) tiene prioridad como valor inicial; la URL
-  // lo sobreescribe vía el guard al navegar. Default editorial en la primera visita.
-  readonly activeId = signal<ThemeId>(readStoredTheme() ?? 'editorial');
+  // lo sobreescribe vía el guard al navegar. Default `default` en la primera visita.
+  readonly activeId = signal<ThemeId>(readStoredTheme() ?? 'default');
   readonly active = computed<ThemePack>(
     () => this.registry.get(this.activeId()) ?? this.registry.values().next().value!,
   );

@@ -3,11 +3,12 @@ import { Type } from '@angular/core';
 /**
  * Motor de theming (ARQUITECTURA §4).
  *
- * Cinco themes reales conviven e intercambiables en runtime. (El theme gris
- * transitorio `skeleton`, que validó el motor durante la migración, se retiró
- * al completarse los themes reales.)
+ * Los themes son data-driven: el registry (`theme.registry.ts`) es la fuente de
+ * verdad de qué themes existen, y el `id` es simplemente su clave. Hoy hay un
+ * único theme (`default`); sumar más es agregar su `ThemePack` al registry, sin
+ * tocar tipos ni el motor.
  */
-export type ThemeId = 'brutalist' | 'full-brutalist' | 'dev-tool' | 'narrative' | 'editorial';
+export type ThemeId = string;
 
 export interface ThemePack {
   id: ThemeId;

@@ -33,6 +33,6 @@ export const rootThemeRedirect: CanActivateFn = () => {
   const router = inject(Router);
 
   const stored = theme.activeId();
-  const target = registry.has(stored) ? stored : 'editorial';
+  const target = registry.has(stored) ? stored : 'default';
   return router.createUrlTree(['/t', target]);
 };

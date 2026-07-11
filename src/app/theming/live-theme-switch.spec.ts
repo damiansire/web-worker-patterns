@@ -27,9 +27,11 @@ function pack(id: ThemeId): ThemePack {
  */
 describe('live theme switching preserves domain state', () => {
   it('keeps the running worker and the monitor lanes across a theme switch', () => {
+    // Dos themes fake: el motor es data-driven, así que alcanza con dos ids
+    // cualquiera en el registry para ejercitar el switch (§10.9).
     const registry = new Map<ThemeId, ThemePack>([
-      ['editorial', pack('editorial')],
-      ['brutalist', pack('brutalist')],
+      ['alpha', pack('alpha')],
+      ['beta', pack('beta')],
     ]);
     TestBed.configureTestingModule({
       providers: [{ provide: THEME_REGISTRY, useValue: registry }],
@@ -55,7 +57,7 @@ describe('live theme switching preserves domain state', () => {
     expect(runner.runningId()).toBe('01-setinterval-counter');
 
     // Cambiar de theme en pleno funcionamiento.
-    theme.setTheme('brutalist');
+    theme.setTheme('beta');
 
     // El worker sigue corriendo y el monitor conserva sus carriles.
     expect(runner.runningId()).toBe('01-setinterval-counter');

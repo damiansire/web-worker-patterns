@@ -6,18 +6,11 @@
 // Los themes reales sobreescriben estos nombres bajo [data-theme='<id>'].
 @use './app/theming/styles/tokens-contract';
 
-// Tokens + estilos globales de cada theme (livianos; el CSS pesado de librería
-// se carga lazy vía ThemeService.stylesheets). Scopeados bajo [data-theme].
-@use './app/themes/brutalist/styles/tokens' as brutalist-tokens;
-@use './app/themes/brutalist/styles/theme' as brutalist-theme;
-@use './app/themes/full-brutalist/styles/tokens' as full-brutalist-tokens;
-@use './app/themes/full-brutalist/styles/theme' as full-brutalist-theme;
-@use './app/themes/dev-tool/styles/tokens' as devtool-tokens;
-@use './app/themes/dev-tool/styles/theme' as devtool-theme;
-@use './app/themes/editorial/styles/tokens' as editorial-tokens;
-@use './app/themes/editorial/styles/theme' as editorial-theme;
-@use './app/themes/narrative/styles/tokens' as narrative-tokens;
-@use './app/themes/narrative/styles/theme' as narrative-theme;
+// Tokens + estilos globales del theme (livianos; el CSS pesado de librería se
+// carga lazy vía ThemeService.stylesheets). Scopeados bajo [data-theme]. Hoy un
+// solo theme (`default`); sumar más es agregar su par tokens/theme acá.
+@use './app/themes/default/styles/tokens' as default-tokens;
+@use './app/themes/default/styles/theme' as default-theme;
 
 // Microinteracción: cada segmento nuevo del ThreadVisualizer entra con un
 // fade/scale rápido — feedback de que pasó algo en otro hilo (backlog #5).

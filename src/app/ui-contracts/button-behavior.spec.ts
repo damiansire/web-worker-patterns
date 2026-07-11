@@ -1,12 +1,12 @@
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
-import { BrutalistButton } from '../themes/brutalist/primitives/brutalist-button.component';
+import { DefaultButton } from '../themes/default/primitives/default-button.component';
 import { provideButtonOptions } from './button.options';
 
 describe('ButtonBehavior (host directive) + button options', () => {
   function createButton(): HTMLButtonElement {
-    const fixture = TestBed.createComponent(BrutalistButton);
+    const fixture = TestBed.createComponent(DefaultButton);
     fixture.detectChanges();
     return (fixture.nativeElement as HTMLElement).querySelector('button')!;
   }
@@ -25,7 +25,7 @@ describe('ButtonBehavior (host directive) + button options', () => {
 
   it('mantiene la API pública (variant/disabled) vía hostDirectives', () => {
     TestBed.configureTestingModule({ providers: [provideZonelessChangeDetection()] });
-    const fixture = TestBed.createComponent(BrutalistButton);
+    const fixture = TestBed.createComponent(DefaultButton);
     fixture.componentRef.setInput('variant', 'solid');
     fixture.componentRef.setInput('disabled', true);
     fixture.detectChanges();

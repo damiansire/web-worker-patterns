@@ -1,0 +1,30 @@
+/**
+ * Tokens del theme `default` (ARQUITECTURA §6). Piel neutra: superficies grises,
+ * tinta casi negra, un acento sobrio, tipografía de sistema. Se activan con
+ * `<html data-theme='default'>`. Son deliberadamente los mismos valores que el
+ * contrato `:root` (red de seguridad neutra); acá es donde se irá dando la
+ * identidad visual del theme sin tocar el motor.
+ */
+[data-theme='default'] {
+  --surface: #e8e8ea;
+  --surface-raised: #f6f6f7;
+
+  --ink: #1c1c1f;
+  --ink-muted: #6b6b72;
+
+  --accent: #6366f1;
+
+  // worker = color activo, main = neutro apagado, blocked = alerta, idle = tenue.
+  --thread-main: #52525b;
+  --thread-worker: #8b8b94;
+  --thread-blocked: #c0504d;
+  --thread-idle: rgba(0, 0, 0, 0.08);
+
+  --border: rgba(0, 0, 0, 0.16);
+  --border-width: 1px;
+  --radius: 8px;
+
+  --font-display: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Consolas, monospace;
+}

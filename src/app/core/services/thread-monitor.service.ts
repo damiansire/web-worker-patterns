@@ -5,9 +5,9 @@ import { ThreadLane, ThreadSegment, ThreadState } from '../domain/thread-lane';
  * Monitor de hilos (ARQUITECTURA §3.2).
  *
  * El servicio EMITE datos de actividad de hilos como signals; no pinta nada.
- * Cada theme dibuja estos mismos `lanes` a su manera (barras diagonales en
- * editorial, celdas duras en brutalist, etc). El contrato `ThreadLane[]` es la
- * frontera entre dominio y presentación: vive en `core/domain/thread-lane.ts`.
+ * Cada theme dibuja estos mismos `lanes` a su manera. El contrato `ThreadLane[]`
+ * es la frontera entre dominio y presentación: vive en
+ * `core/domain/thread-lane.ts`.
  */
 
 // Re-export por conveniencia/back-compat: los consumidores históricos importaban
