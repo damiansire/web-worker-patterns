@@ -34,15 +34,21 @@ const testCount = Number(match[1]);
 
 const readmePath = path.resolve('README.md');
 const readme = readFileSync(readmePath, 'utf8');
-const updated = readme.replace(
-  /<!-- METRICS:TESTS -->\d+\+?<!-- \/METRICS:TESTS -->/,
-  `<!-- METRICS:TESTS -->${testCount}<!-- /METRICS:TESTS -->`
-);
+const markerPattern = /<!-- METRICS:TESTS -->\d+\+?<!-- \/METRICS:TESTS -->/;
 
-if (updated === readme) {
+// Chequear la presencia de los markers ANTES de reemplazar: comparar
+// `updated === readme` para detectar "markers ausentes" confunde ese caso
+// con "el conteo no cambio" (misma string resultante en ambos), que es el
+// resultado normal y esperado cuando la suite no crecio ni encogio.
+if (!markerPattern.test(readme)) {
   console.error('update-metrics: no encontre los markers METRICS:TESTS en README.md');
   process.exit(1);
 }
+
+const updated = readme.replace(
+  markerPattern,
+  `<!-- METRICS:TESTS -->${testCount}<!-- /METRICS:TESTS -->`
+);
 
 writeFileSync(readmePath, updated);
 console.log(`tests: ${testCount}`);
