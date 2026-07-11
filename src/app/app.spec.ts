@@ -48,18 +48,20 @@ describe('App (theme host)', () => {
   it('mounts the active theme shell and sets data-theme', async () => {
     const fixture = TestBed.createComponent(App);
 
-    // El shell se carga async (import dinámico → signal → CD). En zoneless hay
-    // que forzar CD explícitamente entre cada await para no depender del timing
-    // del scheduler: el flaky que rompía en CI (pasaba local) venía de asumir
-    // que un solo whenStable() drena toda la cadena. Guiamos cada paso:
-    //   1) CD inicial corre el effect que dispara pack.shell()
-    //   2) whenStable espera esa Promise (registrada vía PendingTasks)
-    //   3) CD final renderiza el shell resuelto en el DOM
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
-
+    // El shell se carga async (effect → pack.shell() Promise → signal → CD).
+    // En zoneless el orden exacto entre el effect, las microtareas y la CD lo
+    // decide el scheduler, y bajo carga (CI) ese orden varía: asumir que un
+    // whenStable() drena toda la cadena hacía el test flaky (pasaba local,
+    // fallaba a veces en CI). En vez de adivinar el timing, esperamos la
+    // CONDICIÓN: repetimos CD + whenStable + flush de macrotarea hasta que el
+    // shell montó (acotado, para no colgar si algo se rompe de verdad).
     const compiled = fixture.nativeElement as HTMLElement;
+    for (let i = 0; i < 20 && !compiled.querySelector('.fake-shell'); i++) {
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await new Promise((resolve) => setTimeout(resolve));
+    }
+
     expect(compiled.querySelector('.fake-shell')).toBeTruthy();
     expect(document.documentElement.dataset['theme']).toBe('default');
   });
