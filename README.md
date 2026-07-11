@@ -77,7 +77,7 @@ The 16 examples are organized into 5 categories by concept. The grouping below m
 | # | Example | Description |
 |---|---------|-------------|
 | 11 | **Backpressure** | Flow control with credits and acks so the worker's queue doesn't grow without bound. |
-| 12 | **SharedArrayBuffer** | Main and worker share the *same* memory; `Atomics` write/read with no `postMessage`. |
+| 12 | **SharedArrayBuffer** | Main and worker share the *same* memory; `Atomics` write/read with no `postMessage`. ⚠️ Verified 2026-07-10: the live demo on GitHub Pages does **not** send `Cross-Origin-Opener-Policy`/`Cross-Origin-Embedder-Policy` (`curl -I` against the deployed URL confirms neither header) — GitHub Pages doesn't support custom response headers, so this example can't actually run cross-origin-isolated in production; `SharedArrayBuffer` will be unavailable there even though it works when served locally with the right headers. |
 | 13 | **Graceful degradation** | Detect `typeof Worker` and fall back to the main thread when it's missing. |
 
 ## Visual Themes
