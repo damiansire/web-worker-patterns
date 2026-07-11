@@ -11,7 +11,8 @@
   --ink: #1a1a17;
   --ink-muted: #6b6b62;
 
-  --accent: #16a860; // verde = vivo / pulso (el color firma)
+  --accent: #16a860; // verde = vivo / pulso (el color firma; uso GRÁFICO)
+  --accent-ink: #0f7a45; // verde para TEXTO (WCAG AA sobre papel; el brillante no llega)
 
   // Monitor de hilos: worker = pulso verde, main = neutro cálido, blocked = alerta.
   --thread-main: #a89f8c;

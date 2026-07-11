@@ -9,7 +9,7 @@ export const DEFAULT_THEME: ThemePack = {
   id: 'default',
   label: 'Default',
   shell: () => import('./shell/default-shell.component').then((m) => m.DefaultShellComponent),
-  home: () => import('./home/default-home.component').then((m) => m.DefaultHomeComponent),
+  home: () => import('./journey/default-journey.component').then((m) => m.DefaultJourneyComponent),
   exampleLayout: () =>
     import('./example-layout/default-example-layout.component').then(
       (m) => m.DefaultExampleLayoutComponent,

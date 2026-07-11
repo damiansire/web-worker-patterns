@@ -3,6 +3,7 @@ import {
   Component,
   effect,
   inject,
+  input,
   viewChild,
   ElementRef,
 } from '@angular/core';
@@ -30,8 +31,10 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
   ],
   providers: [DEFAULT_PROVIDERS, ExampleLayoutController],
   template: `
-    <article class="e-ex">
-      <a class="e-back" routerLink="/t/default">← índice</a>
+    <article class="e-ex" [class.e-ex--journey]="journeyMode()">
+      @if (!journeyMode()) {
+        <a class="e-back" routerLink="/t/default">← índice</a>
+      }
 
       @if (example(); as ex) {
         <p class="e-kicker">{{ ex.category }} · nº {{ ex.order.toString().padStart(2, '0') }}</p>
@@ -865,6 +868,10 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
         max-width: 760px;
         margin: 0 auto;
       }
+      /* En el viaje, la parada ya centra y limita el ancho: soltamos el contenedor. */
+      .e-ex--journey {
+        max-width: none;
+      }
       .e-back {
         font-family: var(--font-display);
         font-style: italic;
@@ -1535,6 +1542,14 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
   ],
 })
 export class DefaultExampleLayoutComponent {
+  /**
+   * Ejemplo a mostrar, por input. En la página single queda en `null` y el
+   * controller lo saca de la ruta; en una parada del viaje, el journey lo fija.
+   */
+  readonly exampleId = input<string | null>(null);
+  /** Modo viaje: sin back-link (la navegación es el scroll). */
+  readonly journeyMode = input(false);
+
   /** Toda la orquestación vive en el controller compartido (scoped a este componente). */
   protected readonly ctl = inject(ExampleLayoutController);
 
@@ -1658,6 +1673,14 @@ export class DefaultExampleLayoutComponent {
   protected readonly compMode = this.ctl.compMode;
 
   constructor() {
+    // Si el journey fija el ejemplo por input, el controller lo usa en vez de la ruta.
+    effect(() => {
+      const id = this.exampleId();
+      if (id) {
+        this.ctl.useExample(id);
+      }
+    });
+
     // Registra la caja JS del compositor cuando el @case la renderiza.
     effect(() => {
       if (this.example()?.demo === 'compositor-jank') {

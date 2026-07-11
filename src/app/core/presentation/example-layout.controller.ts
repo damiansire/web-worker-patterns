@@ -79,10 +79,23 @@ export class ExampleLayoutController {
   /** Trabajo del ejemplo 16: pesado para que el bloqueo dure ~2-3s y se note el jank. */
   private readonly COMPOSITOR_WORK = 4_000_000;
 
-  private readonly id = toSignal(this.route.paramMap.pipe(map((p) => p.get('id') ?? '')), {
+  /**
+   * Ejemplo a controlar. Por defecto sale de la ruta (`/t/:theme/example/:id`),
+   * pero una parada del viaje (journey) puede fijarlo por input vía `useExample`;
+   * en ese caso el override manda y el controller deja de mirar la ruta. Así el
+   * mismo controller sirve para la página single y para cada parada del scroll.
+   */
+  private readonly routeId = toSignal(this.route.paramMap.pipe(map((p) => p.get('id') ?? '')), {
     initialValue: '',
   });
+  private readonly idOverride = signal<string | null>(null);
+  private readonly id = computed(() => this.idOverride() ?? this.routeId());
   readonly example = computed(() => findExample(this.id()));
+
+  /** Fija el ejemplo por input (paradas del viaje), ignorando la ruta. */
+  useExample(id: string): void {
+    this.idOverride.set(id);
+  }
   /** Contenido educativo neutral (i18n), reactivo al idioma activo. */
   readonly content = this.contentSvc.contentFor(this.id);
   readonly snippets = computed(() =>
