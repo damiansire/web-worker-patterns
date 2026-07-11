@@ -13,6 +13,7 @@ import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contr
 import { CloneCostChartComponent } from '../../../ui-primitives/clone-cost-chart.component';
 import { DefaultButton } from '../primitives/default-button.component';
 import { DefaultCodeBlock } from '../primitives/default-code-block.component';
+import { DefaultPulseMonitor } from '../primitives/default-pulse-monitor.component';
 import { DEFAULT_PROVIDERS } from '../default.providers';
 
 /** Example-layout default. Hilos como contraste worker-vs-main (#2) + código. */
@@ -24,6 +25,7 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
     RouterLink,
     DefaultButton,
     DefaultCodeBlock,
+    DefaultPulseMonitor,
     CloneCostChartComponent,
   ],
   providers: [DEFAULT_PROVIDERS, ExampleLayoutController],
@@ -152,8 +154,33 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
               @if (computeError(); as err) {
                 <p class="e-foot e-danger" role="alert">⚠ {{ err }}</p>
               }
+
+              <div class="e-pat">
+                <span class="e-pat-face" aria-hidden="true">{{
+                  computePhase() === 'main' ? '😵' : '🙂'
+                }}</span>
+                <div>
+                  <div class="e-pat-name">Main thread</div>
+                  <div class="e-pat-st" [attr.data-phase]="computePhase()">
+                    @switch (computePhase()) {
+                      @case ('worker') {
+                        libre · un ayudante calcula al lado
+                      }
+                      @case ('main') {
+                        CONGELADO · nada responde
+                      }
+                      @default {
+                        late tranquilo · la UI responde
+                      }
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <default-pulse-monitor />
+
               <div class="e-nrow">
-                <label class="e-nlabel" for="e-n">Contar primos hasta N =</label>
+                <label class="e-nlabel" for="e-n">Peso de la tarea · primos hasta</label>
                 <input
                   #n
                   id="e-n"
@@ -163,55 +190,44 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
                   min="10000"
                   step="100000"
                 />
-                <span class="e-nhint">subilo y el freeze del main dura más</span>
+                <span class="e-nhint">más grande = freeze más largo</span>
               </div>
-              <div class="e-cmp">
-                <section class="e-col">
-                  <h2>En un Worker</h2>
-                  <p class="e-sub">corre en otro hilo · la UI sigue fluida</p>
-                  <default-button
-                    variant="solid"
-                    [disabled]="computePhase() === 'worker'"
-                    (pressed)="computeWorker(n.value)"
-                  >
-                    Calcular en worker
-                  </default-button>
-                  @if (computePhase() === 'worker') {
-                    <p class="e-foot">
-                      calculando… {{ liveMs() }} ms · la UI responde mientras tanto
-                    </p>
-                  } @else if (workerResult(); as r) {
-                    <p class="e-foot e-ok">
-                      <span class="e-ok-mark">✓</span> {{ r.count }} primos · {{ r.ms }} ms · la UI
-                      nunca se trabó
-                    </p>
-                  } @else {
-                    <p class="e-hint">
-                      Tocá: el cálculo corre en otro hilo y el cronómetro sigue subiendo en vivo.
-                    </p>
-                  }
-                </section>
 
-                <section class="e-col">
-                  <h2>En el Main thread</h2>
-                  <p class="e-sub">bloquea el hilo · la página se congela</p>
-                  <default-button
-                    [disabled]="computePhase() === 'main'"
-                    (pressed)="computeMain(n.value)"
-                    >Calcular en el main</default-button
-                  >
-                  @if (mainResult(); as r) {
-                    <p class="e-foot e-danger">
-                      <span class="e-bad-mark">✗</span> {{ r.count }} primos · la página se congeló
-                      {{ r.ms }} ms
-                    </p>
-                  } @else {
-                    <p class="e-hint">
-                      Tocá y la página entera se congela hasta terminar: no podés ni scrollear.
-                    </p>
-                  }
-                </section>
+              <div class="e-two">
+                <default-button
+                  variant="solid"
+                  [disabled]="computePhase() !== 'idle'"
+                  (pressed)="computeWorker(n.value)"
+                >
+                  Que lo haga un worker
+                </default-button>
+                <default-button
+                  [disabled]="computePhase() !== 'idle'"
+                  (pressed)="computeMain(n.value)"
+                >
+                  Que lo haga el main
+                </default-button>
               </div>
+
+              @if (computePhase() === 'worker') {
+                <p class="e-foot">
+                  Calculando en otro hilo… {{ liveMs() }} ms · mirá: el pulso no se corta.
+                </p>
+              } @else if (workerResult(); as r) {
+                <p class="e-foot e-ok">
+                  <span class="e-ok-mark">✓</span> {{ r.count }} primos en {{ r.ms }} ms · la UI
+                  nunca se trabó. Ahora probá «el main».
+                </p>
+              } @else if (mainResult(); as r) {
+                <p class="e-foot e-danger">
+                  <span class="e-bad-mark">✗</span> {{ r.count }} primos · la página se congeló
+                  {{ r.ms }} ms. ¿Viste el hueco plano? Probá el worker.
+                </p>
+              } @else {
+                <p class="e-hint">
+                  La misma tarea, dos caminos. Tocá uno y mirá el pulso del main.
+                </p>
+              }
             }
 
             @case ('offscreen-canvas') {
@@ -1004,6 +1020,48 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
       .e-code {
         display: grid;
         gap: 16px;
+      }
+
+      /* ── offload (ej. 04): el freeze como electro + personaje (vibe cálido) ── */
+      .e-pat {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .e-pat-face {
+        font-size: 32px;
+        line-height: 1;
+      }
+      .e-pat-name {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 16px;
+      }
+      .e-pat-st {
+        font-family: var(--font-display);
+        font-size: 13px;
+        color: var(--ink-muted);
+      }
+      .e-pat-st[data-phase='worker'] {
+        color: var(--worker);
+      }
+      .e-pat-st[data-phase='main'] {
+        color: var(--thread-blocked);
+        font-weight: 700;
+      }
+      default-pulse-monitor {
+        display: block;
+        margin: 0 0 16px;
+      }
+      .e-two {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin: 16px 0 4px;
+      }
+      .e-two default-button {
+        flex: 1 1 200px;
       }
 
       /* ── message-exchange (ej. 03): correspondencia ── */

@@ -1,30 +1,32 @@
 /**
- * Tokens del theme `default` (ARQUITECTURA §6). Piel neutra: superficies grises,
- * tinta casi negra, un acento sobrio, tipografía de sistema. Se activan con
- * `<html data-theme='default'>`. Son deliberadamente los mismos valores que el
- * contrato `:root` (red de seguridad neutra); acá es donde se irá dando la
- * identidad visual del theme sin tocar el motor.
+ * Tokens del theme `default` — vibe "cálido / consultorio" (dirección elegida,
+ * explorable explainable estilo ncase). Papel cálido, tinta casi negra, el
+ * acento es el VERDE del pulso (vida); el rojo es el flatline/freeze; el índigo
+ * es el worker ayudante. Se activan con `<html data-theme='default'>`.
  */
 [data-theme='default'] {
-  --surface: #e8e8ea;
-  --surface-raised: #f6f6f7;
+  --surface: #f4f0e8; // papel cálido
+  --surface-raised: #fbfaf6; // tarjeta
 
-  --ink: #1c1c1f;
-  --ink-muted: #6b6b72;
+  --ink: #1a1a17;
+  --ink-muted: #6b6b62;
 
-  --accent: #6366f1;
+  --accent: #16a860; // verde = vivo / pulso (el color firma)
 
-  // worker = color activo, main = neutro apagado, blocked = alerta, idle = tenue.
-  --thread-main: #52525b;
-  --thread-worker: #8b8b94;
-  --thread-blocked: #c0504d;
-  --thread-idle: rgba(0, 0, 0, 0.08);
+  // Monitor de hilos: worker = pulso verde, main = neutro cálido, blocked = alerta.
+  --thread-main: #a89f8c;
+  --thread-worker: #16a860;
+  --thread-blocked: #e5484d;
+  --thread-idle: rgba(26, 26, 23, 0.08);
 
-  --border: rgba(0, 0, 0, 0.16);
+  // Worker ayudante (personaje): índigo. Usado por los ejemplos interactivos.
+  --worker: #5b54d6;
+
+  --border: rgba(26, 26, 23, 0.12);
   --border-width: 1px;
-  --radius: 8px;
+  --radius: 14px;
 
-  --font-display: system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Consolas, monospace;
+  --font-display: ui-rounded, 'Segoe UI Rounded', 'Segoe UI', system-ui, sans-serif;
+  --font-body: ui-rounded, 'Segoe UI Rounded', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'JetBrains Mono', 'SF Mono', Consolas, monospace;
 }
