@@ -8,7 +8,11 @@ exclude = [
 ]
 
 # No fallar por anclas internas (#seccion): no las verificamos.
-include_fragments = false
+# `include_fragments` paso de bool a string en una version reciente de lychee
+# (la action @v2 no fija el binario, se actualiza sola). El unico valor
+# documentado en el ejemplo oficial es "full" (habilitar chequeo); omitir la
+# clave entera preserva la intencion original (no verificar fragmentos) sin
+# inventar un valor no documentado.
 
 # Algunos hosts responden 403/429 a bots pero el recurso existe (p. ej. web.dev).
 accept = [200, 206, 429]
