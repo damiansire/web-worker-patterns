@@ -9,10 +9,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-> **🌐 This README is also available in other languages:**
-> [Español](docs/README.es.md) | [Português](docs/README.pt.md)
-
-Interactive educational platform about **Web Workers** built with **Angular 22**. It ships **16 progressive examples** with live demos and real thread visualization, multi-language support (ES/EN/PT), and **5 swappable visual themes** — the same neutral domain rendered five different ways.
+Interactive educational platform about **Web Workers** built with **Angular 22**. It ships **16 progressive examples** with live demos and real thread visualization. The UI is in **Spanish**, and the presentation is a **swappable theme layer** — today a single neutral theme, with the engine kept generic so more themes (and languages) can be added without touching the domain.
 
 **▶ Live demo: [damiansire.github.io/web-worker-patterns](https://damiansire.github.io/web-worker-patterns/)**
 
@@ -82,15 +79,11 @@ The 16 examples are organized into 5 categories by concept. The grouping below m
 
 ## Visual Themes
 
-The same domain is skinned by **5 independent themes**, switchable live from the UI:
-
-**Brutalist** · **Full Brutalist** · **Dev Tool** · **Editorial** · **Narrative**
-
-Each theme provides its own shell, home, example layout, UI primitives and a custom thread visualizer — without the domain ever knowing a theme exists.
+The domain is skinned by a theme layer. Today there is **one neutral theme** (`default`), drawn entirely from the semantic token contract. The theming engine is generic: a theme provides its own shell, home, example layout, UI primitives and a thread visualizer, and is registered as a data-driven `ThemePack` — adding more themes is adding entries to the registry, **without the domain ever knowing a theme exists**.
 
 ## Project Architecture
 
-The golden rule: **the domain is written once; the presentation is written five times.** `core/` is theme-neutral and **never** imports from `themes/`. The full rationale lives in [`ARQUITECTURA-multi-theme.md`](ARQUITECTURA-multi-theme.md).
+The golden rule: **the domain is written once; the presentation is a swappable theme layer.** `core/` is theme-neutral and **never** imports from `themes/`. The full rationale lives in [`ARQUITECTURA-multi-theme.md`](ARQUITECTURA-multi-theme.md).
 
 ```
 src/app/
@@ -106,22 +99,22 @@ src/app/
 ├── ui-contracts/               # Interfaces every theme primitive must satisfy
 ├── ui-primitives/              # Theme-agnostic primitives (charts, language switcher)
 ├── themes/                     # Presentation — one folder per theme
-│   ├── brutalist/  full-brutalist/  dev-tool/  editorial/  narrative/
-│   │   ├── shell/  home/  example-layout/  primitives/  styles/
+│   └── default/                # The single neutral theme (engine supports N)
+│       ├── shell/  home/  example-layout/  primitives/  styles/
 ├── app.routes.ts              # Routes generated from the examples registry
 └── app.ts                     # Root component
 
-public/i18n/                    # en.json · es.json · pt.json (UI + per-example content)
+public/i18n/                    # es.json (UI + per-example content)
 ```
 
 ### Adding a New Example
 
-A new example is **one neutral domain definition** rendered by all 5 themes. The full pipeline is codified in the `/migrate-example` command (`.claude/commands/migrate-example.md`). In short:
+A new example is **one neutral domain definition** rendered by the active theme. In short:
 
 1. Add the worker in `core/domain/workers/` (+ a pure `*.logic.ts` with a unit test) and its snippets under `core/domain/examples/snippets/`.
 2. Register it in `core/domain/examples/examples.registry.ts` (`id`, `order`, `category`, `demo`, `workerFactory`).
-3. Add the educational content (title, summary, takeaways) to `public/i18n/{en,es,pt}.json`.
-4. Wire the demo's visualization into the `@case` of each theme's example layout.
+3. Add the educational content (title, summary, takeaways) to `public/i18n/es.json`.
+4. Wire the demo's visualization into the `@case` of the theme's example layout.
 
 Routes, navigation and the home page update automatically from the registry.
 
@@ -130,7 +123,7 @@ Routes, navigation and the home page update automatically from the registry.
 - **Angular 22** — Standalone components, Signals, zoneless change detection (opt-in via `provideZonelessChangeDetection()`), esbuild-based build
 - **TypeScript 6.0.3**
 - **SCSS** — Semantic design tokens (`--surface`, `--ink`, `--accent`, `--thread-*`) per theme
-- **@jsverse/transloco** — Runtime i18n (ES/EN/PT)
+- **@jsverse/transloco** — Runtime i18n (ES; engine ready for more languages)
 - **highlight.js** — Syntax highlighting for code blocks
 - **Vitest** — Unit tests (<!-- METRICS:TESTS -->131<!-- /METRICS:TESTS --> tests across the pure domain logic, the services and the themes)
 - **dependency-cruiser** — Enforces the `core/ ⇏ themes/` boundary
@@ -169,13 +162,13 @@ npm run lint:boundaries# Enforce the golden rule (core/ ⇏ themes/)
 
 Quality gates (lint, build, format, tests, boundaries) run on every push/PR via [CI](.github/workflows/ci.yml) and as a local git pre-commit hook — independent of your editor. ESLint enforces the invariants the repo preaches: `no-console` in the lib, `ChangeDetectionStrategy.OnPush` on every component (the app is zoneless), and keyboard a11y in templates. See [`AGENTS.md`](AGENTS.md) and [`docs/AI-PROCESS.md`](docs/AI-PROCESS.md).
 
-## Multi-language Support
+## Language
 
-The application supports English, Spanish, and Portuguese via [Transloco](https://jsverse.github.io/transloco/). Translations live in:
+The application UI is in **Spanish**, served via [Transloco](https://jsverse.github.io/transloco/). Content lives in:
 
-- `public/i18n/en.json` · `public/i18n/es.json` · `public/i18n/pt.json` — UI text **and** the educational content for every example
+- `public/i18n/es.json` — UI text **and** the educational content for every example
 
-Switch languages from the selector in each theme's shell.
+The i18n engine is kept generic: adding a language is adding its JSON in `public/i18n/`, its entry in `LanguageService`, and its code to `availableLangs` in `app.config.ts`. The neutral `LanguageSwitcherComponent` is ready to re-mount once there is more than one.
 
 ## Documentation
 

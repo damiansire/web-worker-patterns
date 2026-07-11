@@ -10,9 +10,16 @@ Leé, en este orden:
 2. `CLAUDE.md` — cómo trabajar (fases, convenciones de código).
 3. `docs/AI-PROCESS.md` — gates, loop de design-review, hooks.
 
+## Estado actual (uno y uno)
+
+Hoy el repo corre con **un solo theme** (`default`, neutro) y **un solo idioma** (`es`). El
+motor de theming e i18n queda **genérico**: sumar themes/idiomas es agregar entradas al
+registry / a `availableLangs`, sin tocar el dominio. La identidad visual del theme `default`
+está por diseñarse. (Antes convivían 5 themes y 3 idiomas; se consolidó a uno de cada uno.)
+
 ## La regla de oro (no negociable)
 
-> El dominio se escribe una vez. La presentación se escribe cinco veces.
+> El dominio se escribe una vez. La presentación es un layer de theme intercambiable.
 
 - Todo lo neutral (workers reales, registry de ejemplos, estado de hilos, i18n) vive en
   `core/` y **no conoce los themes**.

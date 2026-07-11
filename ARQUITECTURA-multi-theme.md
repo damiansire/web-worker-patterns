@@ -1,8 +1,17 @@
 # Arquitectura multi-theme · web-worker-patterns
 
-Documento de diseño para mantener **4 diseños radicalmente distintos en paralelo** sobre una misma base Angular 22. Pensado para entregarse a Claude Desktop / Claude Code como spec de implementación.
+> **Estado actual (uno y uno).** El repo corre hoy con **un solo theme** (`default`, neutro,
+> dibujado solo con el contrato de tokens) y **un solo idioma** (`es`). Este documento describe
+> el **motor** multi-theme, que sigue vigente: es data-driven (el registry es la fuente de verdad
+> de qué themes existen) y soporta N themes/idiomas sin tocar el dominio. Sumar uno es agregar su
+> `ThemePack` al registry / su idioma a `availableLangs`. Los themes concretos que se nombran más
+> abajo (`editorial`, `dev-tool`, `narrative`, `brutalist`) se retiraron al consolidar a uno; se
+> conservan como referencia histórica del abanico de pieles que el motor sostiene. La identidad
+> visual del theme `default` está por diseñarse.
 
-Los 4 themes son: `editorial` (poster/arte), `dev-tool` (IDE/terminal), `narrative` (revista) y `brutalist` (brutalismo amarillo). No comparten layout, tipografía, interacción ni librería UI. Lo único que comparten es el **dominio**: los 10 ejemplos, la lógica real de los Web Workers, el estado de los hilos y la traducción ES/EN/PT.
+Documento de diseño del **motor** que permite mantener diseños radicalmente distintos en paralelo sobre una misma base Angular 22.
+
+El principio: no comparten layout, tipografía, interacción ni librería UI. Lo único que comparten es el **dominio**: los ejemplos, la lógica real de los Web Workers, el estado de los hilos y la traducción.
 
 ---
 
