@@ -58,6 +58,14 @@ export class App {
         // (si no, una carga vieja pisaría a la nueva al cambiar rápido de theme).
         if (this.theme.activeId() === id) {
           this.shell.set(cmp);
+          // Un tick extra de microtarea: la escritura de la signal programa la
+          // deteccion de cambios en un microtask propio del scheduler zoneless,
+          // que puede quedar encolado DESPUES de que esta tarea pendiente se
+          // resuelva (carrera de 1 tick, mas visible en el runner mas lento/
+          // cargado de CI que en un entorno local rapido). Este await mantiene
+          // la tarea "pendiente" un turno mas, dandole tiempo a esa CD de
+          // aplicarse antes de reportar la app como estable.
+          await Promise.resolve();
         }
       });
     });
