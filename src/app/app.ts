@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, effect, inject, signal, Type } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  PendingTasks,
+  signal,
+  Type,
+} from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { TranslocoService } from '@jsverse/transloco';
 import { ThemeService } from './theming/theme.service';
@@ -23,6 +31,7 @@ export class App {
   private readonly theme = inject(ThemeService);
   private readonly language = inject(LanguageService);
   private readonly transloco = inject(TranslocoService);
+  private readonly pendingTasks = inject(PendingTasks);
   protected readonly shell = signal<Type<unknown> | null>(null);
 
   constructor() {
@@ -37,7 +46,13 @@ export class App {
     effect(() => {
       const pack = this.theme.active();
       const id = pack.id;
-      pack.shell().then((cmp) => {
+      // pendingTasks.run marca esta carga async como pendiente ante el scheduler
+      // zoneless: sin esto, whenStable()/ApplicationRef no esperan la resolucion
+      // de pack.shell() (una Promise cruda, invisible para el tracking de
+      // estabilidad), lo que hacia flaky el test de montaje segun la velocidad
+      // del entorno (paso local, fallaba en CI).
+      this.pendingTasks.run(async () => {
+        const cmp = await pack.shell();
         // Evita la race en deep-link: el shell de un theme se carga async, así
         // que solo aplicamos la resolución si sigue siendo el theme activo
         // (si no, una carga vieja pisaría a la nueva al cambiar rápido de theme).
