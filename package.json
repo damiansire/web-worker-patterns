@@ -17,12 +17,17 @@
     "zoneless",
     "performance"
   ],
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "ng": "ng",
     "dev": "node scripts/start/start.cjs",
     "start": "ng serve",
+    "prebuild": "npm run build --workspace packages/worker-patterns-core",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
+    "pretest": "npm run build --workspace packages/worker-patterns-core && npm test --workspace packages/worker-patterns-core",
     "test": "node scripts/test/guard-tests.mjs",
     "test:raw": "ng test",
     "lint": "eslint .",

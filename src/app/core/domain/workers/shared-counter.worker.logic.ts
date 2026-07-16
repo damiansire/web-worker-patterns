@@ -6,25 +6,9 @@
  * el índice 0 con `Atomics.add`. Atomics garantiza que el incremento sea
  * read-modify-write atómico aun si varios hilos tocan la misma celda: nunca se
  * pierde una suma por una condición de carrera.
+ *
+ * La implementación real vive ahora en `@worker-patterns/core` (paquete
+ * agnóstico de framework extraído en wwp-3/wwp-5, `packages/worker-patterns-core/`):
+ * este archivo re-exporta para no tocar el worker ni el spec que ya importan de acá.
  */
-
-/**
- * Hace UN incremento atómico en la celda 0 y devuelve el nuevo valor.
- * `Atomics.add` retorna el valor PREVIO, así que el nuevo es ese + 1.
- */
-export function incrementShared(view: Int32Array): number {
-  return Atomics.add(view, 0, 1) + 1;
-}
-
-/** Lee el valor actual de la celda 0 de forma coherente entre hilos. */
-export function readShared(view: Int32Array): number {
-  return Atomics.load(view, 0);
-}
-
-/**
- * True si este paso alcanzó (o superó) el target: el worker debería cerrarse.
- * Centraliza la condición de corte para que worker y test compartan la misma regla.
- */
-export function reachedTarget(value: number, target: number): boolean {
-  return value >= target;
-}
+export { incrementShared, readShared, reachedTarget } from '@worker-patterns/core';

@@ -1,6 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { WorkerExample } from '../domain/examples/example.model';
 import { WorkerLike } from '../domain/workers/worker-like';
+import { SharedCounterBuffer, isSharedMemorySupported } from '@worker-patterns/core';
 
 /**
  * Demo de memoria compartida (ejemplo 12). El main y el worker comparten un
@@ -11,8 +12,14 @@ import { WorkerLike } from '../domain/workers/worker-like';
  *
  * SharedArrayBuffer requiere aislamiento cross-origin (cabeceras COOP/COEP). Si
  * no está disponible, cae a un backend SIMULADO (un buffer local que sube por
- * timer) —rotulado en la UI— para seguir mostrando el concepto. Estado en
- * signals root: sobrevive el cambio de theme (incluso a mitad de la cuenta).
+ * timer) —rotulado en la UI— para seguir mostrando el concepto.
+ *
+ * El wrapper real (creación del SAB, arranque del worker, fallback simulado,
+ * polling con Atomics) vive en `SharedCounterBuffer` de `@worker-patterns/core`
+ * — paquete agnóstico de framework (wwp-3/wwp-5, `packages/worker-patterns-core/`).
+ * Este servicio es el adaptador delgado: signals root (para que el estado
+ * sobreviva el cambio de theme, incluso a mitad de la cuenta) sobre los eventos
+ * del wrapper.
  */
 @Injectable({ providedIn: 'root' })
 export class SharedMemoryDemoService {
@@ -26,100 +33,41 @@ export class SharedMemoryDemoService {
    * documento sirvió COOP/COEP. Sin aislamiento, instanciar/compartir un SAB tira o no
    * comparte en silencio — así que sólo entramos al camino real si AMBOS son ciertos.
    */
-  readonly supported = signal(
-    typeof SharedArrayBuffer !== 'undefined' &&
-      (globalThis as { crossOriginIsolated?: boolean }).crossOriginIsolated === true,
-  );
+  readonly supported = signal(isSharedMemorySupported());
   /** A cuánto llega la cuenta. */
   readonly target = 50;
 
   private intervalMs = 60;
-  private worker?: WorkerLike;
-  private view?: Int32Array;
-  private simTimer?: ReturnType<typeof setInterval>;
-  private pollTimer?: ReturnType<typeof setInterval>;
+  private buffer = new SharedCounterBuffer();
 
   start(example: WorkerExample): void {
     if (this.running()) {
       return;
     }
-    this.teardown();
     this.value.set(0);
     this.running.set(true);
 
-    if (this.supported() && example.workerFactory) {
-      // Camino real: SharedArrayBuffer compartido con el worker.
-      const sab = new SharedArrayBuffer(4); // un Int32
-      this.view = new Int32Array(sab);
-      const worker = example.workerFactory() as unknown as WorkerLike;
-      this.worker = worker;
-      worker.postMessage({
-        command: 'start',
-        sab,
-        target: this.target,
-        intervalMs: this.intervalMs,
-      });
-    } else {
-      // Fallback simulado: un buffer local que "alguien" incrementa por timer.
-      this.view = new Int32Array(new ArrayBuffer(4));
-      this.simTimer = setInterval(() => {
-        if (!this.view) {
-          return;
-        }
-        this.view[0] += 1;
-        if (this.view[0] >= this.target) {
-          this.stopSim();
-        }
-      }, this.intervalMs);
-    }
+    const worker =
+      this.supported() && example.workerFactory
+        ? (example.workerFactory() as unknown as WorkerLike)
+        : undefined;
 
-    // El main LEE la memoria por su cuenta (no recibe mensajes del worker).
-    this.pollTimer = setInterval(() => this.read(), 30);
-  }
-
-  private read(): void {
-    if (!this.view) {
-      return;
-    }
-    const v = this.supported() ? Atomics.load(this.view, 0) : this.view[0];
-    this.value.set(v);
-    if (v >= this.target) {
-      this.finish();
-    }
-  }
-
-  private finish(): void {
-    this.stopSim();
-    if (this.pollTimer !== undefined) {
-      clearInterval(this.pollTimer);
-      this.pollTimer = undefined;
-    }
-    this.worker?.terminate();
-    this.worker = undefined;
-    this.running.set(false);
-  }
-
-  private stopSim(): void {
-    if (this.simTimer !== undefined) {
-      clearInterval(this.simTimer);
-      this.simTimer = undefined;
-    }
+    this.buffer.start(
+      worker,
+      { target: this.target, intervalMs: this.intervalMs },
+      {
+        onValue: (v) => this.value.set(v),
+        onFinish: (v) => {
+          this.value.set(v);
+          this.running.set(false);
+        },
+      },
+    );
   }
 
   reset(): void {
-    this.teardown();
+    this.buffer.stop();
     this.value.set(0);
     this.running.set(false);
-  }
-
-  private teardown(): void {
-    this.stopSim();
-    if (this.pollTimer !== undefined) {
-      clearInterval(this.pollTimer);
-      this.pollTimer = undefined;
-    }
-    this.worker?.terminate();
-    this.worker = undefined;
-    this.view = undefined;
   }
 }

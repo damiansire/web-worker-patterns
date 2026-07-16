@@ -1,0 +1,29 @@
+{
+  "name": "@worker-patterns/core",
+  "version": "0.1.0",
+  "description": "Motor agnostico de framework para patrones de Web Workers: pool de workers reusables y wrapper de SharedArrayBuffer/Atomics con fallback simulado. Extraido de web-worker-patterns (ejemplos 10 y 12), sin dependencias de Angular.",
+  "author": "Damian Sire <damiansire@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.3",
+    "vitest": "^4.0.0"
+  }
+}

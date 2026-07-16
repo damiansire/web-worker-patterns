@@ -9,11 +9,9 @@
  *
  * `WorkerExample.workerFactory()` retorna este tipo, así los servicios consumen
  * el factory sin el doble cast `as unknown as WorkerLike`.
+ *
+ * La definición real vive ahora en `@worker-patterns/core` (paquete agnóstico
+ * de framework extraído en wwp-3/wwp-5, `packages/worker-patterns-core/`):
+ * este archivo re-exporta para no tocar los ~14 sitios que ya importan de acá.
  */
-export interface WorkerLike {
-  postMessage(message: unknown, transfer?: Transferable[]): void;
-  terminate(): void;
-  onmessage: ((event: MessageEvent) => void) | null;
-  onerror: ((event: unknown) => void) | null;
-  onmessageerror?: ((event: MessageEvent) => void) | null;
-}
+export type { WorkerLike } from '@worker-patterns/core';

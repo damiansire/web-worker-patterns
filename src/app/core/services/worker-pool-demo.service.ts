@@ -1,6 +1,7 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { WorkerExample } from '../domain/examples/example.model';
 import { WorkerLike } from '../domain/workers/worker-like';
+import { WorkerPool, type WorkerPoolTask } from '@worker-patterns/core';
 
 export interface PoolTask {
   id: number;
@@ -25,9 +26,12 @@ export interface PoolSlot {
  * tarea y agarra la siguiente de la cola. La tesis, mostrada con números: se
  * crean N workers, no M.
  *
- * El pool es un scheduler del lado del main (el worker no sabe que está en un
- * pool: sólo computa). Estado en signals root para que sobreviva el cambio de
- * theme — incluso a media cola.
+ * El scheduler en sí (crear N workers, despachar, reintentar en error, terminar
+ * al vaciar la cola) vive en `WorkerPool` de `@worker-patterns/core` — paquete
+ * agnóstico de framework (wwp-3/wwp-5, `packages/worker-patterns-core/`). Este
+ * servicio es el adaptador delgado: traduce los eventos del pool a signals root
+ * (para que el estado sobreviva el cambio de theme, incluso a media cola) y
+ * mantiene el "espejo" `tasks`/`slots` que consume la UI.
  */
 @Injectable({ providedIn: 'root' })
 export class WorkerPoolDemoService {
@@ -52,9 +56,7 @@ export class WorkerPoolDemoService {
   readonly workersCreated = computed(() => this.poolSize());
   readonly spawnedWithoutPool = this.taskCount;
 
-  private workers: WorkerLike[] = [];
-  private queue: number[] = [];
-  private timers = new Set<ReturnType<typeof setTimeout>>();
+  private pool?: WorkerPool<number>;
 
   /** Arranca el pool: crea N workers UNA vez y drena la cola de M tareas. */
   start(example: WorkerExample, limit: number): void {
@@ -67,98 +69,45 @@ export class WorkerPoolDemoService {
       Array.from({ length: this.taskCount }, (_, i) => ({ id: i + 1, state: 'pending' as const })),
     );
     this.slots.set(Array.from({ length: n }, (_, i) => ({ id: i + 1, busy: false, processed: 0 })));
-    this.queue = this.tasks().map((t) => t.id);
     this.running.set(true);
 
-    for (let i = 0; i < n; i++) {
-      const worker = example.workerFactory!() as unknown as WorkerLike;
-      this.workers.push(worker);
-      worker.onmessage = () => this.onSlotDone(i, limit);
-      // Camino de error: si el worker falla, NO podemos dejar el slot ocupado para
-      // siempre (la cola no drenaría y running() quedaría en true). Liberamos el slot
-      // y seguimos despachando para que el scheduler no se cuelgue por un worker roto.
-      worker.onerror = () => this.onSlotError(i, limit);
-      // Arranque escalonado: cada slot toma su primera tarea un poco después que
-      // el anterior, para que el drenado se vea en diagonal y no en bloque.
-      const offset = Math.round((this.stepDelayMs / n) * i);
-      if (offset === 0) {
-        this.dispatch(i, limit);
-      } else {
-        const t = setTimeout(() => {
-          this.timers.delete(t);
-          this.dispatch(i, limit);
-        }, offset);
-        this.timers.add(t);
-      }
-    }
-  }
-
-  /** Asigna la próxima tarea de la cola al slot, o lo deja libre si no hay más. */
-  private dispatch(slotIdx: number, limit: number): void {
-    const taskId = this.queue.shift();
-    if (taskId === undefined) {
-      this.slots.update((s) =>
-        s.map((sl, i) => (i === slotIdx ? { ...sl, busy: false, taskId: undefined } : sl)),
-      );
-      this.maybeFinish();
-      return;
-    }
-    this.slots.update((s) =>
-      s.map((sl, i) => (i === slotIdx ? { ...sl, busy: true, taskId } : sl)),
+    const tasks: WorkerPoolTask<number>[] = this.tasks().map((t) => ({ id: t.id, payload: limit }));
+    this.pool = new WorkerPool<number>(
+      {
+        poolSize: n,
+        tasks,
+        workerFactory: () => example.workerFactory!() as unknown as WorkerLike,
+        buildMessage: (task) => ({ command: 'compute', limit: task.payload }),
+        stepDelayMs: this.stepDelayMs,
+      },
+      {
+        onDispatch: (slotIdx, taskId) => {
+          this.slots.update((s) =>
+            s.map((sl, i) => (i === slotIdx ? { ...sl, busy: true, taskId } : sl)),
+          );
+          this.tasks.update((ts) =>
+            ts.map((t) =>
+              t.id === taskId ? { ...t, state: 'running' as const, slot: slotIdx + 1 } : t,
+            ),
+          );
+        },
+        onTaskSettled: (slotIdx, taskId) => {
+          this.tasks.update((ts) =>
+            ts.map((t) => (t.id === taskId ? { ...t, state: 'done' as const } : t)),
+          );
+          this.slots.update((s) =>
+            s.map((sl, i) => (i === slotIdx ? { ...sl, processed: sl.processed + 1 } : sl)),
+          );
+        },
+        onSlotIdle: (slotIdx) => {
+          this.slots.update((s) =>
+            s.map((sl, i) => (i === slotIdx ? { ...sl, busy: false, taskId: undefined } : sl)),
+          );
+        },
+        onFinish: () => this.running.set(false),
+      },
     );
-    this.tasks.update((ts) =>
-      ts.map((t) => (t.id === taskId ? { ...t, state: 'running' as const, slot: slotIdx + 1 } : t)),
-    );
-    this.workers[slotIdx].postMessage({ command: 'compute', limit });
-  }
-
-  private onSlotDone(slotIdx: number, limit: number): void {
-    // El cómputo del worker ya terminó (es rápido), pero MANTENEMOS la tarea
-    // visible "corriendo" en el slot durante stepDelayMs antes de marcarla hecha
-    // y agarrar la próxima. Así el slot se ve ocupado con su Tn y el drenado se
-    // percibe (sin esto, el slot parpadea a 'libre' y no se ve el reuso).
-    const t = setTimeout(() => {
-      this.timers.delete(t);
-      const taskId = this.slots()[slotIdx]?.taskId;
-      if (taskId != null) {
-        this.tasks.update((ts) =>
-          ts.map((task) => (task.id === taskId ? { ...task, state: 'done' as const } : task)),
-        );
-      }
-      this.slots.update((s) =>
-        s.map((sl, i) => (i === slotIdx ? { ...sl, processed: sl.processed + 1 } : sl)),
-      );
-      this.dispatch(slotIdx, limit);
-    }, this.stepDelayMs);
-    this.timers.add(t);
-  }
-
-  /**
-   * Un worker del slot falló (onerror). Marca su tarea como hecha (para que la cola
-   * avance y el contador no se trabe), suma el procesado y despacha la próxima. Sin
-   * esto, el slot quedaría busy para siempre y running() nunca volvería a false.
-   */
-  private onSlotError(slotIdx: number, limit: number): void {
-    const taskId = this.slots()[slotIdx]?.taskId;
-    if (taskId != null) {
-      this.tasks.update((ts) =>
-        ts.map((task) => (task.id === taskId ? { ...task, state: 'done' as const } : task)),
-      );
-    }
-    this.slots.update((s) =>
-      s.map((sl, i) => (i === slotIdx ? { ...sl, processed: sl.processed + 1 } : sl)),
-    );
-    this.dispatch(slotIdx, limit);
-  }
-
-  private maybeFinish(): void {
-    if (this.queue.length === 0 && this.slots().every((s) => !s.busy)) {
-      this.running.set(false);
-      for (const w of this.workers) {
-        w.terminate();
-      }
-      this.workers = [];
-    }
+    this.pool.start();
   }
 
   reset(): void {
@@ -169,14 +118,7 @@ export class WorkerPoolDemoService {
   }
 
   private teardown(): void {
-    for (const t of this.timers) {
-      clearTimeout(t);
-    }
-    this.timers.clear();
-    for (const w of this.workers) {
-      w.terminate();
-    }
-    this.workers = [];
-    this.queue = [];
+    this.pool?.reset();
+    this.pool = undefined;
   }
 }
