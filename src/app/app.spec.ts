@@ -47,17 +47,17 @@ describe('App (theme host)', () => {
 
   it('mounts the active theme shell and sets data-theme', async () => {
     const fixture = TestBed.createComponent(App);
+    const compiled = fixture.nativeElement as HTMLElement;
 
     // El shell se carga async (effect → pack.shell() Promise → signal → CD).
-    // En zoneless el orden exacto entre el effect, las microtareas y la CD lo
-    // decide el scheduler, y bajo carga (CI) ese orden varía: asumir que un
-    // whenStable() drena toda la cadena hacía el test flaky (pasaba local,
-    // fallaba a veces en CI). En vez de adivinar el timing, esperamos la
-    // CONDICIÓN: repetimos CD + whenStable + flush de macrotarea hasta que el
-    // shell montó (acotado, para no colgar si algo se rompe de verdad).
-    const compiled = fixture.nativeElement as HTMLElement;
+    // `autoDetectChanges` deja que Angular corra la CD automáticamente cuando la
+    // signal `shell` cambia, y `whenStable()` espera las PendingTasks que App
+    // registra al cargar el shell (App agrega un `await` extra justo para que la
+    // CD del render se aplique ANTES de reportar estabilidad). Así el montaje es
+    // determinista, sin depender del orden manual detectChanges/whenStable que
+    // hacía flaky al test bajo carga de CI (pasaba local, fallaba a veces en CI).
+    fixture.autoDetectChanges(true);
     for (let i = 0; i < 20 && !compiled.querySelector('.fake-shell'); i++) {
-      fixture.detectChanges();
       await fixture.whenStable();
       await new Promise((resolve) => setTimeout(resolve));
     }
