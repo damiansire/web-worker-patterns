@@ -1,13 +1,17 @@
 # Arquitectura multi-theme · web-worker-patterns
 
-> **Estado actual (uno y uno).** El repo corre hoy con **un solo theme** (`default`, neutro,
-> dibujado solo con el contrato de tokens) y **un solo idioma** (`es`). Este documento describe
-> el **motor** multi-theme, que sigue vigente: es data-driven (el registry es la fuente de verdad
-> de qué themes existen) y soporta N themes/idiomas sin tocar el dominio. Sumar uno es agregar su
-> `ThemePack` al registry / su idioma a `availableLangs`. Los themes concretos que se nombran más
-> abajo (`editorial`, `dev-tool`, `narrative`, `brutalist`) se retiraron al consolidar a uno; se
-> conservan como referencia histórica del abanico de pieles que el motor sostiene. La identidad
-> visual del theme `default` está por diseñarse.
+> **Estado actual (dos themes, un idioma).** El repo corre hoy con **dos themes** y **un solo
+> idioma** (`es`): `default` (cálido, claro, la identidad "consultorio/pulso") y `midnight` (su
+> contracara nocturna, oscura). Los dos se dibujan solo con el contrato de tokens y cubren la
+> misma superficie de tokens, así que el switch es puramente de paleta y nada cae al valor de
+> `:root`. `midnight` reusa la presentación de `default` (comparten shell, viaje y layouts) y solo
+> cambia el bloque de tokens: por eso su `ThemePack` reusa los loaders del default en vez de
+> duplicar componentes. Este documento describe el **motor** multi-theme, que sigue vigente: es
+> data-driven (el registry es la fuente de verdad de qué themes existen) y soporta N themes/idiomas
+> sin tocar el dominio. Sumar un theme con presentación propia es agregar su `ThemePack` al registry
+> (con sus propios loaders) / su idioma a `availableLangs`. Los themes concretos que se nombran más
+> abajo (`editorial`, `dev-tool`, `narrative`, `brutalist`) se retiraron al consolidar; se
+> conservan como referencia histórica del abanico de pieles que el motor sostiene.
 
 Documento de diseño del **motor** que permite mantener diseños radicalmente distintos en paralelo sobre una misma base Angular 22.
 

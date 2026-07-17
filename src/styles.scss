@@ -6,11 +6,13 @@
 // Los themes reales sobreescriben estos nombres bajo [data-theme='<id>'].
 @use './app/theming/styles/tokens-contract';
 
-// Tokens + estilos globales del theme (livianos; el CSS pesado de librería se
-// carga lazy vía ThemeService.stylesheets). Scopeados bajo [data-theme]. Hoy un
-// solo theme (`default`); sumar más es agregar su par tokens/theme acá.
+// Tokens + estilos globales de cada theme (livianos; el CSS pesado de librería se
+// carga lazy vía ThemeService.stylesheets). Scopeados bajo [data-theme]. Sumar
+// un theme es agregar su par tokens/theme acá.
 @use './app/themes/default/styles/tokens' as default-tokens;
 @use './app/themes/default/styles/theme' as default-theme;
+@use './app/themes/midnight/styles/tokens' as midnight-tokens;
+@use './app/themes/midnight/styles/theme' as midnight-theme;
 
 // Microinteracción: cada segmento nuevo del ThreadVisualizer entra con un
 // fade/scale rápido — feedback de que pasó algo en otro hilo (backlog #5).

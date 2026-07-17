@@ -17,7 +17,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Interactive educational platform about **Web Workers** built with **Angular 22**. It ships **16 progressive examples** with live demos and real thread visualization. The UI is in **Spanish**, and the presentation is a **swappable theme layer** — today a single neutral theme, with the engine kept generic so more themes (and languages) can be added without touching the domain.
+Interactive educational platform about **Web Workers** built with **Angular 22**. It ships **16 progressive examples** with live demos and real thread visualization. The UI is in **Spanish**, and the presentation is a **swappable theme layer**: today a light theme (`default`) and its dark counterpart (`midnight`), switchable live, with the engine kept generic so more themes (and languages) can be added without touching the domain.
 
 **▶ Live demo: [damiansire.github.io/web-worker-patterns](https://damiansire.github.io/web-worker-patterns/)**
 
@@ -87,7 +87,7 @@ The 16 examples are organized into 5 categories by concept. The grouping below m
 
 ## Visual Themes
 
-The domain is skinned by a theme layer. Today there is **one neutral theme** (`default`), drawn entirely from the semantic token contract. The theming engine is generic: a theme provides its own shell, home, example layout, UI primitives and a thread visualizer, and is registered as a data-driven `ThemePack` — adding more themes is adding entries to the registry, **without the domain ever knowing a theme exists**.
+The domain is skinned by a theme layer. Today there are **two themes**, both drawn entirely from the semantic token contract: `default` (warm, light) and `midnight` (its dark counterpart). Both cover the exact same token surface, so switching only swaps the palette and nothing falls back. Use the theme selector in the header, or deep-link to `/t/default` or `/t/midnight` (the choice persists). The theming engine is generic: a theme provides (or reuses) a shell, home, example layout, UI primitives and a thread visualizer, and is registered as a data-driven `ThemePack`. `midnight` reuses the token-driven presentation of `default` and varies only the palette; adding a theme with its own presentation is adding entries to the registry, **without the domain ever knowing a theme exists**.
 
 ## Project Architecture
 
@@ -107,8 +107,10 @@ src/app/
 ├── ui-contracts/               # Interfaces every theme primitive must satisfy
 ├── ui-primitives/              # Theme-agnostic primitives (charts, language switcher)
 ├── themes/                     # Presentation — one folder per theme
-│   └── default/                # The single neutral theme (engine supports N)
-│       ├── shell/  home/  example-layout/  primitives/  styles/
+│   ├── default/                # Warm light theme (full token-driven presentation)
+│   │   ├── shell/  home/  example-layout/  primitives/  styles/
+│   └── midnight/               # Dark counterpart: reuses default's presentation, own palette
+│       └── styles/             #   _tokens.scss (dark palette) + _theme.scss
 ├── app.routes.ts              # Routes generated from the examples registry
 └── app.ts                     # Root component
 

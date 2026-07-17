@@ -10,6 +10,7 @@ import {
 import { NgComponentOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ExampleLayoutController } from '../../../core/presentation/example-layout.controller';
+import { ThemeService } from '../../../theming/theme.service';
 import { THREAD_VISUALIZER } from '../../../ui-contracts/thread-visualizer.contract';
 import { CloneCostChartComponent } from '../../../ui-primitives/clone-cost-chart.component';
 import { DefaultButton } from '../primitives/default-button.component';
@@ -33,7 +34,7 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
   template: `
     <article class="e-ex" [class.e-ex--journey]="journeyMode()">
       @if (!journeyMode()) {
-        <a class="e-back" routerLink="/t/default">← índice</a>
+        <a class="e-back" [routerLink]="['/t', activeThemeId()]">← índice</a>
       }
 
       @if (example(); as ex) {
@@ -1555,6 +1556,9 @@ export class DefaultExampleLayoutComponent {
 
   /** ThreadVisualizer del theme activo, resuelto por DI (§5). */
   protected readonly visualizer = inject(THREAD_VISUALIZER);
+
+  /** El back-link vuelve al índice del theme activo (default o midnight), no a uno fijo. */
+  protected readonly activeThemeId = inject(ThemeService).activeId;
 
   // El componente sólo posee las refs al DOM del theme; la lógica la maneja el controller.
   private readonly compJsBox = viewChild<ElementRef<HTMLElement>>('compJs');

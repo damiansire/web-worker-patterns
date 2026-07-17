@@ -1,0 +1,36 @@
+/**
+ * Tokens del theme `midnight` — la contracara nocturna del `default` cálido. Mismo
+ * relato semántico (verde = vivo / pulso, rojo = flatline / freeze, índigo = worker
+ * ayudante), pero sobre un fondo de monitor de guardia: pizarra profunda, tinta
+ * casi blanca, acentos que brillan en la oscuridad. Cubre EXACTAMENTE el mismo
+ * contrato de tokens que `default` (`theming/styles/_tokens-contract.scss`), así
+ * ningún primitivo cae al valor gris de `:root`. Se activan con
+ * `<html data-theme='midnight'>`.
+ */
+[data-theme='midnight'] {
+  --surface: #10151c; // pizarra profunda (pantalla de monitor)
+  --surface-raised: #182029; // tarjeta / panel elevado
+
+  --ink: #e9eef3;
+  --ink-muted: #97a4b2; // AA sobre la superficie oscura
+
+  --accent: #29e08a; // verde = vivo / pulso (brilla en oscuro; uso GRÁFICO)
+  --accent-ink: #4ceb9f; // verde para TEXTO (claro sobre oscuro; sobra AA)
+
+  // Monitor de hilos: worker = pulso verde, main = neutro frío, blocked = alerta.
+  --thread-main: #64707e;
+  --thread-worker: #29e08a;
+  --thread-blocked: #ff5d62;
+  --thread-idle: rgba(233, 238, 243, 0.08);
+
+  // Worker ayudante (personaje): índigo, más luminoso para el fondo oscuro.
+  --worker: #7b83ff;
+
+  --border: rgba(233, 238, 243, 0.14);
+  --border-width: 1px;
+  --radius: 14px;
+
+  --font-display: ui-rounded, 'Segoe UI Rounded', 'Segoe UI', system-ui, sans-serif;
+  --font-body: ui-rounded, 'Segoe UI Rounded', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+}
