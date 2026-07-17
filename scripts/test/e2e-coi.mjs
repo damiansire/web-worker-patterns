@@ -42,6 +42,42 @@ try {
         'El ejemplo 12 correría en modo simulado. Revisá el shim coi-serviceworker y el deploy.',
     );
   }
+
+  // Feature check: no alcanza con la precondición (isolated). Verificamos que el
+  // ejemplo 12 EFECTIVAMENTE corra por el camino real de SharedArrayBuffer+Atomics:
+  // en modo simulado el contador también sube, así que exigimos aislamiento EN esa
+  // página Y que el contador compartido incremente por encima de 0.
+  const ex12 = new URL('t/default/example/12-shared-array-buffer', url.endsWith('/') ? url : url + '/')
+    .href;
+  await page.goto(ex12, { waitUntil: 'networkidle', timeout: 60_000 });
+  await page.waitForTimeout(1_000);
+  const ex12Isolated = await page.evaluate(() => globalThis.crossOriginIsolated === true);
+  await page
+    .getByRole('button', { name: /arrancar/i })
+    .first()
+    .click();
+  // El worker incrementa el SAB con Atomics.add; el main LEE esa misma memoria por
+  // poll (sin postMessage) y la muestra subiendo. Esperamos a que pase de 0.
+  await page
+    .waitForFunction(() => Number(document.querySelector('.e-sm-cell')?.textContent ?? '0') > 0, {
+      timeout: 15_000,
+    })
+    .catch(() => {});
+  const counter = await page.evaluate(() =>
+    Number(document.querySelector('.e-sm-cell')?.textContent ?? '0'),
+  );
+
+  if (ex12Isolated && counter > 0) {
+    console.log(`OK · ejemplo 12: el contador compartido incrementó a ${counter} (Atomics real)`);
+  } else {
+    failed = true;
+    console.error(
+      `FALLO · ejemplo 12: aislado=${ex12Isolated}, contador=${counter}. ` +
+        (ex12Isolated
+          ? 'El contador no incrementó: SharedArrayBuffer/Atomics o el worker productor están rotos.'
+          : 'La página del ejemplo no quedó aislada: corrió en modo simulado, no por SAB real.'),
+    );
+  }
 } finally {
   await browser.close();
 }
