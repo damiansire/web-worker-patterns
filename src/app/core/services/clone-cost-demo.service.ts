@@ -78,6 +78,12 @@ export class CloneCostDemoService {
     const worker = example.workerFactory() as unknown as WorkerLike;
     this.worker = worker;
     worker.onmessage = () => this.onReply();
+    // Si el worker falla en medio del barrido, sin esto running quedaba en true
+    // para siempre (finish nunca se llamaba) y el guard bloqueaba toda re-corrida.
+    worker.onerror = (event) => {
+      (event as { preventDefault?: () => void })?.preventDefault?.();
+      this.finish();
+    };
 
     // Warm-up: una vuelta descartada ANTES de cronometrar, para que el costo de
     // arranque (compilar el handler, primer postMessage, serializer en frío) no

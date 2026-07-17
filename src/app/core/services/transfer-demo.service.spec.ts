@@ -4,6 +4,7 @@ import { WorkerExample } from '../domain/examples/example.model';
 
 class FakeWorker {
   onmessage: ((event: MessageEvent) => void) | null = null;
+  onerror: ((event: unknown) => void) | null = null;
   posted: Array<{ message: { mode: string }; transfer?: Transferable[] }> = [];
   terminated = false;
 
@@ -21,6 +22,9 @@ class FakeWorker {
   }
   result(bytes: number, mode: string): void {
     this.onmessage?.({ data: { type: 'result', mode, bytes } } as MessageEvent);
+  }
+  fail(message: string): void {
+    this.onerror?.({ message });
   }
 }
 
@@ -82,6 +86,21 @@ describe('TransferDemoService', () => {
     const r = svc.cloneResult();
     expect(r?.ms).toBe(18);
     expect(r?.detached).toBe(false); // el main conserva su copia
+  });
+
+  it('un worker que falla (onerror) destraba busy, deja el error y termina el worker', () => {
+    svc.runTransfer(example, 64);
+    expect(svc.busy()).toBe(true);
+
+    workers[0].fail('boom');
+    // Sin el onerror, busy quedaba en true para siempre y bloqueaba re-correr.
+    expect(svc.busy()).toBe(false);
+    expect(svc.error()).toBe('boom');
+    expect(workers[0].terminated).toBe(true);
+
+    // Y una segunda corrida efectivamente arranca (no quedó trabada).
+    svc.runTransfer(example, 8);
+    expect(workers).toHaveLength(2);
   });
 
   it('reset limpia ambos resultados', () => {

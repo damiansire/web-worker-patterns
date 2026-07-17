@@ -29,9 +29,13 @@ export class TransferDemoService {
   /** Reloj inyectable para tests deterministas. */
   clock: () => number = () => (typeof performance !== 'undefined' ? performance.now() : 0);
 
+  private worker?: WorkerLike;
+
   readonly transferResult = signal<TransferResult | null>(null);
   readonly cloneResult = signal<TransferResult | null>(null);
   readonly busy = signal(false);
+  /** Mensaje del último fallo de worker (null = ninguno). Lo muestra la UI. */
+  readonly error = signal<string | null>(null);
 
   /** Manda el buffer CON transfer list (zero-copy) y lo trae de vuelta. */
   runTransfer(example: WorkerExample, mb: number): void {
@@ -48,8 +52,10 @@ export class TransferDemoService {
       return;
     }
     const worker = example.workerFactory() as unknown as WorkerLike;
+    this.worker = worker;
     const buf = new ArrayBuffer(mb * 1024 * 1024);
     this.busy.set(true);
+    this.error.set(null);
 
     const t0 = this.clock();
     worker.onmessage = (event: MessageEvent) => {
@@ -64,7 +70,18 @@ export class TransferDemoService {
         }
         this.busy.set(false);
         worker.terminate();
+        this.worker = undefined;
       }
+    };
+    // Sin esto, un fallo del worker (ej. OOM al reservar el buffer de 64MB) dejaba
+    // busy=true para siempre y el guard bloqueaba toda re-corrida.
+    worker.onerror = (event) => {
+      (event as { preventDefault?: () => void })?.preventDefault?.();
+      const message = (event as { message?: string })?.message;
+      this.error.set(message ?? 'El worker falló durante la transferencia');
+      this.busy.set(false);
+      worker.terminate();
+      this.worker = undefined;
     };
 
     if (mode === 'transfer') {
@@ -75,8 +92,11 @@ export class TransferDemoService {
   }
 
   reset(): void {
+    this.worker?.terminate();
+    this.worker = undefined;
     this.transferResult.set(null);
     this.cloneResult.set(null);
     this.busy.set(false);
+    this.error.set(null);
   }
 }

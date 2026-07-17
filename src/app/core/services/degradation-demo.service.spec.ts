@@ -4,6 +4,7 @@ import { WorkerExample } from '../domain/examples/example.model';
 
 class FakeWorker {
   onmessage: ((event: MessageEvent) => void) | null = null;
+  onerror: ((event: unknown) => void) | null = null;
   terminated = false;
   posted: unknown[] = [];
   postMessage(message: unknown): void {
@@ -14,6 +15,9 @@ class FakeWorker {
   }
   result(count: number): void {
     this.onmessage?.({ data: { type: 'result', count } } as MessageEvent);
+  }
+  fail(message: string): void {
+    this.onerror?.({ message });
   }
 }
 
@@ -75,6 +79,17 @@ describe('DegradationDemoService', () => {
     svc.run(example, 10);
     expect(svc.result()?.path).toBe('main');
     expect(svc.result()?.value).toBe(4);
+  });
+
+  it('camino worker que falla (onerror) destraba running y termina el worker', () => {
+    svc.supported.set(true);
+    svc.run(example, 500);
+    expect(svc.running()).toBe(true);
+
+    fake.fail('boom');
+    // Sin el onerror, running quedaba en true para siempre y bloqueaba re-correr.
+    expect(svc.running()).toBe(false);
+    expect(fake.terminated).toBe(true);
   });
 
   it('reset limpia el resultado y el fallback', () => {

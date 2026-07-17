@@ -67,6 +67,14 @@ export class DegradationDemoService {
         worker.terminate();
         this.worker = undefined;
       };
+      // Si el worker falla al instanciarse o computar, sin esto running quedaba en
+      // true para siempre y bloqueaba toda re-corrida. Lo tratamos como término.
+      worker.onerror = (event) => {
+        (event as { preventDefault?: () => void })?.preventDefault?.();
+        this.running.set(false);
+        worker.terminate();
+        this.worker = undefined;
+      };
       worker.postMessage({ command: 'compute', limit });
     } else {
       // Fallback: corre la MISMA función en el main (bloquea hasta terminar).

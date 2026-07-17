@@ -12,8 +12,12 @@ class FakeWorker {
   terminate(): void {
     this.terminated = true;
   }
+  onerror: ((event: unknown) => void) | null = null;
   reply(data: unknown): void {
     this.onmessage?.({ data } as MessageEvent);
+  }
+  fail(message: string): void {
+    this.onerror?.({ message });
   }
 }
 
@@ -121,6 +125,17 @@ describe('CloneCostDemoService', () => {
     const postedAfterFirst = fake.posted.length;
     svc.runSweep(example, { maxSize: 10, depth: 0, steps: 2, reps: 1 });
     expect(fake.posted).toHaveLength(postedAfterFirst);
+  });
+
+  it('un worker que falla (onerror) en medio del barrido destraba running y termina', () => {
+    svc.runSweep(example, { maxSize: 10, depth: 0, steps: 2, reps: 1 });
+    warmUp();
+    expect(svc.running()).toBe(true);
+
+    fake.fail('boom');
+    // Sin el onerror, running quedaba en true para siempre (finish nunca corría).
+    expect(svc.running()).toBe(false);
+    expect(fake.terminated).toBe(true);
   });
 
   it('reset clears measurements and stops', () => {
