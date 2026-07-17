@@ -21,6 +21,7 @@ import { OffscreenCanvasDemoService } from '../services/offscreen-canvas-demo.se
 import { CloneCostDemoService } from '../services/clone-cost-demo.service';
 import { CompositorDemoService } from '../services/compositor-demo.service';
 import { type CloneCostPoint, formatBytes } from '../domain/clone-cost';
+import { ThreadLane } from '../domain/thread-lane';
 
 /**
  * Orquestación neutral del example-layout, compartida por los 5 themes.
@@ -108,6 +109,12 @@ export class ExampleLayoutController {
   readonly workerTicks = this.runner.workerTicks;
   readonly mainTicks = this.runner.mainTicks;
   readonly phase = this.runner.phase;
+  // Reloj 'elapsed' que el ThreadVisualizer muestra: el fin de la última actividad
+  // (mayor endMs de los segmentos). Antes el template pasaba la constante 0, así el
+  // demo 01 —el primero que ve el usuario— siempre imprimía 'elapsed · 0 ms' aunque
+  // los lanes tuvieran segmentos reales. Se deriva del mismo dato ya mostrado.
+  readonly workerElapsedMs = computed(() => laneElapsed(this.workerLanes()));
+  readonly mainElapsedMs = computed(() => laneElapsed(this.mainLanes()));
 
   // message-exchange (03)
   readonly messages = this.exchange.messages;
@@ -476,4 +483,17 @@ export class ExampleLayoutController {
       this.exchange.open(ex);
     }
   }
+}
+
+/** ms transcurridos = fin de la última actividad (mayor endMs de los segmentos). */
+export function laneElapsed(lanes: ThreadLane[] | null): number {
+  let max = 0;
+  for (const lane of lanes ?? []) {
+    for (const segment of lane.segments) {
+      if (segment.endMs > max) {
+        max = segment.endMs;
+      }
+    }
+  }
+  return max;
 }

@@ -64,7 +64,10 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
                   </default-button>
                   @if (workerLanes(); as wl) {
                     <ng-container
-                      *ngComponentOutlet="visualizer; inputs: { lanes: wl, elapsedMs: 0 }"
+                      *ngComponentOutlet="
+                        visualizer;
+                        inputs: { lanes: wl, elapsedMs: workerElapsedMs() }
+                      "
                     />
                     <p class="e-foot">{{ workerTicks() }} ticks · la UI nunca se trabó</p>
                   } @else {
@@ -82,7 +85,10 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
                   >
                   @if (mainLanes(); as ml) {
                     <ng-container
-                      *ngComponentOutlet="visualizer; inputs: { lanes: ml, elapsedMs: 0 }"
+                      *ngComponentOutlet="
+                        visualizer;
+                        inputs: { lanes: ml, elapsedMs: mainElapsedMs() }
+                      "
                     />
                     <p class="e-foot e-danger">
                       se congeló · {{ mainTicks() }} ticks que no se pintaron
@@ -1575,6 +1581,8 @@ export class DefaultExampleLayoutComponent {
   protected readonly mainLanes = this.ctl.mainLanes;
   protected readonly workerTicks = this.ctl.workerTicks;
   protected readonly mainTicks = this.ctl.mainTicks;
+  protected readonly workerElapsedMs = this.ctl.workerElapsedMs;
+  protected readonly mainElapsedMs = this.ctl.mainElapsedMs;
   protected readonly phase = this.ctl.phase;
 
   // message-exchange (03)
