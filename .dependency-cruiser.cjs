@@ -20,6 +20,18 @@ module.exports = {
       to: { path: '^src/app/themes/' }
     },
     {
+      name: 'core-no-ui-primitives',
+      severity: 'error',
+      comment:
+        'core/ es la capa neutral y no debe importar de ui-primitives/ (capa de ' +
+        'presentación). La dependencia va themes/ui-primitives -> core, nunca al ' +
+        'revés. Si core/ necesita un tipo o helper que hoy vive en un componente, ' +
+        'movelo a core/domain/ (ej. core/domain/clone-cost.ts) y que el componente ' +
+        'lo re-exporte. Enforza la regla de oro también para el eje ui-primitives.',
+      from: { path: '^src/app/core/' },
+      to: { path: '^src/app/ui-primitives/' }
+    },
+    {
       name: 'contracts-no-themes-ni-primitives',
       severity: 'error',
       comment:

@@ -20,7 +20,7 @@ import { DegradationDemoService } from '../services/degradation-demo.service';
 import { OffscreenCanvasDemoService } from '../services/offscreen-canvas-demo.service';
 import { CloneCostDemoService } from '../services/clone-cost-demo.service';
 import { CompositorDemoService } from '../services/compositor-demo.service';
-import { type CloneCostPoint, formatBytes } from '../../ui-primitives/clone-cost-chart.component';
+import { type CloneCostPoint, formatBytes } from '../domain/clone-cost';
 
 /**
  * Orquestación neutral del example-layout, compartida por los 5 themes.

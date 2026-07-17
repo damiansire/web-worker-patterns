@@ -1,4 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { type CloneCostPoint, formatBytes } from '../core/domain/clone-cost';
+
+export { type CloneCostPoint, formatBytes };
 
 /**
  * Gráfica neutral de costo de clonación (ejemplo 15). Es un primitivo COMPARTIDO
@@ -8,14 +11,10 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
  * semánticos (--accent, --ink-muted, --border, --surface, --font-mono).
  *
  * No conoce el dominio: recibe puntos {x, y} ya medidos y los dibuja. El eje X es
- * el tamaño serializado (bytes), el eje Y el round-trip medido (ms).
+ * el tamaño serializado (bytes), el eje Y el round-trip medido (ms). El punto y
+ * `formatBytes` viven en `core/domain/clone-cost` (neutral); se re-exportan acá
+ * por compatibilidad con quien ya importaba del componente.
  */
-export interface CloneCostPoint {
-  /** Eje X: bytes serializados del payload. */
-  x: number;
-  /** Eje Y: round-trip medido en ms. */
-  y: number;
-}
 
 @Component({
   selector: 'wwp-clone-cost-chart',
@@ -169,15 +168,4 @@ export class CloneCostChartComponent {
       yMaxLabel: `${yMax.toFixed(yMax < 10 ? 1 : 0)} ms`,
     };
   });
-}
-
-/** Formatea bytes a B/KB/MB. Compartido por el chart y los layouts (pie de medición). */
-export function formatBytes(n: number): string {
-  if (n >= 1024 * 1024) {
-    return `${(n / (1024 * 1024)).toFixed(1)} MB`;
-  }
-  if (n >= 1024) {
-    return `${(n / 1024).toFixed(1)} KB`;
-  }
-  return `${Math.round(n)} B`;
 }
