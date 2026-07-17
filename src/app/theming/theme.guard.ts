@@ -33,6 +33,10 @@ export const rootThemeRedirect: CanActivateFn = () => {
   const router = inject(Router);
 
   const stored = theme.activeId();
-  const target = registry.has(stored) ? stored : 'default';
+  // Fallback data-driven: el PRIMER theme del registry, no un id clavado. En un
+  // motor que se vende data-driven, un 'default' hardcodeado redirigía la raíz a
+  // un theme inexistente en cualquier deploy que registre otros ids.
+  const fallback = registry.keys().next().value;
+  const target = registry.has(stored) ? stored : (fallback ?? stored);
   return router.createUrlTree(['/t', target]);
 };
