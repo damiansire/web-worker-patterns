@@ -1,6 +1,5 @@
 import { TestBed } from '@angular/core/testing';
 import { ExampleRunnerService } from '../core/services/example-runner.service';
-import { ThreadMonitorService } from '../core/services/thread-monitor.service';
 import { ThemeService } from './theme.service';
 import { THEME_REGISTRY } from './theme.tokens';
 import { ThemeId, ThemePack } from './theme.types';
@@ -22,11 +21,11 @@ function pack(id: ThemeId): ThemePack {
 
 /**
  * El requisito clave de la arquitectura (§1 / §10.9): cambiar de theme con un
- * worker corriendo NO reinicia el estado. El runner y el monitor son singletons
- * root e independientes del ThemeService, así que un switch de theme no los toca.
+ * worker corriendo NO reinicia el estado. El runner es singleton root e
+ * independiente del ThemeService, así que un switch de theme no lo toca.
  */
 describe('live theme switching preserves domain state', () => {
-  it('keeps the running worker and the monitor lanes across a theme switch', () => {
+  it('conserva el worker corriendo y los carriles al cambiar de theme', () => {
     // Dos themes fake: el motor es data-driven, así que alcanza con dos ids
     // cualquiera en el registry para ejercitar el switch (§10.9).
     const registry = new Map<ThemeId, ThemePack>([
@@ -37,7 +36,6 @@ describe('live theme switching preserves domain state', () => {
       providers: [{ provide: THEME_REGISTRY, useValue: registry }],
     });
     const runner = TestBed.inject(ExampleRunnerService);
-    const monitor = TestBed.inject(ThreadMonitorService);
     const theme = TestBed.inject(ThemeService);
 
     const fake = new FakeWorker();
@@ -50,21 +48,21 @@ describe('live theme switching preserves domain state', () => {
       snippets: {},
     };
 
-    runner.start(example);
+    runner.runWorkerDemo(example, { intervalMs: 10, ticks: 10 });
     fake.emit({ type: 'tick', tick: 1 });
     fake.emit({ type: 'tick', tick: 2 });
-    const lanesBefore = monitor.lanes().find((l) => l.id === 'worker')!.segments.length;
-    expect(runner.runningId()).toBe('01-setinterval-counter');
+    const lanesBefore = runner.workerLanes()!.find((l) => l.id === 'worker')!.segments.length;
+    expect(runner.workerTicks()).toBe(2);
 
     // Cambiar de theme en pleno funcionamiento.
     theme.setTheme('beta');
 
-    // El worker sigue corriendo y el monitor conserva sus carriles.
-    expect(runner.runningId()).toBe('01-setinterval-counter');
-    expect(monitor.lanes().find((l) => l.id === 'worker')!.segments.length).toBe(lanesBefore);
+    // El worker sigue corriendo y el runner conserva sus carriles.
+    expect(runner.workerTicks()).toBe(2);
+    expect(runner.workerLanes()!.find((l) => l.id === 'worker')!.segments.length).toBe(lanesBefore);
 
     // Y sigue emitiendo después del switch.
     fake.emit({ type: 'tick', tick: 3 });
-    expect(runner.lastTick()).toBe(3);
+    expect(runner.workerTicks()).toBe(3);
   });
 });

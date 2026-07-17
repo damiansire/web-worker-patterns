@@ -1,11 +1,11 @@
 /**
  * Contrato neutral de actividad de hilos (dominio).
  *
- * Es la frontera entre el productor del dato (ThreadMonitorService) y sus
- * consumidores (las primitivas ThreadVisualizer de cada theme, el contrato de
- * UI y el dominio thread-demo). Vive en dominio —no en el servicio— para que el
- * dominio no dependa del servicio que lo produce (evita la inversión
- * dominio↔servicio). El servicio re-exporta estos tipos por conveniencia.
+ * Es la frontera entre el productor del dato (ExampleRunnerService, vía los
+ * helpers de `thread-demo`) y sus consumidores (las primitivas ThreadVisualizer
+ * de cada theme, el contrato de UI y el dominio thread-demo). Vive en dominio,
+ * no en el servicio, para que el dominio no dependa del servicio que lo produce
+ * (evita la inversión dominio-servicio).
  */
 
 export type ThreadState = 'main' | 'worker' | 'blocked' | 'idle';

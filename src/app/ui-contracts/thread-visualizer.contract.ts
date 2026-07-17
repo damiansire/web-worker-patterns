@@ -7,8 +7,8 @@ import { ThreadLane } from '../core/domain/thread-lane';
  * El visualizador es estructuralmente distinto en cada theme (barras diagonales,
  * celdas duras, etc.): no alcanza con CSS. Cada theme provee su implementación
  * vía el token `THREAD_VISUALIZER`, y un layout la monta con `ngComponentOutlet`
- * pasándole los inputs neutrales del ThreadMonitorService. El dato es uno, el
- * render son cuatro.
+ * pasándole los inputs neutrales que produce el ExampleRunnerService. El dato es
+ * uno, el render son cuatro.
  */
 export abstract class ThreadVisualizerContract {
   abstract lanes: InputSignal<ThreadLane[]>;

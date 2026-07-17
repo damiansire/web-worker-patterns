@@ -17,7 +17,7 @@ function readStoredTheme(): ThemeId | null {
  * `<html>` activa el bloque de tokens correspondiente (§6).
  *
  * El estado de dominio NO vive acá: cambiar de theme no toca el
- * ThreadMonitorService ni el ExampleRunnerService, así un worker corriendo sigue
+ * ExampleRunnerService ni los demo-services, así un worker corriendo sigue
  * corriendo al hacer el switch.
  */
 @Injectable({ providedIn: 'root' })
