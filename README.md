@@ -2,8 +2,16 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Stable |
-| **Last updated** | Sunday, 22 June 2026 |
+| **Status** | Stable — with one matiz: see the note on **example 12** below |
+| **Last updated** | Friday, 17 July 2026 |
+
+> **Note on example 12 (SharedArrayBuffer).** It needs cross-origin isolation
+> (`COOP`/`COEP`), and GitHub Pages can't send custom response headers. The app
+> ships a service-worker shim ([`public/coi-serviceworker.js`](public/coi-serviceworker.js))
+> that re-adds those headers client-side so `crossOriginIsolated` becomes `true`
+> on the deployed demo. If isolation still isn't available, the example detects it
+> at runtime and falls back to a clearly labelled simulated backend instead of
+> failing silently. See [example 12](#advanced) for detail.
 
 [![Angular](https://img.shields.io/badge/Angular-22-DD0031?style=flat&logo=angular&logoColor=white)](https://angular.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -74,7 +82,7 @@ The 16 examples are organized into 5 categories by concept. The grouping below m
 | # | Example | Description |
 |---|---------|-------------|
 | 11 | **Backpressure** | Flow control with credits and acks so the worker's queue doesn't grow without bound. |
-| 12 | **SharedArrayBuffer** | Main and worker share the *same* memory; `Atomics` write/read with no `postMessage`. ⚠️ Verified 2026-07-10: the live demo on GitHub Pages does **not** send `Cross-Origin-Opener-Policy`/`Cross-Origin-Embedder-Policy` (`curl -I` against the deployed URL confirms neither header) — GitHub Pages doesn't support custom response headers, so this example can't actually run cross-origin-isolated in production; `SharedArrayBuffer` will be unavailable there even though it works when served locally with the right headers. |
+| 12 | **SharedArrayBuffer** | Main and worker share the *same* memory; `Atomics` write/read with no `postMessage`. Needs cross-origin isolation (`COOP`/`COEP`). GitHub Pages can't send those headers, so the app registers a service-worker shim ([`coi-serviceworker.js`](public/coi-serviceworker.js)) that adds them client-side and makes `crossOriginIsolated === true` on the deployed demo. If isolation is still unavailable, the demo detects it at runtime (`crossOriginIsolated`) and shows a labelled *simulated backend* instead of breaking. |
 | 13 | **Graceful degradation** | Detect `typeof Worker` and fall back to the main thread when it's missing. |
 
 ## Visual Themes
