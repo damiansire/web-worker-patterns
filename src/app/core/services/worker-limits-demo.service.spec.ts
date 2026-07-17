@@ -29,6 +29,19 @@ class FailingWorker {
   }
 }
 
+/** Worker que NUNCA responde: la tanda queda "en vuelo" hasta que la aborten. */
+class ManualWorker {
+  onmessage: ((event: MessageEvent) => void) | null = null;
+  onerror: ((event: unknown) => void) | null = null;
+  terminated = false;
+  postMessage(): void {
+    // Deliberadamente no responde.
+  }
+  terminate(): void {
+    this.terminated = true;
+  }
+}
+
 describe('WorkerLimitsDemoService', () => {
   let svc: WorkerLimitsDemoService;
   let created: FakeWorker[];
@@ -79,6 +92,37 @@ describe('WorkerLimitsDemoService', () => {
     svc.reset();
     expect(svc.runs()).toEqual([]);
     expect(svc.currentWorkers()).toBe(0);
+  });
+
+  it('reset() aborta la escala en vuelo, termina el worker vivo y no deja escalada concurrente', async () => {
+    const manual: ManualWorker[] = [];
+    const manualExample: WorkerExample = {
+      ...example,
+      workerFactory: () => {
+        const w = new ManualWorker();
+        manual.push(w);
+        return w as unknown as Worker;
+      },
+    };
+
+    // Arranca la escala; la primera tanda (K=1) nunca responde, queda en vuelo.
+    const p = svc.runScale(manualExample, 1000);
+    expect(svc.running()).toBe(true);
+    expect(manual).toHaveLength(1);
+
+    // reset() debe destrabar el await, terminar el worker vivo y bajar running.
+    svc.reset();
+    await p;
+    expect(manual.every((w) => w.terminated)).toBe(true);
+    expect(svc.running()).toBe(false);
+    expect(svc.currentWorkers()).toBe(0);
+
+    // Un segundo disparo arranca limpio: sólo la nueva K=1, sin acumular la anterior.
+    const before = manual.length;
+    const p2 = svc.runScale(manualExample, 1000);
+    expect(manual.length).toBe(before + 1);
+    svc.reset();
+    await p2;
   });
 
   it('un worker que falla (onerror) no cuelga la escala: running vuelve a false y queda el error', async () => {
