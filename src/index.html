@@ -6,6 +6,13 @@
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <!--
+      Habilita cross-origin isolation en hosts sin cabeceras propias (GitHub Pages)
+      para que el ejemplo 12 (SharedArrayBuffer + Atomics) corra en el demo desplegado.
+      Se resuelve contra <base href>, así funciona tanto en / (local) como en
+      /web-worker-patterns/ (Pages). Ver public/coi-serviceworker.js.
+    -->
+    <script src="coi-serviceworker.js"></script>
   </head>
   <body>
     <app-root></app-root>
