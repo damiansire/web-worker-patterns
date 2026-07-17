@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { WorkerExample } from '../domain/examples/example.model';
-import { WorkerLike } from '../domain/workers/worker-like';
+import { WorkerHost } from '../domain/workers/worker-host';
 
 /** Una corrida de la tarea: salió OK (claves parseadas) o falló (error capturado). */
 export interface ErrorDemoEvent {
@@ -25,8 +25,7 @@ export interface ErrorDemoEvent {
  */
 @Injectable({ providedIn: 'root' })
 export class ErrorDemoService {
-  private worker?: WorkerLike;
-  private openId?: string;
+  private readonly host = new WorkerHost();
   private nextId = 0;
 
   private readonly _events = signal<ErrorDemoEvent[]>([]);
@@ -36,32 +35,31 @@ export class ErrorDemoService {
 
   /**
    * Abre el worker del ejemplo. No-op si ya está abierto para el mismo ejemplo
-   * (no resetea el log al re-montar el layout / cambiar de theme).
+   * (no resetea el log al re-montar el layout / cambiar de theme). El onerror
+   * registra el fallo como un evento del log (el worker sigue vivo) y libera busy.
    */
   open(example: WorkerExample): void {
-    if (this.openId === example.id && this.worker) {
-      return;
-    }
-    this.close();
-    if (!example.workerFactory) {
-      return;
-    }
-    const worker = example.workerFactory() as unknown as WorkerLike;
-    this.worker = worker;
-    this.openId = example.id;
-    worker.onmessage = (event: MessageEvent) => this.onResult(event.data);
-    worker.onerror = (event) => this.onError(event);
+    this.host.open(example, {
+      onMessage: (data) => this.onResult(data as { keys?: number }),
+      onError: (message) => {
+        this._events.update((e) => [
+          ...e,
+          { id: this.pendingId, status: 'error', input: this.pendingInput, message },
+        ]);
+        this.busy.set(false);
+      },
+    });
   }
 
   /** Corre la tarea con un payload (válido o roto). */
   run(payload: string): void {
-    if (!this.worker || this.busy()) {
+    if (!this.host.isOpen || this.busy()) {
       return;
     }
     this.pendingId = this.nextId++;
     this.pendingInput = payload;
     this.busy.set(true);
-    this.worker.postMessage({ id: this.pendingId, payload });
+    this.host.post({ id: this.pendingId, payload });
   }
 
   private pendingId = 0;
@@ -75,31 +73,9 @@ export class ErrorDemoService {
     this.busy.set(false);
   }
 
-  private onError(event: unknown): void {
-    const err = event as { message?: string; preventDefault?: () => void };
-    // Silenciamos el log de consola del navegador: ya lo mostramos en la UI.
-    err.preventDefault?.();
-    this._events.update((e) => [
-      ...e,
-      {
-        id: this.pendingId,
-        status: 'error',
-        input: this.pendingInput,
-        message: err.message ?? 'Error desconocido en el worker',
-      },
-    ]);
-    this.busy.set(false);
-  }
-
   /** Limpia el log (y termina el worker). */
   reset(): void {
-    this.close();
-  }
-
-  private close(): void {
-    this.worker?.terminate();
-    this.worker = undefined;
-    this.openId = undefined;
+    this.host.close();
     this.nextId = 0;
     this.pendingId = 0;
     this.pendingInput = '';

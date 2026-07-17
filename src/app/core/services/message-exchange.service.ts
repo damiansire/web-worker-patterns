@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { WorkerExample } from '../domain/examples/example.model';
 import { ExchangeMessage } from '../domain/communication';
-import { WorkerLike } from '../domain/workers/worker-like';
+import { WorkerHost } from '../domain/workers/worker-host';
 
 /**
  * Intercambio de mensajes main <-> worker (ejemplo 03). Mantiene un log
@@ -14,8 +14,7 @@ export class MessageExchangeService {
   /** Reloj inyectable para tests deterministas. */
   clock: () => number = () => (typeof performance !== 'undefined' ? performance.now() : 0);
 
-  private worker?: WorkerLike;
-  private openId?: string;
+  private readonly host = new WorkerHost();
   private nextId = 0;
 
   private readonly _messages = signal<ExchangeMessage[]>([]);
@@ -28,38 +27,23 @@ export class MessageExchangeService {
   /**
    * Abre el worker del ejemplo. Si ya está abierto para el mismo ejemplo, es un
    * no-op (no resetea la conversación al re-montar el layout / cambiar de theme).
+   * El onerror libera `pending`: sin eso, un fallo tras un send dejaría el input
+   * trabado esperando una respuesta que nunca llega.
    */
   open(example: WorkerExample): void {
-    if (this.openId === example.id && this.worker) {
-      return;
-    }
-    this.close();
-    if (!example.workerFactory) {
-      return;
-    }
-    const worker = example.workerFactory() as unknown as WorkerLike;
-    this.worker = worker;
-    this.openId = example.id;
-    worker.onmessage = (event: MessageEvent) => this.receive(event.data);
-    worker.onerror = (event) => this.onError(event);
-  }
-
-  /**
-   * El worker falló (onerror — p.ej. no se pudo instanciar). Sin esto, pending()
-   * quedaría en true para siempre tras un send: el input se vería trabado esperando
-   * una respuesta que nunca llega. Registramos el error y liberamos pending.
-   */
-  private onError(event: unknown): void {
-    (event as { preventDefault?: () => void })?.preventDefault?.();
-    const message = (event as { message?: string })?.message;
-    this.error.set(message ?? 'El worker falló');
-    this.pending.set(false);
+    this.host.open(example, {
+      onMessage: (data) => this.receive(data as { id?: number; text?: string; length?: number }),
+      onError: (message) => {
+        this.error.set(message);
+        this.pending.set(false);
+      },
+    });
   }
 
   /** Envía un mensaje al worker (lo registra como saliente). */
   send(text: string): void {
     const trimmed = text.trim();
-    if (!trimmed || !this.worker) {
+    if (!trimmed || !this.host.isOpen) {
       return;
     }
     const id = this.nextId++;
@@ -68,7 +52,7 @@ export class MessageExchangeService {
       { id, direction: 'out', text: trimmed, atMs: this.clock() },
     ]);
     this.pending.set(true);
-    this.worker.postMessage({ id, text: trimmed });
+    this.host.post({ id, text: trimmed });
   }
 
   private receive(data: { id?: number; text?: string; length?: number }): void {
@@ -87,13 +71,7 @@ export class MessageExchangeService {
 
   /** Limpia la conversación (y termina el worker). */
   reset(): void {
-    this.close();
-  }
-
-  private close(): void {
-    this.worker?.terminate();
-    this.worker = undefined;
-    this.openId = undefined;
+    this.host.close();
     this.nextId = 0;
     this._messages.set([]);
     this.pending.set(false);
