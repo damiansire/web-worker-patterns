@@ -68,3 +68,82 @@ describe('SharedWorkerDemoService (backend simulado)', () => {
     expect(svc.count()).toBe(0);
   });
 });
+
+// El camino REAL (realConn/MessagePort) nunca corre en Node porque typeof
+// SharedWorker === 'undefined'. Lo cubrimos forzando supported=true y un
+// sharedWorkerFactory fake con un MessagePort espiable: así el wiring de
+// MessagePort (start/onmessage/postMessage/close), la tesis del ejemplo 08, deja
+// de ser código muerto para los tests.
+describe('SharedWorkerDemoService (backend real / MessagePort)', () => {
+  class FakePort {
+    onmessage: ((event: MessageEvent) => void) | null = null;
+    started = false;
+    closed = false;
+    posted: unknown[] = [];
+    start(): void {
+      this.started = true;
+    }
+    postMessage(message: unknown): void {
+      this.posted.push(message);
+    }
+    close(): void {
+      this.closed = true;
+    }
+    /** Simula un mensaje del backend hacia este puerto. */
+    emit(data: unknown): void {
+      this.onmessage?.({ data } as MessageEvent);
+    }
+  }
+  class FakeSharedWorker {
+    readonly port = new FakePort();
+  }
+
+  let svc: SharedWorkerDemoService;
+  let created: FakeSharedWorker[];
+  let example: WorkerExample;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    svc = TestBed.inject(SharedWorkerDemoService);
+    created = [];
+    example = {
+      id: '08-shared-worker',
+      order: 8,
+      category: 'communication',
+      i18nKey: 'examples.08-shared-worker',
+      demo: 'shared-worker',
+      sharedWorkerFactory: () => {
+        const sw = new FakeSharedWorker();
+        created.push(sw);
+        return sw as unknown as SharedWorker;
+      },
+      snippets: {},
+    };
+    svc.open(example); // en Node abre 2 paneles simulados (supported=false)
+    svc.supported.set(true); // fuerza el camino real para el próximo panel
+  });
+
+  it('realConn ata onmessage, llama port.start() y usa el MessagePort del factory', () => {
+    svc.addPanel(); // '#3', ya por el camino real
+    expect(created).toHaveLength(1);
+    const port = created[0].port;
+    expect(port.started).toBe(true); // olvidar port.start() rompería el ejemplo real
+    expect(typeof port.onmessage).toBe('function');
+
+    // Un mensaje del backend por ESE puerto actualiza el estado compartido.
+    port.emit({ type: 'hello', instanceId: 'real-abc', clients: 3, count: 7 });
+    expect(svc.instanceId()).toBe('real-abc');
+    expect(svc.count()).toBe(7);
+  });
+
+  it('inc y closePanel viajan por el MessagePort real (postMessage/close)', () => {
+    svc.addPanel(); // '#3' real
+    const port = created[0].port;
+
+    svc.inc('#3');
+    expect(port.posted).toContainEqual({ type: 'inc', portLabel: '#3' });
+
+    svc.closePanel('#3');
+    expect(port.closed).toBe(true);
+  });
+});

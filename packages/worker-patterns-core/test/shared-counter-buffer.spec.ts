@@ -88,4 +88,59 @@ describe('SharedCounterBuffer (con worker real, camino no-simulado)', () => {
       vi.unstubAllGlobals();
     }
   });
+
+  // Worker fake que actúa como productor REAL: al recibir el SAB, incrementa ESA
+  // memoria con Atomics.add en cada intervalo (lo que haría el worker de verdad).
+  class ProducerWorker implements WorkerLike {
+    onmessage: ((event: MessageEvent) => void) | null = null;
+    onerror: ((event: unknown) => void) | null = null;
+    terminated = false;
+    private timer?: ReturnType<typeof setInterval>;
+    postMessage(message: unknown): void {
+      const { sab, intervalMs } = message as { sab: SharedArrayBuffer; intervalMs: number };
+      const view = new Int32Array(sab);
+      this.timer = setInterval(() => {
+        Atomics.add(view, 0, 1);
+      }, intervalMs);
+    }
+    terminate(): void {
+      this.terminated = true;
+      if (this.timer !== undefined) {
+        clearInterval(this.timer);
+      }
+    }
+  }
+
+  it('e2e: el worker incrementa el MISMO SAB vía Atomics y el lector lo ve subir hasta el target', () => {
+    vi.stubGlobal('crossOriginIsolated', true);
+    vi.useFakeTimers();
+    try {
+      const worker = new ProducerWorker();
+      const buffer = new SharedCounterBuffer();
+      const values: number[] = [];
+      let finishedAt: number | undefined;
+
+      buffer.start(
+        worker,
+        { target: 5, intervalMs: 10, pollIntervalMs: 5 },
+        {
+          onValue: (v) => values.push(v),
+          onFinish: (v) => {
+            finishedAt = v;
+          },
+        },
+      );
+
+      vi.advanceTimersByTime(200);
+
+      // El lector leyó (Atomics.load) de la MISMA memoria que el worker escribió,
+      // sin un solo postMessage de vuelta: esa es la tesis del ejemplo 12.
+      expect(finishedAt).toBe(5);
+      expect(Math.max(...values)).toBe(5);
+      expect(worker.terminated).toBe(true); // al llegar al target se termina el worker
+    } finally {
+      vi.useRealTimers();
+      vi.unstubAllGlobals();
+    }
+  });
 });
