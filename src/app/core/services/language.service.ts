@@ -30,6 +30,16 @@ export class LanguageService {
     effect(() => {
       this.storage?.setItem(LANGUAGE_STORAGE_KEY, this.language());
     });
+
+    // Mantiene `<html lang>` en sincronía con el idioma activo (mismo patrón que
+    // ThemeService con dataset.theme). Sin esto, `lang` quedaba clavado en el HTML
+    // y al sumar idiomas los lectores de pantalla lo pronunciarían con la fonética
+    // equivocada (WCAG 3.1.1). Hoy sólo hay 'es', pero el gancho ya queda cableado.
+    effect(() => {
+      if (typeof document !== 'undefined') {
+        document.documentElement.lang = this.language();
+      }
+    });
   }
 
   /** localStorage puede no existir en test/SSR; lo accedemos de forma defensiva. */
