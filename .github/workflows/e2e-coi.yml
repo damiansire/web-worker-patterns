@@ -1,0 +1,41 @@
+name: E2E cross-origin isolation
+
+# Gate del ejemplo 12: verifica en un navegador real que el demo desplegado
+# quede cross-origin-isolated (crossOriginIsolated === true). Si el shim
+# coi-serviceworker deja de funcionar o Pages cambia, esto falla ruidoso.
+#
+# NO corre en push/PR (no queremos gatear el merge con una dependencia del
+# deploy vivo): corre después de cada Deploy, semanalmente, y a mano.
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: URL del demo a verificar
+        required: false
+        default: https://damiansire.github.io/web-worker-patterns/
+  workflow_run:
+    workflows: ['Deploy to GitHub Pages']
+    types: [completed]
+  schedule:
+    - cron: '0 6 * * 1' # lunes 06:00 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  coi:
+    # En el trigger workflow_run, solo si el deploy terminó bien.
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Instala Playwright (chromium)
+        run: |
+          npm install --no-save playwright@1
+          npx playwright install --with-deps chromium
+      - name: Verifica crossOriginIsolated en el demo desplegado
+        run: node scripts/test/e2e-coi.mjs "${{ github.event.inputs.url || 'https://damiansire.github.io/web-worker-patterns/' }}"
