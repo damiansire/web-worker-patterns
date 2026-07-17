@@ -1,0 +1,33 @@
+name: Hygiene Gate
+
+# Gate preventivo global (roastme 2026-07-17, items 1.3d + 3.3e): falla si queda
+# trackeado un .env, o un descartable de sesion tipo claude-scratch-*/temp_*/
+# rewrite<N>.py. Higiene dependiente del gate, no del habito (Netflix/Instagram).
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hygiene-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hygiene:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sin .env / claude-scratch-* / temp_* / rewrite[0-9]*.py trackeados
+        shell: bash
+        run: |
+          set -e
+          MATCHES=$(git ls-files | grep -E '(^|/)\.env$|(^|/)claude-scratch-[^/]*$|(^|/)temp_[^/]*$|(^|/)rewrite[0-9]+\.py$' || true)
+          if [ -n "$MATCHES" ]; then
+            echo "Archivos trackeados que no deberian estar en el repo:"
+            echo "$MATCHES"
+            exit 1
+          fi
+          echo "OK: ningun patron prohibido trackeado."
