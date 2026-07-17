@@ -1,0 +1,47 @@
+name: Release
+
+# Publica @worker-patterns/core a npm via Changesets. En cada push a main: si hay
+# changesets pendientes, changesets/action abre/actualiza el PR "Version Packages";
+# al mergear ese PR (que consume los changesets) publica la version nueva + git tag
+# + GitHub Release. Sin changesets pendientes es un no-op success (no republica).
+on:
+  push:
+    branches: [main]
+
+# changesets/action necesita escribir: abrir el PR de version y crear el Release.
+permissions:
+  contents: write
+  pull-requests: write
+
+# No cancelar un publish en vuelo (a diferencia de CI): publicar es irreversible.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      # Mismo gate que CI: no se publica nada que no pase lint/boundaries/tests/build.
+      - run: npm run format:check
+      - run: npm run lint:boundaries
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - name: Version PR o publicacion (Changesets)
+        uses: changesets/action@v1
+        with:
+          version: npm run version-packages
+          publish: npm run release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

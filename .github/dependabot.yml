@@ -1,0 +1,19 @@
+# Actualizacion automatica de dependencias (postura de seguridad como proceso, no
+# foto): npm del workspace + las actions de los workflows. Los updates menores/patch
+# se agrupan para no ahogar en PRs; los majors vienen sueltos para revisarlos.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: '/'
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+  - package-ecosystem: github-actions
+    directory: '/'
+    schedule:
+      interval: weekly
