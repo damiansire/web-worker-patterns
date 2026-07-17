@@ -2,7 +2,11 @@ import { chromium } from 'playwright';
 import { rm, mkdir } from 'node:fs/promises';
 
 const base = 'http://localhost:4200';
-const themes = ['brutalist', 'full-brutalist', 'dev-tool', 'editorial', 'narrative'];
+// Los themes REALES registrados (ver src/app/theming/theme.registry.ts:
+// THEME_PACKS = [DEFAULT_THEME, MIDNIGHT_THEME]). Antes esta lista tenía 5 ids
+// que ya no existen ('brutalist', ...), así que capturaba páginas vacías/redirigidas
+// y 'midnight' nunca se capturaba. Mantener en sync con el registry.
+const themes = ['default', 'midnight'];
 
 // Reemplazo limpio: borrar las capturas viejas y recrear la carpeta desde cero,
 // así no quedan archivos huérfanos si cambian los themes/nombres.
