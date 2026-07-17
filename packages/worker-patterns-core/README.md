@@ -6,8 +6,16 @@ reusable y un wrapper de `SharedArrayBuffer` + `Atomics` con fallback simulado.
 Cero dependencias de Angular (ni de ningun otro framework): solo TypeScript
 estandar, `WorkerLike` (el contrato minimo de un Worker) y timers globales.
 
-No se publica a npm (`private: true`): vive como referencia dentro de este
-repo y como paquete de workspace que la app Angular consume.
+Se distribuye como paquete npm (`@worker-patterns/core`, `access: public`) y
+ademas vive como paquete de workspace que la app Angular de este repo consume.
+
+## Instalacion
+
+```bash
+npm install @worker-patterns/core
+```
+
+ESM puro (`"type": "module"`), tipos incluidos, sin dependencias de runtime.
 
 ## Por que existe
 
@@ -28,7 +36,7 @@ import { WorkerPool } from '@worker-patterns/core';
 const pool = new WorkerPool(
   {
     poolSize: 4,
-    tasks: [{ id: 1, payload: 100000 }, /* ... */],
+    tasks: [{ id: 1, payload: 100000 } /* ... */],
     workerFactory: () => new Worker(new URL('./primes.worker.js', import.meta.url)),
     buildMessage: (task) => ({ command: 'compute', limit: task.payload }),
     stepDelayMs: 0,
@@ -41,8 +49,8 @@ const pool = new WorkerPool(
   },
 );
 
-pool.start();  // crea N workers UNA vez, drena M tareas
-pool.reset();  // termina todo y limpia el estado
+pool.start(); // crea N workers UNA vez, drena M tareas
+pool.reset(); // termina todo y limpia el estado
 pool.isRunning();
 ```
 
@@ -64,8 +72,8 @@ buffer.start(
     onFinish: (v) => console.log('listo', v),
   },
 );
-buffer.value;   // valor actual
-buffer.stop();  // frena timers y termina el worker
+buffer.value; // valor actual
+buffer.stop(); // frena timers y termina el worker
 ```
 
 Si hay soporte real (`SharedArrayBuffer` + `crossOriginIsolated === true`) y
@@ -108,8 +116,11 @@ siempre consume una version fresca.
   `SharedMemoryDemoService`: la logica de pool/SharedArrayBuffer ya NO vive
   duplicada en la app, esos servicios son un adaptador delgado (`WorkerPool`
   → signals, `SharedCounterBuffer` → signals).
-- **Lo que falta** para ser un paquete npm publicable de verdad: no tiene
-  `access: public` ni pipeline de Changesets (ver skill `release-npm-changesets`),
-  no tiene su propio CI, y `private: true` bloquea `npm publish` a proposito.
-  Si en algun momento se decide publicarlo, ese es el siguiente paso — no
-  esta hecho aca.
+- **Distribucion**: `access: public` + pipeline de Changesets (`.changeset/`,
+  `.github/workflows/release.yml`): un push a `main` con un changeset abre el PR
+  "Version Packages" y, al mergearlo, publica la version nueva + tag + GitHub
+  Release. La primera publicacion (`0.1.0`) queda a criterio del owner del repo
+  (requiere cargar el secret `NPM_TOKEN`).
+- **Lo que NO cubre todavia**: un solo entry point (`.`), sin subpaths; el
+  fallback simulado del `SharedCounterBuffer` es didactico, no un backend de
+  produccion.

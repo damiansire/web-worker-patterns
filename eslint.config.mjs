@@ -19,10 +19,7 @@ export default tseslint.config(
     // Solo el código de la app. Scripts (Node) y artefactos quedan fuera.
     files: ['src/**/*.ts'],
     ignores: ['src/**/*.spec.ts'],
-    extends: [
-      ...tseslint.configs.recommended,
-      ...angular.configs.tsRecommended,
-    ],
+    extends: [...tseslint.configs.recommended, ...angular.configs.tsRecommended],
     processor: angular.processInlineTemplates,
     rules: {
       // (1) sin console.* en la lib.
@@ -34,6 +31,17 @@ export default tseslint.config(
       // No imponemos un prefijo único — eso es decisión de diseño del repo, no un invariante.
       '@angular-eslint/component-selector': 'off',
       '@angular-eslint/directive-selector': 'off',
+    },
+  },
+  {
+    // Paquetes publicables (agnósticos de framework, sin Angular). Antes no se
+    // linteaban: para una lib que se publica a npm, el mismo piso de calidad que
+    // la app (tseslint recommended + no-console en el código, no en specs).
+    files: ['packages/**/*.ts'],
+    ignores: ['packages/**/*.spec.ts', 'packages/**/dist/**'],
+    extends: [...tseslint.configs.recommended],
+    rules: {
+      'no-console': 'error',
     },
   },
   {
