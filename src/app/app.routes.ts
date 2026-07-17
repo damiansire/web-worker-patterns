@@ -19,4 +19,8 @@ export const routes: Routes = [
       { path: 'example/:id', loadComponent: () => inject(ThemeService).active().exampleLayout() },
     ],
   },
+  // Catch-all: cualquier URL fuera del árbol (link viejo, typo, ejemplo
+  // renumerado) reentra por la raíz en vez de dejar el router-outlet vacío con
+  // 'Cannot match any routes'. La raíz redirige al theme activo vía rootThemeRedirect.
+  { path: '**', redirectTo: '' },
 ];
