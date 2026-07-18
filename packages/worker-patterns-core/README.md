@@ -96,6 +96,29 @@ El contrato minimo de Worker que consume todo lo de arriba: `postMessage`,
 `terminate`, `onmessage`, `onerror`, `onmessageerror?`. Lo implementa el
 `Worker` real del DOM y cualquier mock de test.
 
+### `wrap` / `expose` (RPC tipado, patron comlink)
+
+En vez de un `switch (msg.type)` a mano sobre `postMessage`, llamar al worker se
+siente local:
+
+```ts
+import { wrap, expose, type RpcEndpoint } from '@worker-patterns/core';
+
+// worker.ts
+expose({ add: (a: number, b: number) => a + b }, self as unknown as RpcEndpoint);
+
+// main.ts
+const api = wrap<{ add(a: number, b: number): number }>(worker);
+await api.add(2, 3); // 5, via un solo postMessage; los errores del worker re-lanzan aca
+```
+
+`wrap<T>()` devuelve un Proxy tipado: cada método manda un `postMessage` y
+resuelve una Promise con la respuesta (o rechaza con el error del worker
+re-lanzado). `expose()` resuelve el método contra el objeto real y responde.
+`remote[releaseRemote]()` corta el listener. Alcance honesto: cubre APIs de
+métodos por nombre; NO proxia objetos vivos/callbacks por MessagePort ni paths
+anidados (para eso, la comlink completa).
+
 ## Build y test
 
 ```bash
@@ -110,7 +133,7 @@ siempre consume una version fresca.
 ## Alcance real (honesto)
 
 - Extraccion de codigo REAL y funcionando, agnostica de framework, con tests
-  propios (12 tests, `vitest`, sin `TestBed`, sin DOM).
+  propios (17 tests, `vitest`, sin `TestBed`, sin DOM).
 - La app Angular consume este paquete (workspace `packages/*`, resuelto via
   `node_modules/@worker-patterns/core`) desde `WorkerPoolDemoService` y
   `SharedMemoryDemoService`: la logica de pool/SharedArrayBuffer ya NO vive

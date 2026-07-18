@@ -12,3 +12,11 @@ export {
   type WorkerPoolOptions,
   type WorkerPoolEvents,
 } from './worker-pool.js';
+export {
+  wrap,
+  expose,
+  releaseRemote,
+  type RpcEndpoint,
+  type Remote,
+  type MethodMap,
+} from './rpc.js';
