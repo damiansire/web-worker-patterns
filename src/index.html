@@ -5,6 +5,20 @@
     <title>Mastering Web Workers: patrones de Web Workers en demos interactivas</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!--
+      Content-Security-Policy vía meta: el hardening que SÍ llega al deploy real de
+      GitHub Pages (que no puede mandar cabeceras HTTP; nginx.conf/Dockerfile sí, para
+      self-host). 'unsafe-inline' en style-src es necesario para el CSS crítico que
+      Angular inyecta inline; scripts y workers quedan restringidos a 'self'.
+      Nota honesta: meta-CSP NO soporta frame-ancestors ni X-Content-Type-Options
+      (nosniff) — esos son solo cabeceras HTTP, imposibles en Pages; el path
+      nginx/Docker los cubre para self-host.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'"
+    />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
     <!-- SEO / social. La app es una colección de demos interactivas (en español). -->
