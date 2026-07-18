@@ -30,9 +30,7 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.scss"
-            ],
+            "styles": ["src/styles.scss"],
             "webWorkerTsConfig": "tsconfig.worker.json"
           },
           "configurations": {
@@ -40,8 +38,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "340kB",
+                  "maximumError": "400kB"
                 },
                 {
                   "type": "anyComponentStyle",
