@@ -35,6 +35,7 @@
     "format": "prettier --write \"src/**/*.{ts,html,scss,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,html,scss,json}\"",
     "screenshots": "node scripts/shots-all.mjs",
+    "bench": "node scripts/bench.mjs",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "npm run build --workspace packages/worker-patterns-core && changeset publish",

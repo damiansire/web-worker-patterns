@@ -1,9 +1,9 @@
 # Mastering Web Workers
 
-| Field | Value |
-|-------|-------|
-| **Status** | Stable — with one matiz: see the note on **example 12** below |
-| **Last updated** | Friday, 17 July 2026 |
+| Field            | Value                                                         |
+| ---------------- | ------------------------------------------------------------- |
+| **Status**       | Stable — with one matiz: see the note on **example 12** below |
+| **Last updated** | Friday, 17 July 2026                                          |
 
 > **Note on example 12 (SharedArrayBuffer).** It needs cross-origin isolation
 > (`COOP`/`COEP`), and GitHub Pages can't send custom response headers. The app
@@ -34,6 +34,7 @@ npm run dev
 `npm run dev` checks Node.js (≥18) and npm (≥9), installs dependencies if needed, and starts the server at `http://localhost:4200`.
 
 Alternatives:
+
 - **Just start** (if you already ran `npm install`): `npm start`
 - **Windows:** double-click `scripts/start/start.bat`, or in a terminal: `npm run dev`
 - **macOS/Linux:** in a terminal: `./scripts/start/start.sh` or `npm run dev`
@@ -46,44 +47,44 @@ The 16 examples are organized into 5 categories by concept. The grouping below m
 
 ### Understanding
 
-| # | Example | Description |
-|---|---------|-------------|
-| 01 | **Counter with setInterval** | How `setInterval` and the event loop work — the baseline to grasp before workers. |
-| 02 | **The main thread & event loop** | One thread runs JS, layout, paint and input; a 50 ms task freezes everything. |
-| 16 | **Compositor vs main** | The compositor thread keeps `transform`/`opacity` animations smooth even while the main thread is frozen. |
+| #   | Example                          | Description                                                                                               |
+| --- | -------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| 01  | **Counter with setInterval**     | How `setInterval` and the event loop work — the baseline to grasp before workers.                         |
+| 02  | **The main thread & event loop** | One thread runs JS, layout, paint and input; a 50 ms task freezes everything.                             |
+| 16  | **Compositor vs main**           | The compositor thread keeps `transform`/`opacity` animations smooth even while the main thread is frozen. |
 
 ### Communication
 
-| # | Example | Description |
-|---|---------|-------------|
-| 03 | **Basic communication** | The "Hello World" of workers — `postMessage` in both directions. |
-| 08 | **SharedWorker** | One worker instance shared across tabs/panels, all seeing the same state. |
+| #   | Example                 | Description                                                               |
+| --- | ----------------------- | ------------------------------------------------------------------------- |
+| 03  | **Basic communication** | The "Hello World" of workers — `postMessage` in both directions.          |
+| 08  | **SharedWorker**        | One worker instance shared across tabs/panels, all seeing the same state. |
 
 ### Optimization
 
-| # | Example | Description |
-|---|---------|-------------|
-| 04 | **Offload heavy work** | Count primes on a worker so the UI stays responsive — feel the difference side by side. |
-| 07 | **Transferable objects** | Pass an `ArrayBuffer` zero-copy; the sender's buffer is left detached. |
-| 10 | **Worker pool** | A fixed pool of N workers drains a task queue (4 workers, 24 tasks). |
-| 14 | **OffscreenCanvas** | A worker owns the canvas and animates it — smooth even when the main thread blocks. |
-| 15 | **The cost of cloning** | Measure the *real* round-trip of structured clone as data size and complexity grow. |
+| #   | Example                  | Description                                                                             |
+| --- | ------------------------ | --------------------------------------------------------------------------------------- |
+| 04  | **Offload heavy work**   | Count primes on a worker so the UI stays responsive — feel the difference side by side. |
+| 07  | **Transferable objects** | Pass an `ArrayBuffer` zero-copy; the sender's buffer is left detached.                  |
+| 10  | **Worker pool**          | A fixed pool of N workers drains a task queue (4 workers, 24 tasks).                    |
+| 14  | **OffscreenCanvas**      | A worker owns the canvas and animates it — smooth even when the main thread blocks.     |
+| 15  | **The cost of cloning**  | Measure the _real_ round-trip of structured clone as data size and complexity grow.     |
 
 ### Management
 
-| # | Example | Description |
-|---|---------|-------------|
-| 05 | **Error handling** | A worker error doesn't crash the page; the main thread catches it. |
-| 06 | **Lifecycle & termination** | Create, run and `terminate()` — the in-flight step is lost and the worker can't be reused. |
-| 09 | **Limits of parallelism** | `navigator.hardwareConcurrency` caps real parallelism; beyond it, workers share cores. |
+| #   | Example                     | Description                                                                                |
+| --- | --------------------------- | ------------------------------------------------------------------------------------------ |
+| 05  | **Error handling**          | A worker error doesn't crash the page; the main thread catches it.                         |
+| 06  | **Lifecycle & termination** | Create, run and `terminate()` — the in-flight step is lost and the worker can't be reused. |
+| 09  | **Limits of parallelism**   | `navigator.hardwareConcurrency` caps real parallelism; beyond it, workers share cores.     |
 
 ### Advanced
 
-| # | Example | Description |
-|---|---------|-------------|
-| 11 | **Backpressure** | Flow control with credits and acks so the worker's queue doesn't grow without bound. |
-| 12 | **SharedArrayBuffer** | Main and worker share the *same* memory; `Atomics` write/read with no `postMessage`. Needs cross-origin isolation (`COOP`/`COEP`). GitHub Pages can't send those headers, so the app registers a service-worker shim ([`coi-serviceworker.js`](public/coi-serviceworker.js)) that adds them client-side and makes `crossOriginIsolated === true` on the deployed demo. If isolation is still unavailable, the demo detects it at runtime (`crossOriginIsolated`) and shows a labelled *simulated backend* instead of breaking. |
-| 13 | **Graceful degradation** | Detect `typeof Worker` and fall back to the main thread when it's missing. |
+| #   | Example                  | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| --- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 11  | **Backpressure**         | Flow control with credits and acks so the worker's queue doesn't grow without bound.                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| 12  | **SharedArrayBuffer**    | Main and worker share the _same_ memory; `Atomics` write/read with no `postMessage`. Needs cross-origin isolation (`COOP`/`COEP`). GitHub Pages can't send those headers, so the app registers a service-worker shim ([`coi-serviceworker.js`](public/coi-serviceworker.js)) that adds them client-side and makes `crossOriginIsolated === true` on the deployed demo. If isolation is still unavailable, the demo detects it at runtime (`crossOriginIsolated`) and shows a labelled _simulated backend_ instead of breaking. |
+| 13  | **Graceful degradation** | Detect `typeof Worker` and fall back to the main thread when it's missing.                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 
 ## Visual Themes
 
@@ -141,6 +142,34 @@ Routes, navigation and the home page update automatically from the registry.
 
 This project uses Angular's built-in worker support (`@angular/build` / esbuild). Other setups use [worker-plugin](https://github.com/GoogleChromeLabs/worker-plugin) (webpack), [rollup-plugin-off-main-thread](https://github.com/surma/rollup-plugin-off-main-thread), or Parcel's native worker support.
 
+## Performance benchmark
+
+Clone cost is the thesis behind example 15: sending a payload across threads
+doesn't cost "crossing the thread" (that's sub-millisecond) — it costs
+serializing and rebuilding the object graph, and that grows with size. Measure it
+yourself with the platform's own `structuredClone` (the same algorithm
+`postMessage` uses underneath):
+
+```bash
+npm run bench
+```
+
+Sample run (illustrative — numbers depend on your machine and Node version):
+
+```
+structured clone cost — median of 7 runs (Node v26.2.0)
+
+  records |     JSON bytes |  clone ms
+  --------+----------------+----------
+     1000 |       38,666 B |     0.46
+    10000 |      406,661 B |     4.51
+    50000 |    2,122,226 B |    25.74
+   200000 |    8,755,561 B |   171.98
+```
+
+The takeaway is the shape, not the exact numbers: clone cost scales with payload
+size. When it hurts, transfer (zero-copy, example 07) instead of cloning.
+
 ## Angular Version
 
 This project targets **Angular 22** with `@angular/build` and a dedicated `webWorkerTsConfig` for worker bundles.
@@ -168,6 +197,7 @@ npm run lint           # ESLint: no-console, mandatory OnPush, keyboard a11y
 npm run format         # Format the code with Prettier
 npm run format:check   # Check formatting without writing (CI gate)
 npm run lint:boundaries# Enforce the golden rule (core/ ⇏ themes/)
+npm run bench          # Reproducible structured-clone cost benchmark (example 15)
 ```
 
 Quality gates (lint, build, format, tests, boundaries) run on every push/PR via [CI](.github/workflows/ci.yml) and as a local git pre-commit hook — independent of your editor. ESLint enforces the invariants the repo preaches: `no-console` in the lib, `ChangeDetectionStrategy.OnPush` on every component (the app is zoneless), and keyboard a11y in templates. See [`AGENTS.md`](AGENTS.md) and [`docs/AI-PROCESS.md`](docs/AI-PROCESS.md).
