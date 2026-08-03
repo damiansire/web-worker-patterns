@@ -75,3 +75,8 @@ desktop.ini
 
 # Capturas de verificación visual (locales)
 scripts/*.png
+
+# Artefactos de auditoria / herramientas de agentes. Son proceso interno,
+# no parte del repo publico.
+_audit/
+_audits/
