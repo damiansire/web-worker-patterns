@@ -76,7 +76,7 @@
     "@angular/compiler-cli": "^22.0.1",
     "@changesets/cli": "^2.31.1",
     "angular-eslint": "^22.0.0",
-    "dependency-cruiser": "^17.4.3",
+    "dependency-cruiser": "^18.1.0",
     "eslint": "^10.5.0",
     "jsdom": "^27.0.0",
     "playwright": "^1.60.0",
