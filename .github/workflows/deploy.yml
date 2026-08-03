@@ -32,7 +32,7 @@ jobs:
       # Fallback SPA: Pages sirve 404.html ante una ruta desconocida (deep-link o
       # reload). Copiar el index deja que el router de Angular resuelva la ruta.
       - run: cp dist/web-worker-patterns/browser/index.html dist/web-worker-patterns/browser/404.html
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: dist/web-worker-patterns/browser
 
