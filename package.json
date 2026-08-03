@@ -78,7 +78,7 @@
     "angular-eslint": "^22.0.0",
     "dependency-cruiser": "^17.4.3",
     "eslint": "^10.5.0",
-    "jsdom": "^27.0.0",
+    "jsdom": "^30.0.1",
     "playwright": "^1.60.0",
     "prettier": "^3.8.4",
     "typescript": "~6.0.3",
