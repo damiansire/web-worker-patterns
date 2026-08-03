@@ -81,7 +81,7 @@
     "jsdom": "^27.0.0",
     "playwright": "^1.60.0",
     "prettier": "^3.8.4",
-    "typescript": "~6.0.3",
+    "typescript": "~7.0.2",
     "typescript-eslint": "^8.61.1",
     "vitest": "^4.0.0"
   }
