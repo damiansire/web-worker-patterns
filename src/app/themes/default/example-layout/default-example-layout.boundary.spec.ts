@@ -80,6 +80,8 @@ describe('DefaultExampleLayout: @boundary alrededor de la demo', () => {
     expect(el.querySelector('.e-cmp')).not.toBeNull();
     // Quien usa teclado no queda en <body>: el foco va a la demo remontada.
     expect(document.activeElement).toBe(el.querySelector('.e-demo'));
+    // Y el lector de pantalla anuncia a dónde fue el foco, no un div anónimo.
+    expect(document.activeElement!.getAttribute('aria-label')).toBe('Demo interactiva');
     // La demo que vuelve de un reintento entra animada.
     expect(el.querySelector('.e-demo')!.classList).toContain('e-demo--back');
   });

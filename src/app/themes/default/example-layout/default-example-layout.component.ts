@@ -56,7 +56,13 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
                de abajo y el resto de la página (texto, código) sigue en pie. -->
           @boundary {
           <!-- tabindex=-1: destino del foco al reintentar (no entra en el orden de Tab). -->
-          <div class="e-demo" tabindex="-1" [class.e-demo--back]="demoBack()">
+          <div
+            class="e-demo"
+            tabindex="-1"
+            role="region"
+            aria-label="Demo interactiva"
+            [class.e-demo--back]="demoBack()"
+          >
           @switch (ex.demo) {
             @case ('thread-block') {
               <div class="e-cmp">
