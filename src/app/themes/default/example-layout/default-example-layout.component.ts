@@ -1058,6 +1058,8 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
       }
       .e-code {
         display: grid;
+        /* minmax(0, 1fr): sin esto el track es auto y crece al ancho de la línea más larga. */
+        grid-template-columns: minmax(0, 1fr);
         gap: 16px;
       }
 

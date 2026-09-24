@@ -19,6 +19,11 @@ hljs.registerLanguage('typescript', typescript);
   `,
   styles: [
     `
+      /* min-width: 0 deja que el <pre> scrollee adentro en vez de estirar el contenedor. */
+      :host {
+        display: block;
+        min-width: 0;
+      }
       .e-code {
         margin: 0;
         background: var(--surface-raised);
