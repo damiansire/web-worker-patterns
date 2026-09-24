@@ -65,7 +65,7 @@
     "@angular/platform-browser": "^22.2.0",
     "@angular/router": "^22.2.0",
     "@jsverse/transloco": "^7.6.1",
-    "highlight.js": "^11.11.1",
+    "highlight.js": "^11.12.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
@@ -77,12 +77,12 @@
     "@changesets/cli": "^2.31.1",
     "angular-eslint": "^22.5.0",
     "dependency-cruiser": "^17.4.3",
-    "eslint": "^10.5.0",
+    "eslint": "^10.11.0",
     "jsdom": "^27.0.0",
-    "playwright": "^1.60.0",
-    "prettier": "^3.8.4",
+    "playwright": "^1.63.0",
+    "prettier": "^3.9.8",
     "typescript": "~6.0.3",
-    "typescript-eslint": "^8.61.1",
+    "typescript-eslint": "^8.70.0",
     "vitest": "^4.0.0"
   },
   "overrides": {
