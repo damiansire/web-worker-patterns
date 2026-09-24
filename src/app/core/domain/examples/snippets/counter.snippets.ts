@@ -27,11 +27,11 @@ addEventListener('message', ({ data }) => {
 }`,
 
   'runner.usage.ts': `// El ExampleRunnerService spawnea el worker y vuelca los ticks al monitor.
-const worker = example.workerFactory();          // new Worker(new URL('counter.worker', ...))
+const worker = example.workerFactory();     // new Worker(new URL('counter.worker', ...))
 worker.onmessage = (e) => {
   if (e.data.type === 'tick') {
     this.lastTick.set(e.data.tick);
-    this.monitor.push('worker', 'worker');         // el monitor registra la actividad
+    this.monitor.push('worker', 'worker');  // el monitor registra la actividad
   }
 };
 worker.postMessage({ command: 'start', intervalMs: 500 });`,

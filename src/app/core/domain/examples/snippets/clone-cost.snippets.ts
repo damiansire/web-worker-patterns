@@ -10,7 +10,9 @@ addEventListener('message', ({ data }) => {
 });`,
 
   'medir.ts': `// Main thread: cronometramos el ida y vuelta REAL.
-const worker = new Worker(new URL('./clone-cost.worker', import.meta.url), { type: 'module' });
+const worker = new Worker(new URL('./clone-cost.worker', import.meta.url), {
+  type: 'module',
+});
 
 function medir(payload) {
   return new Promise((resolve) => {

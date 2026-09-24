@@ -20,7 +20,9 @@ addEventListener('message', ({ data }) => {
 });`,
 
   'en-el-main.ts': `// El main controla el ciclo de vida del worker.
-const worker = new Worker(new URL('./lifecycle.worker', import.meta.url), { type: 'module' });
+const worker = new Worker(new URL('./lifecycle.worker', import.meta.url), {
+  type: 'module',
+});
 worker.onmessage = (e) => {
   if (e.data.type === 'progress') render(e.data.step, e.data.steps);
 };
@@ -32,5 +34,7 @@ worker.terminate();
 
 // Un worker terminado NO se reusa: para volver a correr,
 // hay que crear uno nuevo.
-worker = new Worker(new URL('./lifecycle.worker', import.meta.url), { type: 'module' });`,
+worker = new Worker(new URL('./lifecycle.worker', import.meta.url), {
+  type: 'module',
+});`,
 };

@@ -19,7 +19,9 @@ self.onconnect = (e) => {
 };`,
 
   'conectar.ts': `// Cada pestaña/panel conecta al MISMO SharedWorker por su propio puerto.
-const worker = new SharedWorker(new URL('./shared-counter.worker', import.meta.url), { type: 'module' });
+const worker = new SharedWorker(new URL('./shared-counter.worker', import.meta.url), {
+  type: 'module',
+});
 worker.port.start();
 worker.port.onmessage = (e) => render(e.data.count);
 worker.port.postMessage({ type: 'inc' });

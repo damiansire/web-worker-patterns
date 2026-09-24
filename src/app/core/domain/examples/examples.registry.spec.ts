@@ -52,6 +52,20 @@ describe('EXAMPLES registry', () => {
     }
   });
 
+  it('ninguna línea de snippet pasa de 92 caracteres (lo que entra en el code-block a 1280px)', () => {
+    // Medido con Playwright: 94 caracteres ya scrollean dentro del <pre> en desktop.
+    const MAX = 92;
+    const largas = EXAMPLES.flatMap((ex) =>
+      Object.entries(ex.snippets).flatMap(([label, code]) =>
+        code
+          .split('\n')
+          .filter((line) => line.length > MAX)
+          .map((line) => `${ex.id} ${label}: (${line.length}) ${line}`),
+      ),
+    );
+    expect(largas).toEqual([]);
+  });
+
   it('findExample resuelve por id y devuelve undefined si no existe', () => {
     expect(findExample('01-setinterval-counter')?.order).toBe(1);
     expect(findExample('no-existe')).toBeUndefined();
