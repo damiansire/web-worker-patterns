@@ -29,9 +29,9 @@ describe('themeGuard / rootThemeRedirect', () => {
   let createUrlTreeCalls: unknown[][];
 
   beforeEach(() => {
-    // El entorno de test corre sin DOM (no hay localStorage/document); ThemeService
-    // ya lo contempla con `typeof`. Para simular "theme persistido" usamos setTheme(),
-    // no localStorage.
+    // Los tests corren en jsdom, que SÍ tiene localStorage: setTheme() persiste ahí.
+    // src/test-setup.ts lo vacía antes de cada test, así el theme activado en un caso
+    // no se filtra al siguiente. Para simular "theme persistido" usamos setTheme().
     // Registry SIN 'default' a propósito: así se ve que el fallback es el primer
     // id del registry ('aurora'), no un 'default' hardcodeado.
     registry = new Map([
