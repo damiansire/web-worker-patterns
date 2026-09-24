@@ -44,6 +44,19 @@ describe('ThemeService', () => {
     expect(svc.activeId()).toBe('default');
   });
 
+  it('restores a persisted theme that is still in the registry', () => {
+    localStorage.setItem('wwp-theme', 'beta');
+    const svc = makeService([pack('default'), pack('beta')]);
+    expect(svc.activeId()).toBe('beta');
+  });
+
+  it('discards a persisted theme that is no longer in the registry', () => {
+    localStorage.setItem('wwp-theme', 'retired');
+    const svc = makeService([pack('default'), pack('beta')]);
+    expect(svc.activeId()).toBe('default');
+    expect(svc.active().id).toBe('default');
+  });
+
   it('persists the active theme to localStorage', () => {
     const store = new Map<string, string>();
     const original = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');

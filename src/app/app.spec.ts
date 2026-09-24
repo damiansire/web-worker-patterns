@@ -65,4 +65,21 @@ describe('App (theme host)', () => {
     expect(compiled.querySelector('.fake-shell')).toBeTruthy();
     expect(document.documentElement.dataset['theme']).toBe('default');
   });
+
+  it('still mounts a shell when storage holds a theme id missing from the registry', async () => {
+    // Regresión: un id persistido que ya no existe dejaba activeId y active()
+    // divergentes, y App nunca montaba el shell (pantalla en blanco).
+    localStorage.setItem('wwp-theme', 'retired');
+    const fixture = TestBed.createComponent(App);
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    fixture.autoDetectChanges(true);
+    for (let i = 0; i < 20 && !compiled.querySelector('.fake-shell'); i++) {
+      await fixture.whenStable();
+      await new Promise((resolve) => setTimeout(resolve));
+    }
+
+    expect(compiled.querySelector('.fake-shell')).toBeTruthy();
+    expect(document.documentElement.dataset['theme']).toBe('default');
+  });
 });

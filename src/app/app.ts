@@ -36,7 +36,7 @@ export class App {
 
   constructor() {
     // Setea data-theme inicial (y, en el futuro, inyecta el CSS del theme).
-    this.theme.setTheme(this.theme.activeId());
+    this.theme.setTheme(this.theme.active().id);
 
     // El idioma activo de Transloco sigue al LanguageService (geo + persistencia),
     // que es la fuente de verdad del idioma. Así el contenido educativo neutral
@@ -56,7 +56,7 @@ export class App {
         // Evita la race en deep-link: el shell de un theme se carga async, así
         // que solo aplicamos la resolución si sigue siendo el theme activo
         // (si no, una carga vieja pisaría a la nueva al cambiar rápido de theme).
-        if (this.theme.activeId() === id) {
+        if (this.theme.active().id === id) {
           this.shell.set(cmp);
           // Un tick extra de microtarea: la escritura de la signal programa la
           // deteccion de cambios en un microtask propio del scheduler zoneless,

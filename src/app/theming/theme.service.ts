@@ -26,7 +26,9 @@ export class ThemeService {
 
   // El theme persistido (localStorage) tiene prioridad como valor inicial; la URL
   // lo sobreescribe vía el guard al navegar. Default `default` en la primera visita.
-  readonly activeId = signal<ThemeId>(readStoredTheme() ?? 'default');
+  // Un id persistido que ya no está en el registry (theme retirado, storage viejo)
+  // se descarta: si no, activeId y active() divergen y App nunca monta el shell.
+  readonly activeId = signal<ThemeId>(this.initialThemeId());
   readonly active = computed<ThemePack>(
     () => this.registry.get(this.activeId()) ?? this.registry.values().next().value!,
   );
@@ -47,6 +49,11 @@ export class ThemeService {
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem(THEME_STORAGE_KEY, id);
     }
+  }
+
+  private initialThemeId(): ThemeId {
+    const stored = readStoredTheme();
+    return stored && this.registry.has(stored) ? stored : 'default';
   }
 
   private injectStylesheets(id: ThemeId): void {
