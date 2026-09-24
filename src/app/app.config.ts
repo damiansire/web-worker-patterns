@@ -11,6 +11,7 @@ import { provideTransloco } from '@jsverse/transloco';
 import { routes } from './app.routes';
 import { TranslocoHttpLoader } from './core/i18n/transloco-loader';
 import { provideThemeRegistry } from './theming/theme.registry';
+import { provideWorkerPatternTools } from './agent-tools/worker-patterns.web-mcp';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -31,5 +32,7 @@ export const appConfig: ApplicationConfig = {
       },
       loader: TranslocoHttpLoader,
     }),
+    // WebMCP (experimental): tools para agentes de IA; no-op si el navegador no lo soporta.
+    provideWorkerPatternTools(),
   ],
 };
