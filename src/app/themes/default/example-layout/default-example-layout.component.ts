@@ -6,6 +6,7 @@ import {
   inject,
   Injector,
   input,
+  signal,
   viewChild,
   ElementRef,
 } from '@angular/core';
@@ -55,7 +56,7 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
                de abajo y el resto de la página (texto, código) sigue en pie. -->
           @boundary {
           <!-- tabindex=-1: destino del foco al reintentar (no entra en el orden de Tab). -->
-          <div class="e-demo" tabindex="-1">
+          <div class="e-demo" tabindex="-1" [class.e-demo--back]="demoBack()">
           @switch (ex.demo) {
             @case ('thread-block') {
               <div class="e-cmp">
@@ -1570,6 +1571,23 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
       .e-demo:focus {
         outline: none;
       }
+      /* Entrada suave del fallback y de la demo al reintentar (no en la carga inicial). */
+      .e-crash,
+      .e-demo--back {
+        animation: e-fade-in 200ms ease-out;
+      }
+      @keyframes e-fade-in {
+        from {
+          opacity: 0;
+          transform: translateY(4px);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .e-crash,
+        .e-demo--back {
+          animation: none;
+        }
+      }
       .e-crash {
         display: flex;
         flex-direction: column;
@@ -1743,6 +1761,8 @@ export class DefaultExampleLayoutComponent {
   protected readonly mainFps = this.ctl.mainFps;
   protected readonly compMode = this.ctl.compMode;
 
+  /** La demo volvió de un reintento: anima su entrada (la carga inicial no). */
+  protected readonly demoBack = signal(false);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly injector = inject(Injector);
 
@@ -1770,6 +1790,7 @@ export class DefaultExampleLayoutComponent {
    * que dispara el NG0600 de 22.2.
    */
   protected retryDemo(reset: () => void): void {
+    this.demoBack.set(true);
     reset();
     afterNextRender(() => this.host.nativeElement.querySelector<HTMLElement>('.e-demo')?.focus(), {
       injector: this.injector,

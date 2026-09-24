@@ -80,6 +80,8 @@ describe('DefaultExampleLayout: @boundary alrededor de la demo', () => {
     expect(el.querySelector('.e-cmp')).not.toBeNull();
     // Quien usa teclado no queda en <body>: el foco va a la demo remontada.
     expect(document.activeElement).toBe(el.querySelector('.e-demo'));
+    // La demo que vuelve de un reintento entra animada.
+    expect(el.querySelector('.e-demo')!.classList).toContain('e-demo--back');
   });
 
   it('sin errores, la demo se dibuja normal y no aparece el fallback', async () => {
@@ -92,5 +94,7 @@ describe('DefaultExampleLayout: @boundary alrededor de la demo', () => {
     expect(el.querySelector('.e-cmp')).not.toBeNull();
     expect(el.querySelector('.e-crash')).toBeNull();
     expect(handler.seen).toEqual([]);
+    // En la carga inicial la demo no se anima.
+    expect(el.querySelector('.e-demo')!.classList).not.toContain('e-demo--back');
   });
 });
