@@ -31,6 +31,16 @@ creado por `/fragua adoptar` el 2026-07-10.
 - **Nombres por dominio**: un servicio/signal se nombra por lo que significa
   para el ejemplo (`workerPoolStatus`, `threadLane`), no por su mecanismo
   interno (`state`, `data`, `handler`).
+- **Override del compilador de ESLint** (`overrides` en `package.json`):
+  `@angular-eslint/bundled-angular-compiler` apunta a `@angular/compiler` real
+  porque angular-eslint 22.5 embebe el compilador 22.1, que no parsea
+  `@boundary`. Al subir Angular, subí también la versión de ese override
+  (tiene que ser la misma que `@angular/compiler`). Sacalo cuando angular-eslint
+  embeba un compilador >= 22.2.
+- **`@boundary` + `viewChild`** (Angular 22.2): al descartar la vista rota, los
+  `viewChild` declarados dentro del bloque tiran un NG0600 que pisa a `$error`.
+  Por eso el fallback del example-layout no muestra `$error`; el error original
+  llega primero al `ErrorHandler`.
 - No agregues abstracciones para un caso de uso único; no diseñes para
   requisitos hipotéticos.
 

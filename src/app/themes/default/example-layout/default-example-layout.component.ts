@@ -1,8 +1,10 @@
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   effect,
   inject,
+  Injector,
   input,
   viewChild,
   ElementRef,
@@ -49,6 +51,11 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
             <p class="e-watch">{{ ww }}</p>
           }
 
+          <!-- @boundary aísla la demo: si algo tira al dibujarla, cae el @error
+               de abajo y el resto de la página (texto, código) sigue en pie. -->
+          @boundary {
+          <!-- tabindex=-1: destino del foco al reintentar (no entra en el orden de Tab). -->
+          <div class="e-demo" tabindex="-1">
           @switch (ex.demo) {
             @case ('thread-block') {
               <div class="e-cmp">
@@ -834,6 +841,24 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
               </div>
             }
           }
+          </div>
+          } @error (let reset = $reset) {
+            <!-- Sin $error a propósito: en 22.2, al descartar la vista rota se
+                 ensucian los viewChild (compJs, ocWorker, ocMain) y eso tira un
+                 NG0600 que pisa a $error. El error original llega primero al
+                 ErrorHandler (consola); acá solo avisamos y ofrecemos reintentar. -->
+            <section class="e-crash" role="alert">
+              <h2>Esta demo se rompió al dibujarse</h2>
+              <p>
+                El error quedó contenido acá: el resto de la página sigue vivo. Es la misma idea
+                que el <code>onerror</code> de un worker, pero aplicada a la vista. El detalle está
+                en la consola.
+              </p>
+              <default-button variant="solid" (pressed)="retryDemo(reset)">
+                Reintentar la demo
+              </default-button>
+            </section>
+          }
 
           @if (content()?.takeaways; as tk) {
             <section class="e-take">
@@ -1540,6 +1565,38 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
         }
       }
 
+      .e-demo:focus {
+        outline: none;
+      }
+      .e-crash {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        margin: 0 0 40px;
+        padding: 16px 20px;
+        border: var(--border-width) solid var(--thread-blocked);
+        border-radius: var(--radius);
+        background: var(--surface-raised);
+      }
+      .e-crash h2 {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 22px;
+        margin: 0;
+        color: var(--thread-blocked);
+      }
+      .e-crash p {
+        margin: 0;
+        max-width: 62ch;
+        line-height: 1.6;
+      }
+      .e-crash code {
+        font-family: var(--font-mono);
+        font-size: 0.9em;
+        line-height: 1;
+      }
+
       .e-note {
         font-family: var(--font-display);
         font-style: italic;
@@ -1684,6 +1741,9 @@ export class DefaultExampleLayoutComponent {
   protected readonly mainFps = this.ctl.mainFps;
   protected readonly compMode = this.ctl.compMode;
 
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly injector = inject(Injector);
+
   constructor() {
     // Si el journey fija el ejemplo por input, el controller lo usa en vez de la ruta.
     effect(() => {
@@ -1698,6 +1758,19 @@ export class DefaultExampleLayoutComponent {
       if (this.example()?.demo === 'compositor-jank') {
         this.ctl.setCompositorJsBox(this.compJsBox()?.nativeElement);
       }
+    });
+  }
+
+  /**
+   * Reintenta la demo caída (`$reset` del @boundary) y devuelve el foco a la
+   * demo remontada: sin esto, quien usa teclado queda en `<body>`. Se busca por
+   * DOM y no por `viewChild` porque un query dentro del @boundary es justo lo
+   * que dispara el NG0600 de 22.2.
+   */
+  protected retryDemo(reset: () => void): void {
+    reset();
+    afterNextRender(() => this.host.nativeElement.querySelector<HTMLElement>('.e-demo')?.focus(), {
+      injector: this.injector,
     });
   }
 
