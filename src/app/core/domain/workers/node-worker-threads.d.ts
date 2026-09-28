@@ -4,7 +4,7 @@
  *
  * El repo no trae `@types/node` (no lo necesita para `src/`: los workers reales
  * son `Worker` del DOM). Estos specs SÍ necesitan hilos de SO reales: jsdom no
- * implementa `Worker` del DOM: y usan `node:worker_threads` sólo en tests para
+ * implementa `Worker` del DOM, y usan `node:worker_threads` sólo en tests para
  * probar concurrencia real (no un mock). Sumar `@types/node` completo por esto
  * sería una dependencia nueva para un puñado de tipos; esta declaración ambiental
  * los cubre sin tocar `package.json`.

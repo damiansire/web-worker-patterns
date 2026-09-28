@@ -258,5 +258,423 @@
         "tip": "Para animar barato y a prueba de jank, usá transform y opacity (compositor), no left/top/width (disparan layout en el main)."
       }
     }
+  },
+  "learning": {
+    "ui": {
+      "title": "El viaje del hilo",
+      "guide": "Guía",
+      "start": "Caminá y hablá con los vecinos.",
+      "nobody": "Acá no hay nadie.",
+      "talk": "Hablar",
+      "next": "Seguir",
+      "bye": "Chau",
+      "neighbors": "Vecinos",
+      "dex": "Workerdex",
+      "dexEmpty": "sin aprender",
+      "newWord": "Palabra nueva",
+      "pulse": "pulso de Main",
+      "free": "libre",
+      "frozen": "congelado",
+      "busy": "ayudante trabajando",
+      "done": "cumplida",
+      "progress": "misiones",
+      "restart": "Empezar de nuevo",
+      "restartAsk": "Se borra todo lo aprendido.",
+      "restartYes": "Sí, borrar",
+      "restartNo": "No",
+      "guard": "Guardia",
+      "guardLocked": "Falta ayudar a [names].",
+      "guardOpen": "Pasá. [next] te espera.",
+      "end": "Recorriste los 16 patrones.",
+      "failed": "El ayudante falló. Probá de nuevo.",
+      "keys": "Flechas para caminar, Espacio para hablar.",
+      "mapLabel": "Mapa de [region]",
+      "sceneSolo": "gira solo",
+      "sceneMain": "lo empuja Main",
+      "sceneWorker": "lo dibuja un ayudante",
+      "sceneByMain": "lo dibuja Main"
+    },
+    "regions": {
+      "understanding": "Villa Main",
+      "communication": "Puerto Mensaje",
+      "optimization": "Valle del Taller",
+      "management": "El Cuartel",
+      "advanced": "La Frontera"
+    },
+    "vocab": {
+      "main-thread": {
+        "plain": "el hilo principal",
+        "note": "El único hilo que pinta y responde."
+      },
+      "event-loop": {
+        "plain": "la fila de tareas",
+        "note": "Atiende una tarea por vez."
+      },
+      "compositor": {
+        "plain": "el pintor de capas",
+        "note": "Otro hilo: mueve capas ya pintadas."
+      },
+      "new-worker": {
+        "plain": "un ayudante",
+        "note": "Crea otro hilo para el trabajo pesado."
+      },
+      "post-message": {
+        "plain": "una carta",
+        "note": "Manda datos al otro hilo."
+      },
+      "onmessage": {
+        "plain": "el buzón",
+        "note": "Recibe lo que manda el otro hilo."
+      },
+      "structured-clone": {
+        "plain": "la copia",
+        "note": "Lo enviado se copia, no se comparte."
+      },
+      "shared-worker": {
+        "plain": "la centralita",
+        "note": "Un ayudante para varias pestañas."
+      },
+      "message-port": {
+        "plain": "la línea",
+        "note": "El canal propio de cada conexión."
+      },
+      "transferable": {
+        "plain": "la mudanza",
+        "note": "Cambia de dueño sin copiarse."
+      },
+      "worker-pool": {
+        "plain": "la cuadrilla",
+        "note": "Pocos ayudantes que se reusan."
+      },
+      "offscreen-canvas": {
+        "plain": "el lienzo prestado",
+        "note": "Un canvas que dibuja el ayudante."
+      },
+      "onerror": {
+        "plain": "la alarma",
+        "note": "Avisa cuando el ayudante falla."
+      },
+      "terminate": {
+        "plain": "el corte",
+        "note": "Mata al ayudante en el acto."
+      },
+      "hardware-concurrency": {
+        "plain": "los núcleos",
+        "note": "Procesadores lógicos: una pista, no garantía."
+      },
+      "backpressure": {
+        "plain": "la esclusa",
+        "note": "El que produce espera al que consume."
+      },
+      "shared-array-buffer": {
+        "plain": "la pizarra común",
+        "note": "Memoria que ven los dos hilos."
+      },
+      "atomics": {
+        "plain": "el turno",
+        "note": "Escrituras seguras sobre memoria compartida."
+      },
+      "feature-detection": {
+        "plain": "la prueba previa",
+        "note": "Chequear el soporte antes de usar."
+      }
+    },
+    "missions": {
+      "02-main-thread": {
+        "npc": "Main",
+        "hello": "Acá atiendo todo yo. Solo.",
+        "ask": "Pinto, calculo y contesto. De a uno.",
+        "done": "Una tarea larga frena {la fila de tareas|event-loop}.",
+        "paths": {
+          "block": {
+            "label": "Pedile un cálculo largo",
+            "during": "Bueno. Ya vuelvo.",
+            "after": ["Volví. [seg] sin atender a nadie.", "Así es {la fila de tareas|event-loop}."]
+          }
+        }
+      },
+      "01-setinterval-counter": {
+        "npc": "Relojera",
+        "hello": "Mi reloj da dos tics por segundo.",
+        "ask": "¿Quién le da cuerda?",
+        "done": "A mi reloj lo mueve {un ayudante|new-worker}.",
+        "paths": {
+          "main": {
+            "label": "Que lo haga Main",
+            "during": "Main está ocupado calculando.",
+            "after": [
+              "El reloj se clavó [seg].",
+              "Main es {el hilo principal|main-thread}: uno solo."
+            ]
+          },
+          "worker": {
+            "label": "Llamar a un ayudante",
+            "during": "El ayudante cuenta. Vos caminá.",
+            "after": ["[ticks] tics sin un solo salto.", "Diste [steps] pasos mientras tanto."]
+          }
+        }
+      },
+      "16-compositor-vs-main": {
+        "npc": "Pintor",
+        "hello": "Tengo dos molinetes girando.",
+        "ask": "Uno gira solo. Al otro lo empuja Main.",
+        "done": "{El pintor de capas|compositor} no espera a Main.",
+        "paths": {
+          "main": {
+            "label": "Ocupar a Main",
+            "during": "Mirá los molinetes.",
+            "after": [
+              "Uno se clavó. El otro siguió.",
+              "A ese lo mueve {el pintor de capas|compositor}."
+            ]
+          },
+          "worker": {
+            "label": "Ocupar a un ayudante",
+            "during": "El ayudante calcula.",
+            "after": ["Ninguno se clavó.", "Main quedó libre para empujar."]
+          }
+        }
+      },
+      "03-basic-communication": {
+        "npc": "Cartero",
+        "hello": "Llevo cartas al otro lado.",
+        "ask": "¿Qué le mandamos al ayudante?",
+        "done": "Con {una carta|post-message} le hablás al ayudante.",
+        "paths": {
+          "function": {
+            "label": "Mandar una función",
+            "during": "A ver si pasa.",
+            "after": ["No salió: [error].", "Solo viaja {la copia|structured-clone} de datos."]
+          },
+          "message": {
+            "label": "Mandar un saludo",
+            "during": "Carta en camino.",
+            "after": ["Volvió: [reply].", "Ida y vuelta: [ms] ms."]
+          }
+        }
+      },
+      "08-shared-worker": {
+        "npc": "Farera",
+        "hello": "Dos casas, una sola central.",
+        "ask": "Sumá desde una. Mirá la otra.",
+        "done": "{La centralita|shared-worker} guarda un solo número.",
+        "paths": {
+          "share": {
+            "label": "Sumar uno",
+            "during": "Sumando desde la casa uno.",
+            "after": [
+              "Las dos casas marcan [count].",
+              "Comparten {la centralita|shared-worker}.",
+              "Cada casa tiene {su línea|message-port}."
+            ]
+          }
+        }
+      },
+      "04-offloading-computation": {
+        "npc": "Molinero",
+        "hello": "Hay que contar primos. Millones.",
+        "ask": "¿Quién los cuenta?",
+        "done": "No fue más rápido. Fue sin frenar.",
+        "paths": {
+          "main": {
+            "label": "Que cuente Main",
+            "during": "Main cuenta. Nada se mueve.",
+            "after": ["Contó [count]. Tardó [seg].", "El pueblo entero esperó."]
+          },
+          "worker": {
+            "label": "Que cuente un ayudante",
+            "during": "El ayudante cuenta. Vos caminá.",
+            "after": [
+              "Contó [count] en [seg].",
+              "Diste [steps] pasos mientras tanto.",
+              "La respuesta cayó en {el buzón|onmessage}."
+            ]
+          }
+        }
+      },
+      "07-transferable-objects": {
+        "npc": "Carretero",
+        "hello": "Cargo un bulto de 64 megas.",
+        "ask": "¿Lo copiamos o lo mudamos?",
+        "done": "{La mudanza|transferable} no copia: cambia de dueño.",
+        "paths": {
+          "clone": {
+            "label": "Copiarlo",
+            "during": "Copiando ida y vuelta.",
+            "after": ["Tardó [ms] ms.", "Se copió dos veces."]
+          },
+          "transfer": {
+            "label": "Mudarlo",
+            "during": "Mudando.",
+            "after": [
+              "Tardó [ms] ms.",
+              "Main se quedó sin el bulto.",
+              "Eso es {la mudanza|transferable}."
+            ]
+          }
+        }
+      },
+      "10-worker-pool": {
+        "npc": "Capataz",
+        "hello": "Tengo 24 encargos y 4 ayudantes.",
+        "ask": "No contrato uno por encargo.",
+        "done": "{La cuadrilla|worker-pool} reusa, no contrata.",
+        "paths": {
+          "pool": {
+            "label": "Repartir los encargos",
+            "during": "La cuadrilla reparte.",
+            "after": [
+              "[tasks] encargos, [workers] ayudantes.",
+              "Cada ayudante se reusó.",
+              "Eso es {la cuadrilla|worker-pool}."
+            ]
+          }
+        }
+      },
+      "14-offscreen-canvas": {
+        "npc": "Titiritera",
+        "hello": "Dos relojes gemelos.",
+        "ask": "A uno lo dibuja un ayudante.",
+        "done": "{El lienzo prestado|offscreen-canvas} dibuja sin Main.",
+        "paths": {
+          "block": {
+            "label": "Ocupar a Main",
+            "during": "Mirá los dos relojes.",
+            "after": [
+              "El de Main saltó [frames] cuadros.",
+              "El otro nunca paró.",
+              "Es {el lienzo prestado|offscreen-canvas}."
+            ]
+          }
+        }
+      },
+      "15-clone-cost": {
+        "npc": "Balancero",
+        "hello": "Peso cada carta que sale.",
+        "ask": "Más grande, más cara. ¿Cuánto?",
+        "done": "Medí {la copia|structured-clone}. No la adivines.",
+        "paths": {
+          "measure": {
+            "label": "Pesar ocho cartas",
+            "during": "Pesando.",
+            "after": [
+              "La más chica: [first] ms.",
+              "La más grande: [last] ms.",
+              "{La copia|structured-clone} crece con el tamaño."
+            ]
+          }
+        }
+      },
+      "05-error-handling": {
+        "npc": "Médica",
+        "hello": "Un ayudante también se enferma.",
+        "ask": "Mandale datos rotos. Yo miro.",
+        "done": "{La alarma|onerror} avisa. La página no cae.",
+        "paths": {
+          "broken": {
+            "label": "Mandar datos rotos",
+            "during": "Datos rotos en camino.",
+            "after": ["Falló, y Main siguió vivo.", "Sonó {la alarma|onerror}."]
+          }
+        }
+      },
+      "06-lifecycle-termination": {
+        "npc": "Sereno",
+        "hello": "Una tarea larga: doce pasos.",
+        "ask": "Podés cortarla cuando quieras.",
+        "done": "{El corte|terminate} es inmediato y final.",
+        "paths": {
+          "cut": {
+            "label": "Arrancar la tarea",
+            "during": "Paso a paso.",
+            "after": [
+              "Cortada en el paso [step].",
+              "Ese ayudante ya no vuelve.",
+              "Fue {el corte|terminate}."
+            ],
+            "act": "Cortarla ya",
+            "missed": ["Terminó sola.", "Probá cortarla antes."]
+          }
+        }
+      },
+      "09-worker-limits": {
+        "npc": "Reclutadora",
+        "hello": "¿Más ayudantes, más rápido?",
+        "ask": "Probemos con 1, 2, 4, 8 y más.",
+        "done": "{Los núcleos|hardware-concurrency}: una pista, no garantía.",
+        "paths": {
+          "scale": {
+            "label": "Probar la escala",
+            "during": "Midiendo cada tanda.",
+            "after": [
+              "Tu máquina reporta [cores] hilos.",
+              "Pasado eso, no mejora.",
+              "Son {los núcleos|hardware-concurrency}."
+            ]
+          }
+        }
+      },
+      "11-backpressure-scheduling": {
+        "npc": "Esclusero",
+        "hello": "Cuarenta barcos. Una sola esclusa.",
+        "ask": "¿Los largo todos juntos?",
+        "done": "{La esclusa|backpressure} acota la fila.",
+        "paths": {
+          "flood": {
+            "label": "Largar todos",
+            "during": "Cuarenta en fila.",
+            "after": ["Pico en espera: [peak].", "El último esperó [ms] ms."]
+          },
+          "window": {
+            "label": "Largar de a tres",
+            "during": "Tres por vez.",
+            "after": [
+              "Pico en espera: [peak].",
+              "El total tardó lo mismo.",
+              "Eso es {la esclusa|backpressure}."
+            ]
+          }
+        }
+      },
+      "12-shared-array-buffer": {
+        "npc": "Archivista",
+        "hello": "Una pizarra que ven los dos.",
+        "ask": "El ayudante escribe. Main lee.",
+        "done": "{La pizarra común|shared-array-buffer} no copia nada.",
+        "paths": {
+          "share": {
+            "label": "Contar hasta 50",
+            "during": "Sin una sola carta.",
+            "after": [
+              "Llegó a [value]. Cartas: cero.",
+              "Es {la pizarra común|shared-array-buffer}.",
+              "Se escribe por {turno|atomics}."
+            ],
+            "simulated": "Acá fue simulado: falta aislamiento."
+          }
+        }
+      },
+      "13-graceful-degradation": {
+        "npc": "Baqueana",
+        "hello": "No todos los caminos tienen ayudante.",
+        "ask": "Igual hay que llegar.",
+        "done": "Primero {la prueba previa|feature-detection}. Después elegís.",
+        "paths": {
+          "fallback": {
+            "label": "Ir sin ayudante",
+            "during": "Main lo hace solo.",
+            "after": [
+              "Llegó: [count]. Congeló [seg].",
+              "Antes hice {la prueba previa|feature-detection}."
+            ]
+          },
+          "worker": {
+            "label": "Ir con ayudante",
+            "during": "El ayudante lo hace.",
+            "after": ["Llegó: [count]. Sin frenar.", "Mismo resultado, mejor camino."]
+          }
+        }
+      }
+    }
   }
 }
