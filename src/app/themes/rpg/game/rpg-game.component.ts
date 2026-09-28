@@ -221,6 +221,8 @@ export class RpgGameComponent {
   private from: Point = WORLD[0].entry;
   private stepStart = 0;
   private moving = false;
+  /** En qué parte del paso está el jugador: alterna los pies al caminar. */
+  private stride = 0;
   private held: Dir | null = null;
   private raf = 0;
   private talkOnArrival: Actor | null = null;
@@ -500,6 +502,7 @@ export class RpgGameComponent {
     // Reloj propio y no el del rAF: los dos tienen que medir desde el mismo origen.
     const t = Math.min(1, (performance.now() - this.stepStart) / STEP_MS);
     const to = this.position();
+    this.stride = (this.stride + 1 / 12) % 1;
     this.drawAt = {
       x: this.from.x + (to.x - this.from.x) * t,
       y: this.from.y + (to.y - this.from.y) * t,
@@ -926,7 +929,12 @@ export class RpgGameComponent {
     paint(ctx, {
       region,
       people,
-      player: { ...player, look: PLAYER_LOOK, facing: this.facing() },
+      player: {
+        ...player,
+        look: PLAYER_LOOK,
+        facing: this.facing(),
+        stride: this.moving ? this.stride : undefined,
+      },
       frozen: this.mode() === 'frozen' && !this.thawed(),
     });
   }

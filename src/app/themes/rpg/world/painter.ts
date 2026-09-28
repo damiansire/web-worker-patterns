@@ -17,6 +17,8 @@ export interface Person extends Point {
   /** Cuánto salta el cartelito (px): el festejo de una misión recién cumplida. */
   badgeLift?: number;
   facing?: Dir;
+  /** Avance del paso en curso, de 0 a 1. Sin valor, está quieto. */
+  stride?: number;
 }
 
 export interface Scene {
@@ -149,8 +151,12 @@ function paintPerson(ctx: CanvasRenderingContext2D, person: Person, frozen: bool
   const Y = person.y * TILE;
   const { skin, shirt, hair } = person.look;
 
-  rect(ctx, X + 8, Y + 27, 16, 4, 'rgba(0, 0, 0, 0.25)');
-  rect(ctx, X + 9, Y + 16, 14, 11, shirt);
+  rect(ctx, X + 8, Y + 28, 16, 3, 'rgba(0, 0, 0, 0.25)');
+  // Al caminar, un pie se levanta y después el otro: se camina, no se desliza.
+  const lifted = person.stride === undefined ? -1 : person.stride < 0.5 ? 0 : 1;
+  rect(ctx, X + 11, Y + 25, 4, lifted === 0 ? 2 : 4, '#3b2a1a');
+  rect(ctx, X + 17, Y + 25, 4, lifted === 1 ? 2 : 4, '#3b2a1a');
+  rect(ctx, X + 9, Y + 16, 14, 10, shirt);
   rect(ctx, X + 8, Y + 4, 16, 13, frozen ? '#ff9a9d' : skin);
   rect(ctx, X + 8, Y + 2, 16, 5, hair);
 
