@@ -77,7 +77,7 @@ describe('SharedCounterBuffer (con worker real, camino no-simulado)', () => {
       expect(isSharedMemorySupported()).toBe(true);
       const worker = new FakeWorker();
       const buffer = new SharedCounterBuffer();
-      buffer.start(worker, { target: 3, intervalMs: 10 });
+      buffer.start(() => worker, { target: 3, intervalMs: 10 });
 
       const msg = worker.lastMessage as { command: string; sab: SharedArrayBuffer; target: number };
       expect(msg.command).toBe('start');
@@ -97,6 +97,9 @@ describe('SharedCounterBuffer (con worker real, camino no-simulado)', () => {
     terminated = false;
     private timer?: ReturnType<typeof setInterval>;
     postMessage(message: unknown): void {
+      if (this.terminated) {
+        return; // un worker terminado descarta los mensajes, como el real
+      }
       const { sab, intervalMs } = message as { sab: SharedArrayBuffer; intervalMs: number };
       const view = new Int32Array(sab);
       this.timer = setInterval(() => {
@@ -121,7 +124,7 @@ describe('SharedCounterBuffer (con worker real, camino no-simulado)', () => {
       let finishedAt: number | undefined;
 
       buffer.start(
-        worker,
+        () => worker,
         { target: 5, intervalMs: 10, pollIntervalMs: 5 },
         {
           onValue: (v) => values.push(v),
@@ -141,6 +144,102 @@ describe('SharedCounterBuffer (con worker real, camino no-simulado)', () => {
     } finally {
       vi.useRealTimers();
       vi.unstubAllGlobals();
+    }
+  });
+
+  // M8: antes `start` reusaba el worker que `stop` acababa de terminar y el
+  // contador quedaba en 0 para siempre.
+  it('reiniciar crea un worker nuevo por arranque, termina el anterior y vuelve a contar', () => {
+    vi.stubGlobal('crossOriginIsolated', true);
+    vi.useFakeTimers();
+    try {
+      const created: ProducerWorker[] = [];
+      const factory = (): ProducerWorker => {
+        const w = new ProducerWorker();
+        created.push(w);
+        return w;
+      };
+      const buffer = new SharedCounterBuffer();
+      const finishes: number[] = [];
+
+      buffer.start(factory, { target: 5, intervalMs: 10, pollIntervalMs: 5 });
+      vi.advanceTimersByTime(20);
+      buffer.start(
+        factory,
+        { target: 5, intervalMs: 10, pollIntervalMs: 5 },
+        { onFinish: (v) => finishes.push(v) },
+      );
+      vi.advanceTimersByTime(200);
+      // Y otra vez despues de terminar.
+      buffer.start(
+        factory,
+        { target: 5, intervalMs: 10, pollIntervalMs: 5 },
+        { onFinish: (v) => finishes.push(v) },
+      );
+      vi.advanceTimersByTime(200);
+
+      expect(finishes).toEqual([5, 5]);
+      expect(created).toHaveLength(3);
+      expect(created.every((w) => w.terminated)).toBe(true);
+    } finally {
+      vi.useRealTimers();
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('si el worker productor falla, corta el poll y avisa por onError una vez', () => {
+    vi.stubGlobal('crossOriginIsolated', true);
+    vi.useFakeTimers();
+    try {
+      const worker = new FakeWorker();
+      const buffer = new SharedCounterBuffer();
+      const values: number[] = [];
+      const errors: unknown[] = [];
+      let finished = false;
+
+      buffer.start(
+        () => worker,
+        { target: 5, intervalMs: 10, pollIntervalMs: 5 },
+        {
+          onValue: (v) => values.push(v),
+          onFinish: () => (finished = true),
+          onError: (e) => errors.push(e),
+        },
+      );
+      vi.advanceTimersByTime(10);
+      const boom = new Error('el script del worker no cargo');
+      worker.onerror?.(boom);
+      const valuesAtError = values.length;
+      vi.advanceTimersByTime(200);
+
+      expect(errors).toEqual([boom]);
+      expect(values).toHaveLength(valuesAtError); // el poll se corto
+      expect(finished).toBe(false);
+      expect(worker.terminated).toBe(true);
+    } finally {
+      vi.useRealTimers();
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('sin soporte real no llama a la factory (no queda ningun worker huerfano)', () => {
+    vi.useFakeTimers();
+    try {
+      let created = 0;
+      const buffer = new SharedCounterBuffer();
+      buffer.start(
+        () => {
+          created++;
+          return new FakeWorker();
+        },
+        { target: 2, intervalMs: 10, pollIntervalMs: 5 },
+      );
+      vi.advanceTimersByTime(100);
+      expect(isSharedMemorySupported()).toBe(false);
+      expect(created).toBe(0);
+      expect(buffer.value).toBe(2);
+    } finally {
+      vi.useRealTimers();
     }
   });
 });

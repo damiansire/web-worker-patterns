@@ -1,6 +1,5 @@
 import { Injectable, signal } from '@angular/core';
 import { WorkerExample } from '../domain/examples/example.model';
-import { WorkerLike } from '../domain/workers/worker-like';
 import { SharedCounterBuffer, isSharedMemorySupported } from '@worker-patterns/core';
 
 /**
@@ -47,13 +46,10 @@ export class SharedMemoryDemoService {
     this.value.set(0);
     this.running.set(true);
 
-    const worker =
-      this.supported() && example.workerFactory
-        ? (example.workerFactory() as unknown as WorkerLike)
-        : undefined;
-
+    // Se pasa la factory, no un worker: el buffer crea uno nuevo en cada arranque
+    // (un worker terminado no se reusa) y no la llama si cae al backend simulado.
     this.buffer.start(
-      worker,
+      example.workerFactory,
       { target: this.target, intervalMs: this.intervalMs },
       {
         onValue: (v) => this.value.set(v),
@@ -61,6 +57,9 @@ export class SharedMemoryDemoService {
           this.value.set(v);
           this.running.set(false);
         },
+        // Si el worker productor no carga o falla, la cuenta no va a avanzar: sin esto
+        // quedaba en "Contando… 0/50" para siempre y sin botón para reiniciar.
+        onError: () => this.running.set(false),
       },
     );
   }

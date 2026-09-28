@@ -31,6 +31,11 @@ export interface SharedCounterHandlers {
   onValue?: (value: number) => void;
   /** Se llama una sola vez, cuando el valor alcanza el target. */
   onFinish?: (value: number) => void;
+  /**
+   * Se llama una sola vez si el worker productor dispara `error` (script que no
+   * carga, excepcion no atrapada): el poll se corta y no llega `onFinish`.
+   */
+  onError?: (event: unknown) => void;
 }
 
 const DEFAULT_INTERVAL_MS = 60;
@@ -52,12 +57,18 @@ export class SharedCounterBuffer {
   private finished = false;
 
   /**
-   * Arranca el contador. Si `worker` esta presente y hay soporte real, comparte
-   * un `SharedArrayBuffer` con el; si no, cae al backend simulado (mismo
-   * comportamiento observable, sin memoria compartida real).
+   * Arranca el contador. Si hay `workerFactory` y soporte real, crea un worker
+   * NUEVO y comparte un `SharedArrayBuffer` con el; si no, cae al backend
+   * simulado (mismo comportamiento observable, sin memoria compartida real) y
+   * la factory ni se llama.
+   *
+   * Ownership: la clase es duena del worker que crea. Lo termina al llegar al
+   * target, en `stop()`, si falla, y al volver a llamar `start()`. Por eso
+   * recibe una factory y no un worker: un worker terminado no se puede reusar,
+   * y reiniciar con el mismo dejaba el contador en 0 para siempre.
    */
   start(
-    worker: WorkerLike | undefined,
+    workerFactory: (() => WorkerLike) | undefined,
     options: SharedCounterOptions,
     handlers: SharedCounterHandlers = {},
   ): void {
@@ -65,13 +76,22 @@ export class SharedCounterBuffer {
     this.finished = false;
     const intervalMs = options.intervalMs ?? DEFAULT_INTERVAL_MS;
     const pollIntervalMs = options.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS;
-    const usingRealSharedMemory = isSharedMemorySupported() && worker !== undefined;
+    const usingRealSharedMemory = isSharedMemorySupported() && workerFactory !== undefined;
 
     if (usingRealSharedMemory) {
       const sab = new SharedArrayBuffer(4); // un Int32
       this.view = new Int32Array(sab);
+      const worker = workerFactory();
       this.worker = worker;
-      worker!.postMessage({ command: 'start', sab, target: options.target, intervalMs });
+      // Sin esto, un productor que falla dejaba el poll leyendo el mismo valor
+      // para siempre, sin onFinish ni aviso.
+      worker.onerror = (event) => {
+        this.finished = true;
+        this.stopTimers();
+        this.discardWorker();
+        handlers.onError?.(event);
+      };
+      worker.postMessage({ command: 'start', sab, target: options.target, intervalMs });
     } else {
       this.view = new Int32Array(new ArrayBuffer(4));
       this.producerTimer = setInterval(() => {
@@ -91,8 +111,7 @@ export class SharedCounterBuffer {
       if (reachedTarget(v, options.target)) {
         this.finished = true;
         this.stopTimers();
-        this.worker?.terminate();
-        this.worker = undefined;
+        this.discardWorker();
         handlers.onFinish?.(v);
       }
     }, pollIntervalMs);
@@ -103,12 +122,22 @@ export class SharedCounterBuffer {
     return this.view ? this.view[0] : 0;
   }
 
-  /** Frena timers y termina el worker sin disparar `onFinish`. */
+  /** Frena timers y termina el worker sin disparar `onFinish` ni `onError`. */
   stop(): void {
     this.stopTimers();
-    this.worker?.terminate();
-    this.worker = undefined;
+    this.discardWorker();
     this.view = undefined;
+  }
+
+  // Desengancha `onerror` antes de terminar: un error tardio del worker viejo
+  // no puede cortar el conteo de un arranque nuevo.
+  private discardWorker(): void {
+    if (this.worker === undefined) {
+      return;
+    }
+    this.worker.onerror = null;
+    this.worker.terminate();
+    this.worker = undefined;
   }
 
   private stopTimers(): void {
