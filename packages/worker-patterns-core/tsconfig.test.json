@@ -1,0 +1,14 @@
+{
+  // Type-check de src + test + ejemplos del README (vitest no chequea tipos).
+  // `paths` apunta el nombre del paquete a src: si no, los ejemplos del README
+  // se chequearian contra el dist viejo.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": ".",
+    "paths": {
+      "@worker-patterns/core": ["./src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts"]
+}
