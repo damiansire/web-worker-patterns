@@ -48,3 +48,10 @@ jobs:
           git diff --exit-code README.md
       - name: Build
         run: npm run build
+      # Los gates de arriba sirven la app desde `/`. Pages la sirve bajo un sub-path y
+      # sin cabeceras: este humo es el único que ve un 404 de assets o una violación
+      # de CSP antes de que llegue a producción.
+      - name: Instala Playwright (chromium)
+        run: npx playwright install --with-deps chromium
+      - name: E2E de humo (build servido como en Pages)
+        run: npm run test:e2e
