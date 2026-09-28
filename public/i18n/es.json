@@ -263,7 +263,7 @@
     "ui": {
       "title": "El viaje del hilo",
       "guide": "Guía",
-      "start": "Caminá y hablá con los vecinos.",
+      "start": "Flechas para caminar. Espacio para hablar.",
       "nobody": "Acá no hay nadie.",
       "talk": "Hablar",
       "next": "Seguir",
@@ -275,24 +275,29 @@
       "pulse": "pulso de Main",
       "free": "libre",
       "frozen": "congelado",
-      "busy": "ayudante trabajando",
+      "busy": "{ayudante|worker} trabajando",
       "done": "cumplida",
       "progress": "misiones",
       "restart": "Empezar de nuevo",
       "restartAsk": "Se borra todo lo aprendido.",
       "restartYes": "Sí, borrar",
       "restartNo": "No",
-      "guard": "Guardia",
+      "guard": "Maestra",
       "guardLocked": "Falta ayudar a [names].",
       "guardOpen": "Pasá. [next] te espera.",
-      "end": "Recorriste los 16 patrones.",
-      "failed": "El ayudante falló. Probá de nuevo.",
+      "failed": "El {ayudante|worker} falló. Probá de nuevo.",
       "keys": "Flechas para caminar, Espacio para hablar.",
       "mapLabel": "Mapa de [region]",
-      "sceneSolo": "gira solo",
-      "sceneMain": "lo empuja Main",
-      "sceneWorker": "lo dibuja un ayudante",
-      "sceneByMain": "lo dibuja Main"
+      "sceneSolo": "solo",
+      "sceneMain": "Main",
+      "sceneWorker": "{ayudante|worker}",
+      "sceneByMain": "Main",
+      "stamps": "sellos",
+      "startTouch": "Tocá el mapa para caminar.",
+      "missionDone": "Misión cumplida.",
+      "stampEarned": "Sello nuevo",
+      "close": "Cerrar",
+      "frozenFor": "congelado [seg]"
     },
     "regions": {
       "understanding": "Villa Main",
@@ -302,6 +307,10 @@
       "advanced": "La Frontera"
     },
     "vocab": {
+      "worker": {
+        "plain": "ayudante",
+        "note": "Otro hilo, para el trabajo pesado."
+      },
       "main-thread": {
         "plain": "el hilo principal",
         "note": "El único hilo que pinta y responde."
@@ -315,8 +324,8 @@
         "note": "Otro hilo: mueve capas ya pintadas."
       },
       "new-worker": {
-        "plain": "un ayudante",
-        "note": "Crea otro hilo para el trabajo pesado."
+        "plain": "un llamado",
+        "note": "Crea un {ayudante|worker} nuevo."
       },
       "post-message": {
         "plain": "una carta",
@@ -332,7 +341,7 @@
       },
       "shared-worker": {
         "plain": "la centralita",
-        "note": "Un ayudante para varias pestañas."
+        "note": "Un {ayudante|worker} para varias pestañas."
       },
       "message-port": {
         "plain": "la línea",
@@ -344,19 +353,19 @@
       },
       "worker-pool": {
         "plain": "la cuadrilla",
-        "note": "Pocos ayudantes que se reusan."
+        "note": "Pocos {ayudantes|worker|workers} que se reusan."
       },
       "offscreen-canvas": {
         "plain": "el lienzo prestado",
-        "note": "Un canvas que dibuja el ayudante."
+        "note": "Un canvas que dibuja un {ayudante|worker}."
       },
       "onerror": {
         "plain": "la alarma",
-        "note": "Avisa cuando el ayudante falla."
+        "note": "Avisa cuando el {ayudante|worker} falla."
       },
       "terminate": {
         "plain": "el corte",
-        "note": "Mata al ayudante en el acto."
+        "note": "Mata al {ayudante|worker} en el acto."
       },
       "hardware-concurrency": {
         "plain": "los núcleos",
@@ -389,7 +398,10 @@
           "block": {
             "label": "Pedile un cálculo largo",
             "during": "Bueno. Ya vuelvo.",
-            "after": ["Volví. [seg] sin atender a nadie.", "Así es {la fila de tareas|event-loop}."]
+            "after": [
+              "Volví. [seg] sin atender a nadie.",
+              "Así es {la fila de tareas|event-loop}."
+            ]
           }
         }
       },
@@ -397,20 +409,24 @@
         "npc": "Relojera",
         "hello": "Mi reloj da dos tics por segundo.",
         "ask": "¿Quién le da cuerda?",
-        "done": "A mi reloj lo mueve {un ayudante|new-worker}.",
+        "done": "A mi reloj lo mueve un {ayudante|worker}.",
         "paths": {
           "main": {
             "label": "Que lo haga Main",
             "during": "Main está ocupado calculando.",
             "after": [
               "El reloj se clavó [seg].",
-              "Main es {el hilo principal|main-thread}: uno solo."
+              "Hay un solo {hilo principal|main-thread}."
             ]
           },
           "worker": {
-            "label": "Llamar a un ayudante",
-            "during": "El ayudante cuenta. Vos caminá.",
-            "after": ["[ticks] tics sin un solo salto.", "Diste [steps] pasos mientras tanto."]
+            "label": "Llamar a un {ayudante|worker}",
+            "during": "El {ayudante|worker} cuenta. Vos caminá.",
+            "after": [
+              "[ticks] tics sin un solo salto.",
+              "Diste [steps] pasos mientras tanto.",
+              "Lo creaste con {un llamado|new-worker}."
+            ]
           }
         }
       },
@@ -429,27 +445,36 @@
             ]
           },
           "worker": {
-            "label": "Ocupar a un ayudante",
-            "during": "El ayudante calcula.",
-            "after": ["Ninguno se clavó.", "Main quedó libre para empujar."]
+            "label": "Ocupar a un {ayudante|worker}",
+            "during": "El {ayudante|worker} calcula.",
+            "after": [
+              "Ninguno se clavó.",
+              "Main quedó libre para empujar."
+            ]
           }
         }
       },
       "03-basic-communication": {
         "npc": "Cartero",
         "hello": "Llevo cartas al otro lado.",
-        "ask": "¿Qué le mandamos al ayudante?",
-        "done": "Con {una carta|post-message} le hablás al ayudante.",
+        "ask": "¿Qué le mandamos al {ayudante|worker}?",
+        "done": "Con {una carta|post-message} le hablás al {ayudante|worker}.",
         "paths": {
           "function": {
             "label": "Mandar una función",
             "during": "A ver si pasa.",
-            "after": ["No salió: [error].", "Solo viaja {la copia|structured-clone} de datos."]
+            "after": [
+              "No salió: [error].",
+              "Solo viaja {la copia|structured-clone} de datos."
+            ]
           },
           "message": {
             "label": "Mandar un saludo",
             "during": "Carta en camino.",
-            "after": ["Volvió: [reply].", "Ida y vuelta: [ms] ms."]
+            "after": [
+              "Volvió: [reply].",
+              "Ida y vuelta: [ms] ms."
+            ]
           }
         }
       },
@@ -474,16 +499,19 @@
         "npc": "Molinero",
         "hello": "Hay que contar primos. Millones.",
         "ask": "¿Quién los cuenta?",
-        "done": "No fue más rápido. Fue sin frenar.",
+        "done": "{El buzón|onmessage} avisó. Main nunca frenó.",
         "paths": {
           "main": {
             "label": "Que cuente Main",
             "during": "Main cuenta. Nada se mueve.",
-            "after": ["Contó [count]. Tardó [seg].", "El pueblo entero esperó."]
+            "after": [
+              "Contó [count]. Tardó [seg].",
+              "El pueblo entero esperó."
+            ]
           },
           "worker": {
-            "label": "Que cuente un ayudante",
-            "during": "El ayudante cuenta. Vos caminá.",
+            "label": "Que cuente un {ayudante|worker}",
+            "during": "El {ayudante|worker} cuenta. Vos caminá.",
             "after": [
               "Contó [count] en [seg].",
               "Diste [steps] pasos mientras tanto.",
@@ -501,7 +529,10 @@
           "clone": {
             "label": "Copiarlo",
             "during": "Copiando ida y vuelta.",
-            "after": ["Tardó [ms] ms.", "Se copió dos veces."]
+            "after": [
+              "Tardó [ms] ms.",
+              "Se copió dos veces."
+            ]
           },
           "transfer": {
             "label": "Mudarlo",
@@ -516,7 +547,7 @@
       },
       "10-worker-pool": {
         "npc": "Capataz",
-        "hello": "Tengo 24 encargos y 4 ayudantes.",
+        "hello": "Tengo 24 encargos y 4 {ayudantes|worker|workers}.",
         "ask": "No contrato uno por encargo.",
         "done": "{La cuadrilla|worker-pool} reusa, no contrata.",
         "paths": {
@@ -524,8 +555,8 @@
             "label": "Repartir los encargos",
             "during": "La cuadrilla reparte.",
             "after": [
-              "[tasks] encargos, [workers] ayudantes.",
-              "Cada ayudante se reusó.",
+              "[tasks] encargos, [workers] {ayudantes|worker|workers}.",
+              "Cada {ayudante|worker} se reusó.",
               "Eso es {la cuadrilla|worker-pool}."
             ]
           }
@@ -534,7 +565,7 @@
       "14-offscreen-canvas": {
         "npc": "Titiritera",
         "hello": "Dos relojes gemelos.",
-        "ask": "A uno lo dibuja un ayudante.",
+        "ask": "A uno lo dibuja un {ayudante|worker}.",
         "done": "{El lienzo prestado|offscreen-canvas} dibuja sin Main.",
         "paths": {
           "block": {
@@ -567,14 +598,17 @@
       },
       "05-error-handling": {
         "npc": "Médica",
-        "hello": "Un ayudante también se enferma.",
+        "hello": "Un {ayudante|worker} también se enferma.",
         "ask": "Mandale datos rotos. Yo miro.",
         "done": "{La alarma|onerror} avisa. La página no cae.",
         "paths": {
           "broken": {
             "label": "Mandar datos rotos",
             "during": "Datos rotos en camino.",
-            "after": ["Falló, y Main siguió vivo.", "Sonó {la alarma|onerror}."]
+            "after": [
+              "Falló, y Main siguió vivo.",
+              "Sonó {la alarma|onerror}."
+            ]
           }
         }
       },
@@ -589,17 +623,20 @@
             "during": "Paso a paso.",
             "after": [
               "Cortada en el paso [step].",
-              "Ese ayudante ya no vuelve.",
+              "Ese {ayudante|worker} ya no vuelve.",
               "Fue {el corte|terminate}."
             ],
             "act": "Cortarla ya",
-            "missed": ["Terminó sola.", "Probá cortarla antes."]
+            "missed": [
+              "Terminó sola.",
+              "Probá cortarla antes."
+            ]
           }
         }
       },
       "09-worker-limits": {
         "npc": "Reclutadora",
-        "hello": "¿Más ayudantes, más rápido?",
+        "hello": "¿Más {ayudantes|worker|workers}, más rápido?",
         "ask": "Probemos con 1, 2, 4, 8 y más.",
         "done": "{Los núcleos|hardware-concurrency}: una pista, no garantía.",
         "paths": {
@@ -623,7 +660,10 @@
           "flood": {
             "label": "Largar todos",
             "during": "Cuarenta en fila.",
-            "after": ["Pico en espera: [peak].", "El último esperó [ms] ms."]
+            "after": [
+              "Pico en espera: [peak].",
+              "El último esperó [ms] ms."
+            ]
           },
           "window": {
             "label": "Largar de a tres",
@@ -639,7 +679,7 @@
       "12-shared-array-buffer": {
         "npc": "Archivista",
         "hello": "Una pizarra que ven los dos.",
-        "ask": "El ayudante escribe. Main lee.",
+        "ask": "El {ayudante|worker} escribe. Main lee.",
         "done": "{La pizarra común|shared-array-buffer} no copia nada.",
         "paths": {
           "share": {
@@ -656,12 +696,12 @@
       },
       "13-graceful-degradation": {
         "npc": "Baqueana",
-        "hello": "No todos los caminos tienen ayudante.",
+        "hello": "No todos los caminos tienen {ayudante|worker}.",
         "ask": "Igual hay que llegar.",
         "done": "Primero {la prueba previa|feature-detection}. Después elegís.",
         "paths": {
           "fallback": {
-            "label": "Ir sin ayudante",
+            "label": "Ir sin {ayudante|worker}",
             "during": "Main lo hace solo.",
             "after": [
               "Llegó: [count]. Congeló [seg].",
@@ -669,10 +709,46 @@
             ]
           },
           "worker": {
-            "label": "Ir con ayudante",
-            "during": "El ayudante lo hace.",
-            "after": ["Llegó: [count]. Sin frenar.", "Mismo resultado, mejor camino."]
+            "label": "Ir con {ayudante|worker}",
+            "during": "El {ayudante|worker} lo hace.",
+            "after": [
+              "Llegó: [count]. Sin frenar.",
+              "Mismo resultado, mejor camino."
+            ]
           }
+        }
+      }
+    },
+    "masters": {
+      "ready": "Tres situaciones. Elegí la pieza.",
+      "wrong": "No era esa. Repasá con [npc].",
+      "pass": "Sello de [region]. Bien ganado.",
+      "final": "Cinco sellos. Recorriste los 16 patrones.",
+      "challenges": {
+        "understanding": {
+          "heavy": "Un cálculo largo traba la página.",
+          "queue": "¿Qué atiende una tarea por vez?",
+          "spin": "Una animación sigue con Main trabado."
+        },
+        "communication": {
+          "talk": "Hay que pasarle datos al {ayudante|worker}.",
+          "function": "Mandaste una función y no salió.",
+          "tabs": "Tres pestañas, un solo contador."
+        },
+        "optimization": {
+          "bulk": "64 megas ida y vuelta, sin copiar.",
+          "many": "Cien tareas chicas, pocos {ayudantes|worker|workers}.",
+          "canvas": "Dibujar un canvas con Main ocupado."
+        },
+        "management": {
+          "failed": "El {ayudante|worker} falló. ¿Quién avisa?",
+          "stale": "La tarea ya no sirve.",
+          "howmany": "¿Cuántos {ayudantes|worker|workers} rinden a la vez?"
+        },
+        "advanced": {
+          "flood": "Producís más rápido de lo que consume.",
+          "memory": "Dos hilos leen el mismo dato.",
+          "missing": "El navegador puede no tener {ayudantes|worker|workers}."
         }
       }
     }

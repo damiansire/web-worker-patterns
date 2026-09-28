@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { fill, LearningContent, spokenLines } from './content.model';
+import { MASTERS } from './masters';
 import { MISSIONS, REGIONS } from './missions';
 import { unknownTerms, wordCount } from './morph';
 import { VOCABULARY } from './vocabulary';
@@ -38,8 +39,25 @@ for (const [id, mission] of Object.entries(content.missions)) {
 for (const [id, term] of Object.entries(content.vocab)) {
   lines.push([`vocab ${id} note`, term.note]);
 }
-for (const key of ['start', 'nobody', 'guardLocked', 'guardOpen', 'end', 'failed', 'restartAsk']) {
+for (const key of [
+  'start',
+  'startTouch',
+  'nobody',
+  'missionDone',
+  'guardLocked',
+  'guardOpen',
+  'failed',
+  'restartAsk',
+]) {
   lines.push([`ui ${key}`, content.ui[key]]);
+}
+for (const key of ['ready', 'wrong', 'pass', 'final'] as const) {
+  lines.push([`masters ${key}`, content.masters[key]]);
+}
+for (const [region, challenges] of Object.entries(content.masters.challenges)) {
+  for (const [id, text] of Object.entries(challenges)) {
+    lines.push([`masters ${region} ${id}`, text]);
+  }
 }
 
 describe('contenido del juego: presupuesto de palabras', () => {
@@ -74,6 +92,14 @@ describe('contenido del juego: coincide con la estructura', () => {
     }
   });
 
+  it('cada situación de cada maestra tiene su texto, y no hay texto de más', () => {
+    for (const master of MASTERS) {
+      const written = Object.keys(content.masters.challenges[master.region] ?? {}).sort();
+      expect(written, master.region).toEqual(master.challenges.map((c) => c.id).sort());
+    }
+    expect(Object.keys(content.masters.challenges).sort()).toEqual([...REGIONS].sort());
+  });
+
   it('cada término y cada región tienen su nombre', () => {
     expect(Object.keys(content.vocab).sort()).toEqual(VOCABULARY.map((term) => term.id).sort());
     expect(Object.keys(content.regions).sort()).toEqual([...REGIONS].sort());
@@ -105,13 +131,23 @@ describe('contenido del juego: el idioma cambia solo al aprender', () => {
     for (const [where, text] of [...lines, ...labels]) {
       const outsideMarks = text.replace(/\{[^{}]+\}/g, ' ');
       for (const term of VOCABULARY) {
-        if (outsideMarks.toLowerCase().includes(term.api.toLowerCase())) {
+        // `worker` es también una palabra de otras APIs (SharedWorker): se busca entera.
+        const api = new RegExp(`(^|[^a-z])${escape(term.api)}([^a-z]|$)`, 'i');
+        if (api.test(outsideMarks)) {
           leaks.push(`${where}: "${term.api}"`);
         }
       }
     }
 
     expect(leaks).toEqual([]);
+  });
+
+  it('"ayudante" nunca queda suelto: aprendido, se lee worker en todos lados', () => {
+    const loose = [...lines, ...labels]
+      .filter(([, text]) => /ayudante/i.test(text.replace(/\{[^{}]+\}/g, ' ')))
+      .map(([where]) => where);
+
+    expect(loose).toEqual([]);
   });
 
   it('el nombre llano de un término no es su nombre de API', () => {
@@ -122,6 +158,10 @@ describe('contenido del juego: el idioma cambia solo al aprender', () => {
     }
   });
 });
+
+function escape(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 describe('fill', () => {
   it('completa las marcas con lo que midió la misión', () => {
