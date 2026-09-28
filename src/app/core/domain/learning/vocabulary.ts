@@ -14,6 +14,7 @@ export const VOCABULARY = [
   { id: 'main-thread', api: 'main thread' },
   { id: 'event-loop', api: 'event loop' },
   { id: 'compositor', api: 'compositor' },
+  { id: 'worker', api: 'worker' },
   { id: 'new-worker', api: 'new Worker()' },
   { id: 'post-message', api: 'postMessage()' },
   { id: 'onmessage', api: 'onmessage' },

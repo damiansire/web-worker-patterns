@@ -12,9 +12,11 @@ export interface Progress {
   learned: readonly TermId[];
   /** Caminos recorridos por misión: { '04-offloading-computation': ['main', 'worker'] }. */
   paths: Readonly<Record<string, readonly string[]>>;
+  /** Regiones con el sello de su maestra. */
+  stamps: readonly Category[];
 }
 
-export const EMPTY_PROGRESS: Progress = { learned: [], paths: {} };
+export const EMPTY_PROGRESS: Progress = { learned: [], paths: {}, stamps: [] };
 
 /** Recorrer un camino lo registra y suma sus términos al vocabulario. */
 export function completePath(progress: Progress, exampleId: string, pathId: string): Progress {
@@ -24,6 +26,7 @@ export function completePath(progress: Progress, exampleId: string, pathId: stri
   }
   const walked = progress.paths[exampleId] ?? [];
   return {
+    ...progress,
     learned: [...new Set([...progress.learned, ...path.teaches])],
     paths: walked.includes(pathId)
       ? progress.paths
@@ -53,10 +56,22 @@ export function isRegionDone(progress: Progress, region: Category): boolean {
   return missionsOf(region).every((mission) => isMissionDone(progress, mission));
 }
 
-/** Una región está abierta si es la primera o si la anterior quedó cumplida. */
+export function isStamped(progress: Progress, region: Category): boolean {
+  return progress.stamps.includes(region);
+}
+
+/** El sello se gana con la región cumplida: sin misiones hechas no hay examen. */
+export function stamp(progress: Progress, region: Category): Progress {
+  if (isStamped(progress, region) || !isRegionDone(progress, region)) {
+    return progress;
+  }
+  return { ...progress, stamps: [...progress.stamps, region] };
+}
+
+/** Una región está abierta si es la primera o si la anterior tiene su sello. */
 export function isRegionOpen(progress: Progress, region: Category): boolean {
   const index = REGIONS.indexOf(region);
-  return index <= 0 || isRegionDone(progress, REGIONS[index - 1]);
+  return index <= 0 || isStamped(progress, REGIONS[index - 1]);
 }
 
 export function doneCount(progress: Progress): number {
@@ -68,7 +83,7 @@ export function doneCount(progress: Progress): number {
 const VERSION = 1;
 
 export function serialize(progress: Progress): string {
-  return JSON.stringify({ version: VERSION, learned: progress.learned, paths: progress.paths });
+  return JSON.stringify({ version: VERSION, ...progress });
 }
 
 /**
@@ -104,7 +119,10 @@ export function parse(raw: string | null): Progress {
       }
     }
   }
-  return { learned: [...new Set(learned)], paths };
+  const known: Progress = { learned: [...new Set(learned)], paths, stamps: [] };
+  // Un sello guardado solo vale si las misiones que lo respaldan también están.
+  const stamps = Array.isArray(data['stamps']) ? data['stamps'] : [];
+  return REGIONS.filter((region) => stamps.includes(region)).reduce(stamp, known);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

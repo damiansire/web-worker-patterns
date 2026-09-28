@@ -7,10 +7,12 @@ import {
   isMissionDone,
   isRegionDone,
   isRegionOpen,
+  isStamped,
   missionsOf,
   parse,
   Progress,
   serialize,
+  stamp,
 } from './progress';
 import { VOCABULARY } from './vocabulary';
 
@@ -58,7 +60,7 @@ describe('progreso', () => {
   it('recorrer un camino suma sus términos al vocabulario', () => {
     const progress = walk([['01-setinterval-counter', 'worker']]);
 
-    expect(progress.learned).toEqual(['new-worker']);
+    expect(progress.learned).toEqual(['worker', 'new-worker']);
   });
 
   it('el camino que duele también enseña, pero no cumple la misión', () => {
@@ -109,11 +111,20 @@ describe('regiones: se abren en orden', () => {
     expect(isRegionOpen(EMPTY_PROGRESS, 'communication')).toBe(false);
   });
 
-  it('cumplir todas las misiones de una región abre la siguiente, no la de más allá', () => {
+  it('cumplir las misiones no alcanza: la siguiente se abre con el sello', () => {
     expect(isRegionDone(firstRegionDone, 'understanding')).toBe(true);
-    expect(isRegionOpen(firstRegionDone, 'communication')).toBe(true);
-    expect(isRegionOpen(firstRegionDone, 'optimization')).toBe(false);
+    expect(isRegionOpen(firstRegionDone, 'communication')).toBe(false);
     expect(doneCount(firstRegionDone)).toBe(3);
+
+    const stamped = stamp(firstRegionDone, 'understanding');
+
+    expect(isStamped(stamped, 'understanding')).toBe(true);
+    expect(isRegionOpen(stamped, 'communication')).toBe(true);
+    expect(isRegionOpen(stamped, 'optimization')).toBe(false);
+  });
+
+  it('no hay sello sin las misiones de la región cumplidas', () => {
+    expect(stamp(EMPTY_PROGRESS, 'understanding')).toBe(EMPTY_PROGRESS);
   });
 
   it('con una misión pendiente la región no está cumplida', () => {
@@ -135,6 +146,25 @@ describe('guardado', () => {
     ]);
 
     expect(parse(serialize(progress))).toEqual(progress);
+  });
+
+  it('los sellos también se guardan', () => {
+    const stamped = stamp(
+      walk([
+        ['01-setinterval-counter', 'worker'],
+        ['02-main-thread', 'block'],
+        ['16-compositor-vs-main', 'worker'],
+      ]),
+      'understanding',
+    );
+
+    expect(parse(serialize(stamped)).stamps).toEqual(['understanding']);
+  });
+
+  it('un sello guardado sin sus misiones se descarta', () => {
+    const raw = JSON.stringify({ version: 1, learned: [], paths: {}, stamps: ['understanding'] });
+
+    expect(parse(raw).stamps).toEqual([]);
   });
 
   it.each([
@@ -160,6 +190,7 @@ describe('guardado', () => {
     expect(parse(raw)).toEqual({
       learned: ['new-worker'],
       paths: { '01-setinterval-counter': ['worker'] },
+      stamps: [],
     });
   });
 });

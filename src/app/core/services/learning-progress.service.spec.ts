@@ -19,7 +19,10 @@ describe('LearningProgressService', () => {
   it('recorrer un camino devuelve solo las palabras que son nuevas', () => {
     const progress = fresh();
 
-    expect(progress.completePath('01-setinterval-counter', 'worker')).toEqual(['new-worker']);
+    expect(progress.completePath('01-setinterval-counter', 'worker')).toEqual([
+      'worker',
+      'new-worker',
+    ]);
     expect(progress.completePath('01-setinterval-counter', 'worker')).toEqual([]);
     expect(progress.isMissionDone('01-setinterval-counter')).toBe(true);
     expect(progress.doneCount()).toBe(1);
@@ -27,7 +30,7 @@ describe('LearningProgressService', () => {
 
   it('el texto cambia de idioma apenas se aprende la palabra', () => {
     const progress = fresh();
-    const text = 'Llamá a {un ayudante|new-worker}.';
+    const text = 'Llamá a un {ayudante|worker}.';
     const read = () =>
       progress
         .morph(text)
@@ -36,7 +39,7 @@ describe('LearningProgressService', () => {
 
     expect(read()).toBe('Llamá a un ayudante.');
     progress.completePath('01-setinterval-counter', 'worker');
-    expect(read()).toBe('Llamá a new Worker().');
+    expect(read()).toBe('Llamá a un worker.');
   });
 
   it('el progreso sobrevive a recargar la página', () => {

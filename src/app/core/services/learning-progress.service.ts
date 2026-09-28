@@ -10,9 +10,11 @@ import {
   isPathDone,
   isRegionDone,
   isRegionOpen,
+  isStamped,
   parse,
   Progress,
   serialize,
+  stamp,
 } from '../domain/learning/progress';
 import { TermId } from '../domain/learning/vocabulary';
 import { readStored, writeStored } from '../utils/safe-storage';
@@ -31,6 +33,7 @@ export class LearningProgressService {
 
   readonly learned = computed<ReadonlySet<TermId>>(() => new Set(this.progress().learned));
   readonly doneCount = computed(() => doneCount(this.progress()));
+  readonly stamps = computed(() => this.progress().stamps);
   readonly total = MISSIONS.length;
 
   /** Registra un camino recorrido. Devuelve los términos que entraron recién ahora. */
@@ -60,6 +63,21 @@ export class LearningProgressService {
 
   isRegionOpen(region: Category): boolean {
     return isRegionOpen(this.progress(), region);
+  }
+
+  isStamped(region: Category): boolean {
+    return isStamped(this.progress(), region);
+  }
+
+  /** Da el sello de la región. Devuelve si se otorgó recién ahora. */
+  stamp(region: Category): boolean {
+    const next = stamp(this.progress(), region);
+    if (next === this.progress()) {
+      return false;
+    }
+    this.progress.set(next);
+    writeStored(PROGRESS_STORAGE_KEY, serialize(next));
+    return true;
   }
 
   /** Un texto en el idioma que le corresponde al alumno hoy. */

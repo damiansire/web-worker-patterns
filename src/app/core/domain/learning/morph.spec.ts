@@ -28,6 +28,14 @@ describe('morph: el texto cambia de idioma por palabra aprendida', () => {
     expect(read(text, ['post-message'])).toBe('Un ayudante recibe postMessage().');
   });
 
+  it('una marca puede fijar cómo se lee ya aprendida (plurales)', () => {
+    const text = 'Tengo 4 {ayudantes|worker|workers}.';
+
+    expect(read(text)).toBe('Tengo 4 ayudantes.');
+    expect(read(text, ['worker'])).toBe('Tengo 4 workers.');
+    expect(wordCount(text)).toBe(3);
+  });
+
   it('un texto sin marcas queda igual', () => {
     expect(morph('Acá atiendo todo yo.', learned())).toEqual([
       { kind: 'text', value: 'Acá atiendo todo yo.' },

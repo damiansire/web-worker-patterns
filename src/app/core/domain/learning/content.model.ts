@@ -37,8 +37,20 @@ export interface TermContent {
   note: string;
 }
 
+export interface MastersContent {
+  /** Antes de la primera situación. */
+  ready: string;
+  wrong: string;
+  pass: string;
+  /** Al ganar el último sello. */
+  final: string;
+  /** Texto de cada situación: región -> id -> texto. */
+  challenges: Record<string, Record<string, string>>;
+}
+
 export interface LearningContent {
   ui: Record<string, string>;
+  masters: MastersContent;
   regions: Record<string, string>;
   vocab: Record<string, TermContent>;
   missions: Record<string, MissionContent>;

@@ -35,7 +35,7 @@ export const MISSIONS: readonly Mission[] = [
     exampleId: '01-setinterval-counter',
     paths: [
       { id: 'main', kind: 'naive', teaches: ['main-thread'] },
-      { id: 'worker', kind: 'pattern', teaches: ['new-worker'] },
+      { id: 'worker', kind: 'pattern', teaches: ['worker', 'new-worker'] },
     ],
   },
   {

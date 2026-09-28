@@ -5,7 +5,8 @@ import { findTerm, TermId } from './vocabulary';
  *
  * Un texto marca sus conceptos como `{nombre llano|id-del-término}`. Mientras el
  * alumno no aprendió el término se muestra el nombre llano; después, el nombre de
- * la API. Así el propio texto del juego va pasando de castellano a "plataforma"
+ * la API. Una tercera parte opcional fija cómo se lee ya aprendido, para plurales
+ * y artículos: `{ayudantes|worker|workers}`. Así el propio texto del juego va pasando de castellano a "plataforma"
  * a medida que se avanza, sin que ningún diálogo se reescriba.
  *
  *   morph('Llamá a {un ayudante|new-worker}.', new Set())
@@ -16,19 +17,19 @@ import { findTerm, TermId } from './vocabulary';
 export type Segment =
   { kind: 'text'; value: string } | { kind: 'term'; termId: TermId; value: string };
 
-const TOKEN = /\{([^{}|]+)\|([^{}|]+)\}/g;
+const TOKEN = /\{([^{}|]+)\|([^{}|]+)(?:\|([^{}|]+))?\}/g;
 
 export function morph(text: string, learned: ReadonlySet<TermId>): Segment[] {
   const segments: Segment[] = [];
   let cursor = 0;
   for (const match of text.matchAll(TOKEN)) {
-    const [token, plain, id] = match;
+    const [token, plain, id, shown] = match;
     const term = findTerm(id);
     if (match.index > cursor) {
       segments.push({ kind: 'text', value: text.slice(cursor, match.index) });
     }
     if (term && learned.has(term.id)) {
-      segments.push({ kind: 'term', termId: term.id, value: term.api });
+      segments.push({ kind: 'term', termId: term.id, value: shown ?? term.api });
     } else {
       segments.push({ kind: 'text', value: plain });
     }
