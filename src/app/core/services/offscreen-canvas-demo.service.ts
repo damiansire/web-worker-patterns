@@ -224,6 +224,8 @@ function readPalette(el: HTMLElement, side: 'worker' | 'main'): ClockPalette {
       side === 'worker'
         ? v('--thread-worker', v('--accent', '#2a7'))
         : v('--thread-main', v('--ink', '#888')),
-    label: side === 'worker' ? 'worker' : 'main',
+    // El layout puede rotular el reloj (`data-label`): un theme que todavía no
+    // enseñó la palabra "worker" no la muestra escrita adentro del canvas.
+    label: el.dataset['label'] ?? (side === 'worker' ? 'worker' : 'main'),
   };
 }
