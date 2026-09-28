@@ -2,7 +2,8 @@
  * Snippets neutrales del ejemplo 09 (límites del paralelismo).
  */
 export const WORKER_LIMITS_SNIPPETS: Record<string, string> = {
-  'cuantos-nucleos.ts': `// Cuántos hilos pueden correr de verdad en paralelo:
+  'cuantos-nucleos.ts': `// Procesadores lógicos: una pista de cuántos hilos corren en paralelo,
+// no una garantía (el navegador puede reportar menos).
 const cores = navigator.hardwareConcurrency; // p.ej. 8
 
 // Más workers que núcleos no corren "más en paralelo":

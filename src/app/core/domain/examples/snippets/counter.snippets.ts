@@ -26,12 +26,15 @@ addEventListener('message', ({ data }) => {
   };
 }`,
 
-  'runner.usage.ts': `// El ExampleRunnerService spawnea el worker y vuelca los ticks al monitor.
-const worker = example.workerFactory();     // new Worker(new URL('counter.worker', ...))
+  'runner.usage.ts': `// El ExampleRunnerService crea el worker, publica cada tick y lo termina en el tope.
+const ticks = 5;
+const worker = new Worker(new URL('./counter.worker', import.meta.url), { type: 'module' });
 worker.onmessage = (e) => {
-  if (e.data.type === 'tick') {
-    this.lastTick.set(e.data.tick);
-    this.monitor.push('worker', 'worker');  // el monitor registra la actividad
+  if (e.data.type !== 'tick') return;
+  workerTicks.set(e.data.tick);             // signal que pinta la UI
+  if (e.data.tick >= ticks) {
+    worker.postMessage({ command: 'stop' });
+    worker.terminate();                     // sin terminate() el hilo queda vivo
   }
 };
 worker.postMessage({ command: 'start', intervalMs: 500 });`,

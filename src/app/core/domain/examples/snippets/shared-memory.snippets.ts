@@ -7,7 +7,8 @@ const sab = new SharedArrayBuffer(4);   // 4 bytes = un Int32
 const view = new Int32Array(sab);
 worker.postMessage({ command: 'start', sab }); // se comparte, no se clona
 
-// El main LEE esa misma memoria por su cuenta — sin recibir mensajes:
+// El main LEE esa misma memoria por su cuenta, sin recibir mensajes.
+// (Atomics.wait acá tira TypeError: el main no puede bloquearse; usá Atomics.waitAsync.)
 setInterval(() => render(Atomics.load(view, 0)), 30);`,
 
   'en-el-worker.ts': `// El worker escribe en la MISMA memoria. No le manda nada al main.
@@ -21,5 +22,7 @@ addEventListener('message', ({ data }) => {
 # Hace falta servir con estas dos cabeceras:
 Cross-Origin-Opener-Policy: same-origin
 Cross-Origin-Embedder-Policy: require-corp
-# Sin ellas, typeof SharedArrayBuffer === 'undefined'.`,
+# (o bien Cross-Origin-Embedder-Policy: credentialless)
+# Chequealo con crossOriginIsolated === true. Sin aislamiento, el constructor
+# global queda oculto (typeof SharedArrayBuffer === 'undefined').`,
 };

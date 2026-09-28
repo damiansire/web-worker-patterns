@@ -22,5 +22,10 @@ worker.postMessage({ id: 1, text: 'hola' }); // → mensaje al worker`,
   'structured-clone.ts': `// postMessage CLONA los datos (structured clone): el worker recibe una
 // COPIA, no la referencia. Para mensajes chicos alcanza; para datos grandes
 // conviene usar transferables (ver ejemplo 07).
-worker.postMessage({ user: { name: 'Ada' }, items: [1, 2, 3] });`,
+worker.postMessage({ user: { name: 'Ada' }, items: [1, 2, 3] });
+
+// Lo que NO sobrevive al clon:
+// worker.postMessage({ fn: () => 1 });  // DataCloneError (funciones, nodos DOM)
+// una instancia de clase llega como objeto plano: sin prototipo ni métodos.
+worker.onmessageerror = (e) => console.warn('no se pudo deserializar', e);`,
 };

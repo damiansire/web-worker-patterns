@@ -15,11 +15,14 @@ const worker = new Worker(new URL('./risky.worker', import.meta.url), { type: 'm
 // 1) onmessage: el resultado cuando la tarea sale bien.
 worker.onmessage = (e) => log.ok(e.data.keys);
 
-// 2) onerror: cualquier error NO atrapado dentro del worker llega acá.
+// 2) onerror: un error SINCRÓNICO no atrapado dentro del worker llega acá.
 //    La página NO se rompe y el worker sigue vivo para más tareas.
+//    Una promesa rechazada sin catch NO llega: dispara unhandledrejection
+//    dentro del worker.
 worker.onerror = (e) => {
-  e.preventDefault();           // evita el log rojo en consola (ya lo mostramos)
-  log.error(e.message);
+  e.preventDefault();           // lo da por manejado: no se re-reporta en la página
+  // si el script no cargó, llega un Event genérico, sin message
+  log.error(e.message ?? 'el script del worker no cargó');
 };
 
 worker.postMessage({ id: 1, payload: '{roto' }); // → dispara onerror`,

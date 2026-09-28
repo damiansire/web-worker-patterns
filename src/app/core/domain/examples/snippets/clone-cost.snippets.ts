@@ -17,7 +17,11 @@ const worker = new Worker(new URL('./clone-cost.worker', import.meta.url), {
 function medir(payload) {
   return new Promise((resolve) => {
     const t0 = performance.now();
-    worker.onmessage = () => resolve(performance.now() - t0); // ms del round-trip
+    worker.onmessage = (e) => {
+      // La deserialización es diferida: el clon de vuelta se paga al leer data.
+      void e.data;
+      resolve(performance.now() - t0); // ms del round-trip
+    };
     worker.postMessage({ id: 1, payload }); // clona al salir
   });
 }

@@ -10,7 +10,7 @@ const ports = [];
 self.onconnect = (e) => {
   const port = e.ports[0];
   ports.push(port);
-  port.start();                       // ← obligatorio para recibir mensajes
+  port.start(); // opcional: onmessage ya lo arranca (hace falta con addEventListener)
   port.onmessage = ({ data }) => {
     if (data.type === 'inc') count++;
     for (const p of ports) p.postMessage({ type: 'state', count });
