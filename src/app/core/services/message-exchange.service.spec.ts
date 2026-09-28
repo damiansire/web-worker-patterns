@@ -89,6 +89,22 @@ describe('MessageExchangeService', () => {
     expect(svc.error()).toBe('boom');
   });
 
+  it('mandar una función no sale: postMessage la rechaza con DataCloneError', () => {
+    // Un worker real clona el mensaje al enviarlo. Lo reproducimos con
+    // structuredClone, así el error es el de la plataforma y no uno inventado.
+    fake.postMessage = (message: unknown) => {
+      fake.posted.push(structuredClone(message));
+    };
+    svc.open(example);
+
+    const error = svc.sendUncloneable();
+
+    expect(error).toBe('DataCloneError');
+    expect(svc.error()).toBe('DataCloneError');
+    expect(fake.posted).toHaveLength(0); // el mensaje nunca salió
+    expect(svc.pending()).toBe(false);
+  });
+
   it('open() is a no-op for the same example, so the conversation survives a re-mount', () => {
     svc.open(example);
     svc.send('hola');

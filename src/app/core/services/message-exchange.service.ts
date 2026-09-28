@@ -55,6 +55,26 @@ export class MessageExchangeService {
     this.host.post({ id, text: trimmed });
   }
 
+  /**
+   * Intenta mandar algo que NO se puede clonar (una función). `postMessage` lo
+   * rechaza con DataCloneError en el acto, del lado del emisor: el mensaje nunca
+   * sale. Devuelve el nombre del error para que quien lo llama muestre la
+   * consecuencia real, no una simulada.
+   */
+  sendUncloneable(): string | null {
+    if (!this.host.isOpen) {
+      return null;
+    }
+    try {
+      this.host.post({ id: this.nextId++, text: () => 'esto es una función' });
+      return null;
+    } catch (error) {
+      const name = error instanceof Error ? error.name : 'Error';
+      this.error.set(name);
+      return name;
+    }
+  }
+
   private receive(data: { id?: number; text?: string; length?: number }): void {
     const at = this.clock();
     this._messages.update((m) => {
