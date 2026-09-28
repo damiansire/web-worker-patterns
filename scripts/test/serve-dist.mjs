@@ -1,12 +1,13 @@
 // Sirve el build de producción COMO LO SIRVE GITHUB PAGES: bajo un sub-path, sin
 // cabeceras propias y con el index como respuesta 404 de cualquier ruta desconocida
 // (deploy.yml copia index.html a 404.html para que el router resuelva el deep-link).
-// Lo comparten los e2e (`e2e-smoke.mjs`, `e2e-demos.mjs`).
+// Lo comparten los e2e (`e2e-smoke.mjs`, `e2e-demos.mjs`, `e2e-rpg.mjs`).
 
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 export const BASE = '/web-worker-patterns/';
 
@@ -59,7 +60,9 @@ export async function serveDist(gate, distArg) {
     res.writeHead(404, { 'content-type': MIME['.html'] }).end(await readFile(indexPath));
   });
 
-  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  // Puerto libre por defecto; fijo con WWP_PORT para mirar el build a mano.
+  const port = Number(process.env.WWP_PORT) || 0;
+  await new Promise((resolve) => server.listen(port, '127.0.0.1', resolve));
   const origin = `http://127.0.0.1:${server.address().port}`;
   return { origin, url: (route = '') => `${origin}${BASE}${route}`, close: () => server.close() };
 }
@@ -73,4 +76,10 @@ export function readExampleIds(gate) {
     process.exit(1);
   }
   return ids;
+}
+
+// Corrido directo (`npm run preview:pages`) deja el build servido para mirarlo a mano.
+if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
+  const site = await serveDist('preview', process.argv[2]);
+  console.log(`Build servido como en Pages: ${site.url()}`);
 }
