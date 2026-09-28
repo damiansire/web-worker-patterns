@@ -18,68 +18,12 @@
 //   distDir por defecto: dist/web-worker-patterns/browser, buildeado con
 //   `npm run build -- --base-href /web-worker-patterns/`.
 
-import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
-import { existsSync, readFileSync } from 'node:fs';
-import path from 'node:path';
 import { chromium } from 'playwright';
+import { BASE, readExampleIds, serveDist } from './serve-dist.mjs';
 
-const BASE = '/web-worker-patterns/';
-const distDir = path.resolve(process.argv[2] || 'dist/web-worker-patterns/browser');
-const indexPath = path.join(distDir, 'index.html');
-
-if (!existsSync(indexPath)) {
-  console.error(`✗ e2e-smoke: no existe ${indexPath}. Corré el build con --base-href ${BASE}`);
-  process.exit(1);
-}
-if (!readFileSync(indexPath, 'utf8').includes(`<base href="${BASE}"`)) {
-  console.error(
-    `✗ e2e-smoke: el build no tiene <base href="${BASE}">. Sin el sub-path este gate ` +
-      `no reproduce Pages. Corré: npm run build -- --base-href ${BASE}`,
-  );
-  process.exit(1);
-}
-
-// La fuente de verdad de los ejemplos es el registry; se leen los ids del fuente
-// para no mantener una segunda lista a mano.
-const registry = readFileSync('src/app/core/domain/examples/examples.registry.ts', 'utf8');
-const exampleIds = [...registry.matchAll(/^\s+id: '([^']+)',$/gm)].map((m) => m[1]);
-if (exampleIds.length < 16) {
-  console.error(`✗ e2e-smoke: leí ${exampleIds.length} ejemplos del registry, esperaba >= 16.`);
-  process.exit(1);
-}
-
-const MIME = {
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.json': 'application/json; charset=utf-8',
-  '.ico': 'image/x-icon',
-  '.svg': 'image/svg+xml',
-  '.png': 'image/png',
-  '.woff2': 'font/woff2',
-};
-
-const server = createServer(async (req, res) => {
-  const { pathname } = new URL(req.url, 'http://localhost');
-  if (!pathname.startsWith(BASE)) {
-    res.writeHead(404, { 'content-type': 'text/plain' }).end('fuera del sub-path');
-    return;
-  }
-  const relative = decodeURIComponent(pathname.slice(BASE.length)) || 'index.html';
-  const file = path.join(distDir, relative);
-  if (file.startsWith(distDir) && existsSync(file) && path.extname(file)) {
-    res.writeHead(200, { 'content-type': MIME[path.extname(file)] ?? 'application/octet-stream' });
-    res.end(await readFile(file));
-    return;
-  }
-  // Igual que Pages: ruta desconocida => 404 con el index (deploy.yml copia
-  // index.html a 404.html) y el router resuelve el deep-link.
-  res.writeHead(404, { 'content-type': MIME['.html'] }).end(await readFile(indexPath));
-});
-
-await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-const origin = `http://127.0.0.1:${server.address().port}`;
+const exampleIds = readExampleIds('e2e-smoke');
+const site = await serveDist('e2e-smoke', process.argv[2]);
+const origin = site.origin;
 
 const routes = [
   { name: 'home', url: `${origin}${BASE}`, exampleId: null },
@@ -154,7 +98,7 @@ try {
   }
 } finally {
   await browser.close();
-  server.close();
+  site.close();
 }
 
 if (checkedExamples < exampleIds.length) {

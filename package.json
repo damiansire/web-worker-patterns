@@ -30,7 +30,7 @@
     "pretest": "npm run build --workspace packages/worker-patterns-core && npm test --workspace packages/worker-patterns-core",
     "test": "node scripts/test/guard-tests.mjs",
     "test:raw": "ng test",
-    "test:e2e": "ng build --base-href /web-worker-patterns/ && node scripts/test/e2e-smoke.mjs",
+    "test:e2e": "ng build --base-href /web-worker-patterns/ && node scripts/test/e2e-smoke.mjs && node scripts/test/e2e-demos.mjs",
     "lint": "eslint .",
     "lint:boundaries": "node scripts/lint/boundaries.mjs",
     "format": "prettier --write \"src/**/*.{ts,html,scss,json}\"",
