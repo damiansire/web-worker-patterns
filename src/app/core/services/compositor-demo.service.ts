@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { WorkerExample } from '../domain/examples/example.model';
-import { busyBlock } from '../domain/thread-demo';
+import { afterNextPaint, busyBlock } from '../domain/thread-demo';
 import { fpsInWindow, trimOldFrames } from '../domain/workers/compositor-demo.logic';
 import { WorkerLike } from '../domain/workers/worker-like';
 
@@ -19,6 +19,8 @@ export type CompositorMode = 'idle' | 'main' | 'worker';
 @Injectable({ providedIn: 'root' })
 export class CompositorDemoService {
   clock: () => number = () => (typeof performance !== 'undefined' ? performance.now() : 0);
+  /** Cuándo arranca el bloqueo del main. Inyectable para tests sincrónicos. */
+  defer: (run: () => void) => void = afterNextPaint;
 
   private rafId?: number;
   private fpsTimer?: ReturnType<typeof setInterval>;
@@ -89,9 +91,18 @@ export class CompositorDemoService {
 
   /** Bloquea el MAIN con un busy-loop síncrono: la caja JS y los FPS se congelan. */
   blockMain(durationMs = 2500): void {
+    if (this.mode() !== 'idle') {
+      return;
+    }
     this.mode.set('main');
-    busyBlock(durationMs, this.clock); // <- congela el main
-    this.mode.set('idle');
+    // El medidor no puede publicar durante el freeze: sin esto el contador quedaba
+    // mostrando ~60 FPS justo mientras el main estaba muerto.
+    this.mainFps.set(0);
+    // Diferido: el estado "bloqueando" tiene que llegar a pintarse ANTES del freeze.
+    this.defer(() => {
+      busyBlock(durationMs, this.clock); // <- congela el main
+      this.mode.set('idle');
+    });
   }
 
   /** Manda el MISMO cómputo a un worker: el main queda libre, todo sigue fluido. */
@@ -112,7 +123,8 @@ export class CompositorDemoService {
     };
     // Si el worker falla, volvemos a 'idle' igual: sin esto, mode quedaría en 'worker'
     // para siempre y el guard mode() !== 'idle' bloquearía cualquier re-corrida.
-    worker.onerror = () => {
+    worker.onerror = (event) => {
+      (event as { preventDefault?: () => void })?.preventDefault?.();
       worker.terminate();
       this.worker = undefined;
       this.mode.set('idle');

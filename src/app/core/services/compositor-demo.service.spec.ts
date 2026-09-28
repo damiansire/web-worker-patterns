@@ -29,6 +29,7 @@ describe('CompositorDemoService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({});
     svc = TestBed.inject(CompositorDemoService);
+    svc.defer = (run) => run(); // sin esperar al pintado: el test es sincrónico
     fake = new FakeWorker();
     example = {
       id: '16-compositor-vs-main',
@@ -46,6 +47,22 @@ describe('CompositorDemoService', () => {
     let t = 0;
     svc.clock = () => (t += 1000);
     svc.blockMain(2500);
+    expect(svc.mode()).toBe('idle');
+  });
+
+  it('blockMain difiere el bloqueo: el modo "main" y los FPS en 0 quedan visibles antes', () => {
+    let blockNow: (() => void) | undefined;
+    svc.defer = (run) => (blockNow = run);
+    let t = 0;
+    svc.clock = () => (t += 1000);
+    svc.mainFps.set(60);
+
+    svc.blockMain(2500);
+
+    expect(svc.mode()).toBe('main');
+    expect(svc.mainFps()).toBe(0);
+
+    blockNow?.();
     expect(svc.mode()).toBe('idle');
   });
 

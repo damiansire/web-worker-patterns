@@ -7,6 +7,7 @@ import {
   skippedFrames,
 } from '../domain/workers/offscreen-canvas.worker.logic';
 import { WorkerLike } from '../domain/workers/worker-like';
+import { afterNextPaint } from '../domain/thread-demo';
 
 /**
  * Demo de OffscreenCanvas (ejemplo 14). Dos relojes gemelos:
@@ -22,6 +23,8 @@ import { WorkerLike } from '../domain/workers/worker-like';
 export class OffscreenCanvasDemoService {
   /** Reloj inyectable para tests. */
   clock: () => number = () => (typeof performance !== 'undefined' ? performance.now() : 0);
+  /** Cuándo arranca el bloqueo del main. Inyectable para tests sincrónicos. */
+  defer: (run: () => void) => void = afterNextPaint;
 
   readonly supported = signal(
     typeof HTMLCanvasElement !== 'undefined' &&
@@ -91,6 +94,12 @@ export class OffscreenCanvasDemoService {
             this.workerFrames.set(d.frames ?? 0);
           }
         };
+        // Si el worker no carga o falla, su canvas queda en blanco: frenamos la demo
+        // entera en vez de dejarla "corriendo" con un reloj muerto.
+        worker.onerror = (event) => {
+          (event as { preventDefault?: () => void })?.preventDefault?.();
+          this.reset();
+        };
         worker.postMessage(
           { type: 'init', canvas: offscreen, palette: readPalette(workerCanvas, 'worker') },
           [offscreen as unknown as Transferable],
@@ -114,17 +123,18 @@ export class OffscreenCanvasDemoService {
       return;
     }
     this.mainBlocked.set(true);
-    // Diferimos el bloqueo un macrotask para que la UI alcance a pintar el estado "bloqueado"
-    // antes de que el main se congele (si bloqueáramos sincrónico, nunca se vería).
-    setTimeout(() => {
-      // El main está por congelarse: el rAF no va a correr durante el busy-wait, así que
-      // su reporte de FPS (cada 500ms) no se actualiza y el contador quedaría mostrando el
-      // valor viejo (~60) justo en el momento didáctico "main muerto". Lo forzamos a 0 YA.
-      // En fallback el "worker" también lo pinta el main, así que también se congela.
-      this.mainFps.set(0);
-      if (this.fallbackCtx) {
-        this.workerFps.set(0);
-      }
+    // El main está por congelarse: el rAF no va a correr durante el busy-wait, así que
+    // su reporte de FPS (cada 500ms) no se actualiza y el contador quedaría mostrando el
+    // valor viejo (~60) justo en el momento didáctico "main muerto". Lo forzamos a 0 YA,
+    // junto con el estado "bloqueado", para que los dos entren en el mismo pintado.
+    // En fallback el "worker" también lo pinta el main, así que también se congela.
+    this.mainFps.set(0);
+    if (this.fallbackCtx) {
+      this.workerFps.set(0);
+    }
+    // Diferimos el bloqueo hasta después del próximo pintado: un setTimeout(0) a secas
+    // puede correr antes de que el navegador pinte, y el estado nunca se vería.
+    this.defer(() => {
       const framesBefore = this.mainFrameCount;
       const before = this.clock();
       const end = before + ms;
@@ -139,7 +149,7 @@ export class OffscreenCanvasDemoService {
       const blockedMs = this.clock() - before;
       const framesPainted = this.mainFrameCount - framesBefore;
       this.skippedFrames.set(skippedFrames(blockedMs, frameBudgetMs, framesPainted));
-    }, 0);
+    });
   }
 
   reset(): void {

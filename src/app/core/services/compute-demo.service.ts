@@ -2,6 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { WorkerExample } from '../domain/examples/example.model';
 import { WorkerLike } from '../domain/workers/worker-like';
 import { countPrimesUpTo } from '../domain/workers/primes.worker.logic';
+import { afterNextPaint } from '../domain/thread-demo';
 
 export interface ComputeResult {
   count: number;
@@ -24,6 +25,8 @@ export type ComputePhase = 'idle' | 'worker' | 'main';
 export class ComputeDemoService {
   /** Reloj inyectable para tests deterministas. */
   clock: () => number = () => (typeof performance !== 'undefined' ? performance.now() : 0);
+  /** Cuándo arranca el bloqueo del main. Inyectable para tests sincrónicos. */
+  defer: (run: () => void) => void = afterNextPaint;
 
   private worker?: WorkerLike;
   private liveTimer?: ReturnType<typeof setInterval>;
@@ -86,12 +89,18 @@ export class ComputeDemoService {
 
   /** Corre el MISMO cómputo EN EL MAIN: bloquea el hilo, la página se congela. */
   runMain(limit: number): void {
+    if (this.phase() !== 'idle') {
+      return;
+    }
     this.phase.set('main');
     this.mainResult.set(null);
-    const t0 = this.clock();
-    const count = countPrimesUpTo(limit); // <- acá se congela todo
-    this.mainResult.set({ count, ms: Math.round(this.clock() - t0), limit });
-    this.phase.set('idle');
+    // Diferido: el estado "congelado" tiene que llegar a pintarse ANTES del freeze.
+    this.defer(() => {
+      const t0 = this.clock();
+      const count = countPrimesUpTo(limit); // <- acá se congela todo
+      this.mainResult.set({ count, ms: Math.round(this.clock() - t0), limit });
+      this.phase.set('idle');
+    });
   }
 
   reset(): void {

@@ -32,6 +32,7 @@ describe('ComputeDemoService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({});
     svc = TestBed.inject(ComputeDemoService);
+    svc.defer = (run) => run(); // sin esperar al pintado: el test es sincrónico
     fake = new FakeWorker();
     t = 0;
     svc.clock = () => t;
@@ -53,6 +54,20 @@ describe('ComputeDemoService', () => {
     // el conteo real (división de prueba) sí corre:
     expect(svc.mainResult()).toMatchObject({ count: 4, limit: 10 });
     expect(svc.phase()).toBe('idle');
+  });
+
+  it('runMain difiere el cómputo: la fase "main" queda visible antes de congelar', () => {
+    let computeNow: (() => void) | undefined;
+    svc.defer = (run) => (computeNow = run);
+
+    svc.runMain(10);
+
+    expect(svc.phase()).toBe('main');
+    expect(svc.mainResult()).toBeNull();
+
+    computeNow?.();
+    expect(svc.phase()).toBe('idle');
+    expect(svc.mainResult()).toMatchObject({ count: 4, limit: 10 });
   });
 
   it('runWorker posts the compute command and records the worker result', () => {
