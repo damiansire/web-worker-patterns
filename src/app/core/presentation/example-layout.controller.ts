@@ -76,7 +76,7 @@ export class ExampleLayoutController {
   /** Trabajo por mensaje del ejemplo 11 (consumidor algo lento). */
   private readonly BP_WORK = 150_000;
   /** Trabajo del ejemplo 13: si cae al main, debe notarse el freeze. */
-  private readonly DEG_WORK = 500_000;
+  private readonly DEG_WORK = 2_000_000;
   /** Trabajo del ejemplo 16: pesado para que el bloqueo dure ~2-3s y se note el jank. */
   private readonly COMPOSITOR_WORK = 4_000_000;
 
@@ -481,6 +481,11 @@ export class ExampleLayoutController {
 
   send(text: string): void {
     this.exchange.send(text);
+  }
+
+  /** Intenta mandar una función: devuelve el nombre del error que tira postMessage. */
+  sendUncloneable(): string | null {
+    return this.exchange.sendUncloneable();
   }
 
   resetExchange(): void {

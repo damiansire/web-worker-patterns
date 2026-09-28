@@ -30,6 +30,7 @@ describe('DegradationDemoService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({});
     svc = TestBed.inject(DegradationDemoService);
+    svc.defer = (run) => run(); // sin esperar al pintado: el test es sincrónico
     fake = new FakeWorker();
     t = 0;
     svc.clock = () => t;
@@ -72,6 +73,21 @@ describe('DegradationDemoService', () => {
     expect(r?.path).toBe('main');
     expect(r?.value).toBe(4);
     expect(fake.posted).toHaveLength(0); // no se usó el worker
+  });
+
+  it('el fallback se difiere: "procesando" queda visible antes de congelar', () => {
+    let computeNow: (() => void) | undefined;
+    svc.defer = (run) => (computeNow = run);
+    svc.supported.set(false);
+
+    svc.run(example, 10);
+
+    expect(svc.running()).toBe(true);
+    expect(svc.result()).toBeNull();
+
+    computeNow?.();
+    expect(svc.running()).toBe(false);
+    expect(svc.result()?.path).toBe('main');
   });
 
   it('si Worker no está soportado, cae al main aunque no se fuerce', () => {

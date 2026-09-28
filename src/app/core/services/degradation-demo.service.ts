@@ -2,6 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { WorkerExample } from '../domain/examples/example.model';
 import { WorkerLike } from '../domain/workers/worker-like';
 import { countPrimesUpTo } from '../domain/workers/primes.worker.logic';
+import { afterNextPaint } from '../domain/thread-demo';
 
 export interface DegradationResult {
   value: number;
@@ -25,6 +26,9 @@ export interface DegradationResult {
 export class DegradationDemoService {
   /** Reloj inyectable para tests deterministas. */
   clock: () => number = () => (typeof performance !== 'undefined' ? performance.now() : 0);
+
+  /** Cuándo arranca el cómputo en el main. Inyectable para tests sincrónicos. */
+  defer: (run: () => void) => void = afterNextPaint;
 
   /** Resultado del feature-detect real del entorno. */
   readonly supported = signal(typeof Worker !== 'undefined');
@@ -79,7 +83,12 @@ export class DegradationDemoService {
       };
       worker.postMessage({ command: 'compute', limit });
     } else {
-      this.runOnMain(limit);
+      // Diferido: el estado "procesando" tiene que llegar a pintarse ANTES del freeze.
+      this.running.set(true);
+      this.defer(() => {
+        this.runOnMain(limit);
+        this.running.set(false);
+      });
     }
   }
 
