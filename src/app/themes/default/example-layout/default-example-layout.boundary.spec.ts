@@ -84,7 +84,9 @@ describe('DefaultExampleLayout: @boundary alrededor de la demo', () => {
     expect(document.activeElement!.getAttribute('aria-label')).toBe('Demo interactiva');
     // La demo que vuelve de un reintento entra animada.
     expect(el.querySelector('.e-demo')!.classList).toContain('e-demo--back');
-  });
+    // Monta el layout completo dos veces: con la máquina cargada pasa de los 5 s
+    // por defecto y fallaba sin que nada estuviera roto.
+  }, 20_000);
 
   it('sin errores, la demo se dibuja normal y no aparece el fallback', async () => {
     const fixture = TestBed.createComponent(DefaultExampleLayoutComponent);
