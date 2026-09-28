@@ -65,7 +65,7 @@ export class BackpressureDemoService {
     }
     this.worker?.terminate();
     this.error.set(null);
-    this.worker = example.workerFactory() as unknown as WorkerLike;
+    this.worker = example.workerFactory();
     this.worker.onmessage = () => this.onAck();
     this.worker.onerror = (event) => this.onError(event);
     this.sent = 0;

@@ -53,7 +53,7 @@ export class DegradationDemoService {
 
     if (useWorker) {
       this.running.set(true);
-      const worker = example.workerFactory!() as unknown as WorkerLike;
+      const worker = example.workerFactory!();
       this.worker = worker;
       const t0 = this.clock();
       worker.onmessage = (event: MessageEvent) => {

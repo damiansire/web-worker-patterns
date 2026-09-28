@@ -50,7 +50,7 @@ export class ComputeDemoService {
     this.workerResult.set(null);
     this.error.set(null);
 
-    const worker = example.workerFactory() as unknown as WorkerLike;
+    const worker = example.workerFactory();
     this.worker = worker;
     const t0 = this.clock();
     this.liveStart = t0;

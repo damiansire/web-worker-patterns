@@ -35,7 +35,7 @@ export class WorkerHost {
     if (!example.workerFactory) {
       return;
     }
-    const worker = example.workerFactory() as unknown as WorkerLike;
+    const worker = example.workerFactory();
     this.worker = worker;
     this.openId = example.id;
     worker.onmessage = (event: MessageEvent) => handlers.onMessage(event.data);

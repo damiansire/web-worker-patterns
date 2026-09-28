@@ -51,7 +51,7 @@ export class TransferDemoService {
     if (this.busy() || !example.workerFactory) {
       return;
     }
-    const worker = example.workerFactory() as unknown as WorkerLike;
+    const worker = example.workerFactory();
     this.worker = worker;
     const buf = new ArrayBuffer(mb * 1024 * 1024);
     this.busy.set(true);

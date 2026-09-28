@@ -117,7 +117,7 @@ export class WorkerLimitsDemoService {
         finish();
       };
       for (let i = 0; i < k; i++) {
-        const worker = example.workerFactory!() as unknown as WorkerLike;
+        const worker = example.workerFactory!();
         batch.add(worker);
         this.live.add(worker);
         worker.onmessage = () => settle(worker);

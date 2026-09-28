@@ -75,7 +75,7 @@ export class CloneCostDemoService {
       depth,
     }));
 
-    const worker = example.workerFactory() as unknown as WorkerLike;
+    const worker = example.workerFactory();
     this.worker = worker;
     worker.onmessage = (event: MessageEvent) => {
       // Leer `data` es parte de la medición: el navegador deserializa el mensaje

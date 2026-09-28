@@ -50,7 +50,7 @@ export class ExampleRunnerService {
     this.workerTicks.set(0);
     this.phase.set('worker');
 
-    const worker = example.workerFactory() as unknown as WorkerLike;
+    const worker = example.workerFactory();
     this.worker = worker;
     worker.onmessage = (event: MessageEvent) => {
       const data = event.data as { type?: string; tick?: number };

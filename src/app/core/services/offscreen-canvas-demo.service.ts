@@ -85,7 +85,7 @@ export class OffscreenCanvasDemoService {
         offscreen = null;
       }
       if (offscreen) {
-        const worker = example.workerFactory!() as unknown as WorkerLike;
+        const worker = example.workerFactory!();
         this.worker = worker;
         worker.onmessage = (event: MessageEvent) => {
           const d = event.data as { type?: string; fps?: number; frames?: number };
