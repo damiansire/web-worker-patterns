@@ -25,11 +25,13 @@ Interactive educational platform about **Web Workers** built with **Angular 22**
 
 The `rpg` theme is the same 16 patterns, played. You walk through five regions, each neighbor hands you one mission, and every mission runs the real thing: a real worker, a real frozen main thread (the game itself freezes with it).
 
-The mechanic is borrowed from [Wagotabi](https://www.wagotabi.com/), the RPG that teaches Japanese by switching its own text to Japanese one learned word at a time. Here the text starts in plain language and switches to the platform's vocabulary: «un ayudante» becomes `new Worker()` everywhere, from the moment you learn it. Learned terms are collected in the Workerdex and progress is saved locally.
+The mechanic is borrowed from [Wagotabi](https://www.wagotabi.com/), the RPG that teaches Japanese by switching its own text to Japanese one learned word at a time. Here the text starts in plain language and switches to the platform's vocabulary: «ayudante» becomes `worker` everywhere (dialogue, buttons, HUD), from the moment you learn it. Learned terms are collected in the Workerdex and progress is saved locally.
+
+Many missions offer two paths, and the one that hurts can be chosen: block the main thread, flood the worker, send something that cannot be cloned. The consequence is the lesson. Each region ends with a master who poses three situations; picking the piece of the platform that solves each one earns the region's stamp and opens the next region.
 
 Open it from the theme selector, or deep-link to `/t/rpg`. `/t/rpg/example/<id>` drops you next to the neighbor of that pattern.
 
-The design rules are tests, not notes: at most 8 words per dialogue line and 4 per button, no API name written before it has been learned, and no mission without a path that hurts. See `src/app/core/domain/learning/content.spec.ts` and `scripts/test/e2e-rpg.mjs`, which plays all 16 missions in a real browser.
+The design rules are tests, not notes: at most 8 words per dialogue line and 4 per button, no API name written before it has been learned, and no plain word left behind once its term is learned. See `src/app/core/domain/learning/content.spec.ts` and `scripts/test/e2e-rpg.mjs`, which plays all 16 missions in a real browser.
 
 ## Quick Start
 
@@ -149,7 +151,7 @@ Routes, navigation and the home page update automatically from the registry.
 - **SCSS**: Semantic design tokens (`--surface`, `--ink`, `--accent`, `--thread-*`) per theme
 - **@jsverse/transloco**: Runtime i18n (ES; engine ready for more languages)
 - **highlight.js**: Syntax highlighting for code blocks
-- **Vitest**: Unit tests (<!-- METRICS:TESTS -->242<!-- /METRICS:TESTS --> tests across the pure domain logic, the services and the themes)
+- **Vitest**: Unit tests (<!-- METRICS:TESTS -->264<!-- /METRICS:TESTS --> tests across the pure domain logic, the services and the themes)
 - **dependency-cruiser**: Enforces the `core/ ⇏ themes/` boundary
 - **Web Workers API**: Dedicated Workers, SharedWorker, Transferable Objects, SharedArrayBuffer + Atomics, OffscreenCanvas
 
