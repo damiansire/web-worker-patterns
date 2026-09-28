@@ -1,4 +1,5 @@
 import { Injectable, computed, effect, signal } from '@angular/core';
+import { readStored, writeStored } from '../utils/safe-storage';
 
 /**
  * Idiomas soportados. Un solo idioma por ahora (es). Para sumar otro: agregar
@@ -22,13 +23,13 @@ export class LanguageService {
   readonly currentLanguage = computed<LanguageCode>(() => this.language());
 
   constructor() {
-    const stored = this.storage?.getItem(LANGUAGE_STORAGE_KEY);
+    const stored = readStored(LANGUAGE_STORAGE_KEY);
     if (stored && this.isSupported(stored)) {
       this.language.set(stored);
     }
 
     effect(() => {
-      this.storage?.setItem(LANGUAGE_STORAGE_KEY, this.language());
+      writeStored(LANGUAGE_STORAGE_KEY, this.language());
     });
 
     // Mantiene `<html lang>` en sincronía con el idioma activo (mismo patrón que
@@ -40,11 +41,6 @@ export class LanguageService {
         document.documentElement.lang = this.language();
       }
     });
-  }
-
-  /** localStorage puede no existir en test/SSR; lo accedemos de forma defensiva. */
-  private get storage(): Storage | null {
-    return typeof localStorage !== 'undefined' ? localStorage : null;
   }
 
   setLanguage(code: LanguageCode): void {

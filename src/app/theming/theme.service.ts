@@ -1,13 +1,9 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { THEME_REGISTRY } from './theme.tokens';
 import { ThemeId, ThemePack } from './theme.types';
+import { readStored, writeStored } from '../core/utils/safe-storage';
 
 const THEME_STORAGE_KEY = 'wwp-theme';
-
-function readStoredTheme(): ThemeId | null {
-  if (typeof localStorage === 'undefined') return null;
-  return localStorage.getItem(THEME_STORAGE_KEY) as ThemeId | null;
-}
 
 /**
  * ThemeService (ARQUITECTURA §4.2).
@@ -46,13 +42,12 @@ export class ThemeService {
     if (typeof document !== 'undefined') {
       document.documentElement.dataset['theme'] = id;
     }
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(THEME_STORAGE_KEY, id);
-    }
+    writeStored(THEME_STORAGE_KEY, id);
   }
 
   private initialThemeId(): ThemeId {
-    const stored = readStoredTheme();
+    // `has` valida el valor leído: recién ahí el string es un ThemeId de verdad.
+    const stored = readStored(THEME_STORAGE_KEY) as ThemeId | null;
     return stored && this.registry.has(stored) ? stored : 'default';
   }
 
