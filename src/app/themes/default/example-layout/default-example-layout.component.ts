@@ -737,6 +737,10 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
             }
 
             @case ('clone-cost') {
+              @if (cloneError(); as err) {
+                <p class="e-foot e-danger" role="alert">⚠ {{ err }}</p>
+              }
+
               <div class="e-cc-ctl">
                 <label class="e-cc-field">
                   <span
@@ -1769,6 +1773,7 @@ export class DefaultExampleLayoutComponent {
   protected readonly ccDepth = this.ctl.ccDepth;
   protected readonly cloneMeasurements = this.ctl.cloneMeasurements;
   protected readonly cloneRunning = this.ctl.cloneRunning;
+  protected readonly cloneError = this.ctl.cloneError;
   protected readonly cloneDepthRun = this.ctl.cloneDepthRun;
   protected readonly chartPoints = this.ctl.chartPoints;
   protected readonly fmtBytes = this.ctl.fmtBytes;

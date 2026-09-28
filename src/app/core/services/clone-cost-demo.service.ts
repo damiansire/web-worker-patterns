@@ -47,6 +47,8 @@ export class CloneCostDemoService {
 
   readonly measurements = signal<CloneMeasure[]>([]);
   readonly running = signal(false);
+  /** Mensaje del último fallo de worker (null = ninguno). Lo muestra la UI. */
+  readonly error = signal<string | null>(null);
   /** Profundidad del barrido en curso (rotula la curva en la UI). */
   readonly depth = signal(0);
 
@@ -68,6 +70,7 @@ export class CloneCostDemoService {
     this.reps = Math.max(1, Math.floor(opts.reps ?? 3));
 
     this.measurements.set([]);
+    this.error.set(null);
     this.depth.set(depth);
     this.running.set(true);
     this.queue = Array.from({ length: steps }, (_, i) => ({
@@ -88,6 +91,11 @@ export class CloneCostDemoService {
     // para siempre (finish nunca se llamaba) y el guard bloqueaba toda re-corrida.
     worker.onerror = (event) => {
       (event as { preventDefault?: () => void })?.preventDefault?.();
+      // Un barrido cortado deja una curva incompleta: hay que decirlo, no mostrarla
+      // como si fuera el resultado.
+      this.error.set(
+        (event as { message?: string })?.message ?? 'El worker falló: la medición quedó incompleta',
+      );
       this.finish();
     };
 
@@ -166,6 +174,7 @@ export class CloneCostDemoService {
     this.current = undefined;
     this.warming = false;
     this.measurements.set([]);
+    this.error.set(null);
     this.depth.set(0);
   }
 }

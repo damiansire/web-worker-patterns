@@ -210,6 +210,7 @@ export class ExampleLayoutController {
   readonly ccDepth = signal(1);
   readonly cloneMeasurements = this.cloneCost.measurements;
   readonly cloneRunning = this.cloneCost.running;
+  readonly cloneError = this.cloneCost.error;
   readonly cloneDepthRun = this.cloneCost.depth;
   readonly chartPoints = computed<CloneCostPoint[]>(() =>
     this.cloneMeasurements().map((m) => ({ x: m.serializedBytes, y: m.ms })),

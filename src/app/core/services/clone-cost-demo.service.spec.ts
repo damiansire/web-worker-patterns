@@ -136,6 +136,8 @@ describe('CloneCostDemoService', () => {
     // Sin el onerror, running quedaba en true para siempre (finish nunca corría).
     expect(svc.running()).toBe(false);
     expect(fake.terminated).toBe(true);
+    // Y el corte se informa: una curva incompleta no se muestra como resultado.
+    expect(svc.error()).toBe('boom');
   });
 
   it('reset clears measurements and stops', () => {
