@@ -10,15 +10,20 @@ Leé, en este orden:
 2. `CLAUDE.md`: cómo trabajar (fases, convenciones de código).
 3. `docs/AI-PROCESS.md`: gates, loop de design-review, hooks.
 
-## Estado actual (dos themes, un idioma)
+## Estado actual (tres themes, un idioma)
 
-Hoy el repo corre con **dos themes** (`default`, cálido y claro; `midnight`, su contracara
+Hoy el repo corre con **tres themes** (`default`, cálido y claro; `midnight`, su contracara
 nocturna, que reusa el shell, el home y el example-layout de `default` y solo cambia el bloque
-de tokens) y **un solo idioma** (`es`). Ver `src/app/theming/theme.registry.ts` y
+de tokens; y `rpg`, el mismo recorrido como juego, con presentación propia) y **un solo idioma**
+(`es`). Ver `src/app/theming/theme.registry.ts` y
 `src/app/themes/midnight/midnight.theme.ts`. El motor de theming e i18n queda **genérico**:
 sumar themes/idiomas es agregar entradas al registry / a `availableLangs`, sin tocar el
 dominio. (Antes convivían 5 themes y 3 idiomas; se consolidó a uno de cada uno y después se
-sumó `midnight` como variante de paleta del default.)
+sumó `midnight` como variante de paleta del default, y `rpg` como theme jugable.)
+
+El theme `rpg` tiene reglas de diseño que son tests: como mucho 8 palabras por línea de
+diálogo y 4 por botón, y ningún nombre de API escrito antes de aprenderse. Si tocás su
+contenido (`learning` en `public/i18n/es.json`), corré `npm test`.
 
 ## La regla de oro (no negociable)
 

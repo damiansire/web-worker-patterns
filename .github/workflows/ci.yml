@@ -55,5 +55,5 @@ jobs:
       # de CSP antes de que llegue a producción.
       - name: Instala Playwright (chromium)
         run: npx playwright install --with-deps chromium
-      - name: E2E de humo (build servido como en Pages)
+      - name: E2E en navegador real (humo, demos y las 16 misiones del juego)
         run: npm run test:e2e

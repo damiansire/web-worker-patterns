@@ -1,8 +1,9 @@
 # Arquitectura multi-theme · web-worker-patterns
 
-> **Estado actual (dos themes, un idioma).** El repo corre hoy con **dos themes** y **un solo
-> idioma** (`es`): `default` (cálido, claro, la identidad "consultorio/pulso") y `midnight` (su
-> contracara nocturna, oscura). Los dos se dibujan solo con el contrato de tokens y cubren la
+> **Estado actual (tres themes, un idioma).** El repo corre hoy con **tres themes** y **un solo
+> idioma** (`es`): `default` (cálido, claro, la identidad "consultorio/pulso"), `midnight` (su
+> contracara nocturna, oscura) y `rpg` (el mismo recorrido como juego, con presentación propia
+> sobre los mismos workers y servicios). `default` y `midnight` se dibujan solo con el contrato de tokens y cubren la
 > misma superficie de tokens, así que el switch es puramente de paleta y nada cae al valor de
 > `:root`. `midnight` reusa la presentación de `default` (comparten shell, viaje y layouts) y solo
 > cambia el bloque de tokens: por eso su `ThemePack` reusa los loaders del default en vez de
