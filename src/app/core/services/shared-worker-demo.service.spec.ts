@@ -105,6 +105,7 @@ describe('SharedWorkerDemoService (backend real / MessagePort)', () => {
   }
   class FakeSharedWorker {
     readonly port = new FakePort();
+    onerror: ((event: Event) => void) | null = null;
   }
 
   let svc: SharedWorkerDemoService;
@@ -143,6 +144,16 @@ describe('SharedWorkerDemoService (backend real / MessagePort)', () => {
     port.emit({ type: 'hello', instanceId: 'real-abc', clients: 3, count: 7 });
     expect(svc.instanceId()).toBe('real-abc');
     expect(svc.count()).toBe(7);
+  });
+
+  it('si el SharedWorker real falla, la demo sigue con el backend simulado', () => {
+    svc.addPanel(); // '#3' real
+
+    created[0].onerror?.(new Event('error'));
+
+    expect(svc.supported()).toBe(false);
+    expect(svc.panels()).toHaveLength(2);
+    expect(svc.instanceId()).toMatch(/^sim-/);
   });
 
   it('inc y closePanel viajan por el MessagePort real (postMessage/close)', () => {

@@ -55,6 +55,8 @@ export class SharedWorkerDemoService {
   private nextPort = 0;
   private example?: WorkerExample;
   private watchingPage = false;
+  /** El SharedWorker real falló en esta sesión: la demo sigue con el backend simulado. */
+  private realFailed = false;
 
   /** Backend simulado in-memory (fallback). Imita un único worker compartido. */
   private sim = this.makeSim();
@@ -68,7 +70,7 @@ export class SharedWorkerDemoService {
     this.example = example;
     this.watchPageLifecycle();
     this.factory = example.sharedWorkerFactory;
-    this.supported.set(typeof SharedWorker !== 'undefined' && !!this.factory);
+    this.supported.set(typeof SharedWorker !== 'undefined' && !!this.factory && !this.realFailed);
     this.openId = example.id;
     // Arranca con dos conexiones: el "compartido" se ve sin tocar nada.
     this.addPanel();
@@ -128,6 +130,18 @@ export class SharedWorkerDemoService {
   private realConn(label: string): Conn {
     const sw = this.factory!();
     const port = sw.port;
+    // Si el script del SharedWorker no carga, ningún puerto va a recibir el saludo y
+    // los paneles quedaban vacíos sin aviso. Se cae al backend simulado, que la UI
+    // ya rotula como tal.
+    sw.onerror = (event) => {
+      event.preventDefault?.();
+      this.realFailed = true;
+      const example = this.example;
+      this.close();
+      if (example) {
+        this.open(example);
+      }
+    };
     port.onmessage = (event: MessageEvent) => this.receive(label, event.data as ServerMsg);
     port.start();
     return {
