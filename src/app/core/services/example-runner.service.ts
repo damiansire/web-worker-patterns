@@ -2,7 +2,12 @@ import { Injectable, signal } from '@angular/core';
 import { WorkerExample } from '../domain/examples/example.model';
 import { ThreadLane } from '../domain/thread-lane';
 import { WorkerLike } from '../domain/workers/worker-like';
-import { buildBlockedLanes, buildWorkerLanes, busyBlock } from '../domain/thread-demo';
+import {
+  afterNextPaint,
+  buildBlockedLanes,
+  buildWorkerLanes,
+  busyBlock,
+} from '../domain/thread-demo';
 
 export type RunPhase = 'idle' | 'worker' | 'main';
 
@@ -15,6 +20,9 @@ export type RunPhase = 'idle' | 'worker' | 'main';
  */
 @Injectable({ providedIn: 'root' })
 export class ExampleRunnerService {
+  /** Cuándo arranca el bloqueo del main. Inyectable para tests sincrónicos. */
+  defer: (run: () => void) => void = afterNextPaint;
+
   private worker?: WorkerLike;
 
   // ── Demo de contraste worker vs main thread ───────────────────────────────
@@ -54,8 +62,13 @@ export class ExampleRunnerService {
       this._workerLanes.set(buildWorkerLanes(tick, intervalMs));
       if (tick >= ticks) {
         this.stop();
-        this.phase.set('idle');
       }
+    };
+    // Si el script del worker no carga o falla, sin esto la fase quedaba en 'worker'
+    // y el botón deshabilitado para siempre.
+    worker.onerror = (event) => {
+      (event as { preventDefault?: () => void })?.preventDefault?.();
+      this.stop();
     };
     worker.postMessage({ command: 'start', intervalMs });
   }
@@ -68,15 +81,21 @@ export class ExampleRunnerService {
   runMainBlockingDemo(options?: { intervalMs?: number; ticks?: number }): void {
     const intervalMs = options?.intervalMs ?? 500;
     const ticks = options?.ticks ?? 5;
+    if (this.phase() === 'main') {
+      return;
+    }
     this.phase.set('main');
     this._mainLanes.set(null);
     this.mainTicks.set(0);
 
-    busyBlock(ticks * intervalMs); // <- acá se congela todo
+    this.defer(() => {
+      busyBlock(ticks * intervalMs); // <- acá se congela todo
 
-    this._mainLanes.set(buildBlockedLanes(ticks, intervalMs));
-    this.mainTicks.set(ticks);
-    this.phase.set('idle');
+      this._mainLanes.set(buildBlockedLanes(ticks, intervalMs));
+      this.mainTicks.set(ticks);
+      // Si había una corrida en worker en vuelo, sigue en vuelo.
+      this.phase.set(this.worker ? 'worker' : 'idle');
+    });
   }
 
   stop(): void {
@@ -86,6 +105,11 @@ export class ExampleRunnerService {
       // estado `terminated` que la UI/los tests observan nunca se cumple.
       this.worker.terminate();
       this.worker = undefined;
+    }
+    // Se llama también al salir del ejemplo con la corrida en vuelo: si la fase
+    // quedara en 'worker', al volver el botón seguiría deshabilitado.
+    if (this.phase() === 'worker') {
+      this.phase.set('idle');
     }
   }
 }

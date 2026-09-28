@@ -33,6 +33,23 @@ export function buildBlockedLanes(ticks: number, intervalMs: number): ThreadLane
 }
 
 /**
+ * Corre `run` recién DESPUÉS de que el navegador pinte el próximo frame.
+ *
+ * Las demos que congelan el main primero cambian un estado ("CONGELADO") y después
+ * bloquean. Si las dos cosas pasan en la misma tarea, el navegador nunca llega a
+ * pintar ese estado: la pantalla muestra "la UI responde" durante todo el freeze,
+ * lo contrario de la lección. El rAF corre justo antes del pintado y el
+ * `setTimeout` encola una tarea para después: ahí el frame ya está en pantalla.
+ */
+export function afterNextPaint(run: () => void): void {
+  if (typeof requestAnimationFrame === 'undefined') {
+    setTimeout(run, 0);
+    return;
+  }
+  requestAnimationFrame(() => setTimeout(run, 0));
+}
+
+/**
  * Bloquea el hilo de forma SINCRÓNICA durante `durationMs`: un busy-loop real que
  * tapa el event loop, así el navegador no puede repintar (la UI se congela). Es el
  * corazón de la demo. `now` es inyectable para tests (no spinear de verdad).

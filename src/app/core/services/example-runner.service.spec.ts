@@ -9,6 +9,7 @@ import { WorkerExample } from '../domain/examples/example.model';
  */
 class FakeWorker {
   onmessage: ((event: MessageEvent) => void) | null = null;
+  onerror: ((event: unknown) => void) | null = null;
   posted: unknown[] = [];
   terminated = false;
 
@@ -33,6 +34,7 @@ describe('ExampleRunnerService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({});
     runner = TestBed.inject(ExampleRunnerService);
+    runner.defer = (run) => run(); // sin esperar al pintado: el test es sincrónico
     fake = new FakeWorker();
     example = {
       id: '01-setinterval-counter',
@@ -76,6 +78,41 @@ describe('ExampleRunnerService', () => {
     fake.emit({ type: 'tick', tick: 1 }); // corriendo, aún no llegó a ticks
     runner.stop();
     expect(fake.terminated).toBe(true);
+  });
+
+  it('stop a mitad de corrida devuelve la fase a idle (el botón no queda trabado)', () => {
+    runner.runWorkerDemo(example, { intervalMs: 10, ticks: 10 });
+    fake.emit({ type: 'tick', tick: 1 });
+    expect(runner.phase()).toBe('worker');
+
+    // Es lo que pasa al salir del ejemplo con la corrida en vuelo (onDestroy).
+    runner.stop();
+
+    expect(runner.phase()).toBe('idle');
+  });
+
+  it('un worker que falla libera la fase y termina el worker', () => {
+    runner.runWorkerDemo(example, { intervalMs: 10, ticks: 10 });
+
+    fake.onerror?.({ message: 'no cargó el script' });
+
+    expect(runner.phase()).toBe('idle');
+    expect(fake.terminated).toBe(true);
+  });
+
+  it('el bloqueo del main se difiere: la fase "main" queda visible antes de congelar', () => {
+    let blockNow: (() => void) | undefined;
+    runner.defer = (run) => (blockNow = run);
+
+    runner.runMainBlockingDemo({ intervalMs: 1, ticks: 1 });
+
+    // Todavía no bloqueó: el navegador tiene un frame para pintar el estado.
+    expect(runner.phase()).toBe('main');
+    expect(runner.mainLanes()).toBeNull();
+
+    blockNow?.();
+    expect(runner.phase()).toBe('idle');
+    expect(runner.mainLanes()).not.toBeNull();
   });
 
   it('no hace nada para un ejemplo sin workerFactory', () => {
