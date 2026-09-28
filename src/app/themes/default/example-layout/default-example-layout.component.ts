@@ -580,7 +580,7 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
                 <div class="e-pool-queue">
                   @for (task of poolTasks(); track task.id) {
                     <span class="e-pool-task" [attr.data-state]="task.state">
-                      {{ task.state === 'done' ? '✓' : 'T' + task.id }}
+                      {{ task.state === 'done' ? '✓' : task.state === 'error' ? '✗' : 'T' + task.id }}
                     </span>
                   }
                 </div>
@@ -1353,6 +1353,10 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
         background: var(--thread-worker);
         color: var(--surface);
         border-color: var(--thread-worker);
+      }
+      .e-pool-task[data-state='error'] {
+        border-color: var(--danger, #e5484d);
+        color: var(--danger, #e5484d);
       }
       .e-pool-task[data-state='done'] {
         opacity: 0.4;

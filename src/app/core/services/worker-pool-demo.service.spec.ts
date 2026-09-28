@@ -109,8 +109,11 @@ describe('WorkerPoolDemoService', () => {
 
     // pese a que TODOS los workers fallan, el scheduler no queda colgado.
     expect(svc.running()).toBe(false);
-    expect(svc.processed()).toBe(svc.taskCount);
     expect(svc.slots().every((s) => !s.busy)).toBe(true);
+    // Y una tarea que falló no cuenta como hecha: antes el pool mostraba 24/24 con
+    // todos los workers caídos.
+    expect(svc.tasks().every((t) => t.state === 'error')).toBe(true);
+    expect(svc.processed()).toBe(0);
   });
 
   it('reset limpia la cola y los slots', async () => {

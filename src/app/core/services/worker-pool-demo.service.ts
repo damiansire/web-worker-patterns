@@ -1,11 +1,10 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { WorkerExample } from '../domain/examples/example.model';
-import { WorkerLike } from '../domain/workers/worker-like';
 import { WorkerPool, type WorkerPoolTask } from '@worker-patterns/core';
 
 export interface PoolTask {
   id: number;
-  state: 'pending' | 'running' | 'done';
+  state: 'pending' | 'running' | 'done' | 'error';
   /** Slot (worker) que la tomó, 1..N. */
   slot?: number;
 }
@@ -76,7 +75,7 @@ export class WorkerPoolDemoService {
       {
         poolSize: n,
         tasks,
-        workerFactory: () => example.workerFactory!() as unknown as WorkerLike,
+        workerFactory: () => example.workerFactory!(),
         buildMessage: (task) => ({ command: 'compute', limit: task.payload }),
         stepDelayMs: this.stepDelayMs,
       },
@@ -91,10 +90,11 @@ export class WorkerPoolDemoService {
             ),
           );
         },
-        onTaskSettled: (slotIdx, taskId) => {
-          this.tasks.update((ts) =>
-            ts.map((t) => (t.id === taskId ? { ...t, state: 'done' as const } : t)),
-          );
+        onTaskSettled: (slotIdx, taskId, outcome) => {
+          // Una tarea que falló NO es una tarea hecha: marcarla 'done' mostraba un
+          // pool sano con los workers caídos.
+          const state = outcome === 'error' ? ('error' as const) : ('done' as const);
+          this.tasks.update((ts) => ts.map((t) => (t.id === taskId ? { ...t, state } : t)));
           this.slots.update((s) =>
             s.map((sl, i) => (i === slotIdx ? { ...sl, processed: sl.processed + 1 } : sl)),
           );
