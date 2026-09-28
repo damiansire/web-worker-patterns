@@ -13,6 +13,8 @@
 @use './app/themes/default/styles/theme' as default-theme;
 @use './app/themes/midnight/styles/tokens' as midnight-tokens;
 @use './app/themes/midnight/styles/theme' as midnight-theme;
+@use './app/themes/rpg/styles/tokens' as rpg-tokens;
+@use './app/themes/rpg/styles/theme' as rpg-theme;
 
 // Microinteracción: cada segmento nuevo del ThreadVisualizer entra con un
 // fade/scale rápido: feedback de que pasó algo en otro hilo (backlog #5).
@@ -47,6 +49,11 @@
 
 // Syntax highlighting theme
 @import 'highlight.js/styles/github-dark.css';
+
+// Tipografía del theme rpg, autohospedada (la CSP no deja cargar fuentes de afuera).
+// Declarar la fuente no la descarga: el navegador la baja recién cuando se usa.
+@import '@fontsource/pixelify-sans/latin-400.css';
+@import '@fontsource/pixelify-sans/latin-600.css';
 
 // ─── Design Tokens ────────────────────────────────────────────────────────────
 :root {

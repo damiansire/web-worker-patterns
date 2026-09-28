@@ -1,0 +1,41 @@
+/**
+ * Tokens del theme `rpg`: un escenario oscuro, de consola portátil, para que el
+ * mapa sea lo más luminoso de la pantalla. Mismo relato semántico que los otros
+ * themes (verde = vivo / pulso, rojo = congelado, índigo = ayudante). Cubre el
+ * contrato completo de `theming/styles/_tokens-contract.scss` y suma los suyos
+ * (`--rpg-*`) para la caja de diálogo, que es papel claro sobre el escenario.
+ * Se activan con `<html data-theme='rpg'>`.
+ */
+[data-theme='rpg'] {
+  --surface: #1b211b; // escenario
+  --surface-raised: #262e26; // paneles
+
+  --ink: #f4f0e8;
+  --ink-muted: #b3b8a6; // AA sobre el escenario
+
+  --accent: #35c97f; // verde = vivo / pulso (uso GRÁFICO)
+  --accent-ink: #5ee0a0; // verde para TEXTO sobre oscuro
+
+  --thread-main: #8d9384;
+  --thread-worker: #35c97f;
+  --thread-blocked: #ff6b6f;
+  --thread-idle: rgba(244, 240, 232, 0.08);
+
+  --worker: #a5a1ff;
+
+  --border: rgba(244, 240, 232, 0.16);
+  --border-width: 1px;
+  --radius: 10px;
+
+  --font-display: 'Pixelify Sans', ui-monospace, 'Courier New', monospace;
+  --font-body: 'Pixelify Sans', ui-monospace, 'Courier New', monospace;
+  --font-mono: ui-monospace, 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+
+  // Caja de diálogo: papel claro, tinta casi negra.
+  --rpg-paper: #fbfaf6;
+  --rpg-paper-ink: #1a1a17;
+  --rpg-paper-muted: #5d5a52;
+  // Un término de API dentro de un diálogo.
+  --rpg-term: #e7e5ff;
+  --rpg-term-ink: #3a34b0;
+}

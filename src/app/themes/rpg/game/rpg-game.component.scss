@@ -1,0 +1,294 @@
+// El juego entra en una pantalla: mapa, conversación y, al costado, vecinos y
+// Workerdex. Se dibuja con los tokens del theme; los colores del mapa viven en el
+// pintor porque son pixel art, no chrome.
+
+:host {
+  display: block;
+}
+
+.g {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 232px;
+  gap: 16px;
+  align-items: start;
+  max-width: 920px;
+  margin-inline: auto;
+  font-family: var(--font-display);
+  color: var(--ink);
+}
+
+// El sitio pone títulos y botones en mayúsculas espaciadas. Acá se habla en
+// oraciones: se lee como una conversación, no como un cartel.
+.g-region,
+.g-btn,
+.g-link {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.g-play {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+// ── HUD ──
+.g-hud {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  font-size: 17px;
+  line-height: 1;
+}
+.g-region {
+  font-size: 22px;
+  font-weight: 600;
+  margin-right: auto;
+}
+.g-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-muted);
+}
+.g-mode {
+  min-width: 9ch;
+  text-align: right;
+  color: var(--accent-ink);
+}
+.g[data-mode='frozen'] .g-mode {
+  color: var(--thread-blocked);
+  text-transform: uppercase;
+}
+.g[data-mode='busy'] .g-mode {
+  color: var(--worker);
+}
+
+// ── mapa ──
+.g-stage {
+  position: relative;
+}
+.g-map {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.g-map:focus-visible,
+.g-btn:focus-visible,
+.g-link:focus-visible {
+  outline: 3px solid var(--worker);
+  outline-offset: 2px;
+}
+
+// La escena acompaña a la misión sin tapar al vecino: va abajo a la derecha.
+.g-scene {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  border-radius: var(--radius);
+  background: var(--rpg-paper);
+  color: var(--rpg-paper-ink);
+
+  figure {
+    display: grid;
+    gap: 6px;
+    justify-items: center;
+    margin: 0;
+  }
+  figcaption {
+    font-size: 13px;
+    line-height: 1;
+  }
+}
+.g-mill {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  background:
+    linear-gradient(var(--rpg-paper-ink), var(--rpg-paper-ink)) center / 100% 6px no-repeat,
+    linear-gradient(var(--rpg-paper-ink), var(--rpg-paper-ink)) center / 6px 100% no-repeat,
+    var(--worker);
+}
+.g-mill--css {
+  background-color: var(--accent);
+  animation: g-spin 1s linear infinite;
+}
+.g-clock {
+  width: 72px;
+  height: 72px;
+  border-radius: 6px;
+}
+@keyframes g-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .g-mill--css {
+    animation-duration: 4s;
+  }
+}
+
+// ── conversación ──
+.g-dialog {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  min-height: 132px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  background: var(--rpg-paper);
+  color: var(--rpg-paper-ink);
+}
+.g-who {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--rpg-paper-muted);
+}
+.g-line {
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.25;
+}
+.g-live {
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+  color: var(--rpg-term-ink);
+}
+.g-term {
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: var(--rpg-term);
+  color: var(--rpg-term-ink);
+  white-space: nowrap;
+}
+.g-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.g-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border: 2px solid var(--rpg-paper-ink);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--rpg-paper-ink);
+  font: inherit;
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+}
+.g-btn:hover {
+  background: var(--rpg-paper-ink);
+  color: var(--rpg-paper);
+}
+.g-btn--act {
+  border-color: var(--thread-blocked);
+  background: var(--thread-blocked);
+  color: #fff;
+}
+// Un camino ya recorrido se puede repetir: queda marcado, no deshabilitado.
+.g-btn.is-done {
+  border-style: dashed;
+}
+.g-key {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+// ── costado ──
+.g-side {
+  display: grid;
+  gap: 12px;
+}
+.g-panel {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+
+  h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+}
+.g-neighbors,
+.g-dex {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.g-link {
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 17px;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.g-link.is-done {
+  color: var(--accent-ink);
+  text-decoration-style: dotted;
+}
+.g-dex li {
+  display: grid;
+  gap: 2px;
+  font-size: 15px;
+  color: var(--ink-muted);
+}
+.g-dex .g-term {
+  justify-self: start;
+  font-size: 13px;
+}
+.g-ask {
+  margin: 0;
+  font-size: 15px;
+}
+.g-side .g-btn {
+  border-color: var(--ink);
+  color: var(--ink);
+  font-size: 15px;
+}
+.g-side .g-btn--act {
+  border-color: var(--thread-blocked);
+  color: #fff;
+}
+
+@media (max-width: 760px) {
+  .g {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .g-side {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .g-line {
+    font-size: 19px;
+  }
+}
+@media (max-width: 420px) {
+  .g-side {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

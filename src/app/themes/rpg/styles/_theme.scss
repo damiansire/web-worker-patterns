@@ -1,0 +1,8 @@
+/** Estilos globales del theme rpg, en su cascade layer (§7a). */
+@layer theme-rpg {
+  [data-theme='rpg'] body {
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-body);
+  }
+}
