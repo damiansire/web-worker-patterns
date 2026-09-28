@@ -7,11 +7,7 @@
  */
 
 export type Category =
-  | 'understanding'
-  | 'communication'
-  | 'management'
-  | 'optimization'
-  | 'advanced';
+  'understanding' | 'communication' | 'management' | 'optimization' | 'advanced';
 
 /**
  * Tipo de demo interactiva del ejemplo: define qué visualización educativa
