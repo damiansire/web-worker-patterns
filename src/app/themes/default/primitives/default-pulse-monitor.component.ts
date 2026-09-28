@@ -13,7 +13,7 @@ import {
  * Electro del main thread (firma del theme `default`, ver dirección visual del
  * repo). Corre un loop de `requestAnimationFrame` en el hilo principal y dibuja
  * un pulso. La clave: como VIVE en el main, cuando el main se bloquea de verdad
- * (cómputo síncrono), su propio rAF se frena y el trazo se aplana solo — el
+ * (cómputo síncrono), su propio rAF se frena y el trazo se aplana solo: el
  * demo *es* el fenómeno, no una simulación. Un gap de frame grande se pinta
  * como flatline rojo; el latido normal es verde. Lee los colores de los tokens
  * (`--thread-worker` = vivo, `--thread-blocked` = flatline) para respetar el

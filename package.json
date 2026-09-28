@@ -33,6 +33,7 @@
     "test:e2e": "ng build --base-href /web-worker-patterns/ && node scripts/test/e2e-smoke.mjs && node scripts/test/e2e-demos.mjs",
     "lint": "eslint .",
     "lint:boundaries": "node scripts/lint/boundaries.mjs",
+    "lint:style": "node scripts/lint/house-style.mjs",
     "format": "prettier --write \"src/**/*.{ts,html,scss,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,html,scss,json}\"",
     "screenshots": "node scripts/shots-all.mjs",

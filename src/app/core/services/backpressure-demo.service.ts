@@ -33,7 +33,7 @@ export class BackpressureDemoService {
   readonly bpPeak = signal<number | null>(null);
   /**
    * Latencia de cola (tail): cuánto tardó en volver la PEOR respuesta de la tanda, en ms.
-   * Es la consecuencia física de la cola sin techo — sin control de flujo, la última espera
+   * Es la consecuencia física de la cola sin techo: sin control de flujo, la última espera
    * detrás de todas; con backpressure queda acotada a la ventana. La lección de verdad.
    */
   readonly naiveMaxLatency = signal<number | null>(null);

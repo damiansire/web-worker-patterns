@@ -257,7 +257,7 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
             @case ('offscreen-canvas') {
               @if (!ocSupported()) {
                 <p class="e-foot e-danger">
-                  Backend simulado: este navegador no soporta OffscreenCanvas — los dos relojes
+                  Backend simulado: este navegador no soporta OffscreenCanvas, así que los dos relojes
                   corren en el main.
                 </p>
               }
@@ -314,7 +314,7 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
                   </div>
                   @if (ocBlocked()) {
                     <p class="e-foot e-danger" aria-live="polite">
-                      Main congelado — no pinta frames.
+                      Main congelado: no pinta frames.
                     </p>
                   } @else if (ocSkipped()) {
                     <p class="e-foot e-danger">
@@ -392,7 +392,7 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
               <div class="e-bar" [attr.data-status]="lifeStatus()">
                 <div class="e-bar-fill" [style.width.%]="lifePct()"></div>
               </div>
-              <p class="e-bar-label">paso {{ lifeStep() }} de {{ lifeSteps() || '—' }}</p>
+              <p class="e-bar-label">paso {{ lifeStep() }} de {{ lifeSteps() || '…' }}</p>
 
               @switch (lifeStatus()) {
                 @case ('idle') {
@@ -548,8 +548,8 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
                   }
                 </div>
                 <p class="e-foot">
-                  Plano hasta {{ hardwareConcurrency() }} (tus núcleos); pasado eso el tiempo trepa
-                  — más workers no ayudan.
+                  Plano hasta {{ hardwareConcurrency() }} (tus núcleos); pasado eso el tiempo trepa:
+                  más workers no ayudan.
                 </p>
               } @else {
                 <p class="e-hint">
@@ -575,7 +575,7 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
 
               @if (poolTasks().length) {
                 <p class="e-lim-cpu">
-                  La cola — {{ poolProcessed() }} / {{ poolTaskCount }} hechas
+                  La cola: {{ poolProcessed() }} / {{ poolTaskCount }} hechas
                 </p>
                 <div class="e-pool-queue">
                   @for (task of poolTasks(); track task.id) {
@@ -585,7 +585,7 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
                   }
                 </div>
 
-                <p class="e-lim-cpu">El pool — {{ poolSize() }} workers, se reusan</p>
+                <p class="e-lim-cpu">El pool: {{ poolSize() }} workers, se reusan</p>
                 <div class="e-pool-slots">
                   @for (slot of poolSlots(); track slot.id) {
                     <div class="e-pool-slot" [attr.data-busy]="slot.busy">
@@ -603,7 +603,7 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
                   {{ poolTaskCount }} veces.
                 </p>
                 <p class="e-foot e-danger">
-                  Sin pool: {{ spawnedWithoutPool }} workers, uno por tarea — el ejemplo 09 mostró
+                  Sin pool: {{ spawnedWithoutPool }} workers, uno por tarea. El ejemplo 09 mostró
                   por qué eso no escala.
                 </p>
               } @else {
@@ -656,7 +656,7 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
                       <div class="e-bp-fill" [style.width.%]="bpPctOf(p)"></div>
                     </div>
                     <p class="e-foot">
-                      Pico en vuelo: {{ p }} — la última: {{ bpMaxLatency() }}ms, acotada.
+                      Pico en vuelo: {{ p }}. La última tardó {{ bpMaxLatency() }}ms en volver.
                     </p>
                   } @else {
                     <p class="e-hint">
@@ -687,7 +687,7 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
               </div>
               <div class="e-bar"><div class="e-bar-fill" [style.width.%]="smPct()"></div></div>
               <p class="e-bar-label">
-                0 mensajes intercambiados — es la misma memoria, escrita por el worker y leída por
+                0 mensajes intercambiados: es la misma memoria, escrita por el worker y leída por
                 el main.
               </p>
               <div class="e-send">

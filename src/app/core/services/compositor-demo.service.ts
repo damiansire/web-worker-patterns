@@ -11,7 +11,7 @@ export type CompositorMode = 'idle' | 'main' | 'worker';
  * que (a) mide los FPS del MAIN y (b) anima una caja por JS. El mismo cómputo
  * pesado se puede disparar en el main (lo congela: la caja JS y los FPS se frenan)
  * o en un worker (el main sigue libre: todo fluido). La caja animada por CSS
- * `transform` —que vive en el compositor— sigue girando en ambos casos: esa es la
+ * `transform` (que vive en el compositor) sigue girando en ambos casos: esa es la
  * evidencia visible de que hay otro hilo.
  *
  * Estado en signals root (sobrevive el cambio de theme). Reloj inyectable para tests.
@@ -44,7 +44,7 @@ export class CompositorDemoService {
 
   /**
    * Arranca el medidor. Idempotente. CLAVE (zoneless): el bucle de rAF NO escribe
-   * ningún signal — solo apila timestamps y anima la caja JS por DOM directo. Los
+   * ningún signal: solo apila timestamps y anima la caja JS por DOM directo. Los
    * FPS se publican aparte, con un setInterval ~4 veces/seg. Así el medidor no
    * dispara change detection por frame (que saturaría el main, justo lo que el
    * ejemplo enseña a evitar). El bucle no depende de Angular en su hot path.

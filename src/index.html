@@ -12,7 +12,7 @@
       self-host). 'unsafe-inline' en style-src es necesario para el CSS crítico que
       Angular inyecta inline; scripts y workers quedan restringidos a 'self'.
       Nota honesta: meta-CSP NO soporta frame-ancestors ni X-Content-Type-Options
-      (nosniff) — esos son solo cabeceras HTTP, imposibles en Pages; el path
+      (nosniff): esos son solo cabeceras HTTP, imposibles en Pages; el path
       nginx/Docker los cubre para self-host.
     -->
     <meta

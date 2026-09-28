@@ -1,7 +1,7 @@
 /**
  * Lógica pura de la demo "compositor vs main" (ejemplo 16). El concepto, fiel a
  * cómo lo implementa Chromium: dentro de un mismo renderer hay DOS hilos que
- * importan para la fluidez — el main thread (Blink/JS/layout/paint) y el
+ * importan para la fluidez: el main thread (Blink/JS/layout/paint) y el
  * compositor thread (cc). El compositor sigue pintando scroll y animaciones de
  * transform/opacity a ~60fps aunque el main esté bloqueado con JavaScript. Lo
  * que vive en el main (animaciones por JS, layout) NO sobrevive al bloqueo.

@@ -15,7 +15,7 @@
 @use './app/themes/midnight/styles/theme' as midnight-theme;
 
 // Microinteracción: cada segmento nuevo del ThreadVisualizer entra con un
-// fade/scale rápido — feedback de que pasó algo en otro hilo (backlog #5).
+// fade/scale rápido: feedback de que pasó algo en otro hilo (backlog #5).
 @keyframes wwp-seg-in {
   from {
     opacity: 0;

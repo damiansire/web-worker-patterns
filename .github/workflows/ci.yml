@@ -38,6 +38,8 @@ jobs:
         run: npm run format:check
       - name: Boundaries (regla de oro, self-test)
         run: npm run lint:boundaries
+      - name: Estilo de la casa (sin rayas largas)
+        run: npm run lint:style
       - name: Lint (no-console, OnPush, a11y de teclado)
         run: npm run lint
       - name: Tests

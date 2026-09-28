@@ -17,7 +17,7 @@ worker.onmessage = (e) => render(e.data.count);   // ← resultado, sin bloquear
 worker.postMessage({ command: 'compute', limit: 500000 });`,
 
   'en-el-main.ts': `// En el main: el MISMO cálculo bloquea el hilo. La página entera se
-// congela —no repinta, no responde clicks— hasta que termina.
+// congela (no repinta, no responde clicks) hasta que termina.
 const count = countPrimesUpTo(500000); // ← la UI se congela acá
 render(count);`,
 };

@@ -1,4 +1,4 @@
-# Config de lychee (link-checker) — usada por .github/workflows/links.yml
+# Config de lychee (link-checker): usada por .github/workflows/links.yml
 # Objetivo: cazar badges rotos y links muertos en la doc, sin falsos positivos.
 
 # El servidor de dev sólo existe en la máquina del usuario: no es un link a validar.

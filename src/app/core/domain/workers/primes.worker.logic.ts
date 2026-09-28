@@ -3,7 +3,7 @@
  * y para poder reusarla EN EL MAIN (la demo corre exactamente la misma función
  * en los dos lados: en un worker la UI sigue fluida, en el main se congela).
  *
- * Cuenta los primos hasta `limit` por división de prueba — deliberadamente O(n√n)
+ * Cuenta los primos hasta `limit` por división de prueba: deliberadamente O(n√n)
  * para que el trabajo sea pesado y el congelamiento del main se sienta.
  */
 export function countPrimesUpTo(limit: number): number {

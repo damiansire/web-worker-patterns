@@ -38,7 +38,7 @@ import { ThreadLane } from '../domain/thread-lane';
  * compositor) las sigue resolviendo el componente por `viewChild` y se las pasa
  * a los métodos del controller (`startOffscreen`, `setCompositorJsBox`).
  *
- * Boundary: vive en `core/` e inyecta sólo servicios de `core/` — la regla de
+ * Boundary: vive en `core/` e inyecta sólo servicios de `core/`: la regla de
  * oro (core ⇏ themes) queda intacta; los themes dependen de core, no al revés.
  */
 @Injectable()
@@ -111,7 +111,7 @@ export class ExampleLayoutController {
   readonly phase = this.runner.phase;
   // Reloj 'elapsed' que el ThreadVisualizer muestra: el fin de la última actividad
   // (mayor endMs de los segmentos). Antes el template pasaba la constante 0, así el
-  // demo 01 —el primero que ve el usuario— siempre imprimía 'elapsed · 0 ms' aunque
+  // demo 01 (el primero que ve el usuario) siempre imprimía 'elapsed · 0 ms' aunque
   // los lanes tuvieran segmentos reales. Se deriva del mismo dato ya mostrado.
   readonly workerElapsedMs = computed(() => laneElapsed(this.workerLanes()));
   readonly mainElapsedMs = computed(() => laneElapsed(this.mainLanes()));

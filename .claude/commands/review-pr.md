@@ -1,6 +1,6 @@
 ---
 description: Revisa un PR (o el diff de la rama actual) buscando solo problemas funcionales, con foco en el dominio Web Workers. Rúbrica con tabla de veredicto.
-argument-hint: <número-de-PR> — o vacío para tomar el PR abierto de la rama actual
+argument-hint: <número-de-PR>, o vacío para tomar el PR abierto de la rama actual
 allowed-tools: Read, Grep, Glob, Bash
 ---
 
@@ -16,7 +16,7 @@ El número de PR viene como argumento. Si está vacío, buscá un PR abierto en 
 
 - `gh pr view <número> --json title,body,headRefName,baseRefName,files,additions,deletions`
 - `gh pr diff <número>` para el diff completo.
-- Leé **cada archivo tocado** del diff — no lo hojees.
+- Leé **cada archivo tocado** del diff: no lo hojees.
 
 ## 2. Áreas de foco
 

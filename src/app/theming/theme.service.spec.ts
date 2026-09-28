@@ -19,7 +19,7 @@ function makeService(packs: ThemePack[]): ThemeService {
 describe('ThemeService', () => {
   // The service seeds its active theme from localStorage (`readStoredTheme() ??
   // 'default'`). Tests share jsdom's localStorage, so a theme persisted by one
-  // test must not leak into the next — clear it before each. Guarded because one
+  // test must not leak into the next: clear it before each. Guarded because one
   // test swaps localStorage for a mock. Los ids `alpha`/`beta` son fakes: el
   // motor es data-driven (ids arbitrarios via el registry), no un enum fijo.
   beforeEach(() => {

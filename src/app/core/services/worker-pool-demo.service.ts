@@ -14,7 +14,7 @@ export interface PoolSlot {
   busy: boolean;
   /** Tarea que corre ahora. */
   taskId?: number;
-  /** Cuántas tareas ya despachó este slot — la prueba del reuso. */
+  /** Cuántas tareas ya despachó este slot: la prueba del reuso. */
   processed: number;
 }
 
@@ -26,7 +26,7 @@ export interface PoolSlot {
  * crean N workers, no M.
  *
  * El scheduler en sí (crear N workers, despachar, reintentar en error, terminar
- * al vaciar la cola) vive en `WorkerPool` de `@worker-patterns/core` — paquete
+ * al vaciar la cola) vive en `WorkerPool` de `@worker-patterns/core`: paquete
  * agnóstico de framework (wwp-3/wwp-5, `packages/worker-patterns-core/`). Este
  * servicio es el adaptador delgado: traduce los eventos del pool a signals root
  * (para que el estado sobreviva el cambio de theme, incluso a media cola) y

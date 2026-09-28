@@ -3,7 +3,7 @@ import { DEFAULT_THEME } from '../default/default.theme';
 
 /**
  * Theme `midnight`: la contracara nocturna del `default`. Es una variante de
- * PALETA — comparte la presentación del theme default (shell, viaje y layouts
+ * PALETA: comparte la presentación del theme default (shell, viaje y layouts
  * están dibujados 100% con el contrato de tokens semánticos, sin un color
  * literal) y sólo cambia el bloque de tokens bajo `[data-theme='midnight']`
  * (`styles/_tokens.scss`). Por eso reusa los loaders del default en vez de

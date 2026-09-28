@@ -20,13 +20,13 @@
     },
     "02-main-thread": {
       "title": "El main thread y el event loop",
-      "summary": "Todo lo que hace tu página —ejecutar JavaScript, calcular el layout, pintar, responder clics y teclas— corre en UN SOLO hilo: el main thread, sobre un único event loop que procesa una tarea por vez. Y las tareas son atómicas: una vez que una empezó, no se puede interrumpir hasta que termina. Por eso una función que tarda 50 ms congela TODO durante esos 50 ms: no hay un segundo hilo que atienda mientras tanto. Ese es el cuello de botella que los Web Workers vienen a destrabar.",
+      "summary": "Todo lo que hace tu página (ejecutar JavaScript, calcular el layout, pintar, responder clics y teclas) corre en UN SOLO hilo: el main thread, sobre un único event loop que procesa una tarea por vez. Y las tareas son atómicas: una vez que una empezó, no se puede interrumpir hasta que termina. Por eso una función que tarda 50 ms congela TODO durante esos 50 ms: no hay un segundo hilo que atienda mientras tanto. Ese es el cuello de botella que los Web Workers vienen a destrabar.",
       "whatToWatch": "Velo en acción en otros ejemplos: el 01 (un contador en el main vs en un worker) y el 04 (cómputo pesado) muestran este bloqueo; el 14 (OffscreenCanvas) muestra el otro lado, render que sobrevive porque corre fuera del main.",
-      "note": "Pero «se congela todo» no es del todo exacto. El navegador tiene OTRO hilo —el compositor— que sigue vivo aunque el main esté bloqueado: puede recomponer y mover capas YA pintadas. Por eso una animación CSS de transform u opacity (que maneja el compositor) puede seguir fluida durante el jank, mientras que un setInterval, el layout, el repintado y los eventos —todo lo que vive en el main— se congelan. Es el mismo principio de «sacar trabajo del main», pero del lado del navegador.",
+      "note": "Pero «se congela todo» no es del todo exacto. El navegador tiene OTRO hilo (el compositor) que sigue vivo aunque el main esté bloqueado: puede recomponer y mover capas YA pintadas. Por eso una animación CSS de transform u opacity (que maneja el compositor) puede seguir fluida durante el jank, mientras que un setInterval, el layout, el repintado y los eventos (todo lo que vive en el main) se congelan. Es el mismo principio de «sacar trabajo del main», pero del lado del navegador.",
       "takeaways": {
         "title": "Puntos clave",
         "items": [
-          "El main thread corre JS, layout, paint y eventos — todo en un event loop, una tarea por vez",
+          "El main thread corre JS, layout, paint y eventos: todo en un event loop, una tarea por vez",
           "Las tareas son atómicas: una tarea larga no se puede interrumpir, congela la UI hasta terminar",
           "El compositor es otro hilo del navegador: las animaciones CSS de transform/opacity pueden sobrevivir al jank del main",
           "Mover trabajo a un Web Worker libera el main: no acelera la tarea, pero la página sigue respondiendo"
@@ -36,9 +36,9 @@
     },
     "03-basic-communication": {
       "title": "Comunicación básica",
-      "summary": "El \"Hola Mundo\" de los Web Workers: escribís un mensaje y se lo mandás al worker. El worker lo recibe, lo procesa y te responde de vuelta. Así funciona la comunicación entre hilos — postMessage en las dos direcciones.",
+      "summary": "El \"Hola Mundo\" de los Web Workers: escribís un mensaje y se lo mandás al worker. El worker lo recibe, lo procesa y te responde de vuelta. Así funciona la comunicación entre hilos: postMessage en las dos direcciones.",
       "whatToWatch": "→ sale del main hacia el worker, ← vuelve la respuesta procesada. El número en ms es el round-trip REAL: cruzar el hilo cuesta una fracción de milisegundo, prácticamente nada.",
-      "note": "El worker corre como su propio agente, con heap y recolector de basura propios (en Chromium, un isolate de V8): main y worker NO comparten objetos JS, por eso postMessage CLONA los datos (structured clone) — se serializa al salir y se deserializa al entrar, así que el worker recibe una COPIA, no la referencia. El costo no es cruzar el hilo —eso es sub-ms— sino copiar: crece con el tamaño y la complejidad del payload (no hay un umbral mágico; cuanto más grande, más caro). Para datos grandes, transferables mueven sin copiar (ejemplo 07).",
+      "note": "El worker corre como su propio agente, con heap y recolector de basura propios (en Chromium, un isolate de V8): main y worker NO comparten objetos JS, por eso postMessage CLONA los datos (structured clone). Se serializa al salir y se deserializa al entrar, así que el worker recibe una COPIA, no la referencia. El costo no es cruzar el hilo (eso es sub-ms) sino copiar: crece con el tamaño y la complejidad del payload (no hay un umbral mágico; cuanto más grande, más caro). Para datos grandes, transferables mueven sin copiar (ejemplo 07).",
       "takeaways": {
         "title": "Puntos clave",
         "items": [
@@ -52,18 +52,18 @@
     },
     "04-offloading-computation": {
       "title": "Descargar cómputo pesado",
-      "summary": "Acá está el pago de los Web Workers: sacar trabajo pesado del hilo principal. Calculamos números primos —un cálculo deliberadamente intensivo— y lo corremos en los dos lados para que sientas la diferencia.",
-      "whatToWatch": "Corré el cálculo en un worker: el cronómetro sigue subiendo en vivo y podés interactuar — la UI nunca se traba. Corré el MISMO cálculo en el main: la página entera se congela (no repinta, no responde) hasta que termina.",
+      "summary": "Acá está el pago de los Web Workers: sacar trabajo pesado del hilo principal. Calculamos números primos (un cálculo deliberadamente intensivo) y lo corremos en los dos lados para que sientas la diferencia.",
+      "whatToWatch": "Corré el cálculo en un worker: el cronómetro sigue subiendo en vivo y podés interactuar, la UI nunca se traba. Corré el MISMO cálculo en el main: la página entera se congela (no repinta, no responde) hasta que termina.",
       "note": "Cualquier trabajo que tarde más de ~16ms (un frame a 60Hz; en pantallas de 120Hz, ~8ms) bloquea ese frame y se nota. Un worker corre en paralelo de verdad, en otro hilo: el cálculo tarda lo mismo, pero el main queda libre para responder. El resultado vuelve por postMessage (clonado).",
       "takeaways": {
         "title": "Puntos clave",
         "items": [
           "Un cálculo pesado en el hilo principal congela toda la UI mientras corre",
           "Un worker corre en paralelo real: el main queda libre para responder",
-          "El cálculo no es más rápido en el worker — pero la UI no se traba",
+          "El cálculo no es más rápido en el worker, pero la UI no se traba",
           "El resultado vuelve por postMessage (structured clone); para datos grandes, transferables (ejemplo 07)"
         ],
-        "tip": "Regla práctica: si una tarea puede tardar más de un frame (~16ms a 60Hz), mandala a un worker. Ojo: no la hace más rápida —el cálculo tarda lo mismo— pero la página sigue respondiendo (mejor INP)."
+        "tip": "Regla práctica: si una tarea puede tardar más de un frame (~16ms a 60Hz), mandala a un worker. Ojo: no la hace más rápida (el cálculo tarda lo mismo), pero la página sigue respondiendo (mejor INP)."
       }
     },
     "05-error-handling": {
@@ -84,7 +84,7 @@
     },
     "06-lifecycle-termination": {
       "title": "Ciclo de vida y terminación",
-      "summary": "Un worker no vive para siempre: lo creás, corre, y lo terminás. Acá arrancás una tarea larga que avanza por pasos y podés cortarla a mitad. terminate() mata el worker al instante — el paso en curso se pierde y ese worker ya no se puede reusar.",
+      "summary": "Un worker no vive para siempre: lo creás, corre, y lo terminás. Acá arrancás una tarea larga que avanza por pasos y podés cortarla a mitad. terminate() mata el worker al instante: el paso en curso se pierde y ese worker ya no se puede reusar.",
       "whatToWatch": "Arrancá la tarea y mirá la barra subir. Tocá Terminar a mitad: el progreso se congela donde estaba y el worker deja de existir. Para volver a correr hay que crear uno nuevo (el botón Iniciar lo hace). Si la dejás completar, el worker se cierra solo con self.close().",
       "note": "Crear el worker no fue gratis: el navegador aprovisionó un agente nuevo con su contexto y heap (en Chromium, un isolate de V8). terminate() es abrupto: no hay limpieza ni despedida, el worker muere con su trabajo en curso (el setTimeout pendiente se va con él) y se libera ese hilo con su isolate y memoria. Un worker terminado no se reinicia: se crea otro. Desde adentro, el worker puede cerrarse a sí mismo con self.close() cuando termina su trabajo.",
       "takeaways": {
@@ -100,7 +100,7 @@
     },
     "07-transferable-objects": {
       "title": "Objetos transferibles",
-      "summary": "postMessage normalmente CLONA los datos (structured clone). Para datos grandes —un ArrayBuffer— eso cuesta. Un Transferable se pasa sin copiar (zero-copy): el buffer cambia de dueño al worker. La contra: el buffer del que lo envía queda detached, vacío e inutilizable.",
+      "summary": "postMessage normalmente CLONA los datos (structured clone). Para datos grandes (un ArrayBuffer) eso cuesta. Un Transferable se pasa sin copiar (zero-copy): el buffer cambia de dueño al worker. La contra: el buffer del que lo envía queda detached, vacío e inutilizable.",
       "whatToWatch": "Mandá el mismo buffer de las dos formas y compará el round-trip. Transferir es casi instantáneo aunque el buffer sea grande; clonar tarda porque copia byte por byte. Y mirá el efecto colateral: después de transferir, el buffer del main quedó DETACHED (0 bytes); al clonar, el main conserva su copia.",
       "note": "Transferir no copia: mueve la propiedad del buffer al worker, por eso del lado del main queda detached: byteLength 0 (también en sus vistas) y sus métodos tiran TypeError. Un TypedArray no se transfiere: se transfiere su view.buffer. La lista de transferibles es larga; los más usados son ArrayBuffer, MessagePort, ImageBitmap, OffscreenCanvas y los streams. Si necesitás el dato de los dos lados, cloná; si no, transferí.",
       "takeaways": {
@@ -116,7 +116,7 @@
     },
     "08-shared-worker": {
       "title": "SharedWorker",
-      "summary": "Un Worker normal pertenece a quien lo creó. Un SharedWorker es UNO solo, compartido por varias conexiones — varias pestañas, o como acá, varios paneles. Todos hablan con la misma instancia y ven el mismo estado: el contador no vive en cada panel, vive en el worker.",
+      "summary": "Un Worker normal pertenece a quien lo creó. Un SharedWorker es UNO solo, compartido por varias conexiones: varias pestañas, o como acá, varios paneles. Todos hablan con la misma instancia y ven el mismo estado: el contador no vive en cada panel, vive en el worker.",
       "whatToWatch": "El mismo número en los dos paneles, y el mismo id de worker arriba. Sumá en uno y mirá saltar al otro: no son dos copias sincronizadas, es UNA sola variable adentro del worker. Sumá una tercera conexión y vas a ver que hereda el valor actual.",
       "note": "Cada conexión llega por onconnect y trae su propio MessagePort; asignar port.onmessage ya lo arranca (port.start() hace falta solo si usás addEventListener). El estado vive en el worker, no en las páginas, por eso la conexión nueva hereda el contador. A diferencia del ejemplo 03 (main↔worker, 1 a 1), acá es N a 1. Es UNA instancia porque el navegador identifica al SharedWorker por (origen, nombre, URL del script) y enruta todos los new SharedWorker() coincidentes al mismo backend; vive mientras siga abierto alguno de los documentos que lo usan, no importa cuántos puertos queden. (Detalle de implementación: en Chromium se aloja en un proceso renderer del sitio, no en uno propio.) Lo inspeccionás en chrome://inspect/#workers. Soporte: Safari desde la 16 y Chrome Android recién desde la 148; donde no está, esta demo cae a un backend simulado (lo verás rotulado).",
       "takeaways": {
@@ -149,7 +149,7 @@
     "10-worker-pool": {
       "title": "Pool de workers",
       "summary": "La solución al límite del ejemplo anterior: en vez de crear un worker por tarea, mantenés un pool fijo de N workers y los reusás para drenar una cola de muchas tareas. Cada worker termina una tarea y agarra la siguiente. Acá: 4 workers procesan 24 tareas.",
-      "whatToWatch": "Mirá la cola drenar: las tareas pasan de pendiente a en proceso (tomadas por un worker) a hechas. Los slots son solo 4 y se reusan — fijate el contador de cada uno: ya despachó varias. Abajo, el número que importa: se crearon 4 workers, no 24.",
+      "whatToWatch": "Mirá la cola drenar: las tareas pasan de pendiente a en proceso (tomadas por un worker) a hechas. Los slots son solo 4 y se reusan. Fijate el contador de cada uno: ya despachó varias. Abajo, el número que importa: se crearon 4 workers, no 24.",
       "note": "El pool es un scheduler que escribís vos en el main; el worker ni se entera (sólo computa). Reusar workers evita el costo de crear y destruir uno por tarea, y mantiene la concurrencia acotada a N (sin pasar los núcleos, como avisaba el ejemplo 09). Dimensioná N según el trabajo: para CPU, cerca de navigator.hardwareConcurrency.",
       "takeaways": {
         "title": "Puntos clave",
@@ -180,7 +180,7 @@
     },
     "12-shared-array-buffer": {
       "title": "SharedArrayBuffer",
-      "summary": "Hasta ahora todo viajaba como mensajes: postMessage clona (03), o transfiere (07). Un SharedArrayBuffer es distinto: main y worker comparten la MISMA memoria, no una copia. El worker escribe un número ahí con Atomics y el main lo lee directo — sin un solo postMessage de por medio.",
+      "summary": "Hasta ahora todo viajaba como mensajes: postMessage clona (03), o transfiere (07). Un SharedArrayBuffer es distinto: main y worker comparten la MISMA memoria, no una copia. El worker escribe un número ahí con Atomics y el main lo lee directo: sin un solo postMessage de por medio.",
       "whatToWatch": "Arrancá y mirá el número subir. El worker lo incrementa en la memoria compartida; el main lee esa misma memoria con Atomics.load. El contador de mensajes intercambiados queda en 0: no hay ida y vuelta, es literalmente la misma variable en los dos hilos.",
       "note": "Atomics garantiza lecturas y escrituras coherentes cuando varios hilos tocan la misma memoria (sin él tendrías condiciones de carrera). Ojo: lo que se comparte es el backing store de memoria, no objetos JS: cada hilo conserva su propio isolate y heap; el SharedArrayBuffer es la única excepción al aislamiento de memoria entre hilos. SharedArrayBuffer sólo comparte memoria si la página está cross-origin isolated: hay que servir COOP: same-origin y COEP: require-corp (o credentialless). Chequealo con crossOriginIsolated === true: sin aislamiento el constructor global queda oculto y mandar un SAB por postMessage falla. Sin aislamiento, acá verás un backend simulado rotulado.",
       "takeaways": {
@@ -196,8 +196,8 @@
     },
     "13-graceful-degradation": {
       "title": "Degradación elegante",
-      "summary": "No todos los entornos tienen Web Workers (runtimes viejos, algunos contextos de SSR). La degradación elegante es: detectás la feature (typeof Worker) y, si no está, corrés el MISMO trabajo en el hilo principal. La app funciona en todos lados — mejor donde hay workers, igual de correcta donde no.",
-      "whatToWatch": "Tocá Procesar: si hay Worker, corre off-thread y la UI no se traba. Tildá \"simular navegador sin Worker\" y volvé a procesar: corre la misma función en el main —la UI se congela— pero el resultado es exactamente el mismo. Mismo código, dos caminos según el feature-detect.",
+      "summary": "No todos los entornos tienen Web Workers (runtimes viejos, algunos contextos de SSR). La degradación elegante es: detectás la feature (typeof Worker) y, si no está, corrés el MISMO trabajo en el hilo principal. La app funciona en todos lados: mejor donde hay workers, igual de correcta donde no.",
+      "whatToWatch": "Tocá Procesar: si hay Worker, corre off-thread y la UI no se traba. Tildá \"simular navegador sin Worker\" y volvé a procesar: corre la misma función en el main (la UI se congela), pero el resultado es exactamente el mismo. Mismo código, dos caminos según el feature-detect.",
       "note": "La clave es compartir la lógica: una función pura (acá, contar primos) que el worker y el main pueden ejecutar igual. El worker es sólo el envoltorio que la corre en otro hilo. Así el fallback no es código duplicado: es la misma función, sin el worker. Detectá la feature y caé al main también si el worker falla (onerror): que exista Worker no garantiza que cargue.",
       "takeaways": {
         "title": "Puntos clave",
@@ -212,9 +212,9 @@
     },
     "14-offscreen-canvas": {
       "title": "Renderizar fuera del main thread (OffscreenCanvas)",
-      "summary": "Un <canvas> puede ceder su control a un worker con transferControlToOffscreen(). A partir de ahí, el worker dibuja y anima por su cuenta —tiene su propio bucle de render— sin pasar por el main thread. ¿El resultado? La animación sigue perfectamente fluida aunque el main esté bloqueado con JavaScript pesado. Es el primer ejemplo de la plataforma sobre PÍXELES, no sobre números: dos relojes gemelos, y solo uno sobrevive cuando congelás el hilo principal.",
+      "summary": "Un <canvas> puede ceder su control a un worker con transferControlToOffscreen(). A partir de ahí, el worker dibuja y anima por su cuenta (tiene su propio bucle de render) sin pasar por el main thread. ¿El resultado? La animación sigue perfectamente fluida aunque el main esté bloqueado con JavaScript pesado. Es el primer ejemplo de la plataforma sobre PÍXELES, no sobre números: dos relojes gemelos, y solo uno sobrevive cuando congelás el hilo principal.",
       "whatToWatch": "Arrancá los dos relojes: laten igual. Ahora tocá «Bloquear main 2,5 s». El reloj de la izquierda (worker) sigue barriendo sin saltarse un frame; el de la derecha (main) se congela como una foto. Mirá el tiempo impreso dentro de cada canvas: el del worker avanzó suave; el del main saltó de golpe al desbloquearse, porque esos frames nunca se pintaron.",
-      "note": "transferControlToOffscreen() es de una sola vez: el <canvas> queda «neutralizado» en el main y solo el worker puede dibujarlo. El worker no tiene DOM ni document —no podría tocar la página aunque quisiera—, pero sí tiene requestAnimationFrame y su contexto 2D sobre el OffscreenCanvas. Por eso, mientras el main está bloqueado con JS, su bucle de render no se frena: corre en su propio event loop, no en el del main.",
+      "note": "transferControlToOffscreen() es de una sola vez: el <canvas> queda «neutralizado» en el main y solo el worker puede dibujarlo. El worker no tiene DOM ni document (no podría tocar la página aunque quisiera), pero sí tiene requestAnimationFrame y su contexto 2D sobre el OffscreenCanvas. Por eso, mientras el main está bloqueado con JS, su bucle de render no se frena: corre en su propio event loop, no en el del main.",
       "takeaways": {
         "title": "Lo que te llevás",
         "items": [
@@ -228,15 +228,15 @@
     },
     "15-clone-cost": {
       "title": "El costo de clonar mensajes",
-      "summary": "postMessage no pasa los datos por referencia: los CLONA (structured clone). Ese costo no es \"cruzar el hilo\" —eso es sub-ms— sino serializar y deserializar el grafo, y crece con el TAMAÑO (cuántos datos) y la COMPLEJIDAD (cuántos nodos, qué tan anidado). Acá no te damos una curva inventada: movés los dos controles, medimos el round-trip REAL en tu máquina y lo graficamos.",
-      "whatToWatch": "Movés el tamaño y la complejidad, tocás Medir y la app manda payloads cada vez más grandes al worker, cronometrando el ida y vuelta real. Cada punto es una medición: el eje X es el tamaño del payload en bytes de JSON —un proxy del peso del clon, no su tamaño exacto—, el eje Y los milisegundos. Mirá la curva trepar — y subí la complejidad para ver cómo se encarece a igual tamaño.",
-      "note": "El worker devuelve el payload tal cual, sin trabajar: así lo único que se mide es el structured clone (clona al salir del main y clona de nuevo al volver). No hay un umbral mágico —ningún \"hasta 10KB está bien\"—: es una rampa que sube con el tamaño y la forma del grafo. Cuando el payload pesa, dos salidas: transferir sin copiar (ejemplo 07) o compartir memoria (ejemplo 12).",
+      "summary": "postMessage no pasa los datos por referencia: los CLONA (structured clone). Ese costo no es \"cruzar el hilo\" (eso es sub-ms) sino serializar y deserializar el grafo, y crece con el TAMAÑO (cuántos datos) y la COMPLEJIDAD (cuántos nodos, qué tan anidado). Acá no te damos una curva inventada: movés los dos controles, medimos el round-trip REAL en tu máquina y lo graficamos.",
+      "whatToWatch": "Movés el tamaño y la complejidad, tocás Medir y la app manda payloads cada vez más grandes al worker, cronometrando el ida y vuelta real. Cada punto es una medición: el eje X es el tamaño del payload en bytes de JSON (un proxy del peso del clon, no su tamaño exacto), el eje Y los milisegundos. Mirá la curva trepar: y subí la complejidad para ver cómo se encarece a igual tamaño.",
+      "note": "El worker devuelve el payload tal cual, sin trabajar: así lo único que se mide es el structured clone (clona al salir del main y clona de nuevo al volver). No hay un umbral mágico (ningún \"hasta 10KB está bien\"): es una rampa que sube con el tamaño y la forma del grafo. Cuando el payload pesa, dos salidas: transferir sin copiar (ejemplo 07) o compartir memoria (ejemplo 12).",
       "takeaways": {
         "title": "Puntos clave",
         "items": [
           "postMessage clona el mensaje (structured clone): el costo es serializar/deserializar, no cruzar el hilo",
           "El costo crece con el tamaño del payload Y con su complejidad estructural (cantidad de nodos)",
-          "No existe un umbral fijo: es una curva, la medís — no la adivinás",
+          "No existe un umbral fijo: es una curva que se mide, no se adivina",
           "Para payloads grandes, transferí (ejemplo 07) o compartí memoria con SharedArrayBuffer (ejemplo 12)"
         ],
         "tip": "Medí en tu hardware antes de optimizar: el costo del clone depende de la máquina y la forma del dato, no de un número mágico de internet."
@@ -245,8 +245,8 @@
     "16-compositor-vs-main": {
       "title": "El otro hilo: compositor vs main",
       "summary": "El navegador no es un solo hilo. Dentro del renderer, además del main thread (donde corre tu JavaScript, el layout y el paint) hay un compositor thread que sigue componiendo la pantalla por su cuenta. Por eso una animación de transform u opacity puede seguir fluida a 60fps aunque el main esté congelado con JavaScript pesado. Acá lo hacés visible: bloqueás el main y mirás qué se congela y qué no.",
-      "whatToWatch": "Tres cosas en pantalla: una caja que gira por CSS (transform → compositor), una caja que gira por JavaScript (main) y un medidor de FPS del main. Tocá «Bloquear el main»: la caja CSS sigue girando suave, pero la caja JS y los FPS se congelan en seco — la prueba de que hay otro hilo. Ahora tocá «Bloquear en un worker»: el MISMO cómputo, pero en otro hilo, y todo sigue fluido.",
-      "note": "El compositor maneja scroll y animaciones de transform/opacity con su propio hilo, así que sobreviven al jank del main. Lo que vive en el main —animaciones por JavaScript, layout, top/left/width— NO sobrevive: se congela hasta que el main se libera. Sacar el cómputo a un worker libera el main y todo responde; pero incluso sin worker, el compositor ya te da fluidez gratis para transform/opacity. Por eso animamos con transform y no con left/top.",
+      "whatToWatch": "Tres cosas en pantalla: una caja que gira por CSS (transform → compositor), una caja que gira por JavaScript (main) y un medidor de FPS del main. Tocá «Bloquear el main»: la caja CSS sigue girando suave, pero la caja JS y los FPS se congelan en seco: la prueba de que hay otro hilo. Ahora tocá «Bloquear en un worker»: el MISMO cómputo, pero en otro hilo, y todo sigue fluido.",
+      "note": "El compositor maneja scroll y animaciones de transform/opacity con su propio hilo, así que sobreviven al jank del main. Lo que vive en el main (animaciones por JavaScript, layout, top/left/width) NO sobrevive: se congela hasta que el main se libera. Sacar el cómputo a un worker libera el main y todo responde; pero incluso sin worker, el compositor ya te da fluidez gratis para transform/opacity. Por eso animamos con transform y no con left/top.",
       "takeaways": {
         "title": "Puntos clave",
         "items": [

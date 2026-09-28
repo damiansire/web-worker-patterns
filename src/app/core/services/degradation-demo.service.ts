@@ -14,7 +14,7 @@ export interface DegradationResult {
  * Demo de degradación elegante (ejemplo 13). El MISMO trabajo se ejecuta por uno
  * de dos caminos, elegido por feature-detection (`typeof Worker`):
  *   - si hay Worker: corre off-thread, la UI no se traba.
- *   - si no (o si forzás el fallback): corre la MISMA función en el main —la UI
+ *   - si no (o si forzás el fallback): corre la MISMA función en el main: la UI
  *     se congela, pero el resultado es idéntico y la app sigue funcionando.
  * La lección: detectá la feature y degradá con gracia, así funciona en todos
  * lados, mejor donde se puede.

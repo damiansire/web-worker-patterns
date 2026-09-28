@@ -1,5 +1,5 @@
 {
-  "//": "MUESTRA — hooks event-driven (patrón ECC). NO se carga solo. Para activarlos,",
+  "//": "MUESTRA: hooks event-driven (patrón ECC). NO se carga solo. Para activarlos,",
   "//install": "copiá el bloque \"hooks\" a .claude/settings.json (merge si ya existe).",
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "hooks": {

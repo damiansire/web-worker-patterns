@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Hook PostToolUse (Write|Edit) — la regla de oro, vigilada en cada edición.
+ * Hook PostToolUse (Write|Edit): la regla de oro, vigilada en cada edición.
  *
  * Patrón ECC: "los hooks disparan en eventos de tool" (bloquear secretos, avisar
  * antipatrones). Acá hacemos cumplir la arquitectura multi-theme EN VIVO, sin esperar

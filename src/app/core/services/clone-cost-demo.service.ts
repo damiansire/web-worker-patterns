@@ -21,7 +21,7 @@ export interface CloneMeasure {
  * Demo de costo de structured clone (ejemplo 15). Hace un BARRIDO: para tamaños
  * crecientes a una profundidad fija, manda el payload al worker y mide el
  * round-trip REAL (postMessage clona al salir y al volver). Cada medición es un
- * punto {bytes, ms} de la curva — no hay número inventado, lo mide la máquina.
+ * punto {bytes, ms} de la curva: no hay número inventado, lo mide la máquina.
  *
  * Estado en signals root para que sobreviva el cambio de theme. El reloj es
  * inyectable para tests deterministas (mismo patrón que ComputeDemoService).

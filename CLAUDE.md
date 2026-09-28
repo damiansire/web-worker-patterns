@@ -4,12 +4,12 @@ Cómo trabajar en este repo: fases y convenciones de código. El diseño vive en
 [`ARQUITECTURA-multi-theme.md`](ARQUITECTURA-multi-theme.md); los gates, el
 tooling y el loop de design-review viven en
 [`docs/AI-PROCESS.md`](docs/AI-PROCESS.md). Este archivo era referenciado por
-`AGENTS.md`/`docs/AI-PROCESS.md` como fuente de verdad pero no existía —
+`AGENTS.md`/`docs/AI-PROCESS.md` como fuente de verdad pero no existía:
 creado por `/fragua adoptar` el 2026-07-10.
 
 ## Fases
 
-- Cambios chicos y acotados, que se lean como diff — no reescrituras masivas.
+- Cambios chicos y acotados, que se lean como diff: no reescrituras masivas.
 - Un ejemplo nuevo = un commit por paso lógico (worker + logic.ts con test →
   registro en `examples.registry.ts` → i18n → wiring por theme), no todo junto.
 - Parar a mostrar al terminar un hito: gates verdes (`npm run format:check`,
@@ -49,7 +49,7 @@ creado por `/fragua adoptar` el 2026-07-10.
 Piso transversal de `/fragua` (`fellow-standard.md` del corpus,
 `~/.claude/tools/_audit-tools/refs/`), más lo que este repo ya cumple por
 construcción (boundaries auto-verificados, CI multi-harness, gate de tests
-con auto-verificación en `guard-tests.mjs` — ver el comentario ahí sobre el
+con auto-verificación en `guard-tests.mjs`: ver el comentario ahí sobre el
 falso-verde de dependency-cruiser 16, el mismo principio que motivó este
 archivo):
 
@@ -63,4 +63,4 @@ archivo):
   si un doc apunta a otro (`AGENTS.md` → `CLAUDE.md`, `CLAUDE.md` →
   `AI-PROCESS.md`), ese archivo tiene que existir. `doc-coherence.mjs` audita
   el README; las referencias cruzadas entre otros docs del repo no tienen gate
-  automático todavía — mientras tanto, revisarlas a mano al tocar cualquiera.
+  automático todavía: mientras tanto, revisarlas a mano al tocar cualquiera.

@@ -32,13 +32,13 @@ interface Conn {
  * vive en el worker, así que los paneles ven siempre el mismo número.
  *
  * Cuando el navegador no soporta SharedWorker (o en Node/tests), cae a un
- * backend SIMULADO in-memory —rotulado como tal en la UI— para que la demo siga
+ * backend SIMULADO in-memory (rotulado como tal en la UI) para que la demo siga
  * mostrando el concepto. Estado en signals root: sobrevive el cambio de theme y
  * el SharedWorker NO se reinicia al cambiar de theme (es persistente).
  */
 @Injectable({ providedIn: 'root' })
 export class SharedWorkerDemoService {
-  /** Id de la instancia del worker — la prueba de que todos comparten el mismo backend. */
+  /** Id de la instancia del worker: la prueba de que todos comparten el mismo backend. */
   readonly instanceId = signal('');
   /** Conexiones (puertos) vivas contra el mismo worker. */
   readonly clients = signal(0);

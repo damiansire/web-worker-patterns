@@ -3,7 +3,7 @@
  * Gate de tests con auto-verificación (misma lección que scripts/lint/boundaries.mjs).
  *
  * El runner de Vitest bajo `ng test` a veces falla en el bootstrap y reporta "no tests" /
- * "failed to find the runner" PERO sale con código 0 — un falso verde: el gate pasa sin
+ * "failed to find the runner" PERO sale con código 0. Es un falso verde: el gate pasa sin
  * correr nada. Igual que con boundaries: un check que pasa sin verificar es peor que uno que
  * falla. Este wrapper corre `ng test`, y FALLA si:
  *   1. la salida dice "no tests" / no encontró el runner, o
@@ -85,7 +85,7 @@ const looksEmpty = /no tests|failed to find the runner/i.test(clean);
 if (looksEmpty || ran < MIN_TESTS) {
   console.error(
     `\n✗ test gate: corrieron ${ran} tests (esperado >= ${MIN_TESTS}).\n` +
-      "  'no tests' / runner roto NO es un pase limpio — es un falso verde. Reintentá o\n" +
+      "  'no tests' / runner roto NO es un pase limpio: es un falso verde. Reintentá o\n" +
       '  arreglá el bootstrap del runner antes de confiar en este gate.',
   );
   process.exit(1);

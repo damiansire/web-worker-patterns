@@ -2,7 +2,7 @@
 
 Cómo trabajamos este repo con asistencia de IA. La fuente de verdad del **diseño** sigue
 siendo `ARQUITECTURA-multi-theme.md`; la del **cómo trabajar**, `CLAUDE.md`. Este documento
-hace explícito el *proceso* — gates, loops, tooling — para que sea repetible y no dependa de
+hace explícito el *proceso* (gates, loops, tooling) para que sea repetible y no dependa de
 la memoria de una sesión.
 
 > Inspirado en patrones de [ECC](https://github.com/affaan-m/ECC) (el "agent harness OS").
@@ -24,7 +24,7 @@ npm run lint:boundaries    # regla de oro: core/ ⇏ themes/
 
 **El verificador se auto-verifica.** `lint:boundaries` corre por `scripts/lint/boundaries.mjs`,
 que FALLA ruidosamente si el cruiser ve menos de 50 módulos. Por qué: al subir a TypeScript 6,
-dependency-cruiser 16 dejó de parsear y empezó a cruzar **0 módulos en silencio** — el check
+dependency-cruiser 16 dejó de parsear y empezó a cruzar **0 módulos en silencio**: el check
 daba ✓ mientras la regla de oro quedaba sin vigilar. Un check que pasa sin revisar nada es
 peor que uno que falla.
 
@@ -42,8 +42,8 @@ marcado; se re-revisa. Itera hasta `LISTO`. Tope ~3–4 vueltas; si no converge,
 crítico no edita: ojo fresco, sin sesgo de autor.
 
 Esto es el patrón ECC de "subagentes con scope acotado" + verificación adversarial. Para
-*código* (no diseño) el equivalente es correr varios lentes — correctitud, seguridad, a11y,
-perf — anclados en la skill `angular-developer`, no un solo pase.
+*código* (no diseño) el equivalente es correr varios lentes: correctitud, seguridad, a11y,
+perf: anclados en la skill `angular-developer`, no un solo pase.
 
 ## 3. Aplicación multi-harness (no atada a una IA/IDE)
 
@@ -51,21 +51,21 @@ Lección ECC: la *aplicación* de las reglas no puede vivir dentro de un solo as
 los guardrails fueran solo de Claude Code, quien use Cursor/Copilot/Codex/Zed no quedaría
 cubierto. Por eso hay **dos capas**:
 
-**a) Vendor-neutral (la red real — se dispara con cualquier editor/IA):**
+**a) Vendor-neutral (la red real: se dispara con cualquier editor/IA):**
 - **git pre-commit** (`.githooks/pre-commit`, activado por `npm run setup` / `prepare`): corre
   `npm run lint:boundaries` antes de cada commit. Es git, no depende del editor.
 - **CI** (`.github/workflows/ci.yml`): format + build + test + boundaries en cada push/PR.
   Backstop final aunque alguien no tenga el pre-commit local.
 - `.gitattributes` fuerza LF en hooks/scripts: un `#!/bin/sh` con CRLF falla en Linux/CI.
 
-**b) Por herramienta (feedback temprano, advisory — NO reemplaza a (a)):**
+**b) Por herramienta (feedback temprano, advisory: NO reemplaza a (a)):**
 - **Claude Code**: hooks Node cross-platform en `scripts/hooks/` (patrón ECC "los hooks disparan
   en eventos"), registro opt-in en `.claude/settings.hooks.sample.json`:
   - `guard-regla-de-oro.mjs` (PostToolUse): bloquea en vivo `core/`→`themes/` o `*.worker.ts`
     dentro de un theme.
   - `cleanup-scratch.mjs` (SessionEnd): barre los `wwp-*-tmp.*`.
 - **Cursor**: `.cursor/rules/regla-de-oro.mdc`. **Copilot**: `.github/copilot-instructions.md`.
-- **Cualquier otro**: `AGENTS.md` (estándar cross-tool) — puntero único a la fuente de verdad.
+- **Cualquier otro**: `AGENTS.md` (estándar cross-tool): puntero único a la fuente de verdad.
 
 Regla DRY (patrón adapter de ECC): las reglas se escriben **una vez** (ARQUITECTURA/CLAUDE.md);
 los archivos por-herramienta son punteros, no copias. Y la verificación es **una sola**

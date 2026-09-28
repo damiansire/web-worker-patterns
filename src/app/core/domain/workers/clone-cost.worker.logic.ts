@@ -3,13 +3,13 @@
  * para testearla sin levantar un Web Worker real.
  *
  * El concepto: postMessage CLONA el payload (structured clone). Ese costo no es
- * "cruzar el hilo" —eso es sub-ms— sino serializar/deserializar el grafo, y
+ * "cruzar el hilo" (eso es sub-ms) sino serializar/deserializar el grafo, y
  * crece con el TAMAÑO (cuántos datos) y la COMPLEJIDAD estructural (cuántos
  * nodos / qué tan anidado). Acá no inventamos una curva: construimos payloads
  * deterministas y dejamos que la UI mida el round-trip REAL en la máquina del
  * que aprende. Esta lógica solo arma el payload y lo describe (nodos y bytes
- * UTF-8 del JSON, un proxy del peso del clon — no su tamaño exacto, que el
- * structured clone calcula en su propio formato binario) — magnitudes
+ * UTF-8 del JSON, un proxy del peso del clon: no su tamaño exacto, que el
+ * structured clone calcula en su propio formato binario): magnitudes
  * deterministas que sirven de eje X de la gráfica y de base para los tests.
  */
 

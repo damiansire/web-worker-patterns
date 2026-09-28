@@ -85,7 +85,7 @@ export class WorkerLimitsDemoService {
 
   /**
    * Corre K workers a la vez con el mismo trabajo; resuelve con el wall-clock total.
-   * Un worker que falla (onerror — p.ej. OOM al lanzar 32 hilos) cuenta como término:
+   * Un worker que falla (onerror: p.ej. OOM al lanzar 32 hilos) cuenta como término:
    * se termina y se suma al contador, así la tanda no queda esperando un onmessage que
    * nunca llega. Sin esto, la Promise no resuelve y la escala se cuelga.
    */

@@ -116,7 +116,7 @@ describe('ComputeDemoService', () => {
  * event loop del "main" queda libre, y eso es independiente de si el hilo
  * secundario es un `Worker` de DOM o un hilo de `worker_threads`.
  */
-describe('ComputeDemoService — medición real: hilo principal bloqueado vs worker libre', () => {
+describe('ComputeDemoService, medición real: hilo principal bloqueado vs worker libre', () => {
   it('en el main, contar primos BLOQUEA: cero ticks del event loop corren durante el cómputo', () => {
     let ticks = 0;
     const tick = setInterval(() => ticks++, 1);

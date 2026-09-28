@@ -9,8 +9,8 @@ export interface TransferResult {
   mb: number;
   /**
    * Estado del buffer ORIGINAL del main después de mandarlo:
-   *   - 'transfer': queda detached (byteLength 0) — el main perdió la propiedad.
-   *   - 'clone': intacto — el main conserva su copia.
+   *   - 'transfer': queda detached (byteLength 0): el main perdió la propiedad.
+   *   - 'clone': intacto: el main conserva su copia.
    */
   detached: boolean;
 }

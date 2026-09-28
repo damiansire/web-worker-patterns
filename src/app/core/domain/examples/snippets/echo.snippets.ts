@@ -6,7 +6,7 @@ export const ECHO_SNIPPETS: Record<string, string> = {
   'echo.worker.ts': `// Corre en un hilo separado. Recibe un mensaje y RESPONDE.
 addEventListener('message', ({ data }) => {
   const { id, text } = data;
-  // procesa y manda de vuelta — postMessage en la otra dirección
+  // procesa y manda de vuelta: postMessage en la otra dirección
   postMessage({ id, text: text.toUpperCase(), length: text.length });
 });`,
 

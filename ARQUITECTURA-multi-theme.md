@@ -51,7 +51,7 @@ La consecuencia práctica más linda: como el estado vive en signals a nivel roo
 
 ```
 src/app/
-├── core/                          # capa neutral — cero CSS de theme
+├── core/                          # capa neutral: cero CSS de theme
 │   ├── domain/
 │   │   ├── examples/
 │   │   │   ├── example.model.ts        # metadata de un ejemplo

@@ -5,7 +5,7 @@ import { incrementShared } from './shared-counter.worker.logic';
 /**
  * Tests con un Worker REAL, no un mock (gap detectado en la auditoría: los
  * `*-demo.service.spec.ts`, incluido `lifecycle-demo.service.spec.ts`, sólo
- * ejercitan un `FakeWorker` en memoria — necesario para un scheduler
+ * ejercitan un `FakeWorker` en memoria: necesario para un scheduler
  * determinista, pero incapaz de detectar una condición de carrera real o una
  * violación real de orden de mensajes, porque nunca hay dos hilos de verdad).
  *
@@ -13,7 +13,7 @@ import { incrementShared } from './shared-counter.worker.logic';
  * usamos `node:worker_threads`: no es la misma API, pero da hilos de SO reales,
  * que es justo la garantía que hay que probar acá (orden FIFO de mensajes al
  * mismo worker, atomicidad de `Atomics` bajo concurrencia real). Cada worker
- * corre el CÓDIGO DE PRODUCCIÓN tal cual — vía `.toString()` de la función ya
+ * corre el CÓDIGO DE PRODUCCIÓN tal cual: vía `.toString()` de la función ya
  * importada, no una copia a mano que pueda divergir.
  */
 

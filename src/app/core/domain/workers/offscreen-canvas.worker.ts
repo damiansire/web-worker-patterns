@@ -4,7 +4,7 @@ import { drawClock, ClockPalette } from './offscreen-canvas.worker.logic';
 /**
  * Worker del ejemplo 14 (OffscreenCanvas). Recibe el control de un <canvas> vía la transfer
  * list y corre SU PROPIO rendering loop (requestAnimationFrame existe también dentro del
- * worker para OffscreenCanvas). Dibuja el reloj sin tocar el DOM — no tiene document. Por eso
+ * worker para OffscreenCanvas). Dibuja el reloj sin tocar el DOM: no tiene document. Por eso
  * la animación sigue fluida aunque el main thread esté bloqueado con JS pesado.
  *
  * Protocolo:

@@ -1,6 +1,6 @@
 ---
 description: Migra un ejemplo de Web Worker al dominio neutral y lo renderiza en los themes registrados (pipeline punta a punta con loop de design-review).
-argument-hint: <id-del-ejemplo> (p.ej. 09-backpressure) — o vacío para tomar el siguiente del registry
+argument-hint: <id-del-ejemplo> (p.ej. 09-backpressure), o vacío para tomar el siguiente del registry
 allowed-tools: Read, Edit, Write, Grep, Glob, Bash, TodoWrite, Task
 ---
 

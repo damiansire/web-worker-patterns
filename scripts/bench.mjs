@@ -38,7 +38,7 @@ function benchClone(payload) {
   return median(samples);
 }
 
-console.log(`structured clone cost — mediana de ${REPS} corridas (Node ${process.version})\n`);
+console.log(`structured clone cost: mediana de ${REPS} corridas (Node ${process.version})\n`);
 console.log('  registros |     bytes JSON |  clone ms');
 console.log('  ----------+----------------+----------');
 for (const size of SIZES) {

@@ -60,7 +60,7 @@ export { type CloneCostPoint, formatBytes };
         </text>
       } @else {
         <text class="cc-empty" [attr.x]="W / 2" [attr.y]="H / 2" text-anchor="middle">
-          sin datos — medí para ver la curva
+          sin datos: medí para ver la curva
         </text>
       }
 

@@ -91,8 +91,8 @@ export function skippedFrames(
 }
 
 /**
- * Dibuja un cuadro del reloj: cara, ticks, manecilla de segundos en barrido, y —la prueba
- * forense— el tiempo transcurrido y el contador de frames impresos EN el píxel. Si el hilo
+ * Dibuja un cuadro del reloj: cara, ticks, manecilla de segundos en barrido, y (la prueba
+ * forense) el tiempo transcurrido y el contador de frames impresos EN el píxel. Si el hilo
  * se congela, este frame deja de redibujarse y el tiempo/los frames quedan clavados.
  */
 export function drawClock(ctx: Ctx2D, state: ClockState, palette: ClockPalette): void {

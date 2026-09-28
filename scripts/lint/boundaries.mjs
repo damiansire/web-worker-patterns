@@ -3,7 +3,7 @@
  * Guard de boundaries con auto-verificación (lección ECC: "testeá que tu verificador verifica").
  *
  * Contexto: al subir a TypeScript 6, dependency-cruiser 16 dejó de parsear las fuentes
- * y empezó a cruzar 0 módulos EN SILENCIO — el check seguía dando ✓ mientras la regla de
+ * y empezó a cruzar 0 módulos EN SILENCIO: el check seguía dando ✓ mientras la regla de
  * oro (core/ ⇏ themes/) quedaba sin vigilar. Un check que pasa sin revisar nada es peor
  * que uno que falla. Este wrapper corre depcruise en JSON y FALLA ruidosamente si:
  *   1. cruzó menos módulos de los esperados (parser roto / glob vacío), o
@@ -74,4 +74,4 @@ if (errorCount > 0) {
   process.exit(1);
 }
 
-console.log(`✓ boundaries OK — ${cruised} módulos cruzados, 0 violaciones error (regla de oro intacta).`);
+console.log(`✓ boundaries OK: ${cruised} módulos cruzados, 0 violaciones error (regla de oro intacta).`);

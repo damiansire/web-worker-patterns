@@ -1,5 +1,5 @@
 #!/bin/sh
-# Pre-commit HARNESS-AGNOSTIC — vale para cualquier IDE/IA (Claude, Cursor, Copilot,
+# Pre-commit HARNESS-AGNOSTIC: vale para cualquier IDE/IA (Claude, Cursor, Copilot,
 # Codex, Zed, Gemini…). A diferencia de los hooks de Claude Code (.claude/), este corre
 # en git, así que la regla de oro se hace cumplir aunque tu editor no tenga hooks propios.
 #
@@ -11,6 +11,6 @@
 
 echo "[pre-commit] regla de oro: verificando boundaries (core/ ⇏ themes/)…"
 if ! npm run --silent lint:boundaries; then
-  echo "[pre-commit] ✗ boundaries falló — commit abortado. Corregí antes de commitear." >&2
+  echo "[pre-commit] ✗ boundaries falló: commit abortado. Corregí antes de commitear." >&2
   exit 1
 fi

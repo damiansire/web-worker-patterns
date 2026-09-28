@@ -7,7 +7,7 @@ import { buildReply } from './echo.worker.logic';
  *
  * Responde de inmediato, a propósito: el round-trip que mide la UI es el costo REAL
  * de cruzar el thread (sub-milisegundo). Antes había un setTimeout(350) artificial
- * que inflaba el número y enseñaba que "cruzar el hilo cuesta 350ms" — un mito.
+ * que inflaba el número y enseñaba que "cruzar el hilo cuesta 350ms": un mito.
  *
  * Protocolo neutral:
  *   in:  { id: number, text: string }

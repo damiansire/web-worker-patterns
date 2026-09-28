@@ -28,7 +28,7 @@ export default tseslint.config(
       '@angular-eslint/prefer-on-push-component-change-detection': 'error',
       // Los selectores de cada theme usan su propio prefijo (narrative-, brutalist-,
       // editorial-, devtool-, fb-) a propósito: son familias de componentes por theme.
-      // No imponemos un prefijo único — eso es decisión de diseño del repo, no un invariante.
+      // No imponemos un prefijo único: eso es decisión de diseño del repo, no un invariante.
       '@angular-eslint/component-selector': 'off',
       '@angular-eslint/directive-selector': 'off',
     },

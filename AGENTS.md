@@ -6,9 +6,9 @@ reglas se escriben una sola vez y acá solo se resumen para que ninguna herramie
 
 Leé, en este orden:
 
-1. `ARQUITECTURA-multi-theme.md` — el diseño (fuente de verdad).
-2. `CLAUDE.md` — cómo trabajar (fases, convenciones de código).
-3. `docs/AI-PROCESS.md` — gates, loop de design-review, hooks.
+1. `ARQUITECTURA-multi-theme.md`: el diseño (fuente de verdad).
+2. `CLAUDE.md`: cómo trabajar (fases, convenciones de código).
+3. `docs/AI-PROCESS.md`: gates, loop de design-review, hooks.
 
 ## Estado actual (dos themes, un idioma)
 

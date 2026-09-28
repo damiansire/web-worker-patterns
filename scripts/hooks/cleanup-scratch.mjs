@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Hook SessionEnd — barre los scratch que dejan los pasos exploratorios.
+ * Hook SessionEnd: barre los scratch que dejan los pasos exploratorios.
  *
  * Durante la sesión, los subagentes y diagnósticos sueltan archivos temporales en la
  * raíz (p.ej. `wwp-diag-tmp.mjs`, `wwp-review-tmp.mjs`) que después aparecen como ruido
