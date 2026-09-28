@@ -33,7 +33,7 @@ La fila de **Web Workers** es propia de este repo y es la que más importa acá.
 | **Performance**            | Ráfagas de `postMessage` que disparan N reconciliaciones (drená por frame / coalescing por scope); copias innecesarias donde corresponde transferir; O(n²) evitable. |
 | **Contratos de API**       | Cambios de comportamiento silenciosos en el contrato de mensajes `shared`; manejo de errores incorrecto en los bordes worker↔main.        |
 | **Cobertura de tests**     | ¿Los tests ejercitan de verdad los paths que cambiaron? La lógica pura del worker (`*.worker.logic.ts`) debe testearse sin Worker real (jsdom no los soporta). |
-| **i18n**                   | Si se sumó contenido, ¿están las tres claves (`es`/`en`/`pt`) y son neutrales (sin chrome de theme)?                                        |
+| **i18n**                   | Si se sumó contenido, ¿está en `public/i18n/es.json` (único idioma registrado hoy, ver `availableLangs` en `app.config.ts`) y es neutral (sin chrome de theme)? |
 
 ## 3. Chequeo mecánico de convenciones
 

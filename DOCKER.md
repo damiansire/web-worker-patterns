@@ -123,10 +123,10 @@ docker-compose up -d
 
 ```bash
 # macOS/Linux
-lsof -i :3000
+lsof -i :9000
 
 # Windows (PowerShell)
-Get-Process -Id (Get-NetTCPConnection -LocalPort 3000).OwningProcess
+Get-Process -Id (Get-NetTCPConnection -LocalPort 9000).OwningProcess
 ```
 
 **Solution 3** - Change the port in `docker-compose.yml`:
@@ -359,7 +359,9 @@ You can verify them on a running container with `curl -I http://localhost:9000`.
 
 ### Do I need to know Docker to use this?
 
-No. The automatic scripts in `scripts/start/` do everything for you.
+Not much: the two commands in [Quick Usage](#quick-usage) (`docker-compose up -d --build`,
+then open `http://localhost:9000`) are all you need. There is no separate script that starts
+Docker for you; `scripts/start/` starts the local dev server (`npm start`), not the container.
 
 ### Can I change the port?
 

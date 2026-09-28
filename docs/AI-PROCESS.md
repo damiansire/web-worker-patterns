@@ -32,10 +32,14 @@ peor que uno que falla.
 
 `construir → [design-review ⇄ corregir lo bloqueante]* → LISTO`
 
-El subagente **`design-reviewer`** (`.claude/agents/design-reviewer.md`) es read-only: saca la
-captura real con Playwright, la mira y critica (jerarquía, contraste, estados, y si enseña el
-concepto sin leer el código). El constructor aplica; se re-revisa. Itera hasta `LISTO`. Tope
-~3–4 vueltas; si no converge, escalar. El crítico no edita: ojo fresco, sin sesgo de autor.
+El subagente **`design-reviewer`** vive en la configuración personal de Claude Code del autor
+(`~/.claude/agents/design-reviewer.md`), no en este repo: es read-only, saca la captura real
+con Playwright, la mira y critica (jerarquía, contraste, estados, y si enseña el concepto sin
+leer el código). Sin ese agente configurado, el mismo loop se reproduce a mano: servir la app
+(`npm start`), capturar la pantalla del ejemplo en cada theme renderizado y compararla contra
+la captura previa del mismo ejemplo hasta que no queden bloqueantes. El constructor aplica lo
+marcado; se re-revisa. Itera hasta `LISTO`. Tope ~3–4 vueltas; si no converge, escalar. El
+crítico no edita: ojo fresco, sin sesgo de autor.
 
 Esto es el patrón ECC de "subagentes con scope acotado" + verificación adversarial. Para
 *código* (no diseño) el equivalente es correr varios lentes — correctitud, seguridad, a11y,
@@ -69,11 +73,13 @@ implementación (`npm run lint:boundaries`) que git hook, CI y el hook de Claude
 
 ## 4. El pipeline por-ejemplo: `/migrate-example`
 
-La migración de un worker a dominio neutral + 5 themes está codificada en
+La migración de un worker a dominio neutral está codificada en
 `.claude/commands/migrate-example.md` (skill `/migrate-example`). Resumen:
 dominio una vez en `core/` (worker + `.logic` puro + service en signals + DemoKind + registry
-+ test) → i18n es/en/pt → `@case` en los 5 layouts con visualización propia → loop de
-design-review → gates → commit + screenshots. El estado **sobrevive al cambio de theme**.
++ test) → i18n en `public/i18n/es.json` → `@case` en el example-layout de `themes/default`
+(los demás themes registrados en `theme.registry.ts` lo reusan salvo que tengan presentación
+propia) → loop de design-review → gates → commit + screenshots. El estado **sobrevive al
+cambio de theme**.
 
 ## 5. Research-first
 
@@ -92,7 +98,7 @@ transferables), traer la doc autoritativa primero, no cuando me trabo. Recursos 
 Los gotchas durables se capturan como memoria persistente (no prosa de una sesión):
 `.claude/.../memory/` + índice en `MEMORY.md`. Si un patrón se repite o un bug nos costó,
 se escribe. Ejemplos vivos: el self-test de boundaries, el overlay stale de Vite, el pipeline
-de 5 themes.
+de migración por-ejemplo.
 
 ## 7. Lo que NO copiamos de ECC
 

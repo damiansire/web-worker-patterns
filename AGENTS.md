@@ -10,12 +10,15 @@ Leé, en este orden:
 2. `CLAUDE.md` — cómo trabajar (fases, convenciones de código).
 3. `docs/AI-PROCESS.md` — gates, loop de design-review, hooks.
 
-## Estado actual (uno y uno)
+## Estado actual (dos themes, un idioma)
 
-Hoy el repo corre con **un solo theme** (`default`, neutro) y **un solo idioma** (`es`). El
-motor de theming e i18n queda **genérico**: sumar themes/idiomas es agregar entradas al
-registry / a `availableLangs`, sin tocar el dominio. La identidad visual del theme `default`
-está por diseñarse. (Antes convivían 5 themes y 3 idiomas; se consolidó a uno de cada uno.)
+Hoy el repo corre con **dos themes** (`default`, cálido y claro; `midnight`, su contracara
+nocturna, que reusa el shell, el home y el example-layout de `default` y solo cambia el bloque
+de tokens) y **un solo idioma** (`es`). Ver `src/app/theming/theme.registry.ts` y
+`src/app/themes/midnight/midnight.theme.ts`. El motor de theming e i18n queda **genérico**:
+sumar themes/idiomas es agregar entradas al registry / a `availableLangs`, sin tocar el
+dominio. (Antes convivían 5 themes y 3 idiomas; se consolidó a uno de cada uno y después se
+sumó `midnight` como variante de paleta del default.)
 
 ## La regla de oro (no negociable)
 

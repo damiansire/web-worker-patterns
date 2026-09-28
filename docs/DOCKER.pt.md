@@ -1,4 +1,4 @@
-# Guia do Docker para Web Worker Patterns
+# Guia de Docker para Web Worker Patterns
 
 Este guia explica em detalhes como usar Docker para executar este projeto.
 
@@ -9,39 +9,39 @@ Este guia explica em detalhes como usar Docker para executar este projeto.
 
 - [Por que Docker?](#por-que-docker)
 - [Instalação do Docker](#instalação-do-docker)
-- [Uso Rápido](#uso-rápido)
+- [Uso rápido](#uso-rápido)
 - [Troubleshooting](#troubleshooting)
-- [Comandos Úteis](#comandos-úteis)
+- [Comandos úteis](#comandos-úteis)
 
 ## Por que Docker?
 
-Docker oferece:
+O Docker oferece:
 
-- **Configuração zero**: Não precisa instalar Python, Node.js, PHP ou nenhum servidor web
-- **Portabilidade**: Funciona da mesma forma no macOS, Windows e Linux
-- **Isolamento**: Não interfere com outros serviços no seu sistema
-- **Reprodutibilidade**: Todos usam exatamente o mesmo ambiente
-- **Hot-reload**: As alterações nos arquivos são refletidas imediatamente
+- **Configuração zero**: não é preciso instalar Python, Node.js, PHP ou qualquer servidor web.
+- **Portabilidade**: funciona da mesma forma no macOS, Windows e Linux.
+- **Isolamento**: não interfere com outros serviços do seu sistema.
+- **Reprodutibilidade**: todos usam exatamente o mesmo ambiente.
+- **Igual à produção**: serve a app Angular já construída (multi-stage build), sem precisar de Node no host.
 
 ## Instalação do Docker
 
 ### macOS
 
 1. Baixe o Docker Desktop: https://www.docker.com/products/docker-desktop
-2. Abra o arquivo `.dmg` baixado
-3. Arraste o Docker para a pasta Aplicativos
-4. Abra o Docker a partir de Aplicativos
-5. Aguarde o ícone do Docker aparecer na barra de menus
+2. Abra o arquivo `.dmg` baixado.
+3. Arraste o Docker para a pasta Aplicativos.
+4. Abra o Docker a partir de Aplicativos.
+5. Aguarde o ícone do Docker aparecer na barra de menus.
 
 ### Windows
 
 1. Baixe o Docker Desktop: https://www.docker.com/products/docker-desktop
-2. Execute o instalador
-3. Siga as instruções (pode exigir reinicialização)
-4. Abra o Docker Desktop pelo menu Iniciar
-5. Aguarde o ícone do Docker aparecer na bandeja do sistema
+2. Execute o instalador.
+3. Siga as instruções (pode exigir reinicialização).
+4. Abra o Docker Desktop pelo menu Iniciar.
+5. Aguarde o ícone do Docker aparecer na bandeja do sistema.
 
-**Nota para Windows**: Você precisa do WSL 2 (Windows Subsystem for Linux) instalado.
+**Nota para Windows**: você precisa do WSL 2 (Windows Subsystem for Linux) instalado.
 
 ### Linux (Ubuntu/Debian)
 
@@ -66,42 +66,28 @@ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 docker --version
 ```
 
-## Uso Rápido
+## Uso rápido
 
-### Opção 1: Scripts Automáticos
-
-O projeto inclui scripts que verificam e iniciam o Docker automaticamente:
-
-**macOS/Linux:**
-
-```bash
-./scripts/start/start.sh
-```
-
-**Windows:**
-
-```bash
-scripts\start\start.bat
-```
-
-### Opção 2: Comandos Manuais
+O Docker constrói a app Angular e a serve com nginx (sem Node.js no host). Depois de alterar o código, é preciso reconstruir a imagem.
 
 ```bash
 # 1. Verificar se o Docker está rodando
 docker ps
 
-# 2. Iniciar o projeto
-docker-compose up -d
+# 2. Construir e iniciar
+docker-compose up -d --build
 
 # 3. Abrir no navegador
 # http://localhost:9000
 ```
 
+Para desenvolvimento local com hot-reload, use `npm start` ou os scripts em `scripts/start/` (veja o README).
+
 ## Troubleshooting
 
 ### "Cannot connect to the Docker daemon"
 
-**Problema**: Docker não está rodando.
+**Problema**: o Docker não está rodando.
 
 **Solução**:
 
@@ -115,9 +101,9 @@ docker ps
 
 **Windows:**
 
-- Procure "Docker Desktop" no menu Iniciar
-- Clique para iniciá-lo
-- Aguarde o ícone aparecer na bandeja do sistema
+- Procure "Docker Desktop" no menu Iniciar.
+- Clique para iniciá-lo.
+- Aguarde o ícone aparecer na bandeja do sistema.
 
 **Linux:**
 
@@ -127,9 +113,9 @@ sudo systemctl start docker
 
 ### "Port is already allocated"
 
-**Problema**: A porta está sendo usada por outro serviço.
+**Problema**: a porta está sendo usada por outro serviço.
 
-**Solução 1** - Parar containers existentes:
+**Solução 1** - Parar os containers existentes:
 
 ```bash
 docker-compose down
@@ -140,17 +126,17 @@ docker-compose up -d
 
 ```bash
 # macOS/Linux
-lsof -i :3000
+lsof -i :9000
 
 # Windows (PowerShell)
-Get-Process -Id (Get-NetTCPConnection -LocalPort 3000).OwningProcess
+Get-Process -Id (Get-NetTCPConnection -LocalPort 9000).OwningProcess
 ```
 
 **Solução 3** - Alterar a porta no `docker-compose.yml`:
 
 ```yaml
 ports:
-  - "8080:80" # Usar porta 8080
+  - "8080:80" # Usar a porta 8080
   # ou qualquer outra porta disponível
 ```
 
@@ -163,7 +149,7 @@ docker-compose up -d
 
 ### "Error response from daemon: Conflict"
 
-**Problema**: Já existe um container com o mesmo nome.
+**Problema**: já existe um container com o mesmo nome.
 
 **Solução**:
 
@@ -180,15 +166,15 @@ docker-compose up -d
 **Solução**:
 
 ```bash
-# 1. Limpar cache do navegador (Ctrl+Shift+R ou Cmd+Shift+R)
+# 1. Limpar o cache do navegador (Ctrl+Shift+R ou Cmd+Shift+R)
 
-# 2. Ou reiniciar o container
-docker-compose restart
+# 2. Ou reconstruir o container (não há hot-reload no Docker, veja Dicas abaixo)
+docker-compose up -d --build
 ```
 
 ### Permissão negada no Linux
 
-**Problema**: `permission denied while trying to connect to the Docker daemon socket`
+**Problema**: `permission denied while trying to connect to the Docker daemon socket`.
 
 **Solução**:
 
@@ -204,9 +190,9 @@ newgrp docker
 docker ps
 ```
 
-## Comandos Úteis
+## Comandos úteis
 
-### Ver status do container
+### Ver o status do container
 
 ```bash
 # Listar containers ativos
@@ -234,7 +220,7 @@ docker-compose down
 # Reiniciar
 docker-compose restart
 
-# Reconstruir (após alterações no Dockerfile)
+# Reconstruir (após alterações no Dockerfile ou no código)
 docker-compose up -d --build
 
 # Parar sem remover
@@ -283,7 +269,7 @@ docker image prune
 docker system prune -a --volumes
 ```
 
-## Arquitetura do Projeto
+## Arquitetura do projeto
 
 ```
 ┌──────────────────┐
@@ -293,42 +279,42 @@ docker system prune -a --volumes
          │
          ▼
 ┌──────────────────┐
-│   Docker Host    │  Porta 3000 → Porta 80
+│   Docker Host    │  Porta 9000 → Porta 80
 │  (Sua máquina)   │
 └────────┬─────────┘
          │
          ▼
 ┌──────────────────┐
 │   Container      │  Nginx Alpine
-│   web-worker-    │
-│   patterns       │  - Serve arquivos estáticos
-└────────┬─────────┘  - Headers CORS configurados
-         │            - Hot-reload habilitado
+│   web-worker-    │  - Serve a app Angular já construída
+│   patterns       │  - Roteamento de SPA (try_files)
+└────────┬─────────┘
+         │
          ▼
 ┌──────────────────┐
-│  Arquivos do     │  Montados da sua máquina
-│  Projeto         │  /usr/share/nginx/html/
+│  App construída  │  Vem na imagem (dist/ do stage de build)
+│  /usr/share/     │  Reconstrua com --build após alterações
+│  nginx/html/     │
 └──────────────────┘
 ```
 
-## Arquivos de Configuração
+## Arquivos de configuração
 
 ### `Dockerfile`
 
-Define como a imagem é construída:
+Build multi-stage:
 
-- Usa nginx:alpine (leve e rápido)
-- Copia arquivos do projeto
-- Configura nginx para servir conteúdo estático
+- **Stage 1 (build)**: Node 20 executa `npm ci` e `npm run build` para gerar a app Angular em `dist/`.
+- **Stage 2 (serve)**: nginx:alpine serve apenas os arquivos estáticos construídos, a partir de `dist/web-worker-patterns/browser/`.
+- O Nginx é configurado para roteamento de SPA (`try_files` para `index.html`).
 
 ### `docker-compose.yml`
 
-Define o serviço completo:
+Define o serviço:
 
-- Portas (9000:80 por padrão, você pode alterar)
-- Volumes (hot-reload)
-- Healthcheck
-- Nome do container
+- Portas (`9000:80` por padrão; pode ser alterada).
+- Sem volume: a imagem contém a app já construída; execute `docker-compose up -d --build` após alterar o código.
+- Healthcheck e nome do container.
 
 ### `.dockerignore`
 
@@ -338,36 +324,45 @@ Arquivos que NÃO são copiados para o container:
 - node_modules
 - Scripts de desenvolvimento
 
-## Dicas e Melhores Práticas
+## Dicas e boas práticas
 
 ### Desenvolvimento
 
-- **Hot-reload está habilitado**: As alterações são refletidas automaticamente
-- **Use a porta 3000**: Já está configurada
-- **Verifique os logs**: `docker-compose logs -f` é seu amigo
+- **Não há hot-reload no Docker**: a imagem serve um retrato já construído da app. Para recarga em tempo real, use `npm start` ou os scripts em `scripts/start/` no host.
+- **Reconstrua após alterações**: `docker-compose up -d --build`.
+- **Verifique os logs**: `docker-compose logs -f` é seu amigo.
 
 ### Produção
 
 Para produção, considere:
 
-- Usar uma imagem mais robusta (nginx:stable)
-- Configurar SSL/TLS
-- Otimizar o cache
-- Adicionar compressão gzip
+- Usar uma imagem mais robusta (nginx:stable).
+- Configurar SSL/TLS.
+- Otimizar o cache.
+- Adicionar compressão gzip.
 
 ### Performance
 
 O container usa:
 
-- Nginx Alpine (apenas ~5MB)
-- Configuração otimizada de cache
-- Headers CORS corretos para workers
+- Nginx Alpine (apenas ~5MB).
+- Configuração de cache otimizada.
 
-## Perguntas Frequentes
+### Cabeçalhos de segurança
+
+A configuração do nginx (`nginx.conf`) emite, em cada resposta:
+
+- `Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy: require-corp`: essas duas deixam o documento **cross-origin isolated** (`crossOriginIsolated === true`), que é o pré-requisito real de `SharedArrayBuffer` / `Atomics`. A demo de memória compartilhada (exemplo 12) só segue o caminho real quando isso é verdadeiro; caso contrário, cai para o backend simulado.
+- `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`.
+- Uma `Content-Security-Policy` restritiva (`default-src 'self'`, `worker-src 'self' blob:`, `object-src 'none'`, `frame-ancestors 'none'`).
+
+Você pode verificá-los em um container rodando com `curl -I http://localhost:9000`.
+
+## Perguntas frequentes
 
 ### Preciso saber Docker para usar isso?
 
-Não. Os scripts automáticos em `scripts/start/` fazem tudo por você.
+Não muito: os dois comandos de [Uso rápido](#uso-rápido) (`docker-compose up -d --build` e abrir `http://localhost:9000`) são suficientes. Não existe um script separado que inicie o Docker por você; `scripts/start/` inicia o servidor de desenvolvimento local (`npm start`), não o container.
 
 ### Posso alterar a porta?
 
@@ -375,15 +370,15 @@ Sim. Edite `docker-compose.yml` e altere `"9000:80"` para `"SUA_PORTA:80"`, depo
 
 ### As alterações são salvas após parar o container?
 
-Sim. Os arquivos estão na sua máquina, o container apenas os serve.
+Sim. Os arquivos estão na sua máquina; o container apenas os serve.
 
 ### Quanto espaço ocupa?
 
 - Imagem base (nginx:alpine): ~5MB
 - Imagem construída: ~5.5MB
-- Container rodando: ~10MB RAM
+- Container rodando: ~10MB de RAM
 
-### Posso usar a UI do Docker Desktop?
+### Posso usar a interface do Docker Desktop?
 
 Sim. Você pode gerenciar tudo pela interface gráfica do Docker Desktop.
 
@@ -393,11 +388,11 @@ Sim. Você pode gerenciar tudo pela interface gráfica do Docker Desktop.
 
 Se tiver problemas:
 
-1. Revise este guia de troubleshooting
-2. Execute `docker-compose logs -f` para ver erros
-3. Verifique se o Docker está rodando: `docker ps`
-4. Tente reconstruir: `docker-compose up -d --build`
+1. Revise este guia de troubleshooting.
+2. Execute `docker-compose logs -f` para ver erros.
+3. Verifique se o Docker está rodando: `docker ps`.
+4. Tente reconstruir: `docker-compose up -d --build`.
 
 ---
 
-Feito com amor para a comunidade de desenvolvedores.
+Feito com carinho para a comunidade de desenvolvedores.

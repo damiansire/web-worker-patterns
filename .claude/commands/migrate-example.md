@@ -1,5 +1,5 @@
 ---
-description: Migra un ejemplo de Web Worker al dominio neutral y lo renderiza en los 5 themes (pipeline punta a punta con loop de design-review).
+description: Migra un ejemplo de Web Worker al dominio neutral y lo renderiza en los themes registrados (pipeline punta a punta con loop de design-review).
 argument-hint: <id-del-ejemplo> (p.ej. 09-backpressure) — o vacío para tomar el siguiente del registry
 allowed-tools: Read, Edit, Write, Grep, Glob, Bash, TodoWrite, Task
 ---
@@ -8,7 +8,7 @@ allowed-tools: Read, Edit, Write, Grep, Glob, Bash, TodoWrite, Task
 
 Codifica el pipeline por-ejemplo que ya repetimos en los ejemplos 04–13. Seguilo en orden;
 no saltees el loop de design-review. La **regla de oro** manda: el dominio se escribe una
-vez en `core/`, la presentación cinco veces en `themes/`. `core/` NUNCA importa de `themes/`.
+vez en `core/`, la presentación vive en `themes/`. `core/` NUNCA importa de `themes/`.
 
 ## 0. Encuadre
 - Si `$1` está vacío, abrí `src/app/core/domain/examples/examples.registry.ts` y tomá el
@@ -31,22 +31,30 @@ vez en `core/`, la presentación cinco veces en `themes/`. `core/` NUNCA importa
    fake-worker. Si tocaste dominio, hay test que lo cubre. `npm test` verde.
 
 ## 2. i18n (contenido neutral)
-- Agregá `examples.$1.*` a `public/i18n/es.json`, `en.json`, `pt.json`. El contenido
-  educativo es neutral; sólo el chrome de cada theme tiene strings propios.
+- Agregá `examples.$1.*` a `public/i18n/es.json` (único idioma registrado hoy;
+  `availableLangs` en `src/app/app.config.ts`). El contenido educativo es neutral; sólo el
+  chrome de cada theme tiene strings propios.
 
-## 3. Presentación (se escribe CINCO veces)
-- Sumá el `@case '<DemoKind>'` en los 5 example-layouts:
-  `editorial`, `dev-tool`, `narrative`, `brutalist`, `full-brutalist`.
-- Cada theme con su **visualización propia** del concepto: nada de colores/fuentes literales,
-  siempre tokens semánticos (`--surface`, `--ink`, `--accent`, `--thread-*`). El visualizer
-  se resuelve por DI (`THREAD_VISUALIZER`).
+## 3. Presentación (theme `default`)
+- Sumá el `@case '<DemoKind>'` en el example-layout de `src/app/themes/default/`.
+- El theme `midnight` reusa el example-layout de `default` (ver `theme.registry.ts` /
+  `midnight.theme.ts`), así que no hace falta duplicar nada ahí. Si más adelante un theme
+  nuevo tiene presentación propia, sumá el mismo `@case` en su layout.
+- Visualización **sin colores/fuentes literales**, siempre tokens semánticos (`--surface`,
+  `--ink`, `--accent`, `--thread-*`): así el switch de theme (incluido `midnight`) se ve
+  correcto sin tocar el layout. El visualizer se resuelve por DI (`THREAD_VISUALIZER`).
 - Criterio clave: **la visualización enseña el concepto SIN leer el código**.
 
 ## 4. Loop de design-review (NO opcional)
-Construir → `[design-review ⇄ corregir]*` → terminado. Por cada theme renderizado:
-1. Invocá al subagente **`design-reviewer`** (read-only; saca captura real con Playwright y
-   la critica: jerarquía, contraste, estados vacío/disabled/hover, y si enseña el concepto).
-2. Aplicá lo que marque como bloqueante (los nits de gusto no bloquean).
+Construir → `[design-review ⇄ corregir]*` → terminado. Por cada theme registrado
+(`theme.registry.ts`: hoy `default` y `midnight`):
+1. Si tenés el subagente **`design-reviewer`** configurado (vive en la configuración personal
+   de Claude Code del autor, `~/.claude/agents/design-reviewer.md`, no viene en este repo),
+   invocalo: es read-only, saca captura real con Playwright y la critica (jerarquía,
+   contraste, estados vacío/disabled/hover, y si enseña el concepto). Sin ese agente, hacé el
+   mismo chequeo a mano: serví la app (`npm start`), capturá la pantalla del ejemplo en cada
+   theme y comparala contra la captura previa del mismo ejemplo.
+2. Aplicá lo que marque (o lo que veas) como bloqueante (los nits de gusto no bloquean).
 3. Repetí hasta veredicto **`LISTO`**. Tope ~3–4 vueltas; si no converge, escalá al usuario.
 
 ## 5. Gates de "hecho" (todos verdes antes de cerrar)
