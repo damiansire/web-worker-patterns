@@ -2,25 +2,32 @@
 
 /**
  * Worker de objetos transferibles (ejemplo 07): recibe un ArrayBuffer y lo
- * devuelve, en el mismo modo en que llegó:
+ * DEVUELVE, en el mismo modo en que llegó:
  *   - 'transfer': lo devuelve con transfer list (zero-copy en los dos sentidos).
  *   - 'clone':    lo devuelve por structured clone (se copia en los dos sentidos).
- * Reporta cuántos bytes recibió para probar que el dato llegó completo.
+ * Así el round-trip que mide el main compara lo mismo en ambos modos: ida y
+ * vuelta del buffer completo.
  *
  * Protocolo neutral:
+ *   out: { type: 'ready' }                       (una vez, al arrancar)
  *   in:  { buf: ArrayBuffer, mode: 'transfer' | 'clone' }
- *   out: { type: 'result', mode, bytes }   (con transfer list si mode === 'transfer')
+ *   out: { type: 'result', mode, buffer }        (con transfer list si mode === 'transfer')
  */
+
+// El main espera este aviso antes de cronometrar: si midiera desde la creación del
+// worker, el número incluiría bajar, parsear y arrancar el script, no el envío.
+postMessage({ type: 'ready' });
+
 addEventListener('message', ({ data }: MessageEvent) => {
   const buf = data?.buf as ArrayBuffer | undefined;
   if (!buf) {
     return;
   }
-  const bytes = buf.byteLength;
   if (data.mode === 'transfer') {
     // Devuelve el buffer transfiriéndolo de vuelta (zero-copy).
-    postMessage({ type: 'result', mode: 'transfer', bytes }, [buf]);
+    postMessage({ type: 'result', mode: 'transfer', buffer: buf }, [buf]);
   } else {
-    postMessage({ type: 'result', mode: 'clone', bytes });
+    // Sin transfer list: el buffer se vuelve a copiar entero en la vuelta.
+    postMessage({ type: 'result', mode: 'clone', buffer: buf });
   }
 });

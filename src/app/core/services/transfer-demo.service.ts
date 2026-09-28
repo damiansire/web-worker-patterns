@@ -57,9 +57,20 @@ export class TransferDemoService {
     this.busy.set(true);
     this.error.set(null);
 
-    const t0 = this.clock();
+    let t0 = 0;
     worker.onmessage = (event: MessageEvent) => {
-      const data = event.data as { type?: string };
+      const data = event.data as { type?: string; buffer?: ArrayBuffer };
+      if (data?.type === 'ready') {
+        // El worker ya arrancó: recién ahora se cronometra, así el número mide el
+        // envío del buffer y no la carga del script del worker.
+        t0 = this.clock();
+        if (mode === 'transfer') {
+          worker.postMessage({ buf, mode }, [buf]); // transfer list: zero-copy, deja buf detached
+        } else {
+          worker.postMessage({ buf, mode }); // structured clone: copia
+        }
+        return;
+      }
       if (data?.type === 'result') {
         const ms = Math.round((this.clock() - t0) * 10) / 10;
         const result: TransferResult = { ms, mb, detached: buf.byteLength === 0 };
@@ -83,12 +94,6 @@ export class TransferDemoService {
       worker.terminate();
       this.worker = undefined;
     };
-
-    if (mode === 'transfer') {
-      worker.postMessage({ buf, mode }, [buf]); // transfer list → zero-copy, deja buf detached
-    } else {
-      worker.postMessage({ buf, mode }); // structured clone → copia
-    }
   }
 
   reset(): void {

@@ -145,6 +145,7 @@ export class ExampleLayoutController {
   readonly transferResult = this.transfer.transferResult;
   readonly cloneResult = this.transfer.cloneResult;
   readonly transferBusy = this.transfer.busy;
+  readonly transferError = this.transfer.error;
 
   // shared-worker (08)
   readonly swInstanceId = this.shared.instanceId;
@@ -230,6 +231,7 @@ export class ExampleLayoutController {
       this.lifecycle.reset();
       this.backpressure.reset();
       this.limits.reset();
+      this.transfer.reset();
       this.shared.close();
       this.sharedMem.reset();
       this.degradation.reset();
@@ -249,9 +251,13 @@ export class ExampleLayoutController {
     // OffscreenCanvas (14): al entrar al ejemplo arrancamos limpio. El canvas se recrea y
     // transferControlToOffscreen() es de una sola vez, así que el estado no sobrevive al
     // re-montaje (inherente a un demo atado a un elemento del DOM, no a datos).
-    effect(() => {
+    // El cleanup importa cuando se cambia de ejemplo SIN destruir el componente (misma
+    // ruta, otro :id): sin él, el rAF del main y el worker seguían dibujando sobre
+    // canvas ya desmontados.
+    effect((onCleanup) => {
       if (this.example()?.demo === 'offscreen-canvas') {
         this.oc.reset();
+        onCleanup(() => this.oc.reset());
       }
     });
     // compositor-jank (16): arranca el medidor al entrar y lo frena al salir.

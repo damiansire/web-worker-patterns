@@ -421,6 +421,10 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
 
             @case ('transferable') {
               <p class="e-bar-label">Buffer de prueba: {{ transferMb }} MB</p>
+              @if (transferError(); as err) {
+                <p class="e-foot e-danger" role="alert">⚠ {{ err }}</p>
+              }
+
               <div class="e-cmp">
                 <section class="e-col">
                   <h2>Transferir (zero-copy)</h2>
@@ -434,8 +438,8 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
                   </default-button>
                   @if (transferResult(); as r) {
                     <p class="e-foot">
-                      <span class="e-ok-mark">✓</span> round-trip {{ r.ms }} ms — instantáneo aunque
-                      sea grande
+                      <span class="e-ok-mark">✓</span> round-trip {{ r.ms }} ms · ida y vuelta sin
+                      copiar un byte
                     </p>
                     <p class="e-foot e-danger">
                       El buffer del main quedó detached (0 B): perdió la propiedad.
@@ -455,7 +459,9 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
                     >Clonar buffer</default-button
                   >
                   @if (cloneResult(); as r) {
-                    <p class="e-foot">round-trip {{ r.ms }} ms — más lento: copió {{ r.mb }} MB</p>
+                    <p class="e-foot">
+                      round-trip {{ r.ms }} ms · copió {{ r.mb }} MB a la ida y otra vez a la vuelta
+                    </p>
                     <p class="e-foot">El main conserva su copia intacta ({{ r.mb }} MB).</p>
                   } @else {
                     <p class="e-hint">
@@ -1695,6 +1701,7 @@ export class DefaultExampleLayoutComponent {
   protected readonly transferResult = this.ctl.transferResult;
   protected readonly cloneResult = this.ctl.cloneResult;
   protected readonly transferBusy = this.ctl.transferBusy;
+  protected readonly transferError = this.ctl.transferError;
 
   // shared-worker (08)
   protected readonly swInstanceId = this.ctl.swInstanceId;

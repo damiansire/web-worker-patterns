@@ -20,8 +20,12 @@ class FakeWorker {
   terminate(): void {
     this.terminated = true;
   }
+  ready(): void {
+    this.onmessage?.({ data: { type: 'ready' } } as MessageEvent);
+  }
   result(bytes: number, mode: string): void {
-    this.onmessage?.({ data: { type: 'result', mode, bytes } } as MessageEvent);
+    const buffer = new ArrayBuffer(bytes);
+    this.onmessage?.({ data: { type: 'result', mode, buffer } } as MessageEvent);
   }
   fail(message: string): void {
     this.onerror?.({ message });
@@ -56,8 +60,13 @@ describe('TransferDemoService', () => {
   });
 
   it('runTransfer manda el buffer con transfer list y mide el round-trip', () => {
-    t = 100;
+    t = 40;
     svc.runTransfer(example, 32);
+    // Hasta que el worker avisa que arrancó no se manda nada ni se cronometra.
+    expect(workers[0].posted).toHaveLength(0);
+
+    t = 100; // el arranque del worker tardó 60ms: NO entran en la medición
+    workers[0].ready();
     const posted = workers[0].posted[0];
     expect(posted.message.mode).toBe('transfer');
     expect(posted.transfer).toHaveLength(1); // se pasó la transfer list [buf]
@@ -75,8 +84,9 @@ describe('TransferDemoService', () => {
   });
 
   it('runClone manda el buffer SIN transfer list (structured clone)', () => {
-    t = 100;
     svc.runClone(example, 32);
+    t = 100;
+    workers[0].ready();
     const posted = workers[0].posted[0];
     expect(posted.message.mode).toBe('clone');
     expect(posted.transfer).toBeUndefined(); // sin transfer list → se clona
@@ -105,6 +115,7 @@ describe('TransferDemoService', () => {
 
   it('reset limpia ambos resultados', () => {
     svc.runClone(example, 8);
+    workers[0].ready();
     workers[0].result(8 * 1024 * 1024, 'clone');
     svc.reset();
     expect(svc.transferResult()).toBeNull();
