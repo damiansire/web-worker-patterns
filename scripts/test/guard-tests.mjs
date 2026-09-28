@@ -73,8 +73,12 @@ process.stdout.write(raw); // mostramos la salida real del runner
 
 // Quitamos códigos ANSI para parsear el resumen ("Tests  81 passed (81)").
 const clean = raw.replace(/\[[0-9;]*m/g, '');
-const match = clean.match(/Tests\s+(\d+)\s+passed/);
-const ran = match ? Number(match[1]) : 0;
+// Con tests fallados el resumen es "Tests  1 failed | 167 passed (168)": si solo se
+// buscara "N passed" pegado a "Tests", el gate leía 0 y culpaba al runner en vez de
+// decir que hay tests rojos.
+const passed = Number(clean.match(/Tests\s+(?:\d+\s+failed\s+\|\s+)?(\d+)\s+passed/)?.[1] ?? 0);
+const failed = Number(clean.match(/Tests\s+(\d+)\s+failed/)?.[1] ?? 0);
+const ran = passed + failed;
 
 const looksEmpty = /no tests|failed to find the runner/i.test(clean);
 
@@ -87,8 +91,9 @@ if (looksEmpty || ran < MIN_TESTS) {
   process.exit(1);
 }
 
-if (res.status !== 0) {
-  process.exit(res.status); // hubo tests fallados: respetamos el código del runner
+if (res.status !== 0 || failed > 0) {
+  console.error(`\n✗ test gate: ${failed} de ${ran} tests fallaron.`);
+  process.exit(res.status || 1); // hubo tests fallados: respetamos el código del runner
 }
 
 console.log(`\n✓ test gate: ${ran} tests corridos y verdes (umbral >= ${MIN_TESTS}).`);
