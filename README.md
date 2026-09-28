@@ -1,9 +1,9 @@
 # Mastering Web Workers
 
-| Field            | Value                                                         |
-| ---------------- | ------------------------------------------------------------- |
-| **Status**       | Stable — with one matiz: see the note on **example 12** below |
-| **Last updated** | Friday, 17 July 2026                                          |
+| Field            | Value                                                          |
+| ---------------- | -------------------------------------------------------------- |
+| **Status**       | Stable, with one caveat (see the note on **example 12** below) |
+| **Last updated** | Tuesday, 29 September 2026                                     |
 
 > **Note on example 12 (SharedArrayBuffer).** It needs cross-origin isolation
 > (`COOP`/`COEP`), and GitHub Pages can't send custom response headers. The app
@@ -43,13 +43,13 @@ Open `http://localhost:4200` in your browser.
 
 ## Included Examples
 
-The 16 examples are organized into 5 categories by concept. The grouping below mirrors `src/app/core/domain/examples/examples.registry.ts` — the single source of truth.
+The 16 examples are organized into 5 categories by concept. The grouping below mirrors `src/app/core/domain/examples/examples.registry.ts`, the single source of truth.
 
 ### Understanding
 
 | #   | Example                          | Description                                                                                               |
 | --- | -------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| 01  | **Counter with setInterval**     | How `setInterval` and the event loop work — the baseline to grasp before workers.                         |
+| 01  | **Counter with setInterval**     | How `setInterval` and the event loop work: the baseline to grasp before workers.                         |
 | 02  | **The main thread & event loop** | One thread runs JS, layout, paint and input; a 50 ms task freezes everything.                             |
 | 16  | **Compositor vs main**           | The compositor thread keeps `transform`/`opacity` animations smooth even while the main thread is frozen. |
 
@@ -57,17 +57,17 @@ The 16 examples are organized into 5 categories by concept. The grouping below m
 
 | #   | Example                 | Description                                                               |
 | --- | ----------------------- | ------------------------------------------------------------------------- |
-| 03  | **Basic communication** | The "Hello World" of workers — `postMessage` in both directions.          |
+| 03  | **Basic communication** | The "Hello World" of workers: `postMessage` in both directions.          |
 | 08  | **SharedWorker**        | One worker instance shared across tabs/panels, all seeing the same state. |
 
 ### Optimization
 
 | #   | Example                  | Description                                                                             |
 | --- | ------------------------ | --------------------------------------------------------------------------------------- |
-| 04  | **Offload heavy work**   | Count primes on a worker so the UI stays responsive — feel the difference side by side. |
+| 04  | **Offload heavy work**   | Count primes on a worker so the UI stays responsive: feel the difference side by side. |
 | 07  | **Transferable objects** | Pass an `ArrayBuffer` zero-copy; the sender's buffer is left detached.                  |
 | 10  | **Worker pool**          | A fixed pool of N workers drains a task queue (4 workers, 24 tasks).                    |
-| 14  | **OffscreenCanvas**      | A worker owns the canvas and animates it — smooth even when the main thread blocks.     |
+| 14  | **OffscreenCanvas**      | A worker owns the canvas and animates it: smooth even when the main thread blocks.     |
 | 15  | **The cost of cloning**  | Measure the _real_ round-trip of structured clone as data size and complexity grow.     |
 
 ### Management
@@ -75,7 +75,7 @@ The 16 examples are organized into 5 categories by concept. The grouping below m
 | #   | Example                     | Description                                                                                |
 | --- | --------------------------- | ------------------------------------------------------------------------------------------ |
 | 05  | **Error handling**          | A worker error doesn't crash the page; the main thread catches it.                         |
-| 06  | **Lifecycle & termination** | Create, run and `terminate()` — the in-flight step is lost and the worker can't be reused. |
+| 06  | **Lifecycle & termination** | Create, run and `terminate()`: the in-flight step is lost and the worker can't be reused. |
 | 09  | **Limits of parallelism**   | `navigator.hardwareConcurrency` caps real parallelism; beyond it, workers share cores.     |
 
 ### Advanced
@@ -96,7 +96,7 @@ The golden rule: **the domain is written once; the presentation is a swappable t
 
 ```
 src/app/
-├── core/                       # Neutral domain — knows nothing about themes
+├── core/                       # Neutral domain: knows nothing about themes
 │   ├── domain/
 │   │   ├── workers/            # Real Web Workers + pure *.logic.ts (unit-tested)
 │   │   └── examples/           # examples.registry.ts (source of truth) + code snippets
@@ -107,7 +107,7 @@ src/app/
 ├── theming/                    # Theme registry, service, guard, token contract
 ├── ui-contracts/               # Interfaces every theme primitive must satisfy
 ├── ui-primitives/              # Theme-agnostic primitives (charts, language switcher)
-├── themes/                     # Presentation — one folder per theme
+├── themes/                     # Presentation: one folder per theme
 │   ├── default/                # Warm light theme (full token-driven presentation)
 │   │   ├── shell/  home/  example-layout/  primitives/  styles/
 │   └── midnight/               # Dark counterpart: reuses default's presentation, own palette
@@ -131,21 +131,21 @@ Routes, navigation and the home page update automatically from the registry.
 
 ## Tech Stack
 
-- **Angular 22** — Standalone components, Signals, zoneless change detection (opt-in via `provideZonelessChangeDetection()`), esbuild-based build
+- **Angular 22**: Standalone components, Signals, zoneless change detection (opt-in via `provideZonelessChangeDetection()`), esbuild-based build
 - **TypeScript 6.0.3**
-- **SCSS** — Semantic design tokens (`--surface`, `--ink`, `--accent`, `--thread-*`) per theme
-- **@jsverse/transloco** — Runtime i18n (ES; engine ready for more languages)
-- **highlight.js** — Syntax highlighting for code blocks
-- **Vitest** — Unit tests (<!-- METRICS:TESTS -->158<!-- /METRICS:TESTS --> tests across the pure domain logic, the services and the themes)
-- **dependency-cruiser** — Enforces the `core/ ⇏ themes/` boundary
-- **Web Workers API** — Dedicated Workers, SharedWorker, Transferable Objects, SharedArrayBuffer + Atomics, OffscreenCanvas
+- **SCSS**: Semantic design tokens (`--surface`, `--ink`, `--accent`, `--thread-*`) per theme
+- **@jsverse/transloco**: Runtime i18n (ES; engine ready for more languages)
+- **highlight.js**: Syntax highlighting for code blocks
+- **Vitest**: Unit tests (<!-- METRICS:TESTS -->168<!-- /METRICS:TESTS --> tests across the pure domain logic, the services and the themes)
+- **dependency-cruiser**: Enforces the `core/ ⇏ themes/` boundary
+- **Web Workers API**: Dedicated Workers, SharedWorker, Transferable Objects, SharedArrayBuffer + Atomics, OffscreenCanvas
 
 This project uses Angular's built-in worker support (`@angular/build` / esbuild). Other setups use [worker-plugin](https://github.com/GoogleChromeLabs/worker-plugin) (webpack), [rollup-plugin-off-main-thread](https://github.com/surma/rollup-plugin-off-main-thread), or Parcel's native worker support.
 
 ## Performance benchmark
 
 Clone cost is the thesis behind example 15: sending a payload across threads
-doesn't cost "crossing the thread" (that's sub-millisecond) — it costs
+doesn't cost "crossing the thread" (that's sub-millisecond): it costs
 serializing and rebuilding the object graph, and that grows with size. Measure it
 yourself with the platform's own `structuredClone` (the same algorithm
 `postMessage` uses underneath):
@@ -154,10 +154,10 @@ yourself with the platform's own `structuredClone` (the same algorithm
 npm run bench
 ```
 
-Sample run (illustrative — numbers depend on your machine and Node version):
+Sample run (illustrative: numbers depend on your machine and Node version):
 
 ```
-structured clone cost — median of 7 runs (Node v26.2.0)
+structured clone cost: median of 7 runs (Node v26.2.0)
 
   records |     JSON bytes |  clone ms
   --------+----------------+----------
@@ -193,35 +193,37 @@ npm run dev            # Checks Node/npm, installs deps if needed and starts the
 npm start              # Dev server at localhost:4200 (requires a prior npm install)
 npm run build          # Production build
 npm test               # Gate: ESLint + ng build + unit tests (Vitest)
+npm run test:e2e       # Real-browser gate: the production build served under a sub-path, as on Pages
 npm run lint           # ESLint: no-console, mandatory OnPush, keyboard a11y
 npm run format         # Format the code with Prettier
 npm run format:check   # Check formatting without writing (CI gate)
 npm run lint:boundaries# Enforce the golden rule (core/ ⇏ themes/)
+npm run lint:style     # House style: no em dashes anywhere in the repo
 npm run bench          # Reproducible structured-clone cost benchmark (example 15)
 ```
 
-Quality gates (lint, build, format, tests, boundaries) run on every push/PR via [CI](.github/workflows/ci.yml) and as a local git pre-commit hook — independent of your editor. ESLint enforces the invariants the repo preaches: `no-console` in the lib, `ChangeDetectionStrategy.OnPush` on every component (the app is zoneless), and keyboard a11y in templates. See [`AGENTS.md`](AGENTS.md) and [`docs/AI-PROCESS.md`](docs/AI-PROCESS.md).
+Quality gates (lint, build, format, tests, boundaries, house style and the real-browser e2e) run on every push/PR via [CI](.github/workflows/ci.yml) and as a local git pre-commit hook, independent of your editor. ESLint enforces the invariants the repo preaches: `no-console` in the lib, `ChangeDetectionStrategy.OnPush` on every component (the app is zoneless), and keyboard a11y in templates. See [`AGENTS.md`](AGENTS.md) and [`docs/AI-PROCESS.md`](docs/AI-PROCESS.md).
 
 ## Language
 
 The application UI is in **Spanish**, served via [Transloco](https://jsverse.github.io/transloco/). Content lives in:
 
-- `public/i18n/es.json` — UI text **and** the educational content for every example
+- `public/i18n/es.json`: UI text **and** the educational content for every example
 
 The i18n engine is kept generic: adding a language is adding its JSON in `public/i18n/`, its entry in `LanguageService`, and its code to `availableLangs` in `app.config.ts`. The neutral `LanguageSwitcherComponent` is ready to re-mount once there is more than one.
 
 ## Documentation
 
-- [Docker Guide](DOCKER.md) — Run the project with Docker
+- [Docker Guide](DOCKER.md): Run the project with Docker
 - [Docker Guide (ES)](docs/DOCKER.es.md) | [Docker Guide (PT)](docs/DOCKER.pt.md)
-- [Multi-theme architecture](ARQUITECTURA-multi-theme.md) — The design source of truth
-- [AI process](docs/AI-PROCESS.md) — Gates, design-review loop, tooling
+- [Multi-theme architecture](ARQUITECTURA-multi-theme.md): The design source of truth
+- [AI process](docs/AI-PROCESS.md): Gates, design-review loop, tooling
 
 ### Further reading
 
-- [Use web workers to run JavaScript off the browser's main thread](https://web.dev/articles/off-main-thread) (web.dev) — Why off-main-thread architecture helps Core Web Vitals (INP, LCP) and reduces main-thread contention.
-- [Comlink](https://github.com/GoogleChromeLabs/comlink) — Use workers without writing `postMessage` by hand; expose an API that returns promises. This repo uses the native API to teach the fundamentals.
-- [PROXX](https://github.com/GoogleChromeLabs/proxx) — Case study: Minesweeper clone with game logic in a worker and rendering on the main thread; see the web.dev article for the tradeoffs (reducing risk and improving UX rather than raw speed).
+- [Use web workers to run JavaScript off the browser's main thread](https://web.dev/articles/off-main-thread) (web.dev): Why off-main-thread architecture helps Core Web Vitals (INP, LCP) and reduces main-thread contention.
+- [Comlink](https://github.com/GoogleChromeLabs/comlink): Use workers without writing `postMessage` by hand; expose an API that returns promises. This repo uses the native API to teach the fundamentals.
+- [PROXX](https://github.com/GoogleChromeLabs/proxx): Case study: Minesweeper clone with game logic in a worker and rendering on the main thread; see the web.dev article for the tradeoffs (reducing risk and improving UX rather than raw speed).
 
 ## License
 
