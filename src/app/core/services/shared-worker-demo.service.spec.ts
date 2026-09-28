@@ -61,6 +61,15 @@ describe('SharedWorkerDemoService (backend simulado)', () => {
     expect(svc.panels()).toHaveLength(1);
   });
 
+  it('al irse la pestaña (pagehide) cierra sus conexiones: el worker no acumula puertos muertos', () => {
+    expect(svc.clients()).toBe(2);
+
+    dispatchEvent(new Event('pagehide'));
+
+    expect(svc.panels()).toHaveLength(0);
+    expect(svc.clients()).toBe(0);
+  });
+
   it('reset pone el contador compartido en cero', () => {
     svc.inc('#1');
     svc.inc('#1');

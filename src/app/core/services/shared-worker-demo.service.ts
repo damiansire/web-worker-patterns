@@ -53,6 +53,8 @@ export class SharedWorkerDemoService {
   private factory?: () => SharedWorker;
   private logId = 0;
   private nextPort = 0;
+  private example?: WorkerExample;
+  private watchingPage = false;
 
   /** Backend simulado in-memory (fallback). Imita un único worker compartido. */
   private sim = this.makeSim();
@@ -63,6 +65,8 @@ export class SharedWorkerDemoService {
       return;
     }
     this.close();
+    this.example = example;
+    this.watchPageLifecycle();
     this.factory = example.sharedWorkerFactory;
     this.supported.set(typeof SharedWorker !== 'undefined' && !!this.factory);
     this.openId = example.id;
@@ -180,6 +184,30 @@ export class SharedWorkerDemoService {
     };
   }
 
+  /**
+   * El SharedWorker sobrevive a la pestaña, y el destroy de Angular NO corre cuando
+   * la pestaña se cierra o se recarga. Sin avisarle, el worker se quedaba con los
+   * puertos muertos en su lista: la cuenta de clientes solo subía. `pagehide` es el
+   * último evento confiable antes de irse; si la página vuelve desde el bfcache
+   * (`pageshow` con `persisted`), se reconecta.
+   */
+  private watchPageLifecycle(): void {
+    if (this.watchingPage || typeof addEventListener === 'undefined') {
+      return;
+    }
+    this.watchingPage = true;
+    addEventListener('pagehide', () => {
+      const example = this.example;
+      this.close();
+      this.example = example;
+    });
+    addEventListener('pageshow', (event) => {
+      if ((event as PageTransitionEvent).persisted && this.example) {
+        this.open(this.example);
+      }
+    });
+  }
+
   /** Cierra TODAS las conexiones y resetea el estado (teardown completo de la demo). */
   close(): void {
     for (const c of this.conns) {
@@ -195,5 +223,6 @@ export class SharedWorkerDemoService {
     this.logId = 0;
     this.sim.reset();
     this.openId = undefined;
+    this.example = undefined;
   }
 }
