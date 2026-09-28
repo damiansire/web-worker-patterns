@@ -80,3 +80,6 @@ scripts/*.png
 # no parte del repo publico.
 _audit/
 _audits/
+
+# Capturas de verificación visual: las regenera `npm run screenshots`, no se versionan.
+docs/screenshots/
