@@ -77,7 +77,13 @@ export class CloneCostDemoService {
 
     const worker = example.workerFactory() as unknown as WorkerLike;
     this.worker = worker;
-    worker.onmessage = () => this.onReply();
+    worker.onmessage = (event: MessageEvent) => {
+      // Leer `data` es parte de la medición: el navegador deserializa el mensaje
+      // recién cuando se accede al getter. Sin tocarlo, la vuelta no pagaba el clon
+      // del lado del main y la curva quedaba por debajo del costo real.
+      void event.data;
+      this.onReply();
+    };
     // Si el worker falla en medio del barrido, sin esto running quedaba en true
     // para siempre (finish nunca se llamaba) y el guard bloqueaba toda re-corrida.
     worker.onerror = (event) => {
