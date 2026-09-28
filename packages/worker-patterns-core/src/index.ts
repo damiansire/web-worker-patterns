@@ -17,6 +17,7 @@ export {
   expose,
   releaseRemote,
   type RpcEndpoint,
+  type RpcEventType,
   type Remote,
   type MethodMap,
 } from './rpc.js';
