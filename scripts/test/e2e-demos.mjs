@@ -53,24 +53,28 @@ function assert(condition, message) {
 await check('04 · el estado CONGELADO se pinta antes de que el main se bloquee', async (page) => {
   await openExample(page, '04-offloading-computation');
   await page.evaluate(() => {
-    const probe = { frozenSeenAt: null, frames: [], longTasks: [] };
+    const probe = { frozenSeenAt: null, renderedAt: null, longTasks: [] };
     window.__probe = probe;
     new MutationObserver(() => {
-      const status = document.querySelector('.e-pat-st')?.textContent ?? '';
-      if (probe.frozenSeenAt === null && status.includes('CONGELADO')) {
-        probe.frozenSeenAt = performance.now();
+      const status = document.querySelector('.e-pat-st');
+      if (probe.frozenSeenAt !== null || !status?.textContent.includes('CONGELADO')) {
+        return;
       }
+      probe.frozenSeenAt = performance.now();
+      // Un ResizeObserver recién enganchado avisa en el próximo "update the rendering",
+      // después de los rAF y del layout y justo antes del pintado. Sirve de testigo de
+      // que el navegador llegó a renderizar con el estado nuevo. Un rAF no sirve: si el
+      // cambio de estado ocurre dentro de la fase de rAF, el rAF testigo cae en el
+      // frame siguiente aunque este frame sí se pinte.
+      new ResizeObserver(() => {
+        probe.renderedAt ??= performance.now();
+      }).observe(status);
     }).observe(document.body, { subtree: true, childList: true, characterData: true });
     new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
         probe.longTasks.push({ start: entry.startTime, duration: entry.duration });
       }
     }).observe({ entryTypes: ['longtask'] });
-    const loop = () => {
-      probe.frames.push(performance.now());
-      requestAnimationFrame(loop);
-    };
-    requestAnimationFrame(loop);
   });
 
   await page.fill('#e-n', '3000000');
@@ -87,10 +91,11 @@ await check('04 · el estado CONGELADO se pinta antes de que el main se bloquee'
     `CONGELADO entró al DOM en ${probe.frozenSeenAt.toFixed(0)}ms, DESPUÉS de que arrancó ` +
       `el freeze (${freeze.start.toFixed(0)}ms): nunca se vio`,
   );
-  // Un frame entre el cambio de estado y el freeze = el navegador lo pintó.
-  const painted = probe.frames.some((t) => t >= probe.frozenSeenAt && t <= freeze.start);
-  assert(painted, 'no hubo ningún frame entre el cambio de estado y el freeze');
-  return `freeze de ${freeze.duration.toFixed(0)}ms, estado visible ${(freeze.start - probe.frozenSeenAt).toFixed(0)}ms antes`;
+  assert(
+    probe.renderedAt !== null && probe.renderedAt <= freeze.start,
+    'el navegador no llegó a renderizar entre el cambio de estado y el freeze',
+  );
+  return `freeze de ${freeze.duration.toFixed(0)}ms, renderizado ${(freeze.start - probe.renderedAt).toFixed(0)}ms antes`;
 });
 
 await check('01 · salir a mitad de corrida no deja el botón trabado', async (page) => {
