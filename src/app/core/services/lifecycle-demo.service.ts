@@ -44,6 +44,12 @@ export class LifecycleDemoService {
         this.worker = undefined; // el worker se cerró solo (self.close)
       }
     };
+    // Si el worker no carga o falla, la tarea no va a terminar nunca: la damos por
+    // cortada, igual que un terminate(), para que el estado no quede en 'running'.
+    worker.onerror = (event) => {
+      (event as { preventDefault?: () => void })?.preventDefault?.();
+      this.terminate();
+    };
     worker.postMessage({ command: 'start', steps });
   }
 
