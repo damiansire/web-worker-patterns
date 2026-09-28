@@ -21,6 +21,11 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-latest
+    # Publicar es una decision del dueño del repo, y se expresa cargando el secret
+    # NPM_TOKEN. Sin el secret este job NO intenta publicar: antes lo intentaba en cada
+    # push, fallaba con ENEEDAUTH y dejaba el workflow rojo de forma permanente.
+    env:
+      HAS_NPM_TOKEN: ${{ secrets.NPM_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -38,6 +43,7 @@ jobs:
       - run: npm test
       - run: npm run build
       - name: Version PR o publicacion (Changesets)
+        if: env.HAS_NPM_TOKEN == 'true'
         uses: changesets/action@v1
         with:
           version: npm run version-packages
@@ -45,3 +51,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # Sin token solo se mantiene el PR "Version Packages" (si hay changesets). Nada
+      # sale a npm.
+      - name: Version PR, sin publicar (falta NPM_TOKEN)
+        if: env.HAS_NPM_TOKEN != 'true'
+        uses: changesets/action@v1
+        with:
+          version: npm run version-packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Aviso de publicacion omitida
+        if: env.HAS_NPM_TOKEN != 'true'
+        run: echo "::notice::No hay secret NPM_TOKEN, no se publico nada a npm. Cargalo cuando quieras publicar @worker-patterns/core."
