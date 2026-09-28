@@ -23,16 +23,16 @@ import {
   template: `<canvas
     #cv
     class="p"
-    width="240"
-    height="48"
+    width="336"
+    height="56"
     role="img"
     [attr.aria-label]="label()"
   ></canvas>`,
   styles: `
     .p {
       display: block;
-      width: 120px;
-      height: 24px;
+      width: 168px;
+      height: 28px;
       border-radius: 5px;
       background: #0b0e0b;
     }

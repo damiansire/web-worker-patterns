@@ -1,5 +1,4 @@
 import {
-  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -16,19 +15,21 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs/operators';
 import { fill, MissionContent, PathContent } from '../../../core/domain/learning/content.model';
-import { findMission, MissionPath } from '../../../core/domain/learning/missions';
-import { morph, Segment } from '../../../core/domain/learning/morph';
-import { findTerm, TermId, VOCABULARY } from '../../../core/domain/learning/vocabulary';
+import { findMaster, optionsOf, teacherOf } from '../../../core/domain/learning/masters';
+import { findMission, MissionPath, REGIONS } from '../../../core/domain/learning/missions';
+import { TermId, VOCABULARY } from '../../../core/domain/learning/vocabulary';
 import { ExampleLayoutController } from '../../../core/presentation/example-layout.controller';
 import { LearningContentService } from '../../../core/services/learning-content.service';
 import { LearningProgressService } from '../../../core/services/learning-progress.service';
 import { BLOCKS_MAIN, LIVE, RUNNERS, Values } from '../missions/mission-runner';
 import { RpgPulseComponent } from '../primitives/rpg-pulse.component';
+import { RpgTextComponent } from '../primitives/rpg-text.component';
 import { MAP_HEIGHT, MAP_WIDTH, paint, Person, TILE } from '../world/painter';
 import {
   GUARD_ID,
   GUARD_LOOK,
   gridOf,
+  HELPER_LOOK,
   nextRegion,
   PLAYER_LOOK,
   previousRegion,
@@ -38,8 +39,8 @@ import {
 } from '../world/regions';
 import {
   Actor,
-  actorAt,
   approach,
+  DELTA,
   Dir,
   dirBetween,
   facingActor,
@@ -56,24 +57,34 @@ interface Choice {
   run: () => void;
 }
 
-interface Dialog {
-  who: string;
-  segments: Segment[];
-  choices: Choice[];
-  /** Hay más líneas: se avanza con "Seguir". */
-  more: boolean;
-}
+/** `word`, `done` y `stamp` son los momentos de valor: se muestran con ceremonia. */
+type Kind = 'talk' | 'word' | 'done' | 'stamp' | 'notice';
 
 interface Line {
   who: string;
   text: string;
+  kind?: Kind;
   values?: Values;
   /** Idioma con el que se lee esta línea (el de antes de aprender lo que enseña). */
   learned?: ReadonlySet<TermId>;
 }
 
+interface Dialog extends Line {
+  kind: Kind;
+  choices: Choice[];
+  /** Hay más líneas: se avanza con "Seguir". */
+  more: boolean;
+}
+
 const STEP_MS = 130;
+const BUMP_MS = 140;
+const POP_MS = 420;
+const THAW_MS = 1000;
+const NOTICE_MS = 1400;
+const BANNER_MS = 1300;
 const RUN_TIMEOUT_MS = 90_000;
+/** Hasta qué distancia (en casillas) un toque en el mapa cuenta como "ese vecino". */
+const TAP_REACH = 1.5;
 const KEYS: Record<string, Dir> = {
   ArrowUp: 'up',
   ArrowDown: 'down',
@@ -84,6 +95,12 @@ const KEYS: Record<string, Dir> = {
   a: 'left',
   d: 'right',
 };
+/** Al aparecer junto a un vecino se prefiere no quedar tapándole el cartel. */
+const SPOT_ORDER: Dir[] = ['down', 'left', 'right', 'up'];
+
+const seconds = (ms: number) =>
+  (ms / 1000).toLocaleString('es-UY', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) +
+  ' s';
 
 /**
  * El juego: un mundo que se camina, vecinos que dan misiones y un texto que va
@@ -97,11 +114,13 @@ const KEYS: Record<string, Dir> = {
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'rpg-game',
-  imports: [RpgPulseComponent],
+  imports: [RpgPulseComponent, RpgTextComponent],
   providers: [ExampleLayoutController],
   templateUrl: './rpg-game.component.html',
   styleUrl: './rpg-game.component.scss',
-  host: { '(keydown)': 'onKeyDown($event)', '(keyup)': 'onKeyUp()' },
+  // En `document`: el juego se maneja con el teclado esté donde esté el foco. Un
+  // botón que desaparece al apretarlo no puede dejar al jugador sin controles.
+  host: { '(document:keydown)': 'onKeyDown($event)', '(document:keyup)': 'onKeyUp()' },
 })
 export class RpgGameComponent {
   private readonly ctl = inject(ExampleLayoutController);
@@ -121,6 +140,9 @@ export class RpgGameComponent {
   protected readonly ui = computed(() => this.content()?.ui ?? {});
   protected readonly mapWidth = MAP_WIDTH;
   protected readonly mapHeight = MAP_HEIGHT;
+  /** En pantallas táctiles la bienvenida no habla de teclas. */
+  protected readonly touch =
+    typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches;
 
   // ── mundo ──
   protected readonly region = signal<Region>(WORLD[0]);
@@ -128,17 +150,34 @@ export class RpgGameComponent {
   private readonly facing = signal<Dir>('up');
   protected readonly regionName = computed(() => this.content()?.regions[this.region().id] ?? '');
   private readonly regionDone = computed(() => this.progress.isRegionDone(this.region().id));
-  private readonly grid = computed(() => gridOf(this.region(), this.regionDone()));
+  private readonly stamped = computed(() => this.progress.isStamped(this.region().id));
+  private readonly grid = computed(() => gridOf(this.region(), this.stamped()));
+  /** Región cuyo nombre está cruzando la pantalla (vacío si no hay cartel). */
+  protected readonly banner = signal('');
+  protected readonly bannerName = computed(() => this.content()?.regions[this.banner()] ?? '');
+  /** Un sello por región, en el orden del recorrido. */
+  protected readonly stamps = computed(() => {
+    const earned = this.progress.stamps();
+    return REGIONS.map((region) => earned.includes(region));
+  });
+  protected readonly stampCount = computed(() => this.progress.stamps().length);
 
   // ── estado del main ──
   protected readonly mode = signal<'free' | 'frozen' | 'busy'>('free');
-  protected readonly modeLabel = computed(() => this.ui()[this.mode()] ?? '');
+  /** Cuánto duró el último freeze: se sostiene un segundo después de volver. */
+  private readonly thawed = signal('');
+  protected readonly modeLabel = computed(() =>
+    this.thawed()
+      ? fill(this.ui()['frozenFor'] ?? '', { seg: this.thawed() })
+      : (this.ui()[this.mode()] ?? ''),
+  );
 
   // ── conversación ──
   protected readonly dialog = signal<Dialog | null>(null);
   protected readonly midAction = signal<{ label: string; take: () => void } | null>(null);
   private readonly activeId = signal('');
   private readonly running = signal(false);
+  protected readonly busy = this.running.asReadonly();
   protected readonly live = computed(() => {
     const read = LIVE[this.activeId()];
     return this.running() && read ? read(this.ctl) : '';
@@ -148,6 +187,10 @@ export class RpgGameComponent {
     const demo = this.dialog() ? this.ctl.example()?.demo : undefined;
     return demo === 'compositor-jank' || demo === 'offscreen-canvas' ? demo : null;
   });
+
+  // ── hojas: vecinos y Workerdex, a pedido ──
+  protected readonly sheet = signal<'neighbors' | 'dex' | null>(null);
+  protected readonly confirmingRestart = signal(false);
 
   // ── progreso ──
   protected readonly done = this.progress.doneCount;
@@ -159,10 +202,8 @@ export class RpgGameComponent {
     return VOCABULARY.filter((term) => learned.has(term.id)).map((term) => ({
       ...term,
       plain: vocab[term.id]?.plain ?? '',
-      note: vocab[term.id]?.note ?? '',
     }));
   });
-  protected readonly confirmingRestart = signal(false);
 
   /** Los vecinos de la región, como lista: navegar sin depender del mapa. */
   protected readonly neighbors = computed(() => {
@@ -170,11 +211,11 @@ export class RpgGameComponent {
     return this.grid().actors.map((actor) => ({
       actor,
       name: actor.id === GUARD_ID ? this.ui()['guard'] : (missions[actor.id]?.npc ?? ''),
-      done: actor.id !== GUARD_ID && this.progress.isMissionDone(actor.id),
+      done: actor.id === GUARD_ID ? this.stamped() : this.progress.isMissionDone(actor.id),
     }));
   });
 
-  // ── movimiento (fuera de signals: cambia 60 veces por segundo) ──
+  // ── movimiento y animaciones (fuera de signals: cambian 60 veces por segundo) ──
   private drawAt: Point = WORLD[0].entry;
   private walk: Point[] = [];
   private from: Point = WORLD[0].entry;
@@ -186,9 +227,17 @@ export class RpgGameComponent {
   private steps = 0;
   private lines: Line[] = [];
   private afterLines: (() => void) | null = null;
+  /** Rebote contra una pared: hacia dónde y desde cuándo. */
+  private bump: { dir: Dir; start: number } | null = null;
+  /** Salto del cartel de una misión recién cumplida. */
+  private pop: { id: string; start: number } | null = null;
+  private readonly timers = new Set<ReturnType<typeof setTimeout>>();
 
   constructor() {
-    inject(DestroyRef).onDestroy(() => cancelAnimationFrame(this.raf));
+    inject(DestroyRef).onDestroy(() => {
+      cancelAnimationFrame(this.raf);
+      this.timers.forEach(clearTimeout);
+    });
 
     // Con un ejemplo en la ruta, el jugador aparece al lado de ese vecino.
     effect(() => {
@@ -201,11 +250,19 @@ export class RpgGameComponent {
       this.grid();
       this.done(); // los cartelitos de cada vecino cambian al cumplir su misión
       this.mode();
+      this.thawed();
+      this.running();
+      this.activeId();
       this.position();
       this.facing();
       this.content();
       this.canvas();
       untracked(() => this.draw());
+    });
+
+    // El mapa aparece recién cuando cargó el contenido: ahí toma el foco.
+    effect(() => {
+      if (this.canvas()) untracked(() => this.focusMap());
     });
 
     // Los relojes gemelos (misión 14) giran desde que se abre la conversación. Ceder
@@ -219,14 +276,22 @@ export class RpgGameComponent {
 
     // La caja que gira por JS (misión 16) la mueve el servicio del ejemplo.
     effect(() => this.ctl.setCompositorJsBox(this.jsBox()?.nativeElement));
-
-    afterNextRender(() => this.canvas()?.nativeElement.focus({ preventScroll: true }));
   }
 
   // ── entrada ──
 
   protected onKeyDown(event: KeyboardEvent): void {
-    const onButton = event.target instanceof HTMLButtonElement;
+    const target = event.target;
+    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return;
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    const onButton = target instanceof HTMLButtonElement || target instanceof HTMLAnchorElement;
+
+    if (event.key === 'Escape') {
+      this.closeSheet();
+      return;
+    }
+    if (this.sheet()) return; // con una hoja abierta el mundo espera
+
     const dir = KEYS[event.key];
     if (dir) {
       event.preventDefault();
@@ -234,13 +299,19 @@ export class RpgGameComponent {
       this.tryStep(dir);
       return;
     }
-    if ((event.key === ' ' || event.key === 'Enter') && !onButton) {
+    if (event.key === ' ' || event.key === 'Enter') {
+      if (onButton) return; // el botón enfocado se activa solo
       event.preventDefault();
       this.talk();
       return;
     }
+    if (event.key === 'v' || event.key === 'x') {
+      this.openSheet(event.key === 'v' ? 'neighbors' : 'dex');
+      return;
+    }
     const choice = this.dialog()?.choices[Number(event.key) - 1];
-    if (choice && !onButton) {
+    if (choice) {
+      event.preventDefault();
       choice.run();
     }
   }
@@ -253,20 +324,47 @@ export class RpgGameComponent {
     const cv = this.canvas()?.nativeElement;
     if (!cv || this.isLocked()) return;
     const box = cv.getBoundingClientRect();
-    const x = Math.floor(((event.clientX - box.left) / box.width) * (MAP_WIDTH / TILE));
-    const y = Math.floor(((event.clientY - box.top) / box.height) * (MAP_HEIGHT / TILE));
-    const actor = actorAt(this.grid(), x, y);
-    if (actor) {
-      this.goTalk(actor);
-    } else if (isWalkable(this.grid(), x, y)) {
-      this.talkOnArrival = null;
-      this.startWalk(findPath(this.grid(), this.position(), { x, y }));
+    // En casillas, con decimales: el centro de la casilla (3, 4) es (3.5, 4.5).
+    const fx = ((event.clientX - box.left) / box.width) * (MAP_WIDTH / TILE);
+    const fy = ((event.clientY - box.top) / box.height) * (MAP_HEIGHT / TILE);
+    const tile = { x: Math.floor(fx), y: Math.floor(fy) };
+
+    // Un dedo no acierta una casilla de 22 px: se toma al vecino más cercano.
+    const near = this.grid()
+      .actors.map((actor) => ({
+        actor,
+        distance: Math.hypot(actor.x + 0.5 - fx, actor.y + 0.5 - fy),
+      }))
+      .filter((candidate) => candidate.distance <= TAP_REACH)
+      .sort((a, b) => a.distance - b.distance)[0];
+
+    if (near && near.distance <= 0.75) {
+      this.goTalk(near.actor);
+      return;
     }
+    const path = findPath(this.grid(), this.position(), tile);
+    if (path.length > 0) {
+      this.talkOnArrival = null;
+      this.startWalk(path);
+      return;
+    }
+    if (near) {
+      this.goTalk(near.actor);
+      return;
+    }
+    // La salida tapada por la maestra: se va a hablar con ella.
+    const master = this.grid().actors.find((actor) => actor.id === GUARD_ID);
+    if (tileAt(this.grid(), tile.x, tile.y) === '>' && master) {
+      this.goTalk(master);
+      return;
+    }
+    this.startBump(dirBetween(this.position(), tile));
   }
 
   /** Camina hasta alguien y le habla. */
   protected goTalk(actor: Actor): void {
-    if (this.isLocked()) return;
+    this.closeSheet();
+    if (this.isLocked() || this.running()) return;
     const plan = approach(this.grid(), this.position(), actor);
     if (!plan) return;
     if (plan.path.length === 0) {
@@ -278,8 +376,13 @@ export class RpgGameComponent {
     this.startWalk(plan.path);
   }
 
-  /** Espacio o el botón: avanza la conversación o le habla a quien está adelante. */
+  /** Espacio o el botón: toma la acción en curso, avanza o le habla a quien está adelante. */
   protected talk(): void {
+    const action = this.midAction();
+    if (action) {
+      action.take();
+      return;
+    }
     const dialog = this.dialog();
     if (dialog) {
       if (dialog.more) this.nextLine();
@@ -290,8 +393,49 @@ export class RpgGameComponent {
     if (actor) {
       this.talkTo(actor);
     } else {
-      this.play([{ who: this.ui()['guide'], text: this.ui()['nobody'] }]);
+      this.play([{ who: this.ui()['guide'], text: this.ui()['nobody'], kind: 'notice' }]);
     }
+  }
+
+  /** Un botón que se apretó con el mouse devuelve el foco al mapa. */
+  protected choose(choice: Choice): void {
+    choice.run();
+    this.focusMap();
+  }
+
+  protected advance(): void {
+    this.talk();
+    this.focusMap();
+  }
+
+  protected take(action: { take: () => void }): void {
+    action.take();
+    this.focusMap();
+  }
+
+  protected openSheet(which: 'neighbors' | 'dex'): void {
+    this.confirmingRestart.set(false);
+    this.sheet.update((open) => (open === which ? null : which));
+    if (!this.sheet()) this.focusMap();
+  }
+
+  protected closeSheet(): void {
+    if (!this.sheet()) return;
+    this.sheet.set(null);
+    this.confirmingRestart.set(false);
+    this.focusMap();
+  }
+
+  private focusMap(): void {
+    this.canvas()?.nativeElement.focus({ preventScroll: true });
+  }
+
+  private later(ms: number, run: () => void): void {
+    const timer = setTimeout(() => {
+      this.timers.delete(timer);
+      run();
+    }, ms);
+    this.timers.add(timer);
   }
 
   // ── movimiento ──
@@ -314,18 +458,28 @@ export class RpgGameComponent {
     if (isWalkable(this.grid(), next.x, next.y)) {
       this.talkOnArrival = null;
       this.startWalk([next]);
+    } else {
+      this.startBump(dir);
     }
+  }
+
+  /** Chocar contra algo se nota: el jugador rebota dos píxeles. */
+  private startBump(dir: Dir): void {
+    if (this.moving || this.bump) return;
+    this.facing.set(dir);
+    this.bump = { dir, start: performance.now() };
+    this.animateExtras();
   }
 
   private startWalk(path: Point[]): void {
     if (path.length === 0) return;
     // Caminar cierra una conversación que ya no espera nada.
-    if (this.dialog() && !this.running()) this.dialog.set(null);
+    if (this.dialog() && !this.running()) this.close();
     this.walk = path;
-    if (!this.moving) this.nextStep(performance.now());
+    if (!this.moving) this.nextStep();
   }
 
-  private nextStep(now: number): void {
+  private nextStep(): void {
     const target = this.walk.shift();
     if (!target || !isWalkable(this.grid(), target.x, target.y)) {
       this.walk = [];
@@ -336,14 +490,15 @@ export class RpgGameComponent {
     this.from = this.position();
     this.facing.set(dirBetween(this.from, target));
     this.position.set(target);
-    this.stepStart = now;
+    this.stepStart = performance.now();
     this.moving = true;
     if (this.running()) this.steps += 1;
-    this.raf = requestAnimationFrame((time) => this.animate(time));
+    this.raf = requestAnimationFrame(() => this.animate());
   }
 
-  private animate(now: number): void {
-    const t = Math.min(1, (now - this.stepStart) / STEP_MS);
+  private animate(): void {
+    // Reloj propio y no el del rAF: los dos tienen que medir desde el mismo origen.
+    const t = Math.min(1, (performance.now() - this.stepStart) / STEP_MS);
     const to = this.position();
     this.drawAt = {
       x: this.from.x + (to.x - this.from.x) * t,
@@ -351,17 +506,29 @@ export class RpgGameComponent {
     };
     this.draw();
     if (t < 1) {
-      this.raf = requestAnimationFrame((time) => this.animate(time));
+      this.raf = requestAnimationFrame(() => this.animate());
       return;
     }
     this.moving = false;
     if (this.crossExit()) return;
     if (this.walk.length > 0) {
-      this.nextStep(now);
+      this.nextStep();
     } else if (this.held) {
       this.tryStep(this.held);
     } else {
       this.arrive();
+    }
+  }
+
+  /** Rebotes y saltos de cartel: redibuja solo mientras duran. */
+  private animateExtras(): void {
+    if (this.moving) return; // el loop de caminar ya está dibujando
+    const now = performance.now();
+    if (this.bump && now - this.bump.start > BUMP_MS) this.bump = null;
+    if (this.pop && now - this.pop.start > POP_MS) this.pop = null;
+    this.draw();
+    if (this.bump || this.pop) {
+      this.raf = requestAnimationFrame(() => this.animateExtras());
     }
   }
 
@@ -394,29 +561,42 @@ export class RpgGameComponent {
   private enter(region: Region, at: Point, facing: Dir): void {
     this.walk = [];
     this.talkOnArrival = null;
-    this.dialog.set(null);
+    this.close();
     this.region.set(region);
     this.position.set(at);
     this.drawAt = at;
     this.facing.set(facing);
+    this.announce(region);
+  }
+
+  /** El nombre de la región cruza la pantalla al entrar. */
+  private announce(region: Region): void {
+    this.banner.set(region.id);
+    this.later(BANNER_MS, () => {
+      if (this.banner() === region.id) this.banner.set('');
+    });
   }
 
   private placeNear(exampleId: string): void {
     const region = regionOfExample(exampleId);
     const neighbor = region?.neighbors.find((candidate) => candidate.id === exampleId);
     if (!region || !neighbor) {
-      this.enter(this.firstOpenRegion(), this.firstOpenRegion().entry, 'up');
+      const open = this.firstOpenRegion();
+      this.enter(open, open.entry, 'up');
       return;
     }
-    const grid = gridOf(region, this.progress.isRegionDone(region.id));
-    const plan = approach(grid, region.entry, neighbor);
-    const spot = plan?.path.at(-1) ?? region.entry;
-    this.enter(region, spot, plan?.facing ?? 'up');
+    const grid = gridOf(region, this.progress.isStamped(region.id));
+    const dir = SPOT_ORDER.find((candidate) => {
+      const spot = step(neighbor, candidate);
+      return isWalkable(grid, spot.x, spot.y);
+    });
+    const spot = dir ? step(neighbor, dir) : region.entry;
+    this.enter(region, spot, dir ? dirBetween(spot, neighbor) : 'up');
   }
 
   /** Al volver al juego se aparece en la región donde quedó trabajo por hacer. */
   private firstOpenRegion(): Region {
-    const pending = WORLD.find((region) => !this.progress.isRegionDone(region.id));
+    const pending = WORLD.find((region) => !this.progress.isStamped(region.id));
     return pending && this.progress.isRegionOpen(pending.id) ? pending : WORLD[0];
   }
 
@@ -426,35 +606,82 @@ export class RpgGameComponent {
     if (this.running()) return;
     const content = this.content();
     if (!content) return;
+    this.activeId.set(actor.id);
     if (actor.id === GUARD_ID) {
-      this.talkToGuard();
+      this.talkToMaster();
       return;
     }
     const mission = findMission(actor.id);
     const written = content.missions[actor.id];
     if (!mission || !written) return;
 
-    this.activeId.set(actor.id);
     this.ctl.useExample(actor.id);
     const opening = this.progress.isMissionDone(actor.id) ? written.done : written.hello;
     this.play([{ who: written.npc, text: opening }], () => this.ask(actor.id));
   }
 
-  private talkToGuard(): void {
+  /**
+   * La maestra de la región. Con misiones pendientes dice a quién falta ayudar; con
+   * la región cumplida plantea sus tres situaciones; con el sello dado, deja pasar.
+   */
+  private talkToMaster(): void {
     const content = this.content()!;
-    const ui = content.ui;
+    const { ui, masters } = content;
+    const who = ui['guard'];
     const next = nextRegion(this.region());
-    if (this.regionDone() && next) {
-      const text = fill(ui['guardOpen'], { next: content.regions[next.id] });
-      this.play([{ who: ui['guard'], text }]);
+    if (this.stamped()) {
+      const text = next ? fill(ui['guardOpen'], { next: content.regions[next.id] }) : masters.final;
+      this.play([{ who, text }]);
       return;
     }
-    const pending = this.region()
-      .neighbors.filter((neighbor) => !this.progress.isMissionDone(neighbor.id))
-      .map((neighbor) => content.missions[neighbor.id]?.npc)
-      .slice(0, 2)
-      .join(' y ');
-    this.play([{ who: ui['guard'], text: fill(ui['guardLocked'], { names: pending }) }]);
+    if (!this.regionDone()) {
+      const pending = this.region()
+        .neighbors.filter((neighbor) => !this.progress.isMissionDone(neighbor.id))
+        .map((neighbor) => content.missions[neighbor.id]?.npc)
+        .slice(0, 2)
+        .join(' y ');
+      this.play([{ who, text: fill(ui['guardLocked'], { names: pending }) }]);
+      return;
+    }
+    this.play([{ who, text: masters.ready }], () => this.challenge(0));
+  }
+
+  private challenge(index: number): void {
+    const content = this.content()!;
+    const region = this.region();
+    const challenge = findMaster(region.id)?.challenges[index];
+    if (!challenge) {
+      this.pass();
+      return;
+    }
+    const who = content.ui['guard'];
+    const choices: Choice[] = optionsOf(challenge).map((term) => ({
+      // La opción se lee en el idioma del alumno: API si la aprendió, llano si no.
+      label: `{${content.vocab[term]?.plain ?? term}|${term}}`,
+      done: false,
+      run: () => {
+        if (term === challenge.answer) {
+          this.challenge(index + 1);
+          return;
+        }
+        const teacher = content.missions[teacherOf(challenge.answer) ?? '']?.npc ?? '';
+        this.play([{ who, text: fill(content.masters.wrong, { npc: teacher }) }]);
+      },
+    }));
+    const text = content.masters.challenges[region.id]?.[challenge.id] ?? '';
+    this.show({ who, text }, choices);
+  }
+
+  private pass(): void {
+    const content = this.content()!;
+    const region = this.region();
+    this.progress.stamp(region.id);
+    const text = fill(content.masters.pass, { region: content.regions[region.id] });
+    const lines: Line[] = [{ who: content.ui['stampEarned'], text, kind: 'stamp' }];
+    if (!nextRegion(region)) {
+      lines.push({ who: content.ui['guard'], text: content.masters.final });
+    }
+    this.play(lines);
   }
 
   private ask(exampleId: string): void {
@@ -467,7 +694,7 @@ export class RpgGameComponent {
       run: () => void this.runPath(exampleId, path, written),
     }));
     choices.push({ label: this.ui()['bye'], done: false, run: () => this.close() });
-    this.show({ who: written.npc, text: written.ask }, choices, false);
+    this.show({ who: written.npc, text: written.ask }, choices);
   }
 
   private async runPath(
@@ -482,14 +709,17 @@ export class RpgGameComponent {
     // El idioma de ANTES: lo que este camino enseña se lee en llano y recién
     // después se presenta como palabra nueva.
     const learned = this.progress.learned();
+    const blocks = BLOCKS_MAIN.has(`${exampleId}/${path.id}`);
     this.steps = 0;
+    this.thawed.set('');
     this.running.set(true);
-    this.mode.set(BLOCKS_MAIN.has(`${exampleId}/${path.id}`) ? 'frozen' : 'busy');
-    this.show({ who: written.npc, text: lines.during, learned }, [], false);
+    this.mode.set(blocks ? 'frozen' : 'busy');
+    this.show({ who: written.npc, text: lines.during, learned }, []);
 
     try {
       // Primero se pinta lo que se acaba de decir; después corre el camino.
       await this.nextPaint();
+      const started = performance.now();
       const result = await this.withTimeout(
         runner({
           ctl: this.ctl,
@@ -498,7 +728,7 @@ export class RpgGameComponent {
           act: () => this.offer(lines.act ?? ''),
         }),
       );
-      this.finishRun();
+      this.finishRun(blocks ? performance.now() - started : 0);
       const spoken = result.outcome === 'missed' ? (lines.missed ?? []) : lines.after;
       const extra = result.outcome === 'simulated' && lines.simulated ? [lines.simulated] : [];
       this.play(
@@ -511,15 +741,27 @@ export class RpgGameComponent {
         () => this.afterPath(exampleId, path, result.outcome === 'missed'),
       );
     } catch {
-      this.finishRun();
+      this.finishRun(0);
       this.play([{ who: written.npc, text: this.ui()['failed'] }], () => this.ask(exampleId));
     }
   }
 
-  private finishRun(): void {
+  /**
+   * Termina una corrida. Si congeló el main, el estado no vuelve a "libre" de
+   * inmediato: se sostiene un segundo diciendo cuánto duró, para que se llegue a leer.
+   */
+  private finishRun(frozenMs: number): void {
     this.running.set(false);
     this.midAction.set(null);
-    this.mode.set('free');
+    if (frozenMs <= 0) {
+      this.mode.set('free');
+      return;
+    }
+    this.thawed.set(seconds(frozenMs));
+    this.later(THAW_MS, () => {
+      this.thawed.set('');
+      if (!this.running()) this.mode.set('free');
+    });
   }
 
   private afterPath(exampleId: string, path: MissionPath, missed: boolean): void {
@@ -528,14 +770,25 @@ export class RpgGameComponent {
       return;
     }
     const content = this.content()!;
-    const wasComplete = this.done() === this.total;
+    const wasDone = this.progress.isMissionDone(exampleId);
     const fresh = this.progress.completePath(exampleId, path.id);
-    const news: Line[] = fresh.map((id) => ({
-      who: content.ui['newWord'],
-      text: `${content.vocab[id]?.plain ?? ''} → {${content.vocab[id]?.plain ?? ''}|${id}}`,
-    }));
-    if (!wasComplete && this.done() === this.total) {
-      news.push({ who: content.ui['guide'], text: content.ui['end'] });
+    const news: Line[] = [];
+
+    if (!wasDone && this.progress.isMissionDone(exampleId)) {
+      const who = content.missions[exampleId].npc;
+      news.push({ who, text: content.ui['missionDone'], kind: 'done' });
+      this.pop = { id: exampleId, start: performance.now() };
+      this.animateExtras();
+    }
+    // Cada palabra nueva se presenta en dos tiempos: cómo se llamaba y cómo se
+    // llama, y después para qué sirve.
+    for (const id of fresh) {
+      const word = content.vocab[id];
+      const who = content.ui['newWord'];
+      news.push(
+        { who, text: `${word?.plain ?? ''} → {${word?.plain ?? ''}|${id}}`, kind: 'word' },
+        { who, text: word?.note ?? '' },
+      );
     }
     this.play(news, () => this.ask(exampleId));
   }
@@ -557,13 +810,20 @@ export class RpgGameComponent {
       return;
     }
     this.show(line, [], this.lines.length > 0 || this.afterLines !== null);
+    if (line.kind === 'notice') {
+      // Un aviso no pide nada: se va solo.
+      const shown = this.dialog();
+      this.later(NOTICE_MS, () => {
+        if (this.dialog() === shown) this.close();
+      });
+    }
   }
 
-  private show(line: Line, choices: Choice[], more: boolean): void {
-    const text = fill(line.text, line.values ?? {});
+  private show(line: Line, choices: Choice[], more = false): void {
     this.dialog.set({
-      who: line.who,
-      segments: morph(text, line.learned ?? this.progress.learned()),
+      ...line,
+      text: fill(line.text, line.values ?? {}),
+      kind: line.kind ?? 'talk',
       choices,
       more,
     });
@@ -615,13 +875,8 @@ export class RpgGameComponent {
 
   protected restart(): void {
     this.progress.reset();
-    this.confirmingRestart.set(false);
-    this.close();
+    this.closeSheet();
     this.enter(WORLD[0], WORLD[0].entry, 'up');
-  }
-
-  protected apiOf(id: TermId): string {
-    return findTerm(id)?.api ?? '';
   }
 
   // ── dibujo ──
@@ -629,22 +884,64 @@ export class RpgGameComponent {
   private draw(): void {
     const ctx = this.canvas()?.nativeElement.getContext('2d');
     if (!ctx) return;
+    const now = performance.now();
     if (!this.moving) this.drawAt = this.position();
     const region = this.region();
+    const spot = this.position();
+    const talkingTo = this.activeId();
+
     const people: Person[] = this.grid().actors.map((actor) => {
       const neighbor = region.neighbors.find((candidate) => candidate.id === actor.id);
+      const lift =
+        this.pop?.id === actor.id
+          ? Math.round(Math.sin(((now - this.pop.start) / POP_MS) * Math.PI) * 8)
+          : 0;
       return {
         x: actor.x,
         y: actor.y,
         look: neighbor?.look ?? GUARD_LOOK,
         badge: neighbor ? (this.progress.isMissionDone(neighbor.id) ? 'done' : 'todo') : undefined,
+        badgeLift: lift,
+        // El que conversa mira al jugador.
+        facing: actor.id === talkingTo ? dirBetween(actor, spot) : undefined,
       };
     });
+
+    // El ayudante existe en el mundo: mientras trabaja, está parado junto al vecino.
+    if (this.running() && this.mode() === 'busy') {
+      const helper = this.helperSpot(talkingTo);
+      if (helper) people.push({ ...helper, look: HELPER_LOOK });
+    }
+
+    let player: Point = this.drawAt;
+    if (this.bump) {
+      const t = Math.min(1, (now - this.bump.start) / BUMP_MS);
+      const push = (Math.sin(t * Math.PI) * 3) / TILE;
+      player = {
+        x: player.x + DELTA[this.bump.dir].x * push,
+        y: player.y + DELTA[this.bump.dir].y * push,
+      };
+    }
+
     paint(ctx, {
       region,
       people,
-      player: { ...this.drawAt, look: PLAYER_LOOK, facing: this.facing() },
-      frozen: this.mode() === 'frozen',
+      player: { ...player, look: PLAYER_LOOK, facing: this.facing() },
+      frozen: this.mode() === 'frozen' && !this.thawed(),
     });
+  }
+
+  /** Una casilla libre al lado del vecino, que no sea donde está parado el jugador. */
+  private helperSpot(actorId: string): Point | null {
+    const actor = this.grid().actors.find((candidate) => candidate.id === actorId);
+    if (!actor) return null;
+    const me = this.position();
+    for (const dir of ['right', 'left', 'down', 'up'] as Dir[]) {
+      const spot = step(actor, dir);
+      if (isWalkable(this.grid(), spot.x, spot.y) && !(spot.x === me.x && spot.y === me.y)) {
+        return spot;
+      }
+    }
+    return null;
   }
 }

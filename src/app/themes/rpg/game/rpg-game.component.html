@@ -1,24 +1,129 @@
 @if (content(); as c) {
   <section class="g" [attr.data-mode]="mode()">
-    <div class="g-play">
-      <header class="g-hud">
-        <h1 class="g-region">{{ regionName() }}</h1>
-        <span class="g-count">{{ done() }}/{{ total }}</span>
+    <header class="g-hud">
+      <h1 class="g-region">{{ regionName() }}</h1>
+      <span class="g-count">{{ done() }}/{{ total }}</span>
+      <span
+        class="g-stamps"
+        role="img"
+        [attr.aria-label]="c.ui['stamps'] + ' ' + stampCount() + '/' + stamps().length"
+      >
+        @for (earned of stamps(); track $index) {
+          <i [class.is-earned]="earned"></i>
+        }
+      </span>
+      <span class="g-vitals">
         <rpg-pulse [label]="c.ui['pulse']" />
-        <span class="g-mode" aria-live="polite">{{ modeLabel() }}</span>
-      </header>
+        <span class="g-mode" aria-live="polite"><rpg-text [text]="modeLabel()" /></span>
+      </span>
+      <nav class="g-bar">
+        <button
+          type="button"
+          class="g-btn"
+          [attr.aria-expanded]="sheet() === 'neighbors'"
+          (click)="openSheet('neighbors')"
+        >
+          <span class="g-key" aria-hidden="true">V</span>
+          {{ c.ui['neighbors'] }}
+        </button>
+        <button
+          type="button"
+          class="g-btn"
+          [attr.aria-expanded]="sheet() === 'dex'"
+          (click)="openSheet('dex')"
+        >
+          <span class="g-key" aria-hidden="true">X</span>
+          {{ c.ui['dex'] }}
+          <span class="g-tally" [class.is-fresh]="dialog()?.kind === 'word'"
+            >{{ words().length }}/{{ vocabularySize }}</span
+          >
+        </button>
+      </nav>
+    </header>
 
-      <div class="g-stage">
-        <canvas
-          #map
-          class="g-map"
-          tabindex="0"
-          role="application"
-          [width]="mapWidth"
-          [height]="mapHeight"
-          [attr.aria-label]="c.ui['keys']"
-          (click)="onMapClick($event)"
-        ></canvas>
+    <div class="g-stage">
+      <canvas
+        #map
+        class="g-map"
+        tabindex="0"
+        role="application"
+        [width]="mapWidth"
+        [height]="mapHeight"
+        [attr.aria-label]="c.ui['keys']"
+        (click)="onMapClick($event)"
+      ></canvas>
+      <div class="g-tint" aria-hidden="true"></div>
+
+      @if (banner()) {
+        <p class="g-banner" aria-hidden="true">{{ bannerName() }}</p>
+      }
+
+      @if (sheet(); as open) {
+        <div
+          class="g-sheet"
+          role="dialog"
+          [attr.aria-label]="open === 'neighbors' ? c.ui['neighbors'] : c.ui['dex']"
+        >
+          @if (open === 'neighbors') {
+            <ul class="g-neighbors">
+              @for (neighbor of neighbors(); track neighbor.actor.id) {
+                <li>
+                  <button
+                    type="button"
+                    class="g-link"
+                    [class.is-done]="neighbor.done"
+                    (click)="goTalk(neighbor.actor)"
+                  >
+                    {{ neighbor.name }}
+                  </button>
+                </li>
+              }
+            </ul>
+          } @else {
+            <ul class="g-dex">
+              @for (word of words(); track word.id) {
+                <li>
+                  <code class="g-term">{{ word.api }}</code>
+                  <span>{{ word.plain }}</span>
+                </li>
+              } @empty {
+                <li class="g-dex-empty">{{ c.ui['dexEmpty'] }}</li>
+              }
+            </ul>
+            @if (confirmingRestart()) {
+              <p class="g-ask">{{ c.ui['restartAsk'] }}</p>
+              <div class="g-choices">
+                <button type="button" class="g-btn g-btn--act" (click)="restart()">
+                  {{ c.ui['restartYes'] }}
+                </button>
+                <button type="button" class="g-btn" (click)="confirmingRestart.set(false)">
+                  {{ c.ui['restartNo'] }}
+                </button>
+              </div>
+            } @else if (done() > 0 || words().length > 0) {
+              <button type="button" class="g-link" (click)="confirmingRestart.set(true)">
+                {{ c.ui['restart'] }}
+              </button>
+            }
+          }
+          <button type="button" class="g-btn g-close" (click)="closeSheet()">
+            {{ c.ui['close'] }}
+          </button>
+        </div>
+      }
+    </div>
+
+    <div class="g-dialog" aria-live="polite" [attr.data-kind]="dialog()?.kind ?? 'talk'">
+      @if (dialog(); as d) {
+        <div class="g-say">
+          <span class="g-who">{{ d.who }}</span>
+          <p class="g-line">
+            <rpg-text [text]="d.text" [learned]="d.learned ?? null" />
+          </p>
+          @if (live(); as reading) {
+            <span class="g-live">{{ reading }}</span>
+          }
+        </div>
 
         @if (scene(); as kind) {
           <div class="g-scene">
@@ -33,107 +138,41 @@
               </figure>
             } @else {
               <figure>
-                <canvas #ocWorker class="g-clock" width="120" height="120"></canvas>
-                <figcaption>{{ c.ui['sceneWorker'] }}</figcaption>
+                <canvas #ocWorker class="g-clock" width="120" height="120" data-label=""></canvas>
+                <figcaption><rpg-text [text]="c.ui['sceneWorker']" /></figcaption>
               </figure>
               <figure>
-                <canvas #ocMain class="g-clock" width="120" height="120"></canvas>
+                <canvas #ocMain class="g-clock" width="120" height="120" data-label=""></canvas>
                 <figcaption>{{ c.ui['sceneByMain'] }}</figcaption>
               </figure>
             }
           </div>
         }
-      </div>
 
-      <div class="g-dialog" aria-live="polite">
-        @if (dialog(); as d) {
-          <span class="g-who">{{ d.who }}</span>
-          <p class="g-line">
-            @for (segment of d.segments; track $index) {
-              @if (segment.kind === 'term') {
-                <code class="g-term">{{ segment.value }}</code>
-              } @else {
-                <span>{{ segment.value }}</span>
+        <div class="g-choices">
+          @for (choice of d.choices; track choice.label) {
+            <button type="button" class="g-btn" (click)="choose(choice)">
+              <span class="g-key" aria-hidden="true">{{ $index + 1 }}</span>
+              <rpg-text [text]="choice.label" />
+              @if (choice.done) {
+                <span class="g-tick" aria-hidden="true"></span>
               }
-            }
-          </p>
-          @if (live(); as reading) {
-            <span class="g-live">{{ reading }}</span>
+            </button>
           }
-          <div class="g-choices">
-            @for (choice of d.choices; track choice.label) {
-              <button
-                type="button"
-                class="g-btn"
-                [class.is-done]="choice.done"
-                (click)="choice.run()"
-              >
-                <span class="g-key" aria-hidden="true">{{ $index + 1 }}</span>
-                {{ choice.label }}
-              </button>
-            }
-            @if (midAction(); as action) {
-              <button type="button" class="g-btn g-btn--act" (click)="action.take()">
-                {{ action.label }}
-              </button>
-            } @else if (d.choices.length === 0 && mode() === 'free') {
-              <button type="button" class="g-btn" (click)="talk()">{{ c.ui['next'] }}</button>
-            }
-          </div>
-        } @else {
-          <span class="g-who">{{ c.ui['guide'] }}</span>
-          <p class="g-line">{{ c.ui['start'] }}</p>
-        }
-      </div>
+          @if (midAction(); as action) {
+            <button type="button" class="g-btn g-btn--act" (click)="take(action)">
+              {{ action.label }}
+            </button>
+          } @else if (d.choices.length === 0 && !busy()) {
+            <button type="button" class="g-btn" (click)="advance()">{{ c.ui['next'] }}</button>
+          }
+        </div>
+      } @else {
+        <div class="g-say">
+          <span class="g-who">{{ c.ui['title'] }}</span>
+          <p class="g-line">{{ touch ? c.ui['startTouch'] : c.ui['start'] }}</p>
+        </div>
+      }
     </div>
-
-    <aside class="g-side">
-      <nav class="g-panel" [attr.aria-label]="c.ui['neighbors']">
-        <h2>{{ c.ui['neighbors'] }}</h2>
-        <ul class="g-neighbors">
-          @for (neighbor of neighbors(); track neighbor.actor.id) {
-            <li>
-              <button
-                type="button"
-                class="g-link"
-                [class.is-done]="neighbor.done"
-                (click)="goTalk(neighbor.actor)"
-              >
-                {{ neighbor.name }}
-              </button>
-            </li>
-          }
-        </ul>
-      </nav>
-
-      <section class="g-panel">
-        <h2>{{ c.ui['dex'] }} · {{ words().length }}/{{ vocabularySize }}</h2>
-        <ul class="g-dex">
-          @for (word of words(); track word.id) {
-            <li>
-              <code class="g-term">{{ word.api }}</code>
-              <span>{{ word.plain }}</span>
-            </li>
-          } @empty {
-            <li class="g-dex-empty">{{ c.ui['dexEmpty'] }}</li>
-          }
-        </ul>
-        @if (confirmingRestart()) {
-          <p class="g-ask">{{ c.ui['restartAsk'] }}</p>
-          <div class="g-choices">
-            <button type="button" class="g-btn g-btn--act" (click)="restart()">
-              {{ c.ui['restartYes'] }}
-            </button>
-            <button type="button" class="g-btn" (click)="confirmingRestart.set(false)">
-              {{ c.ui['restartNo'] }}
-            </button>
-          </div>
-        } @else if (done() > 0 || words().length > 0) {
-          <button type="button" class="g-link" (click)="confirmingRestart.set(true)">
-            {{ c.ui['restart'] }}
-          </button>
-        }
-      </section>
-    </aside>
   </section>
 }

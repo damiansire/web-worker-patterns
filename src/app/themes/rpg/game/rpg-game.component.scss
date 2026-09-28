@@ -1,35 +1,36 @@
-// El juego entra en una pantalla: mapa, conversación y, al costado, vecinos y
-// Workerdex. Se dibuja con los tokens del theme; los colores del mapa viven en el
+// El juego entra en una pantalla, siempre: HUD, mapa, conversación y una barra con
+// las dos hojas que se abren a pedido (vecinos y Workerdex). Nada crece hacia
+// abajo al jugar: la caja de diálogo reserva su peor caso y las hojas scrollean
+// adentro. Se dibuja con los tokens del theme; los colores del mapa viven en el
 // pintor porque son pixel art, no chrome.
 
 :host {
   display: block;
+  // Alto de todo lo que no es el mapa (barra del shell, HUD, diálogo, barra de hojas
+  // y separaciones). Con eso el mapa ocupa lo que queda.
+  --g-chrome: 344px;
+  --g-dialog: 176px;
 }
 
 .g {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 232px;
-  gap: 16px;
-  align-items: start;
-  max-width: 920px;
+  gap: 10px;
+  // El mapa es 16:10: su ancho sale del alto que queda libre en la pantalla.
+  width: min(100%, max(320px, calc((100dvh - var(--g-chrome)) * 1.6)));
+  max-width: 1120px;
   margin-inline: auto;
   font-family: var(--font-display);
   color: var(--ink);
 }
 
-// El sitio pone títulos y botones en mayúsculas espaciadas. Acá se habla en
-// oraciones: se lee como una conversación, no como un cartel.
+// El sitio pone títulos y botones en mayúsculas espaciadas, con un resplandor cian.
+// Acá se habla en oraciones: se lee como una conversación, no como un cartel.
 .g-region,
 .g-btn,
 .g-link {
   text-transform: none;
   letter-spacing: normal;
-}
-
-.g-play {
-  display: grid;
-  gap: 10px;
-  min-width: 0;
+  text-shadow: none;
 }
 
 // ── HUD ──
@@ -42,22 +43,41 @@
   line-height: 1;
 }
 .g-region {
+  margin: 0 auto 0 0;
   font-size: 22px;
   font-weight: 600;
-  margin-right: auto;
 }
 .g-count {
   font-variant-numeric: tabular-nums;
   color: var(--ink-muted);
 }
+// Sellos: uno por región. Vacío hasta ganarlo.
+.g-stamps {
+  display: inline-flex;
+  gap: 4px;
+
+  i {
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--ink-muted);
+    border-radius: 3px;
+  }
+  i.is-earned {
+    border-color: var(--rpg-stamp);
+    background: var(--rpg-stamp);
+  }
+}
+.g-vitals {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
 .g-mode {
-  min-width: 9ch;
-  text-align: right;
+  min-width: 13ch;
   color: var(--accent-ink);
 }
 .g[data-mode='frozen'] .g-mode {
   color: var(--thread-blocked);
-  text-transform: uppercase;
 }
 .g[data-mode='busy'] .g-mode {
   color: var(--worker);
@@ -66,84 +86,144 @@
 // ── mapa ──
 .g-stage {
   position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
 }
 .g-map {
   display: block;
   width: 100%;
   height: auto;
   image-rendering: pixelated;
-  border-radius: var(--radius);
   cursor: pointer;
 }
-.g-map:focus-visible,
+.g-map:focus-visible {
+  outline: 3px solid var(--worker);
+  outline-offset: -3px;
+}
 .g-btn:focus-visible,
 .g-link:focus-visible {
   outline: 3px solid var(--worker);
   outline-offset: 2px;
 }
 
-// La escena acompaña a la misión sin tapar al vecino: va abajo a la derecha.
-.g-scene {
+// El congelado tiñe el mapa, y al volver se disuelve.
+.g-tint {
   position: absolute;
-  right: 10px;
-  bottom: 10px;
-  display: flex;
-  gap: 10px;
-  padding: 10px;
-  border-radius: var(--radius);
+  inset: 0;
+  background: var(--thread-blocked);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 400ms ease-out;
+}
+.g[data-mode='frozen'] .g-tint {
+  opacity: 0.18;
+  transition: none;
+}
+
+// Entrar a una región: su nombre cruza el mapa y se va.
+.g-banner {
+  position: absolute;
+  inset: 38% 0 auto;
+  margin: 0;
+  padding: 12px 16px;
   background: var(--rpg-paper);
   color: var(--rpg-paper-ink);
+  font-size: clamp(22px, 5vw, 34px);
+  font-weight: 600;
+  text-align: center;
+  pointer-events: none;
+  animation: g-banner 1300ms ease-in-out both;
+}
+@keyframes g-banner {
+  0% {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  18%,
+  78% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
 
-  figure {
-    display: grid;
-    gap: 6px;
-    justify-items: center;
-    margin: 0;
-  }
-  figcaption {
-    font-size: 13px;
-    line-height: 1;
-  }
+// Las hojas se abren sobre el mapa y scrollean adentro: la página nunca crece.
+.g-sheet {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding: 16px;
+  overflow-y: auto;
+  background: var(--surface-raised);
+  animation: g-sheet 160ms ease-out both;
 }
-.g-mill {
-  width: 44px;
-  height: 44px;
-  border-radius: 6px;
-  background:
-    linear-gradient(var(--rpg-paper-ink), var(--rpg-paper-ink)) center / 100% 6px no-repeat,
-    linear-gradient(var(--rpg-paper-ink), var(--rpg-paper-ink)) center / 6px 100% no-repeat,
-    var(--worker);
-}
-.g-mill--css {
-  background-color: var(--accent);
-  animation: g-spin 1s linear infinite;
-}
-.g-clock {
-  width: 72px;
-  height: 72px;
-  border-radius: 6px;
-}
-@keyframes g-spin {
-  to {
-    transform: rotate(360deg);
+@keyframes g-sheet {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .g-mill--css {
-    animation-duration: 4s;
-  }
+.g-neighbors,
+.g-dex {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 6px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.g-dex li {
+  display: grid;
+  gap: 2px;
+  font-size: 15px;
+  color: var(--ink-muted);
+}
+.g-dex .g-term {
+  justify-self: start;
+  font-size: 13px;
+}
+.g-ask {
+  margin: 0;
+  font-size: 17px;
+}
+.g-close {
+  justify-self: start;
+}
+.g-sheet .g-btn {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.g-sheet .g-btn:hover {
+  background: var(--ink);
+  color: var(--surface);
 }
 
 // ── conversación ──
 .g-dialog {
   display: grid;
-  gap: 8px;
-  align-content: start;
-  min-height: 132px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  // La escena ocupa el costado entero: no le suma alto a la conversación.
+  grid-template-areas:
+    'say scene'
+    'choices scene';
+  gap: 10px 16px;
+  align-content: space-between;
+  min-height: var(--g-dialog);
   padding: 14px 16px;
   border-radius: var(--radius);
   background: var(--rpg-paper);
   color: var(--rpg-paper-ink);
+}
+.g-say {
+  grid-area: say;
+  display: grid;
+  gap: 8px;
+  align-content: start;
 }
 .g-who {
   font-family: var(--font-mono);
@@ -171,7 +251,78 @@
   color: var(--rpg-term-ink);
   white-space: nowrap;
 }
+
+// Los momentos de valor llevan peso: la línea entra más grande y con un golpe.
+.g-dialog[data-kind='word'],
+.g-dialog[data-kind='done'],
+.g-dialog[data-kind='stamp'] {
+  .g-line {
+    font-size: 28px;
+    font-weight: 600;
+    transform-origin: left center;
+    animation: g-land 400ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  }
+}
+.g-dialog[data-kind='word'] .g-who {
+  color: var(--rpg-term-ink);
+}
+.g-dialog[data-kind='done'] .g-who {
+  color: #0f7a45;
+}
+.g-dialog[data-kind='stamp'] {
+  box-shadow: inset 0 0 0 3px var(--rpg-stamp);
+}
+@keyframes g-land {
+  from {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+}
+
+// La escena acompaña a la misión desde adentro de la conversación: no tapa el mapa.
+.g-scene {
+  grid-area: scene;
+  display: flex;
+  gap: 12px;
+  align-self: start;
+
+  figure {
+    display: grid;
+    gap: 6px;
+    justify-items: center;
+    margin: 0;
+  }
+  figcaption {
+    font-size: 14px;
+    line-height: 1;
+  }
+}
+.g-mill {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  background:
+    linear-gradient(var(--rpg-paper-ink), var(--rpg-paper-ink)) center / 100% 6px no-repeat,
+    linear-gradient(var(--rpg-paper-ink), var(--rpg-paper-ink)) center / 6px 100% no-repeat,
+    var(--worker);
+}
+.g-mill--css {
+  background-color: var(--accent);
+  animation: g-spin 1s linear infinite;
+}
+.g-clock {
+  width: 96px;
+  height: 96px;
+  border-radius: 8px;
+}
+@keyframes g-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .g-choices {
+  grid-area: choices;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -180,7 +331,8 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 14px;
+  min-height: 44px;
+  padding: 0 14px;
   border: 2px solid var(--rpg-paper-ink);
   border-radius: 8px;
   background: transparent;
@@ -194,55 +346,73 @@
   background: var(--rpg-paper-ink);
   color: var(--rpg-paper);
 }
-.g-btn--act {
+// La acción contra reloj (cortar, borrar): rojo con tinta oscura, que se lee.
+.g-btn--act,
+.g-sheet .g-btn--act {
   border-color: var(--thread-blocked);
   background: var(--thread-blocked);
-  color: #fff;
-}
-// Un camino ya recorrido se puede repetir: queda marcado, no deshabilitado.
-.g-btn.is-done {
-  border-style: dashed;
+  color: #1a1a17;
 }
 .g-key {
   font-family: var(--font-mono);
   font-size: 12px;
-  opacity: 0.6;
+  opacity: 0.7;
+}
+// Un camino ya recorrido se puede repetir: lleva una tilde, no un borde apagado.
+.g-tick {
+  width: 6px;
+  height: 11px;
+  margin-bottom: 3px;
+  border: solid #0f7a45;
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg);
+}
+.g-btn:hover .g-tick {
+  border-color: var(--rpg-paper);
 }
 
-// ── costado ──
-.g-side {
-  display: grid;
-  gap: 12px;
-}
-.g-panel {
-  display: grid;
+// ── las dos hojas, en el HUD ──
+.g-bar {
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  padding: 12px;
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface-raised);
+}
+.g-bar .g-btn {
+  min-height: 36px;
+  padding: 0 10px;
+  font-size: 15px;
+}
+.g-bar .g-btn {
+  border-color: var(--border);
+  color: var(--ink);
+}
+.g-bar .g-btn:hover,
+.g-bar .g-btn[aria-expanded='true'] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--surface);
+}
+.g-tally {
+  font-variant-numeric: tabular-nums;
+  color: var(--worker);
+}
+.g-bar .g-btn:hover .g-tally,
+.g-bar .g-btn[aria-expanded='true'] .g-tally {
+  color: inherit;
+}
+// Una palabra nueva se nota también en el contador.
+.g-tally.is-fresh {
+  animation: g-land 400ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
 
-  h2 {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 600;
-  }
-}
-.g-neighbors,
-.g-dex {
-  display: grid;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
 .g-link {
-  padding: 2px 0;
+  min-height: 44px;
+  padding: 0;
   border: 0;
   background: none;
   color: var(--ink);
   font: inherit;
-  font-size: 17px;
+  font-size: 19px;
   text-align: left;
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -252,43 +422,72 @@
   color: var(--accent-ink);
   text-decoration-style: dotted;
 }
-.g-dex li {
-  display: grid;
-  gap: 2px;
-  font-size: 15px;
-  color: var(--ink-muted);
-}
-.g-dex .g-term {
-  justify-self: start;
-  font-size: 13px;
-}
-.g-ask {
-  margin: 0;
-  font-size: 15px;
-}
-.g-side .g-btn {
-  border-color: var(--ink);
-  color: var(--ink);
-  font-size: 15px;
-}
-.g-side .g-btn--act {
-  border-color: var(--thread-blocked);
-  color: #fff;
-}
 
-@media (max-width: 760px) {
-  .g {
-    grid-template-columns: minmax(0, 1fr);
+// ── teléfono ──
+@media (max-width: 560px) {
+  :host {
+    // Las opciones se apilan: la caja reserva tres botones de 44 px.
+    --g-dialog: 262px;
+    --g-chrome: 470px;
   }
-  .g-side {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .g-vitals {
+    width: 100%;
+  }
+  .g-bar {
+    width: 100%;
+  }
+  // Un dedo necesita 44 px.
+  .g-bar .g-btn {
+    min-height: 44px;
+    flex: 1;
+  }
+  .g-dialog {
+    grid-template-areas:
+      'say scene'
+      'choices choices';
+  }
+  .g-mode {
+    min-width: 0;
   }
   .g-line {
     font-size: 19px;
   }
+  .g-dialog[data-kind='word'],
+  .g-dialog[data-kind='done'],
+  .g-dialog[data-kind='stamp'] {
+    .g-line {
+      font-size: 23px;
+    }
+  }
+  .g-choices {
+    display: grid;
+  }
+  .g-mill {
+    width: 40px;
+    height: 40px;
+  }
+  .g-clock {
+    width: 56px;
+    height: 56px;
+  }
+  .g-scene {
+    gap: 8px;
+  }
 }
-@media (max-width: 420px) {
-  .g-side {
-    grid-template-columns: minmax(0, 1fr);
+
+@media (prefers-reduced-motion: reduce) {
+  .g-mill--css {
+    animation-duration: 4s;
+  }
+  .g-sheet,
+  .g-line,
+  .g-tally.is-fresh {
+    animation: none !important;
+  }
+  .g-banner {
+    display: none;
+  }
+  .g-tint {
+    transition: none;
   }
 }

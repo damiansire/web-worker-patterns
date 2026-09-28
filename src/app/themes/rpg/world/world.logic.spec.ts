@@ -82,7 +82,7 @@ describe('el mundo: ningún mapa deja a alguien inalcanzable', () => {
   );
 
   it.each(WORLD.map((region) => [region.id, region] as const))(
-    '%s: desde la entrada se llega a hablar con todos, guardia incluido',
+    '%s: desde la entrada se llega a hablar con todos, maestra incluida',
     (_, region) => {
       const map = gridOf(region, false);
       for (const actor of map.actors) {
@@ -92,7 +92,7 @@ describe('el mundo: ningún mapa deja a alguien inalcanzable', () => {
   );
 
   it.each(WORLD.slice(0, -1).map((region) => [region.id, region] as const))(
-    '%s: el guardia tapa la salida hasta que la región se cumple',
+    '%s: la maestra tapa la salida hasta dar su sello',
     (_, region) => {
       const exit = { x: 15, y: 5 };
       expect(tileAt(gridOf(region, false), exit.x, exit.y)).toBe('>');
@@ -106,10 +106,14 @@ describe('el mundo: ningún mapa deja a alguien inalcanzable', () => {
     },
   );
 
-  it('la última región no tiene salida ni guardia', () => {
+  it('la última región no tiene salida, pero sí maestra', () => {
     const last = WORLD.at(-1)!;
 
     expect(last.rows.join('')).not.toContain('>');
-    expect(gridOf(last, false).actors.some((actor) => actor.id === GUARD_ID)).toBe(false);
+    for (const stamped of [false, true]) {
+      const map = gridOf(last, stamped);
+      const master = map.actors.find((actor) => actor.id === GUARD_ID);
+      expect(master && approach(map, last.entry, master), String(stamped)).toBeTruthy();
+    }
   });
 });

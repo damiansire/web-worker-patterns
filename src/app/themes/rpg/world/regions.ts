@@ -30,15 +30,17 @@ export interface Region {
   entry: Point;
   /** Dónde aparece al volver desde la región siguiente. */
   back: Point;
-  /** Color del pasto: cada región tiene su clima. */
-  ground: string;
+  /** Cada región tiene su clima: se nota al cruzar de una a otra. */
+  palette: { ground: string; tree: string; roof: string; wall: string };
 }
 
 export const GUARD_ID = 'guard';
-export const GUARD_LOOK: Look = { skin: '#f0c9a0', shirt: '#7a3b1e', hair: '#1a1a17' };
+export const GUARD_LOOK: Look = { skin: '#f0c9a0', shirt: '#ff6b4a', hair: '#f4f0e8' };
+/** El ayudante: aparece junto al vecino mientras trabaja. */
+export const HELPER_LOOK: Look = { skin: '#d8d6ff', shirt: '#5b54d6', hair: '#3a34b0' };
 export const PLAYER_LOOK: Look = { skin: '#f0c9a0', shirt: '#e0a23a', hair: '#7a3b1e' };
 
-/** El guardia tapa la salida hasta que la región queda cumplida; después se corre. */
+/** La maestra tapa la salida hasta dar su sello; después se corre a un costado. */
 export const GUARD_BLOCKING: Point = { x: 14, y: 5 };
 export const GUARD_ASIDE: Point = { x: 14, y: 4 };
 
@@ -47,7 +49,7 @@ const look = (skin: string, shirt: string, hair: string): Look => ({ skin, shirt
 export const WORLD: readonly Region[] = [
   {
     id: 'understanding',
-    ground: '#4f9d55',
+    palette: { ground: '#4f9d55', tree: '#2f6b3a', roof: '#b5482f', wall: '#f0e2c0' },
     entry: { x: 8, y: 8 },
     back: { x: 13, y: 5 },
     rows: [
@@ -70,7 +72,7 @@ export const WORLD: readonly Region[] = [
   },
   {
     id: 'communication',
-    ground: '#5aa36a',
+    palette: { ground: '#7fb38a', tree: '#2c6e63', roof: '#2f6f9f', wall: '#eef3f5' },
     entry: { x: 1, y: 5 },
     back: { x: 13, y: 5 },
     rows: [
@@ -92,7 +94,7 @@ export const WORLD: readonly Region[] = [
   },
   {
     id: 'optimization',
-    ground: '#6aa84f',
+    palette: { ground: '#9bb45a', tree: '#4f7a2b', roof: '#c9872e', wall: '#f3e6c4' },
     entry: { x: 1, y: 5 },
     back: { x: 13, y: 5 },
     rows: [
@@ -117,7 +119,7 @@ export const WORLD: readonly Region[] = [
   },
   {
     id: 'management',
-    ground: '#7a9a5a',
+    palette: { ground: '#a39a78', tree: '#56603a', roof: '#6b5b8c', wall: '#d9d4c7' },
     entry: { x: 1, y: 5 },
     back: { x: 13, y: 5 },
     rows: [
@@ -140,7 +142,7 @@ export const WORLD: readonly Region[] = [
   },
   {
     id: 'advanced',
-    ground: '#5f8f6b',
+    palette: { ground: '#5d8c7b', tree: '#23564f', roof: '#8c3b52', wall: '#e9e1d3' },
     entry: { x: 1, y: 5 },
     back: { x: 13, y: 5 },
     rows: [
@@ -181,13 +183,14 @@ export function previousRegion(region: Region): Region | undefined {
 }
 
 /**
- * La grilla de una región tal como está ahora: los vecinos, y el guardia parado en
- * la salida o corrido a un costado según la región esté cumplida.
+ * La grilla de una región tal como está ahora: los vecinos, y la maestra parada en
+ * la salida o corrida a un costado según haya dado su sello. En la última región no
+ * hay salida que tapar: espera al final del camino.
  */
-export function gridOf(region: Region, regionDone: boolean): Grid {
-  const actors: Actor[] = [...region.neighbors];
-  if (nextRegion(region)) {
-    actors.push({ id: GUARD_ID, ...(regionDone ? GUARD_ASIDE : GUARD_BLOCKING) });
-  }
-  return { rows: region.rows, actors };
+export function gridOf(region: Region, stamped: boolean): Grid {
+  const moved = stamped && nextRegion(region) !== undefined;
+  return {
+    rows: region.rows,
+    actors: [...region.neighbors, { id: GUARD_ID, ...(moved ? GUARD_ASIDE : GUARD_BLOCKING) }],
+  };
 }
