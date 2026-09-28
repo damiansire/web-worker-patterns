@@ -67,21 +67,27 @@ export class DegradationDemoService {
         worker.terminate();
         this.worker = undefined;
       };
-      // Si el worker falla al instanciarse o computar, sin esto running quedaba en
-      // true para siempre y bloqueaba toda re-corrida. Lo tratamos como término.
+      // `typeof Worker` dice que la API existe, no que ESTE worker funcione: el script
+      // puede no cargar (404, CSP) o fallar al computar. Degradar con gracia también
+      // es caer al main en ese caso, en vez de quedarse sin resultado.
       worker.onerror = (event) => {
         (event as { preventDefault?: () => void })?.preventDefault?.();
-        this.running.set(false);
         worker.terminate();
         this.worker = undefined;
+        this.runOnMain(limit);
+        this.running.set(false);
       };
       worker.postMessage({ command: 'compute', limit });
     } else {
-      // Fallback: corre la MISMA función en el main (bloquea hasta terminar).
-      const t0 = this.clock();
-      const value = countPrimesUpTo(limit);
-      this.result.set({ value, ms: Math.round(this.clock() - t0), path: 'main' });
+      this.runOnMain(limit);
     }
+  }
+
+  /** Fallback: corre la MISMA función en el main (bloquea hasta terminar). */
+  private runOnMain(limit: number): void {
+    const t0 = this.clock();
+    const value = countPrimesUpTo(limit);
+    this.result.set({ value, ms: Math.round(this.clock() - t0), path: 'main' });
   }
 
   reset(): void {

@@ -81,13 +81,15 @@ describe('DegradationDemoService', () => {
     expect(svc.result()?.value).toBe(4);
   });
 
-  it('camino worker que falla (onerror) destraba running y termina el worker', () => {
+  it('si el worker falla, degrada al main: mismo resultado, path = main', () => {
     svc.supported.set(true);
-    svc.run(example, 500);
+    svc.run(example, 10);
     expect(svc.running()).toBe(true);
 
     fake.fail('boom');
-    // Sin el onerror, running quedaba en true para siempre y bloqueaba re-correr.
+
+    // `typeof Worker` decía que había soporte, pero ESTE worker no funcionó.
+    expect(svc.result()).toMatchObject({ value: 4, path: 'main' });
     expect(svc.running()).toBe(false);
     expect(fake.terminated).toBe(true);
   });
