@@ -275,7 +275,7 @@
       "pulse": "pulso de Main",
       "free": "libre",
       "frozen": "congelado",
-      "busy": "{ayudante|worker} trabajando",
+      "busy": "{ayudante|worker} ocupado",
       "done": "cumplida",
       "progress": "misiones",
       "restart": "Empezar de nuevo",
@@ -293,7 +293,7 @@
       "sceneWorker": "{ayudante|worker}",
       "sceneByMain": "Main",
       "stamps": "sellos",
-      "startTouch": "Tocá el mapa para caminar.",
+      "startTouch": "Tocá a un vecino para hablar.",
       "missionDone": "Misión cumplida.",
       "stampEarned": "Sello nuevo",
       "close": "Cerrar",
@@ -309,11 +309,11 @@
     "vocab": {
       "worker": {
         "plain": "ayudante",
-        "note": "Otro hilo, para el trabajo pesado."
+        "note": "Otro hilo, para trabajo pesado."
       },
       "main-thread": {
         "plain": "el hilo principal",
-        "note": "El único hilo que pinta y responde."
+        "note": "Pinta y responde. Uno solo."
       },
       "event-loop": {
         "plain": "la fila de tareas",
@@ -321,7 +321,7 @@
       },
       "compositor": {
         "plain": "el pintor de capas",
-        "note": "Otro hilo: mueve capas ya pintadas."
+        "note": "Otro hilo: mueve capas pintadas."
       },
       "new-worker": {
         "plain": "un llamado",
@@ -333,11 +333,11 @@
       },
       "onmessage": {
         "plain": "el buzón",
-        "note": "Recibe lo que manda el otro hilo."
+        "note": "Recibe lo que llega."
       },
       "structured-clone": {
         "plain": "la copia",
-        "note": "Lo enviado se copia, no se comparte."
+        "note": "Lo enviado se copia entero."
       },
       "shared-worker": {
         "plain": "la centralita",
@@ -345,7 +345,7 @@
       },
       "message-port": {
         "plain": "la línea",
-        "note": "El canal propio de cada conexión."
+        "note": "El canal de cada conexión."
       },
       "transferable": {
         "plain": "la mudanza",
@@ -357,7 +357,7 @@
       },
       "offscreen-canvas": {
         "plain": "el lienzo prestado",
-        "note": "Un canvas que dibuja un {ayudante|worker}."
+        "note": "Canvas que dibuja un {ayudante|worker}."
       },
       "onerror": {
         "plain": "la alarma",
@@ -365,19 +365,19 @@
       },
       "terminate": {
         "plain": "el corte",
-        "note": "Mata al {ayudante|worker} en el acto."
+        "note": "Mata al {ayudante|worker} ya."
       },
       "hardware-concurrency": {
         "plain": "los núcleos",
-        "note": "Procesadores lógicos: una pista, no garantía."
+        "note": "Procesadores lógicos. Una pista."
       },
       "backpressure": {
         "plain": "la esclusa",
-        "note": "El que produce espera al que consume."
+        "note": "Producir al ritmo del consumo."
       },
       "shared-array-buffer": {
         "plain": "la pizarra común",
-        "note": "Memoria que ven los dos hilos."
+        "note": "Memoria que ven dos hilos."
       },
       "atomics": {
         "plain": "el turno",
@@ -385,7 +385,7 @@
       },
       "feature-detection": {
         "plain": "la prueba previa",
-        "note": "Chequear el soporte antes de usar."
+        "note": "Chequear soporte antes de usar."
       }
     },
     "missions": {
@@ -398,10 +398,7 @@
           "block": {
             "label": "Pedile un cálculo largo",
             "during": "Bueno. Ya vuelvo.",
-            "after": [
-              "Volví. [seg] sin atender a nadie.",
-              "Así es {la fila de tareas|event-loop}."
-            ]
+            "after": ["Volví. [seg] sin atender a nadie.", "Así es {la fila de tareas|event-loop}."]
           }
         }
       },
@@ -414,10 +411,7 @@
           "main": {
             "label": "Que lo haga Main",
             "during": "Main está ocupado calculando.",
-            "after": [
-              "El reloj se clavó [seg].",
-              "Hay un solo {hilo principal|main-thread}."
-            ]
+            "after": ["El reloj se clavó [seg].", "Hay un solo {hilo principal|main-thread}."]
           },
           "worker": {
             "label": "Llamar a un {ayudante|worker}",
@@ -447,10 +441,7 @@
           "worker": {
             "label": "Ocupar a un {ayudante|worker}",
             "during": "El {ayudante|worker} calcula.",
-            "after": [
-              "Ninguno se clavó.",
-              "Main quedó libre para empujar."
-            ]
+            "after": ["Ninguno se clavó.", "Main quedó libre para empujar."]
           }
         }
       },
@@ -463,18 +454,12 @@
           "function": {
             "label": "Mandar una función",
             "during": "A ver si pasa.",
-            "after": [
-              "No salió: [error].",
-              "Solo viaja {la copia|structured-clone} de datos."
-            ]
+            "after": ["No salió: [error].", "Solo viaja {la copia|structured-clone} de datos."]
           },
           "message": {
             "label": "Mandar un saludo",
             "during": "Carta en camino.",
-            "after": [
-              "Volvió: [reply].",
-              "Ida y vuelta: [ms] ms."
-            ]
+            "after": ["Volvió: [reply].", "Ida y vuelta: [ms] ms."]
           }
         }
       },
@@ -504,10 +489,7 @@
           "main": {
             "label": "Que cuente Main",
             "during": "Main cuenta. Nada se mueve.",
-            "after": [
-              "Contó [count]. Tardó [seg].",
-              "El pueblo entero esperó."
-            ]
+            "after": ["Contó [count]. Tardó [seg].", "El pueblo entero esperó."]
           },
           "worker": {
             "label": "Que cuente un {ayudante|worker}",
@@ -529,10 +511,7 @@
           "clone": {
             "label": "Copiarlo",
             "during": "Copiando ida y vuelta.",
-            "after": [
-              "Tardó [ms] ms.",
-              "Se copió dos veces."
-            ]
+            "after": ["Tardó [ms] ms.", "Se copió dos veces."]
           },
           "transfer": {
             "label": "Mudarlo",
@@ -605,10 +584,7 @@
           "broken": {
             "label": "Mandar datos rotos",
             "during": "Datos rotos en camino.",
-            "after": [
-              "Falló, y Main siguió vivo.",
-              "Sonó {la alarma|onerror}."
-            ]
+            "after": ["Falló, y Main siguió vivo.", "Sonó {la alarma|onerror}."]
           }
         }
       },
@@ -627,10 +603,7 @@
               "Fue {el corte|terminate}."
             ],
             "act": "Cortarla ya",
-            "missed": [
-              "Terminó sola.",
-              "Probá cortarla antes."
-            ]
+            "missed": ["Terminó sola.", "Probá cortarla antes."]
           }
         }
       },
@@ -660,10 +633,7 @@
           "flood": {
             "label": "Largar todos",
             "during": "Cuarenta en fila.",
-            "after": [
-              "Pico en espera: [peak].",
-              "El último esperó [ms] ms."
-            ]
+            "after": ["Pico en espera: [peak].", "El último esperó [ms] ms."]
           },
           "window": {
             "label": "Largar de a tres",
@@ -711,10 +681,7 @@
           "worker": {
             "label": "Ir con {ayudante|worker}",
             "during": "El {ayudante|worker} lo hace.",
-            "after": [
-              "Llegó: [count]. Sin frenar.",
-              "Mismo resultado, mejor camino."
-            ]
+            "after": ["Llegó: [count]. Sin frenar.", "Mismo resultado, mejor camino."]
           }
         }
       }
@@ -750,7 +717,8 @@
           "memory": "Dos hilos leen el mismo dato.",
           "missing": "El navegador puede no tener {ayudantes|worker|workers}."
         }
-      }
+      },
+      "missing": "Te falta una palabra. Hablá con [npc]."
     }
   }
 }

@@ -1,5 +1,6 @@
 import { REGIONS } from './missions';
-import { findMaster, MASTERS, optionsOf, teacherOf, termsSeenBy } from './masters';
+import { findMaster, MASTERS, missingTerms, optionsOf, teacherOf, termsSeenBy } from './masters';
+import { TermId } from './vocabulary';
 import { VOCABULARY } from './vocabulary';
 
 describe('maestras: una por región, con tres situaciones', () => {
@@ -54,6 +55,15 @@ describe('maestras: una por región, con tres situaciones', () => {
     const challenge = findMaster('understanding')!.challenges[0];
 
     expect(optionsOf(challenge)).toEqual(optionsOf(challenge));
+  });
+
+  it('no toma examen sobre palabras que el alumno todavía no aprendió', () => {
+    const master = findMaster('understanding')!;
+    // Lo que deja cumplir Villa Main esquivando los caminos que duelen.
+    const dodging = new Set<TermId>(['worker', 'new-worker', 'event-loop']);
+
+    expect(missingTerms(master, dodging).sort()).toEqual(['compositor', 'main-thread']);
+    expect(missingTerms(master, new Set([...dodging, 'compositor', 'main-thread']))).toEqual([]);
   });
 
   it('todo término tiene un vecino con quien repasarlo', () => {

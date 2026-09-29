@@ -51,7 +51,7 @@ for (const key of [
 ]) {
   lines.push([`ui ${key}`, content.ui[key]]);
 }
-for (const key of ['ready', 'wrong', 'pass', 'final'] as const) {
+for (const key of ['ready', 'wrong', 'missing', 'pass', 'final'] as const) {
   lines.push([`masters ${key}`, content.masters[key]]);
 }
 for (const [region, challenges] of Object.entries(content.masters.challenges)) {
@@ -78,6 +78,16 @@ describe('contenido del juego: presupuesto de palabras', () => {
     const over = labels
       .map(([where, text]) => [where, wordCount(text), text] as const)
       .filter(([, count]) => count > MAX_LABEL);
+
+    expect(over).toEqual([]);
+  });
+});
+
+describe('contenido del juego: el Workerdex', () => {
+  it('la nota de cada palabra entra en 5 palabras', () => {
+    const over = Object.entries(content.vocab)
+      .map(([id, term]) => [id, wordCount(term.note), term.note] as const)
+      .filter(([, count]) => count > 5);
 
     expect(over).toEqual([]);
   });

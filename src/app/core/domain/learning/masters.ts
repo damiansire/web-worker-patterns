@@ -85,6 +85,16 @@ export function termsSeenBy(region: Category): Set<TermId> {
   );
 }
 
+/**
+ * Términos del examen que el alumno todavía no aprendió. Una maestra no pregunta
+ * por lo que no se vivió: varias palabras se aprenden por el camino que duele, así
+ * que cumplir las misiones no alcanza si se esquivó ese camino.
+ */
+export function missingTerms(master: Master, learned: ReadonlySet<TermId>): TermId[] {
+  const asked = master.challenges.flatMap((challenge) => [challenge.answer, ...challenge.decoys]);
+  return [...new Set(asked)].filter((term) => !learned.has(term));
+}
+
 /** El ejemplo cuya misión enseña un término: a quién ir a repasarlo. */
 export function teacherOf(term: TermId): string | undefined {
   return MISSIONS.find((mission) => mission.paths.some((path) => path.teaches.includes(term)))

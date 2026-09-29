@@ -41,6 +41,8 @@ export interface MastersContent {
   /** Antes de la primera situación. */
   ready: string;
   wrong: string;
+  /** Falta aprender una palabra del examen. */
+  missing: string;
   pass: string;
   /** Al ganar el último sello. */
   final: string;
