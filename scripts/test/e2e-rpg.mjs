@@ -271,24 +271,24 @@ await check('se camina con el teclado y no se atraviesan paredes', async (page) 
     page.evaluate(() => window.ng?.getComponent?.(document.querySelector('rpg-game')) ?? null);
   void at;
   // Villa Main: se arranca en (8,8), con camino libre hacia arriba hasta la calle (8,5).
-  const before = await page.locator('.g-map').screenshot();
+  const before = await page.locator('.g-stage').screenshot();
   for (let i = 0; i < 3; i++) {
     await page.keyboard.press('ArrowUp');
     await page.waitForTimeout(200);
   }
-  const moved = await page.locator('.g-map').screenshot();
+  const moved = await page.locator('.g-stage').screenshot();
   assert(!before.equals(moved), 'el mapa no cambió después de caminar');
   // Contra el borde sur no hay por dónde: tres intentos dejan el mapa igual.
   for (let i = 0; i < 6; i++) {
     await page.keyboard.press('ArrowDown');
     await page.waitForTimeout(200);
   }
-  const south = await page.locator('.g-map').screenshot();
+  const south = await page.locator('.g-stage').screenshot();
   for (let i = 0; i < 3; i++) {
     await page.keyboard.press('ArrowDown');
     await page.waitForTimeout(200);
   }
-  assert(south.equals(await page.locator('.g-map').screenshot()), 'caminó a través de una pared');
+  assert(south.equals(await page.locator('.g-stage').screenshot()), 'caminó a través de una pared');
 });
 
 await check('el texto cambia de idioma al aprender la palabra', async (page) => {
@@ -356,15 +356,54 @@ await check(
     );
     await page.keyboard.press('2'); // Chau
     await page.waitForTimeout(100);
-    const before = await page.locator('.g-map').screenshot();
+    const before = await page.locator('.g-stage').screenshot();
     await page.keyboard.press('ArrowDown');
     await page.waitForTimeout(250);
     assert(
-      !before.equals(await page.locator('.g-map').screenshot()),
+      !before.equals(await page.locator('.g-stage').screenshot()),
       'después de conversar, las flechas no mueven',
     );
   },
 );
+
+/**
+ * Toca una casilla del mapa. El mapa es más grande que su lugar en pantalla y una
+ * cámara sigue al jugador: si la casilla quedó fuera de cuadro, se camina hacia
+ * ella (tocando lo más cerca que se ve, sobre su misma fila) hasta que entre.
+ */
+async function tapTile(page, x, y) {
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const spot = await page.evaluate(
+      ([tx, ty]) => {
+        const map = document.querySelector('.g-map').getBoundingClientRect();
+        const world = document.querySelector('.g-stage').getBoundingClientRect();
+        const tile = map.width / 16;
+        const px = map.left + (tx + 0.5) * tile;
+        const py = map.top + (ty + 0.5) * (map.height / 10);
+        const clamp = (value, from, to) => Math.min(to, Math.max(from, value));
+        return {
+          x: px,
+          y: py,
+          inView:
+            px > world.left + 2 &&
+            px < world.right - 2 &&
+            py > world.top + 2 &&
+            py < world.bottom - 2,
+          nearX: clamp(px, world.left + tile / 2, world.right - tile / 2),
+          nearY: clamp(py, world.top + tile / 2, world.bottom - tile / 2),
+        };
+      },
+      [x, y],
+    );
+    if (spot.inView) {
+      await page.mouse.click(spot.x, spot.y);
+      return;
+    }
+    await page.mouse.click(spot.nearX, spot.nearY);
+    await page.waitForTimeout(1_500);
+  }
+  throw new Error(`la casilla (${x}, ${y}) nunca entró en cuadro`);
+}
 
 async function talkToMaster(page) {
   await openSheet(page, content.ui.neighbors);
@@ -427,9 +466,8 @@ await check(
     }
 
     // Sin sello la salida sigue tapada, y tocarla lleva a hablar con la maestra.
-    const box = await page.locator('.g-map').boundingBox();
-    const exit = { x: box.x + (15.5 / 16) * box.width, y: box.y + (5.5 / 10) * box.height };
-    await page.mouse.click(exit.x, exit.y);
+    const exit = { x: 15, y: 5 };
+    await tapTile(page, exit.x, exit.y);
     await page.waitForFunction(
       (who) => document.querySelector('.g-who')?.textContent?.trim().toLowerCase() === who,
       content.ui.guard.toLowerCase(),
@@ -480,7 +518,7 @@ await check(
     await next(page);
 
     // Ahora sí: caminar hasta la salida cambia de región.
-    await page.mouse.click(exit.x, exit.y);
+    await tapTile(page, exit.x, exit.y);
     await page.waitForFunction(
       (name) => document.querySelector('.g-region')?.textContent?.trim() === name,
       content.regions.communication,
@@ -559,11 +597,16 @@ for (const size of [
       );
       // La escena no tapa el mapa: vive dentro de la conversación.
       const covered = await page.evaluate(() => {
-        const map = document.querySelector('.g-map').getBoundingClientRect();
+        const world = document.querySelector('.g-stage').getBoundingClientRect();
         const scene = document.querySelector('.g-scene').getBoundingClientRect();
-        return !(scene.top >= map.bottom || scene.bottom <= map.top);
+        return !(
+          scene.top >= world.bottom ||
+          scene.bottom <= world.top ||
+          scene.left >= world.right ||
+          scene.right <= world.left
+        );
       });
-      assert(!covered, 'la escena se superpone con el mapa');
+      assert(!covered, 'la escena se superpone con el mundo');
     },
   );
 }
