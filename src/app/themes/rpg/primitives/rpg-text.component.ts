@@ -15,6 +15,8 @@ import { LearningProgressService } from '../../../core/services/learning-progres
     @for (segment of segments(); track $index) {
       @if (segment.kind === 'term') {
         <code class="t">{{ segment.value }}</code>
+      } @else if (segment.kind === 'data') {
+        <samp class="d">{{ segment.value }}</samp>
       } @else {
         <span>{{ segment.value }}</span>
       }
@@ -31,6 +33,15 @@ import { LearningProgressService } from '../../../core/services/learning-progres
       border-radius: 5px;
       background: var(--rpg-term);
       color: var(--rpg-term-ink);
+      white-space: nowrap;
+    }
+    /* Un dato que devolvió la plataforma: se lee como dato, no como prosa. */
+    .d {
+      font-family: var(--font-mono);
+      font-size: 0.8em;
+      padding: 1px 6px;
+      border: 1.5px solid currentColor;
+      border-radius: 5px;
       white-space: nowrap;
     }
   `,

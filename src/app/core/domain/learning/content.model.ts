@@ -7,6 +7,8 @@
  * Marcas dentro de un texto:
  *   `{nombre llano|id-del-término}`  cambia de idioma al aprenderse (ver `morph.ts`)
  *   `[valor]`                        lo completa la misión con lo que midió
+ *   `[=valor]`                       ídem, pero es un dato que devolvió la plataforma:
+ *                                    se muestra tal cual llegó, marcado como dato
  */
 export interface PathContent {
   /** Lo que dice el botón que elige este camino. */
@@ -58,11 +60,17 @@ export interface LearningContent {
   missions: Record<string, MissionContent>;
 }
 
-/** Completa las marcas `[valor]` de un texto. Una marca sin valor queda visible. */
+/**
+ * Completa las marcas `[valor]` y `[=valor]` de un texto. Una marca sin valor queda
+ * visible. Un dato literal sale como `{=dato}`, para que `morph` lo marque.
+ */
 export function fill(text: string, values: Readonly<Record<string, string | number>>): string {
-  return text.replace(/\[([a-z]+)\]/gi, (mark, key: string) =>
-    key in values ? String(values[key]) : mark,
-  );
+  return text.replace(/\[(=?)([a-z]+)\]/gi, (mark, literal: string, key: string) => {
+    if (!(key in values)) return mark;
+    const value = String(values[key]);
+    // Las llaves son la sintaxis de las marcas: un dato no puede traer las suyas.
+    return literal ? `{=${value.replace(/[{}]/g, '')}}` : value;
+  });
 }
 
 /** Todas las líneas que un camino puede llegar a mostrar en la caja de diálogo. */

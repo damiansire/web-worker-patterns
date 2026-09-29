@@ -50,6 +50,24 @@ describe('morph: el texto cambia de idioma por palabra aprendida', () => {
   });
 });
 
+describe('morph: lo que devolvió la plataforma se lee como dato', () => {
+  it('un dato literal sale marcado, tal cual llegó', () => {
+    expect(morph('Volvió {=HOLA}.', learned())).toEqual([
+      { kind: 'text', value: 'Volvió ' },
+      { kind: 'data', value: 'HOLA' },
+      { kind: 'text', value: '.' },
+    ]);
+  });
+
+  it('convive con los términos y no se confunde con uno', () => {
+    const text = '{El ayudante|worker} devolvió {=HOLA}.';
+
+    expect(read(text, ['worker'])).toBe('worker devolvió HOLA.');
+    expect(unknownTerms(text)).toEqual([]);
+    expect(wordCount(text)).toBe(4);
+  });
+});
+
 describe('wordCount: presupuesto de palabras en pantalla', () => {
   it('cuenta las palabras de un texto llano', () => {
     expect(wordCount('Acá atiendo todo yo. Solo.')).toBe(5);

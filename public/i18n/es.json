@@ -456,12 +456,12 @@
           "function": {
             "label": "Mandar una función",
             "during": "A ver si pasa.",
-            "after": ["No salió: [error].", "Solo viaja {la copia|structured-clone} de datos."]
+            "after": ["No salió: [=error].", "Solo viaja {la copia|structured-clone} de datos."]
           },
           "message": {
             "label": "Mandar un saludo",
             "during": "Carta en camino.",
-            "after": ["Volvió: [reply].", "Ida y vuelta: [ms] ms."]
+            "after": ["Mandaste [=sent]. Volvió [=reply].", "Ida y vuelta: [ms] ms."]
           }
         }
       },

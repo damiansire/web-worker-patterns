@@ -20,7 +20,7 @@ const MAX_LINE = 8;
 const MAX_LABEL = 4;
 
 /** Una línea con los valores medidos ya puestos: cada marca ocupa una palabra. */
-const asShown = (text: string) => text.replace(/\[[a-z]+\]/gi, 'valor');
+const asShown = (text: string) => text.replace(/\[=?[a-z]+\]/gi, 'valor');
 
 const lines: [where: string, text: string][] = [];
 const labels: [where: string, text: string][] = [];
@@ -183,6 +183,13 @@ describe('fill', () => {
 
   it('una marca sin valor queda a la vista, no desaparece', () => {
     expect(fill('Tardó [ms] ms.', {})).toBe('Tardó [ms] ms.');
+  });
+
+  it('un dato de la plataforma sale marcado como dato', () => {
+    expect(fill('Volvió [=reply].', { reply: 'HOLA' })).toBe('Volvió {=HOLA}.');
+    // Las llaves son la sintaxis de las marcas: un dato no puede traer las suyas.
+    expect(fill('Volvió [=reply].', { reply: '{HOLA}' })).toBe('Volvió {=HOLA}.');
+    expect(fill('Volvió [=reply].', {})).toBe('Volvió [=reply].');
   });
 
   it('no toca las marcas de término', () => {

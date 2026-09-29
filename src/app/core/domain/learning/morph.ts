@@ -13,22 +13,30 @@ import { findTerm, TermId } from './vocabulary';
  *     -> [texto 'Llamá a ', texto 'un ayudante', texto '.']
  *   morph('Llamá a {un ayudante|new-worker}.', new Set(['new-worker']))
  *     -> [texto 'Llamá a ', término 'new Worker()', texto '.']
+ *
+ * Hay una segunda marca, `{=dato}`: algo que devolvió la plataforma (la respuesta
+ * de un worker, el nombre de un error). Se muestra tal cual llegó y se distingue
+ * de la prosa: un `HOLA` que volvió en mayúsculas es un dato, no un grito.
  */
 export type Segment =
-  { kind: 'text'; value: string } | { kind: 'term'; termId: TermId; value: string };
+  | { kind: 'text'; value: string }
+  | { kind: 'term'; termId: TermId; value: string }
+  | { kind: 'data'; value: string };
 
-const TOKEN = /\{([^{}|]+)\|([^{}|]+)(?:\|([^{}|]+))?\}/g;
+const TOKEN = /\{([^{}|]+)\|([^{}|]+)(?:\|([^{}|]+))?\}|\{=([^{}]*)\}/g;
 
 export function morph(text: string, learned: ReadonlySet<TermId>): Segment[] {
   const segments: Segment[] = [];
   let cursor = 0;
   for (const match of text.matchAll(TOKEN)) {
-    const [token, plain, id, shown] = match;
-    const term = findTerm(id);
+    const [token, plain, id, shown, data] = match;
     if (match.index > cursor) {
       segments.push({ kind: 'text', value: text.slice(cursor, match.index) });
     }
-    if (term && learned.has(term.id)) {
+    const term = data === undefined ? findTerm(id) : undefined;
+    if (data !== undefined) {
+      segments.push({ kind: 'data', value: data });
+    } else if (term && learned.has(term.id)) {
       segments.push({ kind: 'term', termId: term.id, value: shown ?? term.api });
     } else {
       segments.push({ kind: 'text', value: plain });
@@ -43,7 +51,10 @@ export function morph(text: string, learned: ReadonlySet<TermId>): Segment[] {
 
 /** Ids de término que un texto menciona y que no existen en el vocabulario. */
 export function unknownTerms(text: string): string[] {
-  return [...text.matchAll(TOKEN)].map((match) => match[2]).filter((id) => !findTerm(id));
+  return [...text.matchAll(TOKEN)]
+    .filter((match) => match[4] === undefined)
+    .map((match) => match[2])
+    .filter((id) => !findTerm(id));
 }
 
 /**
@@ -53,7 +64,7 @@ export function unknownTerms(text: string): string[] {
  */
 export function wordCount(text: string): number {
   const count = (value: string) => value.trim().split(/\s+/).filter(Boolean).length;
-  const plain = text.replace(TOKEN, (_, llano: string) => llano);
-  const api = text.replace(TOKEN, () => 'API');
+  const plain = text.replace(TOKEN, (...parts: (string | undefined)[]) => parts[4] ?? parts[1]!);
+  const api = text.replace(TOKEN, (...parts: (string | undefined)[]) => parts[4] ?? 'API');
   return Math.max(count(plain), count(api));
 }
