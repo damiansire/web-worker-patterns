@@ -267,6 +267,8 @@ export class RpgGameComponent {
   private raf = 0;
   private talkOnArrival: Actor | null = null;
   private steps = 0;
+  /** Un camino elegido que todavía espera lo que su misión mide de antemano. */
+  private starting = false;
   private lines: Line[] = [];
   private afterLines: (() => void) | null = null;
   /** Rebote contra una pared: hacia dónde y desde cuándo. */
@@ -408,7 +410,9 @@ export class RpgGameComponent {
   /** Camina hasta alguien y le habla. */
   protected goTalk(actor: Actor): void {
     this.closeSheet();
-    if (this.isLocked() || this.running()) return;
+    if (this.running()) return;
+    // Elegir a otro vecino en medio de una charla la termina: se va a hablar con él.
+    if (this.isLocked()) this.close();
     const plan = approach(this.grid(), this.position(), actor);
     if (!plan) return;
     if (plan.path.length === 0) {
@@ -780,7 +784,16 @@ export class RpgGameComponent {
   ): Promise<void> {
     const runner = RUNNERS[exampleId]?.[path.id];
     const lines: PathContent = written.paths[path.id];
-    if (!runner || this.running()) return;
+    if (!runner || this.running() || this.starting) return;
+
+    // Lo que la misión mide de antemano tiene que estar listo ANTES de anunciar nada:
+    // decir "congelado" mientras la página todavía se mueve sería mentir.
+    this.starting = true;
+    try {
+      await PREPARE[exampleId]?.({ ctl: this.ctl, until: (read) => this.until(read) });
+    } finally {
+      this.starting = false;
+    }
 
     // El idioma de ANTES: lo que este camino enseña se lee en llano y recién
     // después se presenta como palabra nueva.

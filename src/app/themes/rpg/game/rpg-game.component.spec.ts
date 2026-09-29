@@ -122,6 +122,17 @@ describe('RpgGameComponent', () => {
     ]);
   });
 
+  it('elegir a otro vecino en medio de una charla va a hablar con él', async () => {
+    await talkTo('Relojera');
+    await press('.g-choices button', 'Seguir');
+    expect(text('.g-line')).toBe('¿Quién le da cuerda?');
+
+    await talkTo('Main');
+
+    expect(text('.g-who')).toBe('Main');
+    expect(host.querySelector('.g-sheet')).toBeNull();
+  });
+
   it('con una palabra aprendida, el vecino y los botones cambian de idioma', async () => {
     TestBed.inject(LearningProgressService).completePath('01-setinterval-counter', 'worker');
     fixture.detectChanges();
