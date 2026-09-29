@@ -83,7 +83,7 @@
     "dependency-cruiser": "^17.4.3",
     "eslint": "^10.11.0",
     "jsdom": "^27.0.0",
-    "playwright": "^1.60.0",
+    "playwright": "^1.63.0",
     "prettier": "^3.9.9",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.70.1",
