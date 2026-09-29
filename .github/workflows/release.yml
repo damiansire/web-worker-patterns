@@ -46,8 +46,8 @@ jobs:
         if: env.HAS_NPM_TOKEN == 'true'
         uses: changesets/action@v2
         with:
-          version: npm run version-packages
-          publish: npm run release
+          version-script: npm run version-packages
+          publish-script: npm run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -57,7 +57,7 @@ jobs:
         if: env.HAS_NPM_TOKEN != 'true'
         uses: changesets/action@v2
         with:
-          version: npm run version-packages
+          version-script: npm run version-packages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Aviso de publicacion omitida
