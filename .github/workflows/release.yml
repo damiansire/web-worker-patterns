@@ -44,7 +44,7 @@ jobs:
       - run: npm run build
       - name: Version PR o publicacion (Changesets)
         if: env.HAS_NPM_TOKEN == 'true'
-        uses: changesets/action@v1
+        uses: changesets/action@v2
         with:
           version: npm run version-packages
           publish: npm run release
@@ -55,7 +55,7 @@ jobs:
       # sale a npm.
       - name: Version PR, sin publicar (falta NPM_TOKEN)
         if: env.HAS_NPM_TOKEN != 'true'
-        uses: changesets/action@v1
+        uses: changesets/action@v2
         with:
           version: npm run version-packages
         env:
