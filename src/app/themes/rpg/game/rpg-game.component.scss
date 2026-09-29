@@ -13,7 +13,10 @@
 // son pixel art, no chrome.
 
 $phone: '(max-width: 560px)';
-$side: '(min-width: 900px) and (min-aspect-ratio: 5/4) and (min-height: 600px)';
+// Por debajo de 1000 px de ancho, apilado le da más lugar al mundo que una columna.
+$side: '(min-width: 1000px) and (min-aspect-ratio: 5/4) and (min-height: 560px)';
+// Al costado y con alto de sobra: la caja crece y la escena tiene su propia fila.
+$roomy: '(min-height: 640px)';
 
 :host {
   display: block;
@@ -26,6 +29,16 @@ $side: '(min-width: 900px) and (min-aspect-ratio: 5/4) and (min-height: 600px)';
   --g-hud: calc(var(--g-row) + var(--g-gap) + var(--g-bar));
   // Por debajo de este alto de mundo ya no se achica más: la página scrollea.
   --g-world-min: 180px;
+
+  // El alto del juego: todo el que hay, entre un piso y un techo.
+  --g-free: calc(100dvh - var(--g-shell));
+  --g-floor: calc(var(--g-hud) + var(--g-world-min) + var(--g-dialog) + var(--g-gap) * 2);
+  // El techo: el mundo no se estira sin fin en una ventana muy alta. Su lugar nunca
+  // es más alto que ancho, así siempre se ve la mayor parte del mapa.
+  --g-cap: calc(
+    var(--g-hud) + var(--g-dialog) + var(--g-gap) * 2 + min(100vw - 32px, 1120px) / 1.1
+  );
+  --g-height: max(var(--g-floor), min(var(--g-free), var(--g-cap)));
 }
 
 .g {
@@ -37,15 +50,10 @@ $side: '(min-width: 900px) and (min-aspect-ratio: 5/4) and (min-height: 600px)';
     'stage'
     'dialog';
   gap: var(--g-gap);
-  height: calc(100dvh - var(--g-shell));
-  min-height: calc(var(--g-hud) + var(--g-world-min) + var(--g-dialog) + var(--g-gap) * 2);
-  // En una ventana muy alta el mundo no se estira sin fin: siempre se ve la mayor
-  // parte del mapa (su lugar nunca es más alto que ancho).
-  max-height: calc(
-    var(--g-hud) + var(--g-dialog) + var(--g-gap) * 2 + min(100vw - 32px, 1120px) / 1.1
-  );
+  height: var(--g-height);
   max-width: 1120px;
-  margin-inline: auto;
+  // Si sobra alto, el juego queda centrado en la pantalla.
+  margin: max(0px, calc((var(--g-free) - var(--g-height)) / 2)) auto 0;
   font-family: var(--font-display);
   color: var(--ink);
 }
@@ -569,7 +577,7 @@ $side: '(min-width: 900px) and (min-aspect-ratio: 5/4) and (min-height: 600px)';
   cursor: pointer;
 }
 // Las teclas, a la vista: solo donde hay teclado y lugar (columna al costado).
-.g-keys {
+.g-foot {
   display: none;
 }
 
@@ -611,6 +619,18 @@ $side: '(min-width: 900px) and (min-aspect-ratio: 5/4) and (min-height: 600px)';
     align-content: end;
     overflow: visible;
   }
+  // Con la escena al lado, al texto le queda media caja: letra más chica.
+  .g-line {
+    font-size: 19px;
+  }
+  .g-dialog[data-kind='word'],
+  .g-dialog[data-kind='done'],
+  .g-dialog[data-kind='stamp'],
+  .g-dialog[data-kind='final'] {
+    .g-line {
+      font-size: 23px;
+    }
+  }
   .g-mill {
     width: 40px;
     height: 40px;
@@ -630,27 +650,28 @@ $side: '(min-width: 900px) and (min-aspect-ratio: 5/4) and (min-height: 600px)';
     --g-bar: 44px;
     // Tres opciones de 44 px, una debajo de la otra.
     --g-dialog: 262px;
-    // En el teléfono la franja del shell tiene dos renglones.
-    --g-shell: var(--rpg-shell, 116px);
-  }
-  .g-line {
-    font-size: 19px;
-  }
-  .g-dialog[data-kind='word'],
-  .g-dialog[data-kind='done'],
-  .g-dialog[data-kind='stamp'],
-  .g-dialog[data-kind='final'] {
-    .g-line {
-      font-size: 23px;
-    }
+    --g-shell: var(--rpg-shell, 68px);
+    // Con las barras del navegador a la vista quedan unos 640 px de alto: el mundo
+    // cede hasta acá antes de que la página scrollee.
+    --g-world-min: 150px;
   }
 }
 
 // ── al costado: el mundo ocupa todo el alto ──
 @media #{$side} {
   :host {
-    --g-dialog: 340px;
-    --g-side: clamp(320px, 30vw, 380px);
+    // Menos de 344 px y el nombre de la región más largo no entra en su fila.
+    --g-side: clamp(344px, 30vw, 380px);
+    --g-dialog-min: 340px;
+    --g-floor: calc(var(--g-hud) + var(--g-dialog-min) + var(--g-gap));
+    // Igual que apilado: el lugar del mundo nunca es más alto que ancho.
+    --g-cap: min(1000px, calc((100vw - 48px - var(--g-side)) / 1.1));
+    // La caja toma el alto que haya, hasta donde le sirve.
+    --g-dialog: clamp(
+      var(--g-dialog-min),
+      calc(var(--g-height) - var(--g-hud) - var(--g-gap)),
+      430px
+    );
   }
   .g {
     grid-template-columns: minmax(0, 1fr) var(--g-side);
@@ -658,12 +679,9 @@ $side: '(min-width: 900px) and (min-aspect-ratio: 5/4) and (min-height: 600px)';
     grid-template-areas:
       'stage hud'
       'stage dialog'
-      'stage keys';
+      'stage foot';
     column-gap: 16px;
-    min-height: calc(var(--g-hud) + var(--g-dialog) + var(--g-gap));
-    // Igual que apilado: el lugar del mundo nunca es más alto que ancho.
-    max-height: min(900px, calc((100vw - 48px - var(--g-side)) / 1.1));
-    max-width: 1560px;
+    max-width: 1760px;
   }
   // Con el mundo tan grande, una hoja no necesita taparlo entero: se abre contra
   // la columna y el resto del mundo sigue a la vista.
@@ -675,36 +693,84 @@ $side: '(min-width: 900px) and (min-aspect-ratio: 5/4) and (min-height: 600px)';
     box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.35);
   }
 }
-@media #{$side} and (min-height: 700px) and (hover: hover) {
-  .g-keys {
-    grid-area: keys;
-    align-self: end;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px 16px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    font-size: 15px;
-    line-height: 1;
-    color: var(--ink-muted);
 
-    li {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      min-width: 0;
+// Con lugar de sobra la escena deja de ser una miniatura al lado del texto: tiene
+// su propia fila, a un tamaño en el que se ve lo que demuestra.
+@media #{$side} and #{$roomy} {
+  .g-dialog {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      'say'
+      'scene'
+      'choices';
+  }
+  .g-line {
+    font-size: 21px;
+  }
+  .g-dialog[data-kind='word'],
+  .g-dialog[data-kind='done'],
+  .g-dialog[data-kind='stamp'],
+  .g-dialog[data-kind='final'] {
+    .g-line {
+      font-size: 28px;
     }
-    kbd {
-      flex: none;
-      padding: 4px 6px;
-      border: 1px solid var(--border);
-      border-radius: 5px;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--ink);
-      white-space: nowrap;
-    }
+  }
+  .g-scene {
+    justify-self: center;
+    gap: 20px;
+  }
+  .g-mill {
+    width: 72px;
+    height: 72px;
+  }
+  .g-clock {
+    width: 96px;
+    height: 96px;
+  }
+}
+
+// La leyenda aparece solo si entra entera en lo que sobra debajo de la caja: lo
+// decide su propio lugar, no el tamaño de la ventana.
+@media #{$side} and (hover: hover) {
+  .g-foot {
+    grid-area: foot;
+    display: block;
+    min-height: 0;
+    container-type: size;
+  }
+}
+.g-keys {
+  display: none;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 16px;
+  margin: 0;
+  padding: 6px 0 0;
+  list-style: none;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--ink-muted);
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+  kbd {
+    flex: none;
+    padding: 4px 6px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+}
+@container (min-height: 104px) {
+  .g-keys {
+    display: grid;
   }
 }
 
