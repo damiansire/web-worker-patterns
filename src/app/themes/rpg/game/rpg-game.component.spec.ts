@@ -4,6 +4,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideTransloco, Translation, TranslocoLoader } from '@jsverse/transloco';
 import { of } from 'rxjs';
+import { findMaster } from '../../../core/domain/learning/masters';
+import { MISSIONS, REGIONS } from '../../../core/domain/learning/missions';
+import { findTerm } from '../../../core/domain/learning/vocabulary';
 import { LearningProgressService } from '../../../core/services/learning-progress.service';
 import { RpgGameComponent } from './rpg-game.component';
 
@@ -150,7 +153,8 @@ describe('RpgGameComponent', () => {
 
     await talkTo('Maestra');
 
-    expect(text('.g-line')).toBe('Te falta una palabra. Hablá con Pintor.');
+    // Nombra de una vez a todos los que enseñan lo que falta.
+    expect(text('.g-line')).toBe('Te falta vocabulario. Hablá con Pintor y Relojera.');
     expect(progress.isStamped('understanding')).toBe(false);
   });
 
@@ -189,6 +193,42 @@ describe('RpgGameComponent', () => {
 
     await press('.g-choices button', 'Seguir');
     expect(text('.g-line')).toBe('Un cálculo largo traba la página.');
+  });
+
+  it('el quinto sello cierra el viaje con su propia ceremonia', async () => {
+    const progress = TestBed.inject(LearningProgressService);
+    for (const mission of MISSIONS) {
+      for (const path of mission.paths) progress.completePath(mission.exampleId, path.id);
+    }
+    for (const region of REGIONS.slice(0, -1)) progress.stamp(region);
+    // Volver al juego: se aparece en la región que queda por sellar.
+    fixture.destroy();
+    fixture = TestBed.createComponent(RpgGameComponent);
+    host = fixture.nativeElement as HTMLElement;
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(text('.g-region')).toBe('La Frontera');
+
+    await talkTo('Maestra');
+    await press('.g-choices button', 'Seguir');
+    for (const challenge of findMaster('advanced')!.challenges) {
+      await press('.g-choices button', findTerm(challenge.answer)!.api);
+      await afterHit();
+    }
+    expect(text('.g-line')).toBe('Sello de La Frontera. Bien ganado.');
+    expect(host.querySelector('.g-stamps.is-party')).toBeNull();
+
+    await press('.g-choices button', 'Seguir');
+    expect(text('.g-who')).toBe('Viaje completo');
+    expect(text('.g-line')).toBe('Cinco sellos. Recorriste los 16 patrones.');
+    expect(host.querySelector('.g-dialog')?.getAttribute('data-kind')).toBe('final');
+    expect(host.querySelector('.g-stamps.is-party')).not.toBeNull();
+
+    // Y el reposo ya no explica cómo se juega: despide.
+    await press('.g-choices button', 'Seguir');
+    expect(text('.g-line')).toBe('Viaje completo. El pueblo es tuyo.');
+    expect(host.querySelector('.g-stamps.is-party')).toBeNull();
   });
 
   it('una palabra entra al Workerdex cuando se la presenta, no antes', async () => {

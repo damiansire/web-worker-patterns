@@ -6,6 +6,7 @@
         <span class="g-count">{{ done() }}/{{ total }}</span>
         <span
           class="g-stamps"
+          [class.is-party]="dialog()?.kind === 'final'"
           role="img"
           [attr.aria-label]="c.ui['stamps'] + ' ' + stampCount() + '/' + stamps().length"
         >
@@ -181,7 +182,9 @@
       } @else {
         <div class="g-say">
           <span class="g-who">{{ c.ui['title'] }}</span>
-          <p class="g-line">{{ touch ? c.ui['startTouch'] : c.ui['start'] }}</p>
+          <p class="g-line">
+            {{ journeyDone() ? c.ui['startDone'] : touch ? c.ui['startTouch'] : c.ui['start'] }}
+          </p>
         </div>
       }
     </div>

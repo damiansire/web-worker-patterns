@@ -296,6 +296,8 @@
       "startTouch": "Tocá a un vecino para hablar.",
       "missionDone": "Misión cumplida.",
       "stampEarned": "Sello nuevo",
+      "journeyDone": "Viaje completo",
+      "startDone": "Viaje completo. El pueblo es tuyo.",
       "close": "Cerrar",
       "frozenFor": "congelado [seg]"
     },
@@ -718,7 +720,7 @@
           "missing": "El navegador puede no tener {ayudantes|worker|workers}."
         }
       },
-      "missing": "Te falta una palabra. Hablá con [npc]."
+      "missing": "Te falta vocabulario. Hablá con [npc]."
     }
   }
 }

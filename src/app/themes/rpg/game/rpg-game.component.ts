@@ -62,8 +62,11 @@ interface Choice {
   run: () => void;
 }
 
-/** `word`, `done` y `stamp` son los momentos de valor: se muestran con ceremonia. */
-type Kind = 'talk' | 'word' | 'done' | 'stamp' | 'notice';
+/**
+ * `word`, `done`, `stamp` y `final` son los momentos de valor: se muestran con
+ * ceremonia. `final` es el pico del juego: los cinco sellos festejan.
+ */
+type Kind = 'talk' | 'word' | 'done' | 'stamp' | 'final' | 'notice';
 
 interface Line {
   who: string;
@@ -170,6 +173,8 @@ export class RpgGameComponent {
     return REGIONS.map((region) => earned.includes(region));
   });
   protected readonly stampCount = computed(() => this.progress.stamps().length);
+  /** Con los cinco sellos, el reposo ya no explica cómo se juega: despide. */
+  protected readonly journeyDone = computed(() => this.stampCount() === REGIONS.length);
 
   // ── estado del main ──
   protected readonly mode = signal<'free' | 'frozen' | 'busy'>('free');
@@ -660,8 +665,11 @@ export class RpgGameComponent {
     const who = ui['guard'];
     const next = nextRegion(this.region());
     if (this.stamped()) {
-      const text = next ? fill(ui['guardOpen'], { next: content.regions[next.id] }) : masters.final;
-      this.play([{ who, text }]);
+      this.play([
+        next
+          ? { who, text: fill(ui['guardOpen'], { next: content.regions[next.id] }) }
+          : { who: ui['journeyDone'], text: masters.final, kind: 'final' },
+      ]);
       return;
     }
     if (!this.regionDone()) {
@@ -677,7 +685,13 @@ export class RpgGameComponent {
     const master = findMaster(this.region().id);
     const missing = master ? missingTerms(master, this.progress.learned()) : [];
     if (missing.length > 0) {
-      const npc = content.missions[teacherOf(missing[0]) ?? '']?.npc ?? '';
+      // De una vez, todos los que enseñan lo que falta: sin idas y vueltas.
+      const teachers = [...new Set(missing.map((term) => teacherOf(term) ?? ''))];
+      const npc = teachers
+        .map((exampleId) => content.missions[exampleId]?.npc ?? '')
+        .filter((name) => name !== '')
+        .slice(0, 2)
+        .join(' y ');
       this.play([{ who, text: fill(masters.missing, { npc }) }]);
       return;
     }
@@ -729,7 +743,7 @@ export class RpgGameComponent {
     const text = fill(content.masters.pass, { region: content.regions[region.id] });
     const lines: Line[] = [{ who: content.ui['stampEarned'], text, kind: 'stamp' }];
     if (!nextRegion(region)) {
-      lines.push({ who: content.ui['guard'], text: content.masters.final });
+      lines.push({ who: content.ui['journeyDone'], text: content.masters.final, kind: 'final' });
     }
     this.play(lines);
   }

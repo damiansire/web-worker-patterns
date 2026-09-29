@@ -42,6 +42,7 @@ for (const [id, term] of Object.entries(content.vocab)) {
 for (const key of [
   'start',
   'startTouch',
+  'startDone',
   'nobody',
   'missionDone',
   'guardLocked',
