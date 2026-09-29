@@ -28,7 +28,7 @@ jobs:
       - run: npm ci
       # Cachea la build incremental de Angular: cambiar un spec no recompila todo.
       - name: Cache Angular build
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .angular/cache
           key: angular-cache-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
