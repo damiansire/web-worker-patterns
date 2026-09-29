@@ -562,10 +562,53 @@ await check(
   { hasTouch: true, isMobile: true },
 );
 
-for (const size of [
+// Los tamaños donde el juego cambia de forma, y los que más aprietan: la columna
+// más angosta, el apilado más ancho y un teléfono con las barras del navegador a la
+// vista (de 844 px de pantalla quedan unos 664).
+const SCREENS = [
   { name: 'escritorio', width: 1280, height: 720 },
+  { name: 'escritorio grande', width: 1440, height: 900 },
+  { name: 'columna angosta', width: 1000, height: 720 },
+  { name: 'apilado ancho', width: 976, height: 720 },
   { name: 'teléfono', width: 390, height: 844 },
-]) {
+  { name: 'teléfono con barras', width: 390, height: 664 },
+];
+
+/** Lo que una pantalla no puede tener: nombres cortados ni piezas pisándose. */
+const clashes = (page) =>
+  page.evaluate(() => {
+    const box = (selector) => {
+      const el = document.querySelector(selector);
+      const rect = el?.getBoundingClientRect();
+      return rect && rect.width > 0 && rect.height > 0 ? rect : null;
+    };
+    const textOf = (selector) => {
+      const el = document.querySelector(selector);
+      if (!el) return null;
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const rect = range.getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0 ? rect : null;
+    };
+    const hit = (a, b) =>
+      !!a &&
+      !!b &&
+      !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
+    const found = [];
+    const region = document.querySelector('.g-region');
+    if (region.scrollWidth > region.clientWidth) found.push('el nombre de la región se corta');
+    if (hit(box('.g-keys'), box('.g-dialog'))) found.push('las teclas pisan la caja');
+    if (hit(textOf('.g-line'), box('.g-scene'))) found.push('el texto pisa la escena');
+    if (hit(textOf('.g-line'), box('.g-choices'))) found.push('el texto pisa las opciones');
+    if (hit(box('.g-scene'), box('.g-choices'))) found.push('la escena pisa las opciones');
+    const last = [...document.querySelectorAll('.g-choices .g-btn')].at(-1);
+    if (last && last.getBoundingClientRect().bottom > innerHeight) {
+      found.push('la última opción queda fuera de la pantalla');
+    }
+    return found;
+  });
+
+for (const size of SCREENS) {
   await check(
     `entra en pantalla en ${size.name}, con el Workerdex lleno y una escena abierta`,
     async (page) => {
@@ -582,13 +625,16 @@ for (const size of [
           y: document.documentElement.scrollHeight - document.documentElement.clientHeight,
         }));
       const states = [['en reposo', await overflow()]];
+      const broken = (await clashes(page)).map((what) => `en reposo: ${what}`);
       await openSheet(page, content.ui.dex);
       states.push(['Workerdex abierto', await overflow()]);
       await closeSheet(page);
       await talkTo(page, '14-offscreen-canvas');
       await advanceToChoices(page, 'pantalla');
       states.push(['escena y opciones', await overflow()]);
+      broken.push(...(await clashes(page)).map((what) => `escena y opciones: ${what}`));
       await shot(page, `pantalla-${size.name}`);
+      assert(broken.length === 0, broken.join(' · '));
 
       const spilled = states.filter(([, o]) => o.x > 0 || o.y > 0);
       assert(
@@ -610,6 +656,33 @@ for (const size of [
     },
   );
 }
+
+await check('el nombre de cada región entra entero donde el HUD es más angosto', async (page) => {
+  await page.addInitScript((saved) => localStorage.setItem('wwp-progress', saved), fullProgress);
+  // Un vecino por región, leído del mapa: así pasan por el HUD los cinco nombres.
+  const world = readFileSync('src/app/themes/rpg/world/regions.ts', 'utf8');
+  const doors = [
+    ...world.matchAll(/id: '[a-z]+',\s+palette:[\s\S]*?neighbors: \[\s*\{ id: '([^']+)'/g),
+  ].map(([, exampleId]) => exampleId);
+  assert(doors.length === masters.length, `leí ${doors.length} regiones del mapa`);
+  const cut = [];
+  for (const size of [SCREENS[2], { name: 'teléfono angosto', width: 375, height: 812 }]) {
+    await page.setViewportSize({ width: size.width, height: size.height });
+    for (const door of doors) {
+      await open(page, `t/rpg/example/${door}`);
+      const name = await page.locator('.g-region').evaluate((el) => ({
+        text: el.textContent.trim(),
+        needs: el.scrollWidth,
+        has: el.clientWidth,
+      }));
+      if (name.needs > name.has) {
+        cut.push(`${size.name}: "${name.text}" necesita ${name.needs} px y tiene ${name.has}`);
+      }
+    }
+  }
+  assert(cut.length === 0, cut.join(' · '));
+  return `${doors.length} regiones en 2 tamaños`;
+});
 
 for (const mission of missions) {
   const npc = content.missions[mission.exampleId].npc;
@@ -651,7 +724,7 @@ if (over.length > 0) {
   );
 }
 
-const EXPECTED = 8 + missions.length;
+const EXPECTED = 7 + SCREENS.length + missions.length;
 const failed = results.filter((result) => !result.ok);
 if (only) {
   console.log(`\nCorrida parcial (WWP_ONLY=${only}): no cuenta como gate.`);
