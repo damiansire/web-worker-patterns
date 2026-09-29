@@ -23,6 +23,15 @@ import { CompositorDemoService } from '../services/compositor-demo.service';
 import { type CloneCostPoint, formatBytes } from '../domain/clone-cost';
 import { ThreadLane } from '../domain/thread-lane';
 
+/** Tope del cómputo cuando el número lo escribe una persona en un campo. */
+const COMPUTE_INPUT_MAX = 5_000_000;
+
+/** Hasta dónde contar: lo pedido, acotado a `max`. Sin un número válido, un trabajo chico. */
+export function computeLimit(value: string, max = COMPUTE_INPUT_MAX): number {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? Math.min(n, max) : 500_000;
+}
+
 /**
  * Orquestación neutral del example-layout, compartida por los 5 themes.
  *
@@ -301,20 +310,16 @@ export class ExampleLayoutController {
     this.runner.runMainBlockingDemo();
   }
 
-  computeWorker(value: string): void {
+  /** `max` es el tope de lo que se acepta: lo que escribe una persona se acota más. */
+  computeWorker(value: string, max = COMPUTE_INPUT_MAX): void {
     const ex = this.example();
     if (ex) {
-      this.compute.runWorker(ex, this.parseN(value));
+      this.compute.runWorker(ex, computeLimit(value, max));
     }
   }
 
-  computeMain(value: string): void {
-    this.compute.runMain(this.parseN(value));
-  }
-
-  private parseN(value: string): number {
-    const n = Number(value);
-    return Number.isFinite(n) && n > 0 ? Math.min(n, 5_000_000) : 500_000;
+  computeMain(value: string, max = COMPUTE_INPUT_MAX): void {
+    this.compute.runMain(computeLimit(value, max));
   }
 
   sendOk(): void {

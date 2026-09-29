@@ -26,7 +26,7 @@ import { TermId, VOCABULARY } from '../../../core/domain/learning/vocabulary';
 import { ExampleLayoutController } from '../../../core/presentation/example-layout.controller';
 import { LearningContentService } from '../../../core/services/learning-content.service';
 import { LearningProgressService } from '../../../core/services/learning-progress.service';
-import { BLOCKS_MAIN, LIVE, RUNNERS, Values } from '../missions/mission-runner';
+import { BLOCKS_MAIN, LIVE, PREPARE, RUNNERS, Values } from '../missions/mission-runner';
 import { RpgPulseComponent } from '../primitives/rpg-pulse.component';
 import { RpgTextComponent } from '../primitives/rpg-text.component';
 import { MAP_HEIGHT, MAP_WIDTH, paint, Person, TILE } from '../world/painter';
@@ -651,6 +651,8 @@ export class RpgGameComponent {
     if (!mission || !written) return;
 
     this.ctl.useExample(actor.id);
+    // Lo que la misión necesita medir de antemano corre mientras el vecino saluda.
+    void PREPARE[actor.id]?.({ ctl: this.ctl, until: (read) => this.until(read) });
     const opening = this.progress.isMissionDone(actor.id) ? written.done : written.hello;
     this.play([{ who: written.npc, text: opening }], () => this.ask(actor.id));
   }

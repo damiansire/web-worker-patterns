@@ -1,5 +1,5 @@
 import { MISSIONS } from '../../../core/domain/learning/missions';
-import { LIVE, RUNNERS } from './mission-runner';
+import { LIVE, PREPARE, RUNNERS } from './mission-runner';
 
 describe('mission-runner: cada camino tiene algo real que hacer', () => {
   it('hay un runner por cada camino de cada misión, y ninguno de más', () => {
@@ -17,5 +17,6 @@ describe('mission-runner: cada camino tiene algo real que hacer', () => {
     const known = new Set(MISSIONS.map((mission) => mission.exampleId));
 
     expect(Object.keys(LIVE).filter((id) => !known.has(id))).toEqual([]);
+    expect(Object.keys(PREPARE).filter((id) => !known.has(id))).toEqual([]);
   });
 });

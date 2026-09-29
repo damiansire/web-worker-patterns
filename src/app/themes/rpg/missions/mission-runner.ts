@@ -1,4 +1,5 @@
 import { ExampleLayoutController } from '../../../core/presentation/example-layout.controller';
+import { heavyLimit, PROBE_LIMIT } from './calibrate';
 
 /**
  * Qué HACE cada camino de cada misión: dispara el servicio real del ejemplo (los
@@ -39,7 +40,8 @@ export const BLOCKS_MAIN: ReadonlySet<string> = new Set([
   '13-graceful-degradation/fallback',
 ]);
 
-const HEAVY = 3_000_000;
+/** El juego elige el trabajo midiendo la máquina: acepta más que lo que se tipea a mano. */
+const HEAVY_MAX = 12_000_000;
 
 const now = () => performance.now();
 const seconds = (ms: number) =>
@@ -49,6 +51,33 @@ const number = (n: number) => n.toLocaleString('es-UY');
 const millis = (ms: number) =>
   ms.toLocaleString('es-UY', { maximumFractionDigits: ms < 10 ? 1 : 0 });
 const pause = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Hasta dónde cuenta el Molinero en esta máquina. Se mide una sola vez, en un
+ * worker (Main ni se entera), y los dos caminos cuentan hasta el mismo número: así
+ * el resultado coincide y lo único que cambia es quién esperó.
+ */
+let heavy: Promise<number> | null = null;
+const measureHeavy = ({ ctl, until }: Pick<MissionContext, 'ctl' | 'until'>): Promise<number> => {
+  heavy ??= (async () => {
+    ctl.computeWorker(String(PROBE_LIMIT));
+    await until(() => ctl.computePhase() === 'idle');
+    const probe = ctl.workerResult();
+    return heavyLimit(probe?.limit === PROBE_LIMIT ? probe.ms : 0);
+  })();
+  return heavy;
+};
+
+/**
+ * Lo que una misión adelanta apenas se abre la conversación, mientras el vecino
+ * saluda: cuando el jugador elige un camino, ya está listo.
+ */
+export const PREPARE: Record<
+  string,
+  (context: Pick<MissionContext, 'ctl' | 'until'>) => Promise<unknown>
+> = {
+  '04-offloading-computation': measureHeavy,
+};
 
 /** Bloquea el main con el runner del ejemplo 01 y mide cuánto estuvo congelado. */
 const blockMain: Runner = async ({ ctl, until }) => {
@@ -84,10 +113,11 @@ export const RUNNERS: Record<string, Record<string, Runner>> = {
     function: async ({ ctl }) => ({ values: { error: ctl.sendUncloneable() ?? '' } }),
     message: async ({ ctl, until }) => {
       const before = ctl.messages().length;
-      ctl.send('hola');
+      const sent = 'hola';
+      ctl.send(sent);
       await until(() => !ctl.pending() && ctl.messages().length >= before + 2);
       const reply = ctl.messages().at(-1);
-      return { values: { reply: reply?.text ?? '', ms: millis(reply?.roundTripMs ?? 0) } };
+      return { values: { sent, reply: reply?.text ?? '', ms: millis(reply?.roundTripMs ?? 0) } };
     },
   },
   '08-shared-worker': {
@@ -103,12 +133,12 @@ export const RUNNERS: Record<string, Record<string, Runner>> = {
   },
   '04-offloading-computation': {
     main: async ({ ctl, until }) => {
-      ctl.computeMain(String(HEAVY));
+      ctl.computeMain(String(await measureHeavy({ ctl, until })), HEAVY_MAX);
       const result = await until(() => ctl.mainResult());
       return { values: { count: number(result.count), seg: seconds(result.ms) } };
     },
     worker: async ({ ctl, until, steps }) => {
-      ctl.computeWorker(String(HEAVY));
+      ctl.computeWorker(String(await measureHeavy({ ctl, until })), HEAVY_MAX);
       await until(() => ctl.computePhase() === 'idle');
       const result = ctl.workerResult();
       if (!result) throw new Error(ctl.computeError() ?? 'sin resultado');
