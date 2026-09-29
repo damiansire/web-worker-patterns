@@ -176,7 +176,7 @@ function paintPerson(ctx: CanvasRenderingContext2D, person: Person, frozen: bool
 
 function paintBadge(ctx: CanvasRenderingContext2D, person: Person, crowded: boolean): void {
   if (!person.badge) return;
-  const X = person.x * TILE + (crowded ? 22 : 9);
+  const X = person.x * TILE + (crowded ? 28 : 9);
   const Y = person.y * TILE - (crowded ? 2 : 16) - (person.badgeLift ?? 0);
   const done = person.badge === 'done';
 

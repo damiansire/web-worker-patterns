@@ -1,44 +1,49 @@
 @if (content(); as c) {
   <section class="g" [attr.data-mode]="mode()">
     <header class="g-hud">
-      <h1 class="g-region">{{ regionName() }}</h1>
-      <span class="g-count">{{ done() }}/{{ total }}</span>
-      <span
-        class="g-stamps"
-        role="img"
-        [attr.aria-label]="c.ui['stamps'] + ' ' + stampCount() + '/' + stamps().length"
-      >
-        @for (earned of stamps(); track $index) {
-          <i [class.is-earned]="earned"></i>
-        }
-      </span>
-      <span class="g-vitals">
-        <rpg-pulse [label]="c.ui['pulse']" />
+      <div class="g-top">
+        <h1 class="g-region">{{ regionName() }}</h1>
+        <span class="g-count">{{ done() }}/{{ total }}</span>
+        <span
+          class="g-stamps"
+          role="img"
+          [attr.aria-label]="c.ui['stamps'] + ' ' + stampCount() + '/' + stamps().length"
+        >
+          @for (earned of stamps(); track $index) {
+            <i
+              [class.is-earned]="earned"
+              [attr.data-hits]="!earned && $index === regionIndex() ? examHits() : null"
+            ></i>
+          }
+        </span>
+      </div>
+      <div class="g-vitals">
+        <rpg-pulse class="g-pulse" [label]="c.ui['pulse']" />
         <span class="g-mode" aria-live="polite"><rpg-text [text]="modeLabel()" /></span>
-      </span>
-      <nav class="g-bar">
-        <button
-          type="button"
-          class="g-btn"
-          [attr.aria-expanded]="sheet() === 'neighbors'"
-          (click)="openSheet('neighbors')"
-        >
-          <span class="g-key" aria-hidden="true">V</span>
-          {{ c.ui['neighbors'] }}
-        </button>
-        <button
-          type="button"
-          class="g-btn"
-          [attr.aria-expanded]="sheet() === 'dex'"
-          (click)="openSheet('dex')"
-        >
-          <span class="g-key" aria-hidden="true">X</span>
-          {{ c.ui['dex'] }}
-          <span class="g-tally" [class.is-fresh]="dialog()?.kind === 'word'"
-            >{{ words().length }}/{{ vocabularySize }}</span
+        <nav class="g-bar">
+          <button
+            type="button"
+            class="g-btn"
+            [attr.aria-expanded]="sheet() === 'neighbors'"
+            (click)="openSheet('neighbors')"
           >
-        </button>
-      </nav>
+            <span class="g-key" aria-hidden="true">V</span>
+            {{ c.ui['neighbors'] }}
+          </button>
+          <button
+            type="button"
+            class="g-btn"
+            [attr.aria-expanded]="sheet() === 'dex'"
+            (click)="openSheet('dex')"
+          >
+            <span class="g-key" aria-hidden="true">X</span>
+            {{ c.ui['dex'] }}
+            <span class="g-tally" [class.is-fresh]="dialog()?.kind === 'word'"
+              >{{ words().length }}/{{ vocabularySize }}</span
+            >
+          </button>
+        </nav>
+      </div>
     </header>
 
     <div class="g-stage">
@@ -64,6 +69,9 @@
           role="dialog"
           [attr.aria-label]="open === 'neighbors' ? c.ui['neighbors'] : c.ui['dex']"
         >
+          <button type="button" class="g-btn g-close" (click)="closeSheet()">
+            {{ c.ui['close'] }}
+          </button>
           @if (open === 'neighbors') {
             <ul class="g-neighbors">
               @for (neighbor of neighbors(); track neighbor.actor.id) {
@@ -84,7 +92,8 @@
               @for (word of words(); track word.id) {
                 <li>
                   <code class="g-term">{{ word.api }}</code>
-                  <span>{{ word.plain }}</span>
+                  <span class="g-plain">{{ word.plain }}</span>
+                  <span class="g-note"><rpg-text [text]="word.note" /></span>
                 </li>
               } @empty {
                 <li class="g-dex-empty">{{ c.ui['dexEmpty'] }}</li>
@@ -106,9 +115,6 @@
               </button>
             }
           }
-          <button type="button" class="g-btn g-close" (click)="closeSheet()">
-            {{ c.ui['close'] }}
-          </button>
         </div>
       }
     </div>
@@ -151,7 +157,12 @@
 
         <div class="g-choices">
           @for (choice of d.choices; track choice.label) {
-            <button type="button" class="g-btn" (click)="choose(choice)">
+            <button
+              type="button"
+              class="g-btn"
+              [class.is-hit]="hit() !== '' && choice.label.endsWith('|' + hit() + '}')"
+              (click)="choose(choice)"
+            >
               <span class="g-key" aria-hidden="true">{{ $index + 1 }}</span>
               <rpg-text [text]="choice.label" />
               @if (choice.done) {

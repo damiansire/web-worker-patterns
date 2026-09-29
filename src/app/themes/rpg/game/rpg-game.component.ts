@@ -15,7 +15,12 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs/operators';
 import { fill, MissionContent, PathContent } from '../../../core/domain/learning/content.model';
-import { findMaster, optionsOf, teacherOf } from '../../../core/domain/learning/masters';
+import {
+  findMaster,
+  missingTerms,
+  optionsOf,
+  teacherOf,
+} from '../../../core/domain/learning/masters';
 import { findMission, MissionPath, REGIONS } from '../../../core/domain/learning/missions';
 import { TermId, VOCABULARY } from '../../../core/domain/learning/vocabulary';
 import { ExampleLayoutController } from '../../../core/presentation/example-layout.controller';
@@ -67,6 +72,8 @@ interface Line {
   values?: Values;
   /** Idioma con el que se lee esta línea (el de antes de aprender lo que enseña). */
   learned?: ReadonlySet<TermId>;
+  /** La palabra que esta línea presenta. */
+  term?: TermId;
 }
 
 interface Dialog extends Line {
@@ -81,6 +88,8 @@ const BUMP_MS = 140;
 const POP_MS = 420;
 const THAW_MS = 1000;
 const NOTICE_MS = 1400;
+const DONE_MS = 1100;
+const HIT_MS = 260;
 const BANNER_MS = 1300;
 const RUN_TIMEOUT_MS = 90_000;
 /** Hasta qué distancia (en casillas) un toque en el mapa cuenta como "ese vecino". */
@@ -191,6 +200,18 @@ export class RpgGameComponent {
   // ── hojas: vecinos y Workerdex, a pedido ──
   protected readonly sheet = signal<'neighbors' | 'dex' | null>(null);
   protected readonly confirmingRestart = signal(false);
+  /**
+   * Palabras ya aprendidas que todavía no tuvieron su presentación: entran al
+   * Workerdex (y a su contador) cuando se las muestra, no antes.
+   */
+  private readonly unannounced = signal<ReadonlySet<TermId>>(new Set());
+
+  // ── examen ──
+  /** Aciertos del examen en curso: el sello de la región se llena por tercios. */
+  protected readonly examHits = signal(0);
+  /** La opción recién acertada, mientras dura su destello. */
+  protected readonly hit = signal('');
+  protected readonly regionIndex = computed(() => REGIONS.indexOf(this.region().id));
 
   // ── progreso ──
   protected readonly done = this.progress.doneCount;
@@ -199,10 +220,14 @@ export class RpgGameComponent {
   protected readonly words = computed(() => {
     const vocab = this.content()?.vocab ?? {};
     const learned = this.progress.learned();
-    return VOCABULARY.filter((term) => learned.has(term.id)).map((term) => ({
-      ...term,
-      plain: vocab[term.id]?.plain ?? '',
-    }));
+    const waiting = this.unannounced();
+    return VOCABULARY.filter((term) => learned.has(term.id) && !waiting.has(term.id)).map(
+      (term) => ({
+        ...term,
+        plain: vocab[term.id]?.plain ?? '',
+        note: vocab[term.id]?.note ?? '',
+      }),
+    );
   });
 
   /** Los vecinos de la región, como lista: navegar sin depender del mapa. */
@@ -292,6 +317,11 @@ export class RpgGameComponent {
       this.closeSheet();
       return;
     }
+    // V y X alternan: la misma tecla que abre una hoja la cierra.
+    if (event.key === 'v' || event.key === 'x') {
+      this.openSheet(event.key === 'v' ? 'neighbors' : 'dex');
+      return;
+    }
     if (this.sheet()) return; // con una hoja abierta el mundo espera
 
     const dir = KEYS[event.key];
@@ -305,10 +335,6 @@ export class RpgGameComponent {
       if (onButton) return; // el botón enfocado se activa solo
       event.preventDefault();
       this.talk();
-      return;
-    }
-    if (event.key === 'v' || event.key === 'x') {
-      this.openSheet(event.key === 'v' ? 'neighbors' : 'dex');
       return;
     }
     const choice = this.dialog()?.choices[Number(event.key) - 1];
@@ -340,7 +366,8 @@ export class RpgGameComponent {
       .filter((candidate) => candidate.distance <= TAP_REACH)
       .sort((a, b) => a.distance - b.distance)[0];
 
-    if (near && near.distance <= 0.75) {
+    // A menos de una casilla del vecino, se quiso tocar al vecino y no al pasto.
+    if (near && near.distance <= 1) {
       this.goTalk(near.actor);
       return;
     }
@@ -646,6 +673,15 @@ export class RpgGameComponent {
       this.play([{ who, text: fill(ui['guardLocked'], { names: pending }) }]);
       return;
     }
+    // Varias palabras se aprenden por el camino que duele: sin ellas no hay examen.
+    const master = findMaster(this.region().id);
+    const missing = master ? missingTerms(master, this.progress.learned()) : [];
+    if (missing.length > 0) {
+      const npc = content.missions[teacherOf(missing[0]) ?? '']?.npc ?? '';
+      this.play([{ who, text: fill(masters.missing, { npc }) }]);
+      return;
+    }
+    this.examHits.set(0);
     this.play([{ who, text: masters.ready }], () => this.challenge(0));
   }
 
@@ -663,12 +699,22 @@ export class RpgGameComponent {
       label: `{${content.vocab[term]?.plain ?? term}|${term}}`,
       done: false,
       run: () => {
+        if (this.hit()) return; // el destello de un acierto está en curso
         if (term === challenge.answer) {
-          this.challenge(index + 1);
+          // El acierto se ve: la opción destella y el sello se llena un tercio.
+          this.hit.set(term);
+          this.examHits.set(index + 1);
+          this.later(HIT_MS, () => {
+            this.hit.set('');
+            this.challenge(index + 1);
+          });
           return;
         }
+        // Errar no echa a nadie: dice con quién repasar y vuelve a la misma situación.
         const teacher = content.missions[teacherOf(challenge.answer) ?? '']?.npc ?? '';
-        this.play([{ who, text: fill(content.masters.wrong, { npc: teacher }) }]);
+        this.play([{ who, text: fill(content.masters.wrong, { npc: teacher }) }], () =>
+          this.challenge(index),
+        );
       },
     }));
     const text = content.masters.challenges[region.id]?.[challenge.id] ?? '';
@@ -679,6 +725,7 @@ export class RpgGameComponent {
     const content = this.content()!;
     const region = this.region();
     this.progress.stamp(region.id);
+    this.examHits.set(0);
     const text = fill(content.masters.pass, { region: content.regions[region.id] });
     const lines: Line[] = [{ who: content.ui['stampEarned'], text, kind: 'stamp' }];
     if (!nextRegion(region)) {
@@ -783,15 +830,17 @@ export class RpgGameComponent {
       this.pop = { id: exampleId, start: performance.now() };
       this.animateExtras();
     }
-    // Cada palabra nueva se presenta en dos tiempos: cómo se llamaba y cómo se
-    // llama, y después para qué sirve.
+    // Cada palabra nueva se presenta: cómo se llamaba y cómo se llama. Para qué
+    // sirve queda en el Workerdex, así la salida de una misión no se hace larga.
+    this.unannounced.set(new Set(fresh));
     for (const id of fresh) {
-      const word = content.vocab[id];
-      const who = content.ui['newWord'];
-      news.push(
-        { who, text: `${word?.plain ?? ''} → {${word?.plain ?? ''}|${id}}`, kind: 'word' },
-        { who, text: word?.note ?? '' },
-      );
+      const plain = content.vocab[id]?.plain ?? '';
+      news.push({
+        who: content.ui['newWord'],
+        text: `${plain} → {${plain}|${id}}`,
+        kind: 'word',
+        term: id,
+      });
     }
     this.play(news, () => this.ask(exampleId));
   }
@@ -813,11 +862,22 @@ export class RpgGameComponent {
       return;
     }
     this.show(line, [], this.lines.length > 0 || this.afterLines !== null);
+    if (line.term) {
+      // Recién ahora la palabra entra al Workerdex: el contador sube con su ceremonia.
+      const term = line.term;
+      this.unannounced.update((waiting) => new Set([...waiting].filter((id) => id !== term)));
+    }
+    const shown = this.dialog();
     if (line.kind === 'notice') {
       // Un aviso no pide nada: se va solo.
-      const shown = this.dialog();
       this.later(NOTICE_MS, () => {
         if (this.dialog() === shown) this.close();
+      });
+    }
+    if (line.kind === 'done') {
+      // La misión cumplida tiene su momento, pero no pide un click: sigue sola.
+      this.later(DONE_MS, () => {
+        if (this.dialog() === shown) this.nextLine();
       });
     }
   }
@@ -833,6 +893,8 @@ export class RpgGameComponent {
   }
 
   protected close(): void {
+    this.unannounced.set(new Set());
+    this.examHits.set(0);
     this.lines = [];
     this.afterLines = null;
     this.dialog.set(null);

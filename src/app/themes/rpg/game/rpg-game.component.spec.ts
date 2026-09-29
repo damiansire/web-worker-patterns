@@ -126,12 +126,36 @@ describe('RpgGameComponent', () => {
     expect(buttons('.g-choices button').map((b) => b.label)).toEqual(['Seguir']);
   });
 
-  it('con la región cumplida, tres aciertos dan el sello y abren el paso', async () => {
+  /** Villa Main cumplida. Con `painful`, también por los caminos que duelen. */
+  const finishVillaMain = (painful: boolean) => {
     const progress = TestBed.inject(LearningProgressService);
     progress.completePath('01-setinterval-counter', 'worker');
     progress.completePath('02-main-thread', 'block');
     progress.completePath('16-compositor-vs-main', 'worker');
+    if (painful) {
+      progress.completePath('01-setinterval-counter', 'main');
+      progress.completePath('16-compositor-vs-main', 'main');
+    }
     fixture.detectChanges();
+    return progress;
+  };
+  /** Un acierto destella un instante antes de pasar a la situación siguiente. */
+  const afterHit = async () => {
+    await new Promise((resolve) => setTimeout(resolve, 320));
+    fixture.detectChanges();
+  };
+
+  it('sin las palabras del examen, la maestra manda a aprenderlas', async () => {
+    const progress = finishVillaMain(false);
+
+    await talkTo('Maestra');
+
+    expect(text('.g-line')).toBe('Te falta una palabra. Hablá con Pintor.');
+    expect(progress.isStamped('understanding')).toBe(false);
+  });
+
+  it('con la región cumplida y sus palabras, tres aciertos dan el sello', async () => {
+    const progress = finishVillaMain(true);
 
     await talkTo('Maestra');
     expect(text('.g-line')).toBe('Tres situaciones. Elegí la pieza.');
@@ -139,11 +163,13 @@ describe('RpgGameComponent', () => {
 
     expect(text('.g-line')).toBe('Un cálculo largo traba la página.');
     await press('.g-choices button', 'new Worker()');
+    expect(host.querySelector('.g-stamps i[data-hits="1"]')).not.toBeNull();
+    await afterHit();
     expect(text('.g-line')).toBe('¿Qué atiende una tarea por vez?');
     await press('.g-choices button', 'event loop');
-    // El pintor de capas se aprende por el camino que duele, que acá no se recorrió:
-    // la opción se lee en llano.
-    await press('.g-choices button', 'el pintor de capas');
+    await afterHit();
+    await press('.g-choices button', 'compositor');
+    await afterHit();
 
     expect(text('.g-line')).toBe('Sello de Villa Main. Bien ganado.');
     expect(progress.isStamped('understanding')).toBe(true);
@@ -151,12 +177,8 @@ describe('RpgGameComponent', () => {
     expect(host.querySelectorAll('.g-stamps .is-earned')).toHaveLength(1);
   });
 
-  it('una respuesta equivocada no da el sello y dice con quién repasar', async () => {
-    const progress = TestBed.inject(LearningProgressService);
-    progress.completePath('01-setinterval-counter', 'worker');
-    progress.completePath('02-main-thread', 'block');
-    progress.completePath('16-compositor-vs-main', 'worker');
-    fixture.detectChanges();
+  it('una respuesta equivocada no da el sello ni echa: vuelve a la misma situación', async () => {
+    const progress = finishVillaMain(true);
 
     await talkTo('Maestra');
     await press('.g-choices button', 'Seguir');
@@ -164,6 +186,27 @@ describe('RpgGameComponent', () => {
 
     expect(text('.g-line')).toBe('No era esa. Repasá con Relojera.');
     expect(progress.isStamped('understanding')).toBe(false);
+
+    await press('.g-choices button', 'Seguir');
+    expect(text('.g-line')).toBe('Un cálculo largo traba la página.');
+  });
+
+  it('una palabra entra al Workerdex cuando se la presenta, no antes', async () => {
+    const game = fixture.componentInstance as unknown as {
+      afterPath: (exampleId: string, path: { id: string }, missed: boolean) => void;
+    };
+    const tally = () => text('.g-tally');
+
+    game.afterPath('02-main-thread', { id: 'block' }, false);
+    fixture.detectChanges();
+
+    // Primero el momento de la misión: la palabra todavía no se contó.
+    expect(text('.g-line')).toBe('Misión cumplida.');
+    expect(tally()).toBe('0/20');
+
+    await press('.g-choices button', 'Seguir');
+    expect(text('.g-line')).toBe('la fila de tareas → event loop');
+    expect(tally()).toBe('1/20');
   });
 
   it('con el teclado en un botón de la lista, Espacio no repite la charla', async () => {

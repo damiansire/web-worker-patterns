@@ -29,9 +29,13 @@ import {
     [attr.aria-label]="label()"
   ></canvas>`,
   styles: `
+    :host {
+      display: block;
+      min-width: 0;
+    }
     .p {
       display: block;
-      width: 168px;
+      width: 100%;
       height: 28px;
       border-radius: 5px;
       background: #0b0e0b;

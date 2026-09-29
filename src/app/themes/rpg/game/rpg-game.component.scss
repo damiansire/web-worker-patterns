@@ -1,20 +1,28 @@
-// El juego entra en una pantalla, siempre: HUD, mapa, conversación y una barra con
-// las dos hojas que se abren a pedido (vecinos y Workerdex). Nada crece hacia
-// abajo al jugar: la caja de diálogo reserva su peor caso y las hojas scrollean
-// adentro. Se dibuja con los tokens del theme; los colores del mapa viven en el
-// pintor porque son pixel art, no chrome.
+// El juego entra en una pantalla, siempre: HUD, mapa y conversación. Vecinos y
+// Workerdex son hojas que se abren a pedido sobre el mapa.
+//
+// Regla de este archivo: NADA cambia de alto según el estado. El HUD es una grilla
+// de filas fijas, la caja de diálogo tiene alto fijo y las opciones no hacen una
+// segunda fila. Si algo crece al jugar, el mapa salta y la página scrollea. Se
+// dibuja con los tokens del theme; los colores del mapa viven en el pintor porque
+// son pixel art, no chrome.
 
 :host {
   display: block;
-  // Alto de todo lo que no es el mapa (barra del shell, HUD, diálogo, barra de hojas
-  // y separaciones). Con eso el mapa ocupa lo que queda.
-  --g-chrome: 344px;
+  --g-row: 28px;
+  --g-bar: 36px;
   --g-dialog: 176px;
+  --g-gap: 10px;
+  // Todo lo que no es el mapa: la franja del shell, el HUD, la caja, las
+  // separaciones y el margen de abajo. El mapa se queda con el alto que sobra.
+  --g-chrome: calc(
+    var(--rpg-shell, 84px) + var(--g-row) + var(--g-bar) + var(--g-dialog) + var(--g-gap) * 3
+  );
 }
 
 .g {
   display: grid;
-  gap: 10px;
+  gap: var(--g-gap);
   // El mapa es 16:10: su ancho sale del alto que queda libre en la pantalla.
   width: min(100%, max(320px, calc((100dvh - var(--g-chrome)) * 1.6)));
   max-width: 1120px;
@@ -33,47 +41,48 @@
   text-shadow: none;
 }
 
-// ── HUD ──
+// ── HUD: dos filas de alto fijo ──
+// Arriba, dónde estás y cuánto llevás. Abajo, el pulso de Main (que se estira con
+// lo que sobre), su estado y las dos hojas.
 .g-hud {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 14px;
+  display: grid;
+  gap: var(--g-gap);
   font-size: 17px;
   line-height: 1;
 }
-.g-region {
-  margin: 0 auto 0 0;
-  font-size: 22px;
-  font-weight: 600;
+.g-top,
+.g-vitals {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
 }
-.g-count {
-  font-variant-numeric: tabular-nums;
-  color: var(--ink-muted);
-}
-// Sellos: uno por región. Vacío hasta ganarlo.
-.g-stamps {
-  display: inline-flex;
-  gap: 4px;
-
-  i {
-    width: 12px;
-    height: 12px;
-    border: 2px solid var(--ink-muted);
-    border-radius: 3px;
-  }
-  i.is-earned {
-    border-color: var(--rpg-stamp);
-    background: var(--rpg-stamp);
-  }
+.g-top {
+  height: var(--g-row);
 }
 .g-vitals {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
+  height: var(--g-bar);
+}
+.g-region {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: var(--g-row);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.g-pulse {
+  flex: 1;
+  min-width: 48px;
 }
 .g-mode {
-  min-width: 13ch;
+  flex: none;
+  // Ancho reservado para el estado más largo: cambiar de estado no corre nada.
+  width: 17ch;
+  white-space: nowrap;
   color: var(--accent-ink);
 }
 .g[data-mode='frozen'] .g-mode {
@@ -81,6 +90,63 @@
 }
 .g[data-mode='busy'] .g-mode {
   color: var(--worker);
+}
+.g-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-muted);
+}
+// Sellos: uno por región. Vacío hasta ganarlo; durante el examen se llena por tercios.
+.g-stamps {
+  display: inline-flex;
+  gap: 4px;
+
+  i {
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--ink-muted);
+    border-radius: 3px;
+    background: linear-gradient(var(--rpg-stamp), var(--rpg-stamp)) bottom / 100% 0% no-repeat;
+    transition: background-size 200ms ease-out;
+  }
+  i[data-hits='1'] {
+    background-size: 100% 34%;
+  }
+  i[data-hits='2'] {
+    background-size: 100% 67%;
+  }
+  i[data-hits='3'],
+  i.is-earned {
+    border-color: var(--rpg-stamp);
+    background-size: 100% 100%;
+  }
+}
+.g-bar {
+  display: flex;
+  flex: none;
+  gap: 8px;
+}
+.g-bar .g-btn {
+  min-height: var(--g-bar);
+  padding: 0 10px;
+  border-color: var(--border);
+  color: var(--ink);
+  font-size: 15px;
+}
+.g-bar .g-btn[aria-expanded='true'] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--surface);
+}
+.g-tally {
+  font-variant-numeric: tabular-nums;
+  color: var(--worker);
+}
+.g-bar .g-btn[aria-expanded='true'] .g-tally {
+  color: inherit;
+}
+// Una palabra nueva se nota también en el contador.
+.g-tally.is-fresh {
+  animation: g-land 400ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
 }
 
 // ── mapa ──
@@ -168,53 +234,65 @@
     transform: translateY(8px);
   }
 }
+// Cerrar queda siempre a la vista, aunque la hoja scrollee.
+.g-close {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  justify-self: end;
+  background: var(--surface-raised);
+}
 .g-neighbors,
 .g-dex {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 6px 16px;
+  gap: 8px 16px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
+.g-dex {
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+}
 .g-dex li {
   display: grid;
   gap: 2px;
+  align-content: start;
   font-size: 15px;
-  color: var(--ink-muted);
 }
 .g-dex .g-term {
   justify-self: start;
   font-size: 13px;
 }
+.g-plain {
+  color: var(--ink);
+}
+.g-note,
+.g-dex-empty {
+  color: var(--ink-muted);
+}
 .g-ask {
   margin: 0;
   font-size: 17px;
-}
-.g-close {
-  justify-self: start;
 }
 .g-sheet .g-btn {
   border-color: var(--ink);
   color: var(--ink);
 }
-.g-sheet .g-btn:hover {
-  background: var(--ink);
-  color: var(--surface);
-}
 
-// ── conversación ──
+// ── conversación: alto fijo ──
 .g-dialog {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  // La escena ocupa el costado entero: no le suma alto a la conversación.
+  grid-template-rows: minmax(0, 1fr) auto;
   grid-template-areas:
     'say scene'
-    'choices scene';
-  gap: 10px 16px;
-  align-content: space-between;
-  min-height: var(--g-dialog);
+    'choices choices';
+  gap: var(--g-gap) 16px;
+  height: var(--g-dialog);
   padding: 14px 16px;
+  // El golpe de una ceremonia agranda la línea un instante: no puede empujar la página.
+  overflow: clip;
   border-radius: var(--radius);
   background: var(--rpg-paper);
   color: var(--rpg-paper-ink);
@@ -224,6 +302,7 @@
   display: grid;
   gap: 8px;
   align-content: start;
+  min-width: 0;
 }
 .g-who {
   font-family: var(--font-mono);
@@ -275,11 +354,12 @@
 @keyframes g-land {
   from {
     opacity: 0;
-    transform: scale(1.35);
+    transform: scale(1.15);
   }
 }
 
-// La escena acompaña a la misión desde adentro de la conversación: no tapa el mapa.
+// La escena acompaña a la misión desde adentro de la conversación: no tapa el mapa
+// ni le suma alto a la caja.
 .g-scene {
   grid-area: scene;
   display: flex;
@@ -288,7 +368,7 @@
 
   figure {
     display: grid;
-    gap: 6px;
+    gap: 4px;
     justify-items: center;
     margin: 0;
   }
@@ -311,8 +391,8 @@
   animation: g-spin 1s linear infinite;
 }
 .g-clock {
-  width: 96px;
-  height: 96px;
+  width: 72px;
+  height: 72px;
   border-radius: 8px;
 }
 @keyframes g-spin {
@@ -321,14 +401,19 @@
   }
 }
 
+// Las opciones van en UNA fila. Si no entran (pantalla muy baja, mapa angosto), la
+// fila scrollea de costado: nunca se arma una segunda fila que agrande la caja.
 .g-choices {
   grid-area: choices;
   display: flex;
-  flex-wrap: wrap;
   gap: 8px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
 }
 .g-btn {
   display: inline-flex;
+  flex: none;
   align-items: center;
   gap: 8px;
   min-height: 44px;
@@ -342,9 +427,23 @@
   line-height: 1;
   cursor: pointer;
 }
-.g-btn:hover {
-  background: var(--rpg-paper-ink);
-  color: var(--rpg-paper);
+@media (hover: hover) {
+  .g-btn:hover {
+    background: var(--rpg-paper-ink);
+    color: var(--rpg-paper);
+  }
+  .g-btn:hover .g-tick {
+    border-color: var(--rpg-paper);
+  }
+  .g-sheet .g-btn:hover,
+  .g-bar .g-btn:hover {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--surface);
+  }
+  .g-bar .g-btn:hover .g-tally {
+    color: inherit;
+  }
 }
 // La acción contra reloj (cortar, borrar): rojo con tinta oscura, que se lee.
 .g-btn--act,
@@ -352,6 +451,13 @@
   border-color: var(--thread-blocked);
   background: var(--thread-blocked);
   color: #1a1a17;
+}
+// Acertar en el examen se ve.
+.g-btn.is-hit,
+.g-btn.is-hit:hover {
+  border-color: #0f7a45;
+  background: #0f7a45;
+  color: #fff;
 }
 .g-key {
   font-family: var(--font-mono);
@@ -366,43 +472,6 @@
   border: solid #0f7a45;
   border-width: 0 3px 3px 0;
   transform: rotate(45deg);
-}
-.g-btn:hover .g-tick {
-  border-color: var(--rpg-paper);
-}
-
-// ── las dos hojas, en el HUD ──
-.g-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.g-bar .g-btn {
-  min-height: 36px;
-  padding: 0 10px;
-  font-size: 15px;
-}
-.g-bar .g-btn {
-  border-color: var(--border);
-  color: var(--ink);
-}
-.g-bar .g-btn:hover,
-.g-bar .g-btn[aria-expanded='true'] {
-  border-color: var(--ink);
-  background: var(--ink);
-  color: var(--surface);
-}
-.g-tally {
-  font-variant-numeric: tabular-nums;
-  color: var(--worker);
-}
-.g-bar .g-btn:hover .g-tally,
-.g-bar .g-btn[aria-expanded='true'] .g-tally {
-  color: inherit;
-}
-// Una palabra nueva se nota también en el contador.
-.g-tally.is-fresh {
-  animation: g-land 400ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
 }
 
 .g-link {
@@ -423,31 +492,37 @@
   text-decoration-style: dotted;
 }
 
-// ── teléfono ──
+// ── con el dedo: objetivos de 44 px ──
+@media (pointer: coarse) {
+  :host {
+    --g-bar: 44px;
+  }
+}
+
+// ── teléfono: tres filas de HUD y las opciones apiladas ──
 @media (max-width: 560px) {
   :host {
-    // Las opciones se apilan: la caja reserva tres botones de 44 px.
+    --g-bar: 44px;
+    // Tres opciones de 44 px, una debajo de la otra.
     --g-dialog: 262px;
-    --g-chrome: 470px;
+    --g-chrome: calc(
+      var(--rpg-shell, 116px) + var(--g-row) * 2 + var(--g-bar) + var(--g-dialog) + var(--g-gap) * 4
+    );
   }
+  // El pulso y el estado en una fila, las hojas en otra.
   .g-vitals {
-    width: 100%;
-  }
-  .g-bar {
-    width: 100%;
-  }
-  // Un dedo necesita 44 px.
-  .g-bar .g-btn {
-    min-height: 44px;
-    flex: 1;
-  }
-  .g-dialog {
-    grid-template-areas:
-      'say scene'
-      'choices choices';
+    flex-wrap: wrap;
+    align-content: space-between;
+    height: calc(var(--g-row) + var(--g-gap) + var(--g-bar));
   }
   .g-mode {
-    min-width: 0;
+    text-align: right;
+  }
+  .g-bar {
+    flex: 1 0 100%;
+  }
+  .g-bar .g-btn {
+    flex: 1;
   }
   .g-line {
     font-size: 19px;
@@ -461,6 +536,8 @@
   }
   .g-choices {
     display: grid;
+    align-content: end;
+    overflow: visible;
   }
   .g-mill {
     width: 40px;
@@ -487,7 +564,8 @@
   .g-banner {
     display: none;
   }
-  .g-tint {
+  .g-tint,
+  .g-stamps i {
     transition: none;
   }
 }
