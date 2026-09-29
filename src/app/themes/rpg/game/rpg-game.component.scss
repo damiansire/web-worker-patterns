@@ -1,11 +1,19 @@
-// El juego entra en una pantalla, siempre: HUD, mapa y conversación. Vecinos y
-// Workerdex son hojas que se abren a pedido sobre el mapa.
+// El juego entra en una pantalla, siempre: HUD, mundo y conversación. Vecinos y
+// Workerdex son hojas que se abren a pedido sobre el mundo.
 //
-// Regla de este archivo: NADA cambia de alto según el estado. El HUD es una grilla
-// de filas fijas, la caja de diálogo tiene alto fijo y las opciones no hacen una
-// segunda fila. Si algo crece al jugar, el mapa salta y la página scrollea. Se
-// dibuja con los tokens del theme; los colores del mapa viven en el pintor porque
+// Regla de este archivo: NADA cambia de alto según el estado. El HUD tiene filas
+// fijas, la caja de diálogo tiene alto fijo y el mundo se queda con todo lo que
+// sobra. Como el mundo es lo único elástico, agrandar la ventana agranda el mundo.
+//
+// Hay dos formas de repartir la pantalla:
+//   - apilado (teléfono, ventanas altas): HUD, mundo, conversación;
+//   - al costado (pantallas anchas): el mundo ocupa todo el alto y el HUD y la
+//     conversación van en una columna a su derecha.
+// Se dibuja con los tokens del theme; los colores del mapa viven en el pintor porque
 // son pixel art, no chrome.
+
+$phone: '(max-width: 560px)';
+$side: '(min-width: 900px) and (min-aspect-ratio: 5/4) and (min-height: 600px)';
 
 :host {
   display: block;
@@ -13,18 +21,29 @@
   --g-bar: 36px;
   --g-dialog: 176px;
   --g-gap: 10px;
-  // Todo lo que no es el mapa: la franja del shell, el HUD, la caja, las
-  // separaciones y el margen de abajo. El mapa se queda con el alto que sobra.
-  --g-chrome: calc(
-    var(--rpg-shell, 84px) + var(--g-row) + var(--g-bar) + var(--g-dialog) + var(--g-gap) * 3
-  );
+  // Lo que ocupa el shell del theme por fuera del juego, arriba y abajo.
+  --g-shell: var(--rpg-shell, 84px);
+  --g-hud: calc(var(--g-row) + var(--g-gap) + var(--g-bar));
+  // Por debajo de este alto de mundo ya no se achica más: la página scrollea.
+  --g-world-min: 180px;
 }
 
 .g {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: var(--g-hud) minmax(0, 1fr) var(--g-dialog);
+  grid-template-areas:
+    'hud'
+    'stage'
+    'dialog';
   gap: var(--g-gap);
-  // El mapa es 16:10: su ancho sale del alto que queda libre en la pantalla.
-  width: min(100%, max(320px, calc((100dvh - var(--g-chrome)) * 1.6)));
+  height: calc(100dvh - var(--g-shell));
+  min-height: calc(var(--g-hud) + var(--g-world-min) + var(--g-dialog) + var(--g-gap) * 2);
+  // En una ventana muy alta el mundo no se estira sin fin: siempre se ve la mayor
+  // parte del mapa (su lugar nunca es más alto que ancho).
+  max-height: calc(
+    var(--g-hud) + var(--g-dialog) + var(--g-gap) * 2 + min(100vw - 32px, 1120px) / 1.1
+  );
   max-width: 1120px;
   margin-inline: auto;
   font-family: var(--font-display);
@@ -45,8 +64,11 @@
 // Arriba, dónde estás y cuánto llevás. Abajo, el pulso de Main (que se estira con
 // lo que sobre), su estado y las dos hojas.
 .g-hud {
+  grid-area: hud;
   display: grid;
   gap: var(--g-gap);
+  align-content: start;
+  min-width: 0;
   font-size: 17px;
   line-height: 1;
 }
@@ -163,22 +185,48 @@
   animation: g-land 400ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
 }
 
-// ── mapa ──
+// ── mundo ──
+// El mapa es 16:10 y su lugar en pantalla tiene la forma que le toque. Se agranda
+// hasta cubrirlo entero y lo que no entra queda fuera de cuadro: una cámara sigue
+// al jugador y frena en los bordes del mapa. El juego solo dice dónde está el
+// jugador (--cam-x, --cam-y, de 0 a 1); la cuenta la hace el navegador.
 .g-stage {
+  grid-area: stage;
   position: relative;
+  min-width: 0;
+  min-height: 0;
   overflow: hidden;
   border-radius: var(--radius);
+  container-type: size;
 }
 .g-map {
+  --w: max(100cqw, 160cqh);
+  --h: max(100cqh, 62.5cqw);
+  position: absolute;
+  top: 0;
+  left: 0;
   display: block;
-  width: 100%;
-  height: auto;
+  width: var(--w);
+  height: var(--h);
+  transform: translate(
+    clamp(100cqw - var(--w), 50cqw - var(--cam-x, 0.5) * var(--w), 0px),
+    clamp(100cqh - var(--h), 50cqh - var(--cam-y, 0.5) * var(--h), 0px)
+  );
   image-rendering: pixelated;
   cursor: pointer;
 }
 .g-map:focus-visible {
-  outline: 3px solid var(--worker);
-  outline-offset: -3px;
+  outline: none;
+}
+// El foco del teclado se marca en el borde del mundo, no en el mapa: el mapa es más
+// grande que su lugar y su borde queda fuera de cuadro.
+.g-stage:has(.g-map:focus-visible)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 3px solid var(--worker);
+  border-radius: inherit;
+  pointer-events: none;
 }
 .g-btn:focus-visible,
 .g-link:focus-visible {
@@ -296,6 +344,7 @@
 
 // ── conversación: alto fijo ──
 .g-dialog {
+  grid-area: dialog;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-rows: minmax(0, 1fr) auto;
@@ -310,6 +359,16 @@
   border-radius: var(--radius);
   background: var(--rpg-paper);
   color: var(--rpg-paper-ink);
+}
+// En reposo la caja no es una hoja en blanco: queda apagada hasta que alguien habla.
+.g-dialog[data-kind='rest'] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--border);
+  color: var(--ink);
+
+  .g-who {
+    color: var(--ink-muted);
+  }
 }
 .g-say {
   grid-area: say;
@@ -509,6 +568,11 @@
   text-underline-offset: 3px;
   cursor: pointer;
 }
+// Las teclas, a la vista: solo donde hay teclado y lugar (columna al costado).
+.g-keys {
+  display: none;
+}
+
 .g-link.is-done {
   color: var(--accent-ink);
   text-decoration-style: dotted;
@@ -521,15 +585,11 @@
   }
 }
 
-// ── teléfono: tres filas de HUD y las opciones apiladas ──
-@media (max-width: 560px) {
+// ── angosto: tres filas de HUD y las opciones apiladas ──
+// Vale para el teléfono y para la columna al costado: los dos tienen el mismo ancho.
+@media #{$phone}, #{$side} {
   :host {
-    --g-bar: 44px;
-    // Tres opciones de 44 px, una debajo de la otra.
-    --g-dialog: 262px;
-    --g-chrome: calc(
-      var(--rpg-shell, 116px) + var(--g-row) * 2 + var(--g-bar) + var(--g-dialog) + var(--g-gap) * 4
-    );
+    --g-hud: calc(var(--g-row) * 2 + var(--g-gap) * 2 + var(--g-bar));
   }
   // El pulso y el estado en una fila, las hojas en otra.
   .g-vitals {
@@ -546,17 +606,6 @@
   .g-bar .g-btn {
     flex: 1;
   }
-  .g-line {
-    font-size: 19px;
-  }
-  .g-dialog[data-kind='word'],
-  .g-dialog[data-kind='done'],
-  .g-dialog[data-kind='stamp'],
-  .g-dialog[data-kind='final'] {
-    .g-line {
-      font-size: 23px;
-    }
-  }
   .g-choices {
     display: grid;
     align-content: end;
@@ -572,6 +621,90 @@
   }
   .g-scene {
     gap: 8px;
+  }
+}
+
+// ── teléfono ──
+@media #{$phone} {
+  :host {
+    --g-bar: 44px;
+    // Tres opciones de 44 px, una debajo de la otra.
+    --g-dialog: 262px;
+    // En el teléfono la franja del shell tiene dos renglones.
+    --g-shell: var(--rpg-shell, 116px);
+  }
+  .g-line {
+    font-size: 19px;
+  }
+  .g-dialog[data-kind='word'],
+  .g-dialog[data-kind='done'],
+  .g-dialog[data-kind='stamp'],
+  .g-dialog[data-kind='final'] {
+    .g-line {
+      font-size: 23px;
+    }
+  }
+}
+
+// ── al costado: el mundo ocupa todo el alto ──
+@media #{$side} {
+  :host {
+    --g-dialog: 340px;
+    --g-side: clamp(320px, 30vw, 380px);
+  }
+  .g {
+    grid-template-columns: minmax(0, 1fr) var(--g-side);
+    grid-template-rows: var(--g-hud) var(--g-dialog) minmax(0, 1fr);
+    grid-template-areas:
+      'stage hud'
+      'stage dialog'
+      'stage keys';
+    column-gap: 16px;
+    min-height: calc(var(--g-hud) + var(--g-dialog) + var(--g-gap));
+    // Igual que apilado: el lugar del mundo nunca es más alto que ancho.
+    max-height: min(900px, calc((100vw - 48px - var(--g-side)) / 1.1));
+    max-width: 1560px;
+  }
+  // Con el mundo tan grande, una hoja no necesita taparlo entero: se abre contra
+  // la columna y el resto del mundo sigue a la vista.
+  .g-sheet {
+    inset: 0 0 auto auto;
+    width: min(100%, 560px);
+    max-height: 100%;
+    border-radius: 0 var(--radius) 0 var(--radius);
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.35);
+  }
+}
+@media #{$side} and (min-height: 700px) and (hover: hover) {
+  .g-keys {
+    grid-area: keys;
+    align-self: end;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 15px;
+    line-height: 1;
+    color: var(--ink-muted);
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    kbd {
+      flex: none;
+      padding: 4px 6px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--ink);
+      white-space: nowrap;
+    }
   }
 }
 

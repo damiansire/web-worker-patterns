@@ -59,6 +59,16 @@ export function dirBetween(from: Point, to: Point): Dir {
   return to.y > from.y ? 'down' : 'up';
 }
 
+/**
+ * A dónde mira la cámara: el centro de la casilla del jugador, como fracción del
+ * mapa (0 es el borde izquierdo o de arriba, 1 el opuesto). Acepta posiciones a
+ * mitad de un paso, así la cámara acompaña el movimiento sin saltos.
+ */
+export function cameraFocus(at: Point, size: { columns: number; rows: number }): Point {
+  const clamp = (value: number) => Math.min(1, Math.max(0, value));
+  return { x: clamp((at.x + 0.5) / size.columns), y: clamp((at.y + 0.5) / size.rows) };
+}
+
 export type BadgeSpot = 'above' | 'right' | 'left';
 
 /**

@@ -120,7 +120,7 @@
       }
     </div>
 
-    <div class="g-dialog" aria-live="polite" [attr.data-kind]="dialog()?.kind ?? 'talk'">
+    <div class="g-dialog" aria-live="polite" [attr.data-kind]="dialog()?.kind ?? 'rest'">
       @if (dialog(); as d) {
         <div class="g-say">
           <span class="g-who">{{ d.who }}</span>
@@ -188,5 +188,15 @@
         </div>
       }
     </div>
+
+    <!-- El mapa ya describe las teclas para quien no ve la pantalla. -->
+    <ul class="g-keys" aria-hidden="true">
+      @for (key of keyLegend; track key.does) {
+        <li>
+          <kbd>{{ key.press ?? c.ui['keySpace'] }}</kbd>
+          {{ c.ui[key.does] }}
+        </li>
+      }
+    </ul>
   </section>
 }

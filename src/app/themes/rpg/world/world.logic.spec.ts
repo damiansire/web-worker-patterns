@@ -5,6 +5,7 @@ import { GUARD_ID, gridOf, WORLD } from './regions';
 import {
   approach,
   badgeSpot,
+  cameraFocus,
   facingActor,
   findPath,
   Grid,
@@ -37,6 +38,17 @@ describe('world.logic', () => {
       { x: 1, y: 2 },
       { x: 1, y: 3 },
     ]);
+  });
+
+  it('la cámara mira al centro de la casilla del jugador', () => {
+    const size = { columns: 16, rows: 10 };
+
+    expect(cameraFocus({ x: 0, y: 0 }, size)).toEqual({ x: 0.03125, y: 0.05 });
+    expect(cameraFocus({ x: 15, y: 9 }, size)).toEqual({ x: 0.96875, y: 0.95 });
+    // A mitad de un paso acompaña el movimiento.
+    expect(cameraFocus({ x: 7.5, y: 5 }, size)).toEqual({ x: 0.5, y: 0.55 });
+    // Nunca mira fuera del mapa.
+    expect(cameraFocus({ x: 40, y: -3 }, size)).toEqual({ x: 1, y: 0 });
   });
 
   it('el cartel de un vecino nunca tapa a quien tiene al lado', () => {

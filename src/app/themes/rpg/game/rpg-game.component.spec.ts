@@ -93,6 +93,21 @@ describe('RpgGameComponent', () => {
     ]);
   });
 
+  it('la cámara sigue al jugador', async () => {
+    const map = host.querySelector<HTMLCanvasElement>('.g-map')!;
+    const focus = () => [
+      map.style.getPropertyValue('--cam-x'),
+      map.style.getPropertyValue('--cam-y'),
+    ];
+
+    // Villa Main se entra por la casilla (8, 8) de un mapa de 16 por 10.
+    expect(focus()).toEqual(['0.5313', '0.8500']);
+
+    await talkTo('Relojera');
+
+    expect(focus()).not.toEqual(['0.5313', '0.8500']);
+  });
+
   it('un vecino saluda, plantea su problema y ofrece sus caminos', async () => {
     await talkTo('Relojera');
     expect(text('.g-line')).toBe('Mi reloj da dos tics por segundo.');

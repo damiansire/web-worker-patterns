@@ -45,6 +45,7 @@ import {
 import {
   Actor,
   approach,
+  cameraFocus,
   DELTA,
   Dir,
   dirBetween,
@@ -150,6 +151,15 @@ export class RpgGameComponent {
 
   protected readonly content = inject(LearningContentService).content;
   protected readonly ui = computed(() => this.content()?.ui ?? {});
+  /** Las teclas del juego, para tenerlas a la vista. Sin `press`, es la barra espaciadora. */
+  protected readonly keyLegend: readonly { press?: string; does: string }[] = [
+    { press: '← ↑ ↓ →', does: 'keyWalk' },
+    { does: 'keyTalk' },
+    { press: '1 2 3', does: 'keyPick' },
+    { press: 'V', does: 'keyNeighbors' },
+    { press: 'X', does: 'keyDex' },
+    { press: 'Esc', does: 'keyClose' },
+  ];
   protected readonly mapWidth = MAP_WIDTH;
   protected readonly mapHeight = MAP_HEIGHT;
   /** En pantallas táctiles la bienvenida no habla de teclas. */
@@ -963,10 +973,19 @@ export class RpgGameComponent {
   // ── dibujo ──
 
   private draw(): void {
-    const ctx = this.canvas()?.nativeElement.getContext('2d');
-    if (!ctx) return;
+    const cv = this.canvas()?.nativeElement;
+    if (!cv) return;
     const now = performance.now();
     if (!this.moving) this.drawAt = this.position();
+    // La cámara sigue al jugador: el mapa puede ser más grande que su lugar en pantalla.
+    const focus = cameraFocus(this.drawAt, {
+      columns: MAP_WIDTH / TILE,
+      rows: MAP_HEIGHT / TILE,
+    });
+    cv.style.setProperty('--cam-x', focus.x.toFixed(4));
+    cv.style.setProperty('--cam-y', focus.y.toFixed(4));
+    const ctx = cv.getContext('2d');
+    if (!ctx) return;
     const region = this.region();
     const spot = this.position();
     const talkingTo = this.activeId();

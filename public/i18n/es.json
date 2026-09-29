@@ -297,6 +297,13 @@
       "missionDone": "Misión cumplida.",
       "stampEarned": "Sello nuevo",
       "journeyDone": "Viaje completo",
+      "keySpace": "Espacio",
+      "keyWalk": "caminar",
+      "keyTalk": "hablar",
+      "keyPick": "elegir",
+      "keyNeighbors": "vecinos",
+      "keyDex": "Workerdex",
+      "keyClose": "cerrar",
       "startDone": "Viaje completo. El pueblo es tuyo.",
       "close": "Cerrar",
       "frozenFor": "congelado [seg]"
