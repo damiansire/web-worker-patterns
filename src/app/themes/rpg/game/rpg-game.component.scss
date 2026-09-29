@@ -466,10 +466,11 @@ $roomy: '(min-height: 640px)';
     line-height: 1;
   }
 }
+// Redondo: un cuadrado que gira barre su diagonal y pisa lo que tiene al lado.
 .g-mill {
   width: 56px;
   height: 56px;
-  border-radius: 8px;
+  border-radius: 50%;
   background:
     linear-gradient(var(--rpg-paper-ink), var(--rpg-paper-ink)) center / 100% 6px no-repeat,
     linear-gradient(var(--rpg-paper-ink), var(--rpg-paper-ink)) center / 6px 100% no-repeat,
@@ -540,6 +541,12 @@ $roomy: '(min-height: 640px)';
   border-color: var(--thread-blocked);
   background: var(--thread-blocked);
   color: #1a1a17;
+}
+// Elegir responde al instante, aunque lo elegido tarde un momento en arrancar.
+.g-btn.is-picked,
+.g-btn.is-picked:hover {
+  background: var(--rpg-paper-ink);
+  color: var(--rpg-paper);
 }
 // Acertar en el examen se ve.
 .g-btn.is-hit,
@@ -663,6 +670,7 @@ $roomy: '(min-height: 640px)';
     // Menos de 344 px y el nombre de la región más largo no entra en su fila.
     --g-side: clamp(344px, 30vw, 380px);
     --g-dialog-min: 340px;
+    --g-dialog-max: 430px;
     --g-floor: calc(var(--g-hud) + var(--g-dialog-min) + var(--g-gap));
     // Igual que apilado: el lugar del mundo nunca es más alto que ancho.
     --g-cap: min(1000px, calc((100vw - 48px - var(--g-side)) / 1.1));
@@ -670,7 +678,7 @@ $roomy: '(min-height: 640px)';
     --g-dialog: clamp(
       var(--g-dialog-min),
       calc(var(--g-height) - var(--g-hud) - var(--g-gap)),
-      430px
+      var(--g-dialog-max)
     );
   }
   .g {
@@ -691,6 +699,13 @@ $roomy: '(min-height: 640px)';
     max-height: 100%;
     border-radius: 0 var(--radius) 0 var(--radius);
     box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.35);
+  }
+}
+
+// Con alto justo la caja cede 30 px: alcanza para que la leyenda de teclas entre.
+@media #{$side} and (max-height: 759px) {
+  :host {
+    --g-dialog-max: 400px;
   }
 }
 

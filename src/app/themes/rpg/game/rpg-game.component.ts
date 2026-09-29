@@ -224,6 +224,8 @@ export class RpgGameComponent {
   // ── examen ──
   /** Aciertos del examen en curso: el sello de la región se llena por tercios. */
   protected readonly examHits = signal(0);
+  /** El camino recién elegido, mientras arranca: elegir responde al instante. */
+  protected readonly picked = signal('');
   /** La opción recién acertada, mientras dura su destello. */
   protected readonly hit = signal('');
   protected readonly regionIndex = computed(() => REGIONS.indexOf(this.region().id));
@@ -789,10 +791,12 @@ export class RpgGameComponent {
     // Lo que la misión mide de antemano tiene que estar listo ANTES de anunciar nada:
     // decir "congelado" mientras la página todavía se mueve sería mentir.
     this.starting = true;
+    this.picked.set(lines.label);
     try {
       await PREPARE[exampleId]?.({ ctl: this.ctl, until: (read) => this.until(read) });
     } finally {
       this.starting = false;
+      this.picked.set('');
     }
 
     // El idioma de ANTES: lo que este camino enseña se lee en llano y recién

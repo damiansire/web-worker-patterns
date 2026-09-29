@@ -162,6 +162,7 @@
               type="button"
               class="g-btn"
               [class.is-hit]="hit() !== '' && choice.label.endsWith('|' + hit() + '}')"
+              [class.is-picked]="picked() === choice.label"
               (click)="choose(choice)"
             >
               <span class="g-key" aria-hidden="true">{{ $index + 1 }}</span>

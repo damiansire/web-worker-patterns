@@ -122,6 +122,17 @@ describe('RpgGameComponent', () => {
     ]);
   });
 
+  it('la opción elegida responde al instante', async () => {
+    await talkTo('Main');
+    await press('.g-choices button', 'Seguir');
+    const option = buttons('.g-choices button')[0].button;
+
+    option.click();
+    fixture.detectChanges();
+
+    expect(option.classList.contains('is-picked')).toBe(true);
+  });
+
   it('elegir a otro vecino en medio de una charla va a hablar con él', async () => {
     await talkTo('Relojera');
     await press('.g-choices button', 'Seguir');
