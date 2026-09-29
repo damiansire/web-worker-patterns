@@ -2,7 +2,15 @@ import { EXAMPLES } from '../../../core/domain/examples/examples.registry';
 import { REGIONS } from '../../../core/domain/learning/missions';
 import { missionsOf } from '../../../core/domain/learning/progress';
 import { GUARD_ID, gridOf, WORLD } from './regions';
-import { approach, facingActor, findPath, Grid, isWalkable, tileAt } from './world.logic';
+import {
+  approach,
+  badgeSpot,
+  facingActor,
+  findPath,
+  Grid,
+  isWalkable,
+  tileAt,
+} from './world.logic';
 
 const grid: Grid = {
   rows: ['#####', '#...#', '#.#.#', '#...#', '#####'],
@@ -29,6 +37,22 @@ describe('world.logic', () => {
       { x: 1, y: 2 },
       { x: 1, y: 3 },
     ]);
+  });
+
+  it('el cartel de un vecino nunca tapa a quien tiene al lado', () => {
+    const neighbor = { x: 3, y: 3 };
+    const above = { x: 3, y: 2 };
+    const right = { x: 4, y: 3 };
+    const left = { x: 2, y: 3 };
+
+    expect(badgeSpot(neighbor, [neighbor])).toBe('above');
+    expect(badgeSpot(neighbor, [neighbor, right])).toBe('above');
+    expect(badgeSpot(neighbor, [neighbor, above])).toBe('right');
+    // Arriba el jugador y a la derecha el ayudante: el cartel se va a la izquierda.
+    expect(badgeSpot(neighbor, [neighbor, above, right])).toBe('left');
+    expect(badgeSpot(neighbor, [neighbor, above, right, left])).toBe('right');
+    // Alguien que viene caminando cuenta por la casilla a la que está llegando.
+    expect(badgeSpot(neighbor, [neighbor, { x: 3, y: 2.4 }])).toBe('right');
   });
 
   it('sin camino posible devuelve vacío', () => {

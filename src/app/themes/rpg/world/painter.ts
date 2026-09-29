@@ -1,5 +1,5 @@
 import { Look, Region } from './regions';
-import { Dir, Point } from './world.logic';
+import { BadgeSpot, badgeSpot, Dir, Point } from './world.logic';
 
 /**
  * Dibuja una región y a su gente en un canvas, con rectángulos (pixel art hecho a
@@ -44,15 +44,14 @@ export function paint(ctx: CanvasRenderingContext2D, scene: Scene): void {
   for (const person of everyone) {
     paintPerson(ctx, person, scene.frozen);
   }
-  // Los cartelitos van al final, encima de todos. Si justo arriba del vecino hay
-  // alguien parado, el cartel se corre al costado para no taparle la cara.
+  // Los cartelitos van al final, encima de todos.
   for (const person of scene.people) {
-    const crowded = everyone.some(
-      (other) => Math.round(other.x) === person.x && Math.round(other.y) === person.y - 1,
-    );
-    paintBadge(ctx, person, crowded);
+    paintBadge(ctx, person, badgeSpot(person, everyone));
   }
 }
+
+/** Corrimiento horizontal del cartel dentro de la casilla, según dónde va. */
+const BADGE_X: Record<BadgeSpot, number> = { above: 9, right: 28, left: -12 };
 
 function rect(
   ctx: CanvasRenderingContext2D,
@@ -174,10 +173,10 @@ function paintPerson(ctx: CanvasRenderingContext2D, person: Person, frozen: bool
   }
 }
 
-function paintBadge(ctx: CanvasRenderingContext2D, person: Person, crowded: boolean): void {
+function paintBadge(ctx: CanvasRenderingContext2D, person: Person, spot: BadgeSpot): void {
   if (!person.badge) return;
-  const X = person.x * TILE + (crowded ? 28 : 9);
-  const Y = person.y * TILE - (crowded ? 2 : 16) - (person.badgeLift ?? 0);
+  const X = person.x * TILE + BADGE_X[spot];
+  const Y = person.y * TILE - (spot === 'above' ? 16 : 2) - (person.badgeLift ?? 0);
   const done = person.badge === 'done';
 
   // Borde claro: el cartel se lee sobre una puerta, un techo o el pasto.

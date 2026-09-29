@@ -59,6 +59,22 @@ export function dirBetween(from: Point, to: Point): Dir {
   return to.y > from.y ? 'down' : 'up';
 }
 
+export type BadgeSpot = 'above' | 'right' | 'left';
+
+/**
+ * Dónde va el cartelito de un vecino. Arriba de su cabeza, salvo que ahí haya
+ * alguien parado: entonces se corre al costado que esté libre, para no taparle
+ * la cara a nadie.
+ */
+export function badgeSpot(person: Point, everyone: readonly Point[]): BadgeSpot {
+  const taken = (x: number, y: number) =>
+    everyone.some((other) => Math.round(other.x) === x && Math.round(other.y) === y);
+  if (!taken(person.x, person.y - 1)) {
+    return 'above';
+  }
+  return taken(person.x + 1, person.y) && !taken(person.x - 1, person.y) ? 'left' : 'right';
+}
+
 /**
  * Camino más corto entre dos casillas (sin contar la de partida). Vacío si el
  * destino es la partida o si no se puede llegar. Es un BFS: en una grilla de
