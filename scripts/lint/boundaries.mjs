@@ -12,7 +12,7 @@
  * Correr con: `npm run lint:boundaries`
  */
 import { spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 // Tenemos ~128 módulos. Si el cruiser de golpe ve un puñado, algo se rompió.
@@ -22,9 +22,20 @@ const MIN_MODULES = Number(process.env.WWP_MIN_MODULES) || 50;
 // Invocamos el entry .mjs del cruiser con el mismo node (sin shell) para evitar
 // los shims .cmd/.bin y la deprecación de spawn con shell:true. El paquete bloquea
 // require.resolve por su mapa de exports, así que ubicamos el bin en node_modules.
-const cli = path.resolve('node_modules/dependency-cruiser/bin/dependency-cruise.mjs');
-if (!existsSync(cli)) {
-  console.error(`✗ boundaries: no encuentro el cruiser en ${cli}. ¿Corriste npm install?`);
+// La ruta del bin se lee de su package.json y no se escribe a mano: la versión 18
+// le cambió el nombre al archivo y una ruta fija dejó al gate sin poder correr.
+const home = path.resolve('node_modules/dependency-cruiser');
+const manifest = path.join(home, 'package.json');
+if (!existsSync(manifest)) {
+  console.error(`✗ boundaries: no encuentro el cruiser en ${home}. ¿Corriste npm install?`);
+  process.exit(1);
+}
+const bin = JSON.parse(readFileSync(manifest, 'utf8')).bin?.depcruise;
+const cli = bin ? path.join(home, bin) : '';
+if (!cli || !existsSync(cli)) {
+  console.error(
+    `✗ boundaries: el cruiser instalado no declara un bin "depcruise" que exista (${cli || 'sin bin'}).`,
+  );
   process.exit(1);
 }
 
@@ -66,7 +77,9 @@ if (cruised < MIN_MODULES) {
 
 // (2) Violaciones reales de la regla de oro u otras reglas error.
 if (errorCount > 0) {
-  console.error(`✗ boundaries: ${errorCount} violación(es) de severidad error sobre ${cruised} módulos:\n`);
+  console.error(
+    `✗ boundaries: ${errorCount} violación(es) de severidad error sobre ${cruised} módulos:\n`,
+  );
   for (const v of violations) {
     if (v.rule?.severity !== 'error') continue;
     console.error(`  [${v.rule.name}] ${v.from} → ${v.to}`);
@@ -74,4 +87,6 @@ if (errorCount > 0) {
   process.exit(1);
 }
 
-console.log(`✓ boundaries OK: ${cruised} módulos cruzados, 0 violaciones error (regla de oro intacta).`);
+console.log(
+  `✓ boundaries OK: ${cruised} módulos cruzados, 0 violaciones error (regla de oro intacta).`,
+);
