@@ -87,7 +87,7 @@
     "prettier": "^3.9.9",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.70.1",
-    "vitest": "^4.0.0"
+    "vitest": "^5.0.2"
   },
   "overrides": {
     "@angular-eslint/bundled-angular-compiler": "npm:@angular/compiler@22.2.0"
