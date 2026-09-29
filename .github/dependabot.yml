@@ -13,6 +13,15 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      # TypeScript lo marca Angular: el compilador de Angular 22.2 exige
+      # typescript >=6.0 <6.1, y con otra version `npm ci` ni resuelve. Se sube a
+      # mano junto con Angular. Los patch si entran solos. Revisar esta regla al
+      # subir Angular de major.
+      - dependency-name: typescript
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
   - package-ecosystem: github-actions
     directory: '/'
     schedule:
