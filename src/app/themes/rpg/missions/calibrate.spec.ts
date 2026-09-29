@@ -1,4 +1,8 @@
-import { heavyLimit, PROBE_LIMIT } from './calibrate';
+import { heavyLimit, PROBE_HALF, PROBE_LIMIT, probeCost } from './calibrate';
+
+/** Lo que tarda de verdad una cuenta: crece como n^1.5, más el arranque del worker. */
+const elapsed = (limit: number, costOfProbe: number, startup: number) =>
+  startup + costOfProbe * Math.pow(limit / PROBE_LIMIT, 1.5);
 
 describe('calibrate: el freeze del Molinero dura lo mismo en cualquier máquina', () => {
   it('una máquina rápida cuenta más lejos que una lenta', () => {
@@ -10,14 +14,27 @@ describe('calibrate: el freeze del Molinero dura lo mismo en cualquier máquina'
   });
 
   it('el trabajo elegido apunta al mismo tiempo de espera', () => {
-    // Contar primos por división de prueba cuesta ~n^1.5: con eso se predice el freeze.
-    const predicted = (probeMs: number) =>
-      probeMs * Math.pow(heavyLimit(probeMs) / PROBE_LIMIT, 1.5);
+    for (const cost of [90, 135, 300, 650]) {
+      const freeze = elapsed(heavyLimit(cost), cost, 0);
 
-    for (const probeMs of [90, 135, 300, 650]) {
-      expect(predicted(probeMs), `sonda de ${probeMs} ms`).toBeGreaterThan(1900);
-      expect(predicted(probeMs), `sonda de ${probeMs} ms`).toBeLessThan(2500);
+      expect(freeze, `sonda de ${cost} ms`).toBeGreaterThan(1900);
+      expect(freeze, `sonda de ${cost} ms`).toBeLessThan(2500);
     }
+  });
+
+  it('el arranque del worker no cuenta como trabajo', () => {
+    for (const startup of [0, 40, 250]) {
+      const half = elapsed(PROBE_HALF, 135, startup);
+      const full = elapsed(PROBE_LIMIT, 135, startup);
+
+      expect(probeCost(half, full), `arranque de ${startup} ms`).toBeCloseTo(135, 5);
+    }
+  });
+
+  it('sin una resta que sirva, usa lo medido de punta a punta', () => {
+    expect(probeCost(0, 180)).toBe(180);
+    expect(probeCost(200, 180)).toBe(180);
+    expect(probeCost(120, 0)).toBe(0);
   });
 
   it('nunca pide un trabajo absurdo', () => {

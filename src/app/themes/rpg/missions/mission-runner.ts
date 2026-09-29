@@ -1,5 +1,5 @@
 import { ExampleLayoutController } from '../../../core/presentation/example-layout.controller';
-import { heavyLimit, PROBE_LIMIT } from './calibrate';
+import { heavyLimit, PROBE_HALF, PROBE_LIMIT, probeCost } from './calibrate';
 
 /**
  * Qué HACE cada camino de cada misión: dispara el servicio real del ejemplo (los
@@ -59,11 +59,15 @@ const pause = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve,
  */
 let heavy: Promise<number> | null = null;
 const measureHeavy = ({ ctl, until }: Pick<MissionContext, 'ctl' | 'until'>): Promise<number> => {
-  heavy ??= (async () => {
-    ctl.computeWorker(String(PROBE_LIMIT));
+  const count = async (limit: number) => {
+    ctl.computeWorker(String(limit));
     await until(() => ctl.computePhase() === 'idle');
-    const probe = ctl.workerResult();
-    return heavyLimit(probe?.limit === PROBE_LIMIT ? probe.ms : 0);
+    const result = ctl.workerResult();
+    return result?.limit === limit ? result.ms : 0;
+  };
+  heavy ??= (async () => {
+    const half = await count(PROBE_HALF);
+    return heavyLimit(probeCost(half, await count(PROBE_LIMIT)));
   })();
   return heavy;
 };
