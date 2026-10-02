@@ -32,12 +32,12 @@ peor que uno que falla.
 
 `construir → [design-review ⇄ corregir lo bloqueante]* → LISTO`
 
-El subagente **`design-reviewer`** vive en la configuración personal de Claude Code del autor
-(`~/.claude/agents/design-reviewer.md`), no en este repo: es read-only, saca la captura real
-con Playwright, la mira y critica (jerarquía, contraste, estados, y si enseña el concepto sin
-leer el código). Sin ese agente configurado, el mismo loop se reproduce a mano: servir la app
-(`npm start`), capturar la pantalla del ejemplo en cada theme renderizado y compararla contra
-la captura previa del mismo ejemplo hasta que no queden bloqueantes. El constructor aplica lo
+El loop usa un subagente revisor de diseño que no viene en este repo (cada quien configura el
+suyo): es read-only, saca la captura real con Playwright, la mira y critica (jerarquía,
+contraste, estados, y si enseña el concepto sin leer el código). Sin ese agente configurado,
+el mismo loop se reproduce a mano: servir la app (`npm start`), capturar la pantalla del
+ejemplo en cada theme renderizado y compararla contra la captura previa del mismo ejemplo
+hasta que no queden bloqueantes. El constructor aplica lo
 marcado; se re-revisa. Itera hasta `LISTO`. Tope ~3–4 vueltas; si no converge, escalar. El
 crítico no edita: ojo fresco, sin sesgo de autor.
 

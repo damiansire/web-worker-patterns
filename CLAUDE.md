@@ -4,8 +4,8 @@ Cómo trabajar en este repo: fases y convenciones de código. El diseño vive en
 [`ARQUITECTURA-multi-theme.md`](ARQUITECTURA-multi-theme.md); los gates, el
 tooling y el loop de design-review viven en
 [`docs/AI-PROCESS.md`](docs/AI-PROCESS.md). Este archivo era referenciado por
-`AGENTS.md`/`docs/AI-PROCESS.md` como fuente de verdad pero no existía:
-creado por `/fragua adoptar` el 2026-07-10.
+`AGENTS.md`/`docs/AI-PROCESS.md` como fuente de verdad pero no existía: se
+creó el 2026-07-10.
 
 ## Fases
 
@@ -44,20 +44,19 @@ creado por `/fragua adoptar` el 2026-07-10.
 - No agregues abstracciones para un caso de uso único; no diseñes para
   requisitos hipotéticos.
 
-## Estándar nivel mundial
+## Barra de calidad
 
-Piso transversal de `/fragua` (`fellow-standard.md` del corpus,
-`~/.claude/tools/_audit-tools/refs/`), más lo que este repo ya cumple por
-construcción (boundaries auto-verificados, CI multi-harness, gate de tests
-con auto-verificación en `guard-tests.mjs`: ver el comentario ahí sobre el
+Lo que se le exige a este repo, además de lo que ya cumple por construcción
+(boundaries auto-verificados, CI multi-harness, gate de tests con
+auto-verificación en `guard-tests.mjs`: ver el comentario ahí sobre el
 falso-verde de dependency-cruiser 16, el mismo principio que motivó este
 archivo):
 
 - **El verificador se auto-verifica** (ya aplicado en `boundaries.mjs` y
   `guard-tests.mjs`): todo gate nuevo que pueda "pasar sin revisar nada"
   necesita su propio chequeo de que corrió de verdad.
-- **README con prueba real, no solo claim** (ítem l): los números que el
-  README publica (conteo de tests, cobertura) salen de un script
+- **README con prueba real, no solo claim**: los números que el README
+  publica (conteo de tests, cobertura) salen de un script
   (`scripts/update-metrics.mjs`), nunca tipeados a mano.
 - **Referencias entre docs no rotas** (drift que este mismo archivo corrige):
   si un doc apunta a otro (`AGENTS.md` → `CLAUDE.md`, `CLAUDE.md` →

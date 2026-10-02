@@ -48,9 +48,8 @@ vez en `core/`, la presentación vive en `themes/`. `core/` NUNCA importa de `th
 ## 4. Loop de design-review (NO opcional)
 Construir → `[design-review ⇄ corregir]*` → terminado. Por cada theme registrado
 (`theme.registry.ts`: hoy `default` y `midnight`):
-1. Si tenés el subagente **`design-reviewer`** configurado (vive en la configuración personal
-   de Claude Code del autor, `~/.claude/agents/design-reviewer.md`, no viene en este repo),
-   invocalo: es read-only, saca captura real con Playwright y la critica (jerarquía,
+1. Si tenés configurado un subagente revisor de diseño (no viene en este repo),
+   invocalo: debe ser read-only, sacar captura real con Playwright y criticarla (jerarquía,
    contraste, estados vacío/disabled/hover, y si enseña el concepto). Sin ese agente, hacé el
    mismo chequeo a mano: serví la app (`npm start`), capturá la pantalla del ejemplo en cada
    theme y comparala contra la captura previa del mismo ejemplo.
