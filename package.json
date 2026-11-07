@@ -88,8 +88,5 @@
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.71.2",
     "vitest": "^5.0.5"
-  },
-  "overrides": {
-    "@angular-eslint/bundled-angular-compiler": "npm:@angular/compiler@22.2.0"
   }
 }
