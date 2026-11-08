@@ -1,0 +1,335 @@
+/*
+ * "Hilos del navegador": un carril por hilo y la fila de tareas de main, con el
+ * vocabulario de la pantalla de nivel (blanco, contorno tintado, dorado).
+ * Las variables --lv-* las hereda de `.lv`.
+ */
+:host {
+  display: block;
+  box-sizing: border-box;
+  padding: 8px 16px 12px;
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--lv-white) 94%, transparent);
+  box-shadow:
+    inset 0 0 0 3px var(--lv-shade),
+    0 12px 28px color-mix(in oklab, var(--lv-shade) 22%, transparent);
+  pointer-events: auto;
+  animation: th-in 0.6s cubic-bezier(0.34, 1.4, 0.64, 1) 0.25s both;
+}
+@keyframes th-in {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+}
+
+.th-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 6px;
+}
+.th-kicker {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--accent) 70%, var(--lv-shade));
+}
+
+.th-pause {
+  padding: 2px 10px 3px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--lv-white);
+  color: var(--lv-shade);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 12px;
+  letter-spacing: normal;
+  text-transform: none;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 2px var(--lv-shade);
+  transition: scale 0.25s cubic-bezier(0.34, 1.8, 0.64, 1);
+}
+.th-pause:hover {
+  scale: 1.06;
+}
+.th-pause:focus-visible {
+  outline: 3px solid var(--lv-shade);
+  outline-offset: 2px;
+}
+:host(.is-held) .th-pause {
+  background: var(--lv-gold);
+}
+
+.th-lanes {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  align-items: center;
+  gap: 5px 12px;
+}
+
+.th-name {
+  justify-self: end;
+  padding: 2px 10px 3px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 13px;
+  white-space: nowrap;
+  box-shadow: inset 0 0 0 2.5px var(--lv-shade);
+  background: var(--lv-white);
+}
+.th-name[data-lane='main'] {
+  background: var(--lv-main);
+}
+.th-name[data-lane='worker'] {
+  background: var(--lv-worker);
+  color: var(--lv-white);
+}
+.th-name--queue {
+  font-size: 12px;
+  box-shadow: inset 0 0 0 2px color-mix(in oklab, var(--lv-shade) 45%, transparent);
+}
+
+/* La cinta: el pasado a la izquierda de "ahora", el futuro a la derecha. */
+.th-track {
+  position: relative;
+  height: 30px;
+  border-radius: 10px;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 calc(100% / 8 - 1px),
+      color-mix(in oklab, var(--lv-shade) 10%, transparent) calc(100% / 8 - 1px) calc(100% / 8)
+    ),
+    color-mix(in oklab, var(--lv-shade) 7%, var(--lv-white));
+}
+.th-track--queue {
+  height: 26px;
+  background: color-mix(in oklab, var(--lv-shade) 4%, var(--lv-white));
+  box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--lv-shade) 14%, transparent);
+}
+.th-track[data-lane='worker'] {
+  height: 26px;
+}
+.th-track.is-off {
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in oklab, var(--lv-shade) 5%, var(--lv-white)) 0 8px,
+    color-mix(in oklab, var(--lv-shade) 9%, var(--lv-white)) 8px 16px
+  );
+}
+
+.th-tape {
+  position: absolute;
+  inset: 0;
+  transform: translateX(calc(var(--th-tape, 0) * 100%));
+}
+/* Al pausar, la cinta se rebobina hasta la hora de la pausa. */
+:host(.is-held) .th-tape {
+  transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1);
+}
+:host(.is-held) .th-long-fill {
+  animation-play-state: paused;
+}
+
+.th-now {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--lv-shade);
+  opacity: 0.55;
+}
+.th-now b {
+  position: absolute;
+  white-space: nowrap;
+  top: 1px;
+  left: 5px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.th-note {
+  position: absolute;
+  inset: 0 auto 0 10px;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-body);
+  font-weight: 650;
+  font-size: 12px;
+  color: color-mix(in oklab, var(--lv-shade) 55%, transparent);
+  white-space: nowrap;
+}
+
+/* Cada cosa que main atiende: una pelota, como en el malabar. */
+.th-ball {
+  position: absolute;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 2px solid var(--lv-shade);
+  background: var(--accent);
+  animation: th-pop 0.35s cubic-bezier(0.34, 1.8, 0.64, 1);
+}
+.th-ball[data-kind='scroll'] {
+  background: color-mix(in oklab, var(--worker) 45%, #fff);
+}
+.th-ball[data-kind='frame'] {
+  background: var(--lv-gold);
+}
+.th-ball[data-kind='tick'],
+.th-ball[data-kind='message'] {
+  background: var(--lv-white);
+}
+.th-ball svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.th-ball path {
+  fill: var(--lv-shade);
+}
+.th-ball path.is-line {
+  fill: none;
+  stroke: var(--lv-shade);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.th-ball i {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-weight: 700;
+  font-size: 8px;
+}
+.th-ball--queued {
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+}
+@keyframes th-pop {
+  from {
+    scale: 0.2;
+  }
+}
+
+/* Lo que esperó: de la hora en que llegó a la hora en que main lo tomó. */
+.th-wait {
+  position: absolute;
+  top: 50%;
+  height: 0;
+  border-top: 2.5px dashed color-mix(in oklab, var(--thread-blocked) 80%, var(--lv-shade));
+  transform-origin: left;
+  animation: th-stretch 0.35s ease-out;
+}
+/* El cartel va después de la línea, donde no hay pelotas que lo tapen. */
+.th-wait b {
+  position: absolute;
+  left: calc(100% + 16px);
+  top: 50%;
+  translate: 0 -50%;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--lv-white);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 11px;
+  white-space: nowrap;
+  color: color-mix(in oklab, var(--thread-blocked) 70%, var(--lv-shade));
+}
+@keyframes th-stretch {
+  from {
+    scale: 0 1;
+  }
+}
+
+/* Un trabajo largo: ocupa el hilo entero mientras dura. Mientras corre, la
+   barra mide la cinta y crece a velocidad real con transform: la anima el
+   compositor, así que sigue creciendo aunque main esté congelado. */
+.th-long {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+}
+.th-long-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 7px;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--thread-blocked) 0 8px,
+    color-mix(in oklab, var(--thread-blocked) 78%, #000) 8px 16px
+  );
+  box-shadow: inset 0 0 0 2px var(--lv-shade);
+  transform-origin: left;
+}
+.th-track[data-lane='worker'] .th-long-fill {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--lv-worker) 0 8px,
+    color-mix(in oklab, var(--lv-worker) 80%, #000) 8px 16px
+  );
+}
+/* Mientras crece, el nombre va al principio; terminada, al final (lo último en
+   irse por la izquierda). */
+.th-long.is-running .th-long-label {
+  right: auto;
+  left: 6px;
+}
+.th-long.is-running .th-long-fill {
+  animation: th-grow var(--th-span) linear both;
+}
+@keyframes th-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+.th-long-label {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  translate: 0 -50%;
+  padding: 0 7px 1px;
+  border-radius: 6px;
+  background: var(--lv-white);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  :host {
+    padding: 6px 10px 10px;
+  }
+  .th-name {
+    font-size: 11px;
+    padding: 1px 7px 2px;
+  }
+  .th-note {
+    font-size: 11px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :host,
+  .th-ball,
+  .th-wait {
+    animation: none;
+  }
+}
