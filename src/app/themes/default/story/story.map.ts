@@ -136,6 +136,28 @@ export function roadPath(
   return `M${spots[0].x} ${spots[0].y}${tails.join('')}`;
 }
 
+/**
+ * El tramo del camino de cada capítulo: los segmentos entre dos niveles del
+ * mismo capítulo, en un solo `d` con un subcamino por segmento. Los tramos que
+ * pasan de un capítulo al otro quedan fuera: ahí el camino vuelve a su color y
+ * se ve dónde termina uno y empieza el siguiente. Un capítulo de un solo nivel
+ * (el prólogo) no tiene tramo.
+ */
+export function chapterRoads(
+  spots: readonly MapSpot[],
+  spec: MapSpec,
+  levels: readonly Level[] = LEVELS,
+): { chapter: Chapter['key']; d: string }[] {
+  const segs = segments(spots, spec);
+  return CHAPTERS.map((ch) => ({
+    chapter: ch.key,
+    d: segs
+      .filter((_, i) => levels[i].chapter === ch.key && levels[i + 1].chapter === ch.key)
+      .map((g) => `M${g.a.x} ${g.a.y}${segmentTail(g)}`)
+      .join(''),
+  })).filter((r) => r.d);
+}
+
 export function bezierAt(g: Segment, t: number): Point {
   const u = 1 - t;
   const w = [u * u * u, 3 * u * u * t, 3 * u * t * t, t * t * t];

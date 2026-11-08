@@ -1,5 +1,6 @@
 import { CHAPTERS, LEVELS } from './story.levels';
 import {
+  chapterRoads,
   landmarks,
   MAP_SPECS,
   MapShape,
@@ -41,6 +42,19 @@ describe('story map', () => {
         const last = spots[spots.length - 1];
         expect(roadPath(spots, spec).endsWith(`${last.x} ${last.y}`)).toBe(true);
         expect(roadPath(spots, spec, 0)).toBe(`M${spots[0].x} ${spots[0].y}`);
+      });
+
+      it('cada capítulo pinta su tramo, sin los pasos de un capítulo al otro', () => {
+        const roads = chapterRoads(spots, spec);
+        const inner = LEVELS.slice(1).filter((l, i) => l.chapter === LEVELS[i].chapter).length;
+        const count = roads.reduce((n, r) => n + r.d.split('M').length - 1, 0);
+        expect(count).toBe(inner);
+        expect(count).toBeLessThan(segments(spots, spec).length);
+        // El prólogo tiene un solo nivel: no tiene tramo.
+        expect(roads.map((r) => r.chapter)).not.toContain('prologue');
+        const first = LEVELS.findIndex((l) => l.chapter === 'understanding');
+        const own = roads.find((r) => r.chapter === 'understanding')!;
+        expect(own.d.startsWith(`M${spots[first].x} ${spots[first].y}`)).toBe(true);
       });
 
       it('cada capítulo tiene su hito dentro del dibujo', () => {
