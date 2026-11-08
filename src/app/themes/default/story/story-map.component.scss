@@ -642,17 +642,18 @@
   top: clamp(16px, 3.2vw, 44px);
   left: clamp(16px, 3.4vw, 56px);
   pointer-events: none;
+  /* El cielo es claro y pasan nubes blancas: letra blanca con contorno oscuro,
+     como un cartel, para que se lea sobre cualquier fondo. */
   color: var(--sm-white);
   font-family: var(--font-display);
-  text-shadow:
-    0 4px 0 color-mix(in oklab, var(--sm-shade) 70%, transparent),
-    0 12px 34px color-mix(in oklab, var(--sm-shade) 50%, transparent);
+  paint-order: stroke fill;
+  -webkit-text-stroke: 0.16em var(--sm-shade);
+  text-shadow: 0 0.09em 0 var(--sm-shade);
 }
 .sm-brand,
 .sm-tag {
-  text-shadow:
-    0 2px 0 color-mix(in oklab, var(--sm-shade) 70%, transparent),
-    0 6px 18px color-mix(in oklab, var(--sm-shade) 50%, transparent);
+  -webkit-text-stroke-width: 0.26em;
+  text-shadow: 0 0.12em 0 var(--sm-shade);
 }
 .sm-brand {
   margin: 0 0 4px;
