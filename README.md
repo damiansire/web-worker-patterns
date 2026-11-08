@@ -17,7 +17,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Interactive educational platform about **Web Workers** built with **Angular 22**. It ships **16 progressive examples** with live demos and real thread visualization. The UI is in **Spanish**, and the presentation is a **swappable theme layer**: today a single theme (`default`), with the engine kept generic so more themes (and languages) can be added without touching the domain.
+Interactive educational platform about **Web Workers** built with **Angular 22**. It ships **16 progressive examples** with live demos and real thread visualization, told as a **story in levels**: `main` (the main thread, a living character) and the workers act each pattern out in an animated scene, and you clear a level by playing it. The UI is in **Spanish**, and the presentation is a **swappable theme layer**: today a single theme (`default`), with the engine kept generic so more themes (and languages) can be added without touching the domain.
 
 **▶ Live demo: [damiansire.github.io/web-worker-patterns](https://damiansire.github.io/web-worker-patterns/)**
 
@@ -86,6 +86,12 @@ The 16 examples are organized into 5 categories by concept. The grouping below m
 | 12  | **SharedArrayBuffer**    | Main and worker share the _same_ memory; `Atomics` write/read with no `postMessage`. Needs cross-origin isolation (`COOP`/`COEP`). GitHub Pages can't send those headers, so the app registers a service-worker shim ([`coi-serviceworker.js`](public/coi-serviceworker.js)) that adds them client-side and makes `crossOriginIsolated === true` on the deployed demo. If isolation is still unavailable, the demo detects it at runtime (`crossOriginIsolated`) and shows a labelled _simulated backend_ instead of breaking. |
 | 13  | **Graceful degradation** | Detect `typeof Worker` and fall back to the main thread when it's missing.                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 
+## The story in levels
+
+The home page is a **level map**: a winding path with one node per pattern, grouped by chapter, with `main` standing on the level you are up to. Each level is a full-screen scene (SVG + GSAP) where the work is real (a loop that truly freezes the page, a real worker) and the scene shows the consequence: `main` freezes with everything it was juggling, the worker walks in and takes the job, clicks queue up while `main` is busy. Clearing a level means walking its pattern path; that unlocks the next one, and progress is saved locally.
+
+Chapter 1 (_Understanding_: 01, 02, 16) plus a prologue already have their scenes. The other levels are still **under construction**: they are always open from the map and play in their classic layout (demo, text and code) until their scene arrives. The level list, unlock rules and map layout live in [`story.levels.ts`](src/app/themes/default/story/story.levels.ts) (pure, unit-tested); what each level runs, in [`story.scripts.ts`](src/app/themes/default/story/story.scripts.ts).
+
 ## Visual Themes
 
 The domain is skinned by a theme layer. Today there is **one theme**, `default` (warm, light), drawn from the semantic token contract. The `midnight` (dark palette) and `rpg` (the journey as a game) themes were retired on 2026-11-08 to focus on a single experience; what the game proved (missions with a path that hurts, progress saved locally) lives on in the neutral `core/domain/learning` layer. The theming engine is still generic: a theme provides a shell, home, example layout, UI primitives and a thread visualizer, and is registered as a data-driven `ThemePack`. Adding a theme is adding entries to the registry, **without the domain ever knowing a theme exists**.
@@ -110,7 +116,7 @@ src/app/
 ├── ui-primitives/              # Theme-agnostic primitives (charts, language switcher)
 ├── themes/                     # Presentation: one folder per theme
 │   └── default/                # The only theme (full token-driven presentation)
-│       ├── shell/  journey/  example-layout/  primitives/  styles/
+│       ├── shell/  story/  example-layout/  primitives/  styles/
 ├── app.routes.ts              # Routes generated from the examples registry
 └── app.ts                     # Root component
 
@@ -135,7 +141,7 @@ Routes, navigation and the home page update automatically from the registry.
 - **SCSS**: Semantic design tokens (`--surface`, `--ink`, `--accent`, `--thread-*`) per theme
 - **@jsverse/transloco**: Runtime i18n (ES; engine ready for more languages)
 - **highlight.js**: Syntax highlighting for code blocks
-- **Vitest**: Unit tests (<!-- METRICS:TESTS -->242<!-- /METRICS:TESTS --> tests across the pure domain logic, the services and the themes)
+- **Vitest**: Unit tests (<!-- METRICS:TESTS -->249<!-- /METRICS:TESTS --> tests across the pure domain logic, the services and the themes)
 - **dependency-cruiser**: Enforces the `core/ ⇏ themes/` boundary
 - **Web Workers API**: Dedicated Workers, SharedWorker, Transferable Objects, SharedArrayBuffer + Atomics, OffscreenCanvas
 
