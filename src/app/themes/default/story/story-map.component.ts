@@ -648,7 +648,7 @@ export class StoryMapComponent {
    * nivel entra.
    */
   protected readonly playAt = signal({ x: 0, y: 0 });
-  /** El cartel de la noche va bajo los pies de main: arriba están las "z" y la burbuja. */
+  /** El cartel de la noche va en el medio de lo que se ve: es lo único para hacer. */
   protected readonly nightPlayAt = signal({ x: 0, y: 0 });
   /** Cuánto sube lo que dice main para no quedar detrás del botón, en unidades del viewBox. */
   protected readonly sayLift = signal(0);
@@ -962,8 +962,8 @@ export class StoryMapComponent {
   }
 
   /**
-   * Lleva el botón arriba de la cabeza de main y el cartel de la noche bajo
-   * sus pies, sin que se salgan de la escena por los costados.
+   * Lleva el botón arriba de la cabeza de main y el cartel de la noche al
+   * medio de lo que se ve, sin que el botón se salga por los costados.
    */
   private placePlay(): void {
     const m = this.worldRef().nativeElement.getScreenCTM();
@@ -991,8 +991,16 @@ export class StoryMapComponent {
     this.playAt.set({ x: crown.x, y: bottom });
     this.sayLift.set((crown.y - bottom + height + 6) / m.d);
     if (this.night()) {
+      // El cartel de la noche va en el medio de lo que se ve de la escena: es
+      // lo único que hay para hacer, no tiene que buscarse junto a main.
       const dawnPlay = this.stageRef().nativeElement.querySelector<HTMLElement>('.sd-play');
-      this.nightPlayAt.set(placed(this.hp.y + 44 * this.spec().s, dawnPlay?.offsetWidth ?? 0));
+      const seenTop = Math.max(box.top, 0);
+      const seenBottom = Math.min(box.bottom, innerHeight);
+      const middle = (seenTop + seenBottom) / 2 - box.top;
+      this.nightPlayAt.set({
+        x: box.width / 2,
+        y: Math.max(8, middle - (dawnPlay?.offsetHeight ?? 0) / 2),
+      });
       this.sleeperAt.set({ x: this.hp.x, y: this.hp.y });
     }
   }

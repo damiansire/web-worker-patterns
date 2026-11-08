@@ -59,7 +59,7 @@ const DROPS = [-150, -110, -70, -30, 10, 50, 120].map((deg, i) => {
  * día está el sol, titilan las estrellas, pasa alguna fugaz, las ventanas de
  * los hitos están encendidas, el faro barre y hay luciérnagas. Main ronca con
  * una burbuja que se infla y se desinfla. Lo único que brilla de verdad es el
- * play bajo sus pies: el cartel de `story-lantern-sign`, con
+ * play en el medio de la pantalla: el cartel de `story-lantern-sign`, con
  * su farol prendido.
  *
  * Tocarlo da el toque que el navegador pide para dejar sonar (suena un arpegio
@@ -459,7 +459,7 @@ const DROPS = [-150, -110, -70, -30, 10, 50, 120].map((deg, i) => {
 export class StoryDawnComponent {
   /** El mundo del mapa, en unidades de su viewBox. */
   readonly scene = input.required<NightScene>();
-  /** Dónde va el play, en píxeles: bajo los pies de main, en el lugar del botón del mapa. */
+  /** Dónde va el play, en píxeles: el centro de arriba del cartel. */
   readonly at = input.required<Point>();
   /** El nivel al que entra el play (para el lector de pantalla). */
   readonly level = input.required<string>();

@@ -332,11 +332,11 @@
   display: block;
 }
 .sd-play story-lantern-sign {
-  --sls-w: clamp(150px, 11vw, 190px);
+  --sls-w: clamp(220px, 17vw, 320px);
 }
 @media (max-width: 640px) {
   .sd-play story-lantern-sign {
-    --sls-w: 124px;
+    --sls-w: 190px;
   }
 }
 
