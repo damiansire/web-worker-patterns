@@ -20,9 +20,24 @@ import { DefaultCodeBlock } from '../primitives/default-code-block.component';
 import { createScene, Scene, Who } from './scene/scene';
 import { CHOICE_AT, MAIN_AT, WORKER_AT } from './scene/scene.art';
 import { StoryProgress } from './story-progress.service';
+import { StoryThreadsComponent } from './story-threads.component';
 import { createLevelAudio, LevelAudio } from './story.audio';
 import { CHAPTERS, Level, LEVELS, levelState, nextLevel, PROLOGUE_ID } from './story.levels';
 import { LevelContext, Line, PRIMES_EXAMPLE, SCRIPTS } from './story.scripts';
+import {
+  blip,
+  emptyLog,
+  endTask,
+  enqueue,
+  prune,
+  startTask,
+  take,
+  TaskKind,
+  ThreadLog,
+} from './story.threads.logic';
+
+/** Qué atiende main con cada pelota del malabar. */
+const JUGGLED: readonly TaskKind[] = ['click', 'scroll', 'frame'];
 
 const SOUND_KEY = 'wwp-story-sound';
 
@@ -39,11 +54,14 @@ interface Anchors {
  *  - Arriba: el título del nivel, la vuelta al mapa y las paradas del capítulo.
  *  - Colgado en el centro: el problema del nivel, en grande (al ganar, el mismo
  *    cartel dice "¡Nivel superado!").
+ *  - Debajo del cartel: "Hilos del navegador", lo que hace cada hilo en una
+ *    cinta de tiempo (main, su fila de tareas y el worker).
  *  - En la escena: las opciones, como etiquetas sobre quien haría el trabajo
- *    (main, o la puerta por donde entra el worker). No hay botones en el diálogo.
+ *    (main, o la puerta por donde entra el worker); al ganar, en el mismo lugar,
+ *    la etiqueta para seguir. No hay botones en el diálogo.
  *  - Abajo, sobre el piso: el diálogo, con quién habla y la colita hacia él.
- *  - Al final de cada nivel: la hoja con el código, siempre abierta; la cámara
- *    se corre para dejarle lugar y main y el worker siguen a la vista.
+ *  - A la derecha, a medida que se juega: el código, paso a paso, cada pedazo
+ *    con lo que hace; la cámara se corre para dejarle lugar.
  * La escena se encuadra sola (`Scene.frame`) para que nada de esto la tape.
  * Sin encapsulación: la escena crea su SVG por código y su CSS cuelga de `.jh`;
  * el de esta pantalla, de `.lv`.
@@ -52,7 +70,7 @@ interface Anchors {
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   selector: 'default-story-stage',
-  imports: [RouterLink, DefaultCodeBlock],
+  imports: [RouterLink, DefaultCodeBlock, StoryThreadsComponent],
   providers: [ExampleLayoutController],
   template: `
     <article
@@ -60,7 +78,7 @@ interface Anchors {
       class="lv"
       [attr.data-chapter]="level().chapter"
       [class.is-won]="won()"
-      [class.has-sheet]="won() && snippets().length > 0"
+      [class.has-sheet]="steps().length > 0"
       [style.--lv-tail-x]="tailX() + 'px'"
     >
       <div class="jh lv-scene">
@@ -145,13 +163,23 @@ interface Anchors {
           </div>
         </header>
 
-        <section #sign class="lv-sign" [class.is-solved]="won()" aria-labelledby="lv-sign-ask">
-          <p class="lv-sign-kicker">{{ won() ? '✦ Problema resuelto ✦' : '✦ El problema ✦' }}</p>
-          <p class="lv-sign-what">{{ script().problem.what }}</p>
-          <h2 id="lv-sign-ask" class="lv-sign-ask">
-            {{ won() ? '¡Nivel superado!' : script().problem.ask }}
-          </h2>
-        </section>
+        <div #hang class="lv-hang">
+          <section class="lv-sign" [class.is-solved]="won()" aria-labelledby="lv-sign-ask">
+            <p class="lv-sign-kicker">
+              {{ won() ? '✦ Problema resuelto ✦' : '✦ El problema ✦' }}
+            </p>
+            <p class="lv-sign-what">{{ script().problem.what }}</p>
+            <h2 id="lv-sign-ask" class="lv-sign-ask">
+              {{ won() ? '¡Nivel superado!' : script().problem.ask }}
+            </h2>
+          </section>
+          <story-threads
+            class="lv-threads"
+            [log]="threadLog()"
+            [hasWorker]="hasWorker()"
+            [(pausedAt)]="tapePausedAt"
+          />
+        </div>
       </div>
 
       @for (c of choices(); track c.id) {
@@ -176,37 +204,58 @@ interface Anchors {
         </button>
       }
 
-      @if (won() && snippets().length) {
+      @if (won() && nextAt(); as at) {
+        <a
+          #nextBtn
+          class="lv-choice lv-choice--gold lv-next"
+          [attr.data-at]="at.at"
+          [style.left.px]="at.x"
+          [style.top.px]="at.y"
+          [style.--lv-x]="at.x + 'px'"
+          [routerLink]="nextLink()"
+        >
+          <span class="lv-choice-bob">
+            <span class="lv-pill-tri" aria-hidden="true"></span>
+            <span class="lv-next-text">
+              <b>{{ next() ? 'Siguiente' : 'Listo' }}</b>
+              {{ next()?.title ?? 'Volver al mapa' }}
+            </span>
+          </span>
+        </a>
+      }
+
+      @if (steps().length) {
         <section #sheet class="lv-sheet" aria-labelledby="lv-sheet-title">
           <p class="lv-sheet-kicker">✦ Así se escribe ✦</p>
-          <h2 id="lv-sheet-title" class="lv-sheet-title">El código de este nivel</h2>
-          <div class="lv-code">
-            @for (s of snippets(); track s.label) {
-              <default-code-block [label]="s.label" [code]="s.code" />
+          <h2 id="lv-sheet-title" class="lv-sheet-title">El código, paso a paso</h2>
+          <ol class="lv-steps">
+            @for (s of steps(); track s.id) {
+              <li class="lv-step" [class.is-new]="s.id === latestStep()" [attr.data-step]="s.id">
+                <p class="lv-step-note">
+                  <b class="lv-step-n">{{ $index + 1 }}</b>
+                  <span>{{ s.note }}</span>
+                </p>
+                <default-code-block [label]="s.file" [code]="s.code" />
+              </li>
             }
-          </div>
+          </ol>
+          @if (!won()) {
+            <p class="lv-steps-more">Seguí jugando: el código se arma con lo que va pasando.</p>
+          }
         </section>
       }
 
       <section
         #talk
         class="lv-talk"
-        [attr.data-who]="won() ? 'lesson' : caption().who"
-        [attr.aria-label]="won() ? 'Lo que aprendiste' : 'Habla ' + caption().who"
+        [attr.data-who]="caption().who"
+        [attr.aria-label]="'Habla ' + caption().who"
         (transitionend)="onTalkMoved($event)"
       >
-        <p class="lv-sr" aria-live="polite">{{ shownLine()[0] }}</p>
-        <span class="lv-who" aria-hidden="true">{{
-          won() ? '✦ lo que aprendiste ✦' : caption().who
-        }}</span>
+        <p class="lv-sr" aria-live="polite">{{ caption().text }}</p>
+        <span class="lv-who" aria-hidden="true">{{ caption().who }}</span>
         @for (text of shownLine(); track text) {
           <p class="lv-line" aria-hidden="true">{{ text }}</p>
-        }
-        @if (won()) {
-          <a #nextBtn class="lv-pill lv-pill--gold" [routerLink]="nextLink()">
-            <span class="lv-pill-tri" aria-hidden="true"></span>
-            {{ nextLabel() }}
-          </a>
         }
       </section>
     </article>
@@ -225,21 +274,35 @@ export class StoryStageComponent {
   private readonly nextBtn = viewChild<ElementRef<HTMLElement>>('nextBtn');
   private readonly roomEl = viewChild.required<ElementRef<HTMLElement>>('room');
   private readonly topEl = viewChild.required<ElementRef<HTMLElement>>('top');
-  private readonly signEl = viewChild.required<ElementRef<HTMLElement>>('sign');
+  private readonly hangEl = viewChild.required<ElementRef<HTMLElement>>('hang');
   private readonly talkEl = viewChild.required<ElementRef<HTMLElement>>('talk');
   private readonly sheetEl = viewChild<ElementRef<HTMLElement>>('sheet');
 
   protected readonly script = computed(() => SCRIPTS[this.level().scene!]);
-  protected readonly snippets = this.ctl.snippets;
   protected readonly caption = signal<Line>({ who: 'main', text: '' });
+  /** Lo que hizo cada hilo (panel "Hilos del navegador"). */
+  protected readonly threadLog = signal<ThreadLog>(emptyLog());
+  /** Cuándo quedó quieta la cinta de los hilos (null: en vivo). */
+  protected readonly tapePausedAt = signal<number | null>(null);
+  /** Lo último que contó el guion a los hilos: hasta ahí se rebobina al terminar. */
+  private lastThreadEvent = 0;
+  /** Lo que tapa la hoja del código a la derecha (px), según el último encuadre. */
+  private sceneRight = 0;
+  /** El nivel tiene worker si alguna opción se elige en su puerta. */
+  protected readonly hasWorker = computed(() => this.script().paths.some((p) => p.at === 'door'));
+  /** Los pasos del código que ya aparecieron, en el orden del guion; el último, resaltado. */
+  private readonly revealed = signal<ReadonlySet<string>>(new Set());
+  protected readonly latestStep = signal<string | null>(null);
+  protected readonly steps = computed(() => {
+    const shown = this.revealed();
+    return this.script().code.filter((s) => shown.has(s.id));
+  });
   protected readonly busy = signal(false);
   protected readonly won = signal(false);
   /** Música y efectos: preferencia de la persona, recordada entre visitas. */
   protected readonly soundOn = signal(readStored(SOUND_KEY) !== 'off');
   /** La línea del diálogo, en un arreglo para rearmar el párrafo (y su entrada) en cada cambio. */
-  protected readonly shownLine = computed(() => [
-    this.won() ? this.script().lesson : this.caption().text,
-  ]);
+  protected readonly shownLine = computed(() => [this.caption().text]);
 
   private readonly anchors = signal<Anchors | null>(null);
   /** Las opciones del nivel, puestas sobre main o sobre la puerta. */
@@ -256,6 +319,17 @@ export class StoryStageComponent {
       const y = door && a.width < 640 ? at.y - 56 : at.y;
       return { ...p, x, y, done: this.progress.isPathDone(this.level().id, p.id) };
     });
+  });
+  /**
+   * Al ganar, la etiqueta para seguir va donde estaba la opción de main. En
+   * celular a la izquierda de main no entra: va arriba de la puerta.
+   */
+  protected readonly nextAt = computed(() => {
+    const a = this.anchors();
+    if (!a) return null;
+    if (a.width >= 640) return { ...a.choice.main, at: 'main' };
+    const door = a.choice.door;
+    return { x: Math.min(Math.max(door.x, 125), a.width - 125), y: door.y - 56, at: 'door' };
   });
   /** Hacia dónde apunta la colita del diálogo: quien habla. */
   protected readonly tailX = computed(() => this.anchors()?.speaker[this.caption().who] ?? 0);
@@ -276,7 +350,7 @@ export class StoryStageComponent {
       state: levelState(l, isDone),
     }));
   });
-  private readonly next = computed(() => nextLevel(this.level().id));
+  protected readonly next = computed(() => nextLevel(this.level().id));
   protected readonly nextLink = computed(() => {
     const nx = this.next();
     return nx ? ['/t', this.themeId(), 'example', nx.id] : ['/t', this.themeId()];
@@ -320,7 +394,41 @@ export class StoryStageComponent {
           return worker;
         },
         music: (mood) => this.audio?.mood(mood),
+        threads: {
+          work: (lane, label) => {
+            let id = 0;
+            this.tapePausedAt.set(null);
+            this.updateThreads((log, now) => {
+              const started = startTask(log, lane, 'long', label, now);
+              id = started.id;
+              return started.log;
+            });
+            return () => this.updateThreads((log, now) => endTask(log, id, now));
+          },
+          blip: (lane, kind, label = '') =>
+            this.updateThreads((log, now) => blip(log, lane, kind, label, now)),
+          enqueue: (kind, arrived) => {
+            let id = 0;
+            this.updateThreads((log) => {
+              const queued = enqueue(log, kind, arrived);
+              id = queued.id;
+              return queued.log;
+            });
+            return id;
+          },
+          take: (id, label, at) => {
+            this.updateThreads((log, now) => take(log, id, label, at ?? now), false);
+            // Si pasó antes (la escena lo repite despacio), cuenta la hora real.
+            this.lastThreadEvent = Math.max(this.lastThreadEvent, at ?? performance.now());
+          },
+        },
+        code: (stepId) => this.showStep(stepId),
       };
+      // Con la cinta en pausa no se anota el malabar: quedaría en el futuro.
+      scene.onJuggle((ball) => {
+        if (this.tapePausedAt() !== null) return;
+        this.updateThreads((log, now) => blip(log, 'main', JUGGLED[ball], '', now), false);
+      });
       if (this.script().sound) {
         this.audio = createLevelAudio(!this.soundOn());
         scene.onCue((cue) => this.audio?.cue(cue));
@@ -342,7 +450,8 @@ export class StoryStageComponent {
     if (!scene || this.dead) return;
     const head = (x: number) => scene.toScreen(x, MAIN_AT.y).x;
     this.anchors.set({
-      width: this.roomEl().nativeElement.clientWidth,
+      // El ancho que se ve de la escena: sin lo que tapa la hoja del código.
+      width: this.roomEl().nativeElement.clientWidth - this.sceneRight,
       choice: {
         main: scene.toScreen(CHOICE_AT.main.x, CHOICE_AT.main.y),
         door: scene.toScreen(CHOICE_AT.door.x, CHOICE_AT.door.y),
@@ -367,19 +476,56 @@ export class StoryStageComponent {
     const w = room.clientWidth;
     const h = room.clientHeight;
     const bottomOf = (el: HTMLElement) => el.offsetTop + el.offsetHeight;
+    // El cartel y los hilos cuelgan juntos de un bloque pegado arriba.
     const top = Math.max(
       bottomOf(this.topEl().nativeElement),
-      bottomOf(this.signEl().nativeElement),
+      bottomOf(this.hangEl().nativeElement),
     );
     const sheet = this.sheetEl()?.nativeElement;
     let right = 0;
     let floor = this.talkEl().nativeElement.offsetTop;
     if (sheet && sheet.offsetLeft > w * 0.35) right = w - sheet.offsetLeft + 16;
     else if (sheet) floor = Math.min(floor, sheet.offsetTop);
+    this.sceneRight = right;
     this.scene?.frame({ top: top + 8, bottom: Math.min(h - floor + 24, h * 0.6), right }, pan);
   }
 
-  /** Gana (o vuelve a jugar): cambian el cartel, el diálogo y la hoja, y la cámara se acomoda. */
+  private updateThreads(
+    change: (log: ThreadLog, now: number) => ThreadLog,
+    fromScript = true,
+  ): void {
+    if (this.dead) return;
+    const now = performance.now();
+    if (fromScript) this.lastThreadEvent = now;
+    this.threadLog.update((log) => prune(change(log, now), now));
+  }
+
+  /**
+   * Muestra un paso del código (si ya estaba, lo vuelve a resaltar). La primera
+   * vez se abre la hoja y la cámara se corre; después, la hoja baja hasta él.
+   */
+  private showStep(stepId: string): void {
+    if (this.dead || !this.script().code.some((s) => s.id === stepId)) return;
+    const opening = this.revealed().size === 0;
+    this.revealed.update((shown) => new Set(shown).add(stepId));
+    this.latestStep.set(stepId);
+    afterNextRender(
+      () => {
+        if (this.dead) return;
+        if (opening) this.frameScene(true);
+        // Solo se mueve la hoja por dentro (en ancho tiene su propio scroll). En
+        // angosto la hoja asoma debajo de la escena y la pantalla no se mueve:
+        // scrollIntoView movería todo y se perdería la escena.
+        const sheet = this.sheetEl()?.nativeElement;
+        const step = sheet?.querySelector<HTMLElement>(`[data-step="${stepId}"]`);
+        if (sheet && step && sheet.scrollHeight > sheet.clientHeight) {
+          sheet.scrollTo({ top: step.offsetTop - 12, behavior: 'smooth' });
+        }
+      },
+      { injector: this.injector },
+    );
+  }
+
   /**
    * El diálogo cambia de ancho con una transición (al abrirse o cerrarse la
    * hoja, o al cambiar el tamaño de la ventana) y, con él, de alto: el encuadre
@@ -398,15 +544,26 @@ export class StoryStageComponent {
     this.audio?.setMuted(!on);
   }
 
+  /** Gana (o vuelve a jugar): cambian el cartel y la hoja, main dice la lección y la cámara se acomoda. */
   protected setWon(won: boolean): void {
     this.won.set(won);
+    if (won) {
+      // Lo que faltaba del código aparece entero, en orden; main dice la lección.
+      this.revealed.set(new Set(this.script().code.map((s) => s.id)));
+      this.latestStep.set(null);
+      this.caption.set({ who: 'main', text: this.script().lesson });
+    }
     if (won) this.audio?.cue({ kind: 'win' });
     this.audio?.mood(won ? 'won' : 'main');
     afterNextRender(
       () => {
         if (this.dead) return;
         this.frameScene(true);
-        if (won) this.nextBtn()?.nativeElement.focus();
+        if (won) {
+          this.nextBtn()?.nativeElement.focus();
+          // El código completo se lee desde arriba.
+          this.sheetEl()?.nativeElement.scrollTo({ top: 0, behavior: 'smooth' });
+        }
       },
       { injector: this.injector },
     );
@@ -419,9 +576,14 @@ export class StoryStageComponent {
     const path = this.script().paths.find((p) => p.id === pathId);
     const wasDone = this.progress.isDone(id);
     this.busy.set(true);
+    this.tapePausedAt.set(null);
     this.audio?.cue({ kind: 'choose' });
     if (this.won()) this.setWon(false);
     const result = await this.script().run(pathId, ctx);
+    // La cinta se rebobina y queda quieta en lo que pasó, para leerlo.
+    if (this.lastThreadEvent) {
+      this.tapePausedAt.set(Math.min(performance.now(), this.lastThreadEvent + 1200));
+    }
     this.audio?.mood('main');
     for (const w of this.owned) w.terminate();
     this.owned.clear();

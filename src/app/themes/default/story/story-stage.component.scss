@@ -14,7 +14,7 @@
   --lv-worker: color-mix(in oklab, var(--worker) 80%, #fff);
   /* Centro del cartel y del diálogo: el de la pantalla, o el de la escena
      cuando la hoja del código ocupa la derecha. */
-  --lv-sheet-w: min(44cqw, 780px);
+  --lv-sheet-w: min(36cqw, 620px);
   --lv-cx: 50cqw;
 
   position: relative;
@@ -290,16 +290,37 @@ a.lv-stop:focus-visible {
   outline-offset: 3px;
 }
 
-/* ── El problema: un cartel colgado del techo, en el centro ──
-   Es lo primero que se lee del nivel. Al ganar, el mismo cartel se vuelve
-   dorado y dice "¡Nivel superado!". */
-.lv-sign {
+/* ── Colgados del techo: el cartel del problema y, debajo, los hilos ── */
+.lv-hang {
   position: absolute;
   top: 26px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none;
+}
+/* Los hilos se centran en el hueco de la escena (a la izquierda de la hoja). */
+.lv-threads {
+  width: min(880px, calc(100cqw - 32px));
+  translate: calc(var(--lv-cx) - 50cqw) 0;
+  transition:
+    translate 0.8s cubic-bezier(0.65, 0, 0.35, 1),
+    width 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.lv.has-sheet .lv-threads {
+  width: min(880px, calc(100cqw - var(--lv-sheet-w) - 72px));
+}
+
+/* El problema: es lo primero que se lee del nivel. Al ganar, el mismo cartel
+   se vuelve dorado y dice "¡Nivel superado!". */
+.lv-sign {
+  position: relative;
   pointer-events: auto;
   /* Siempre al centro de la pantalla (no se corre con la hoja: chocaba con el
      título); la hoja del código arranca debajo de él. */
-  left: 50cqw;
   width: max-content;
   max-width: min(640px, calc(100cqw - 32px));
   box-sizing: border-box;
@@ -307,7 +328,6 @@ a.lv-stop:focus-visible {
   border-radius: 18px;
   background: var(--lv-white);
   text-align: center;
-  translate: -50% 0;
   transform-origin: 50% -26px;
   box-shadow:
     inset 0 0 0 4px var(--lv-shade),
@@ -472,6 +492,33 @@ a.lv-stop:focus-visible {
   border-left: 13px solid var(--lv-shade);
   transform: translateY(-50%);
 }
+/* Al ganar, para seguir: la etiqueta dorada en el lugar de la opción de main. */
+.lv .lv-next {
+  text-decoration: none;
+  color: var(--lv-shade);
+  animation: lv-next-in 0.6s cubic-bezier(0.34, 1.7, 0.64, 1) 0.4s both;
+}
+.lv .lv-next .lv-choice-bob {
+  padding: 8px 20px 10px 8px;
+}
+.lv-next-text {
+  display: grid;
+  text-align: left;
+  line-height: 1.1;
+  font-size: clamp(14px, 0.4vw + 9px, 18px);
+}
+.lv-next-text b {
+  font-size: clamp(18px, 0.6vw + 11px, 24px);
+}
+.lv-next .lv-choice-bob::after {
+  display: none;
+}
+@keyframes lv-next-in {
+  from {
+    opacity: 0;
+    scale: 0.4;
+  }
+}
 .lv .lv-choice:focus-visible .lv-choice-bob {
   outline: 3px solid var(--lv-shade);
   outline-offset: 4px;
@@ -527,15 +574,6 @@ a.lv-stop:focus-visible {
   translate: -50% 1px;
   transition: left 0.35s cubic-bezier(0.34, 1.4, 0.64, 1);
 }
-.lv-talk[data-who='lesson']::before {
-  display: none;
-}
-.lv.is-won .lv-talk {
-  box-shadow:
-    inset 0 -6px 0 color-mix(in oklab, var(--lv-gold) 45%, transparent),
-    0 0 0 4px var(--lv-gold),
-    0 18px 44px color-mix(in oklab, var(--lv-shade) 30%, transparent);
-}
 .lv-who {
   position: absolute;
   top: 0;
@@ -554,12 +592,6 @@ a.lv-stop:focus-visible {
 .lv-talk[data-who='worker'] .lv-who {
   background: var(--lv-worker);
   color: var(--lv-white);
-}
-.lv-talk[data-who='lesson'] .lv-who {
-  background: var(--lv-gold);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-size: 12px;
 }
 .lv-sr {
   position: absolute;
@@ -585,35 +617,7 @@ a.lv-stop:focus-visible {
   }
 }
 
-/* El único botón del diálogo: seguir, al final del nivel (el dorado de "¡Jugar!"). */
-.lv .lv-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 14px;
-  padding: 8px 22px 10px 8px;
-  border-radius: 999px;
-  background: var(--lv-gold);
-  color: var(--lv-shade);
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: clamp(15px, 0.4vw + 10px, 19px);
-  text-decoration: none;
-  box-shadow:
-    inset 0 -6px 0 var(--lv-gold-dark),
-    0 10px 22px color-mix(in oklab, var(--lv-shade) 26%, transparent);
-  transition:
-    scale 0.25s cubic-bezier(0.34, 1.8, 0.64, 1),
-    background 0.2s;
-}
-.lv .lv-pill:hover {
-  scale: 1.05;
-  background: color-mix(in oklab, var(--lv-gold) 85%, #fff);
-}
-.lv .lv-pill:focus-visible {
-  outline: 3px solid var(--lv-shade);
-  outline-offset: 3px;
-}
+/* El triángulo de jugar (en la etiqueta para seguir). */
 .lv-pill-tri {
   position: relative;
   flex: none;
@@ -633,7 +637,7 @@ a.lv-stop:focus-visible {
   transform: translate(-50%, -50%);
 }
 
-/* ── Al final de cada nivel: la hoja con el código, siempre abierta ── */
+/* ── A la derecha: el código, que se arma de a poco mientras se juega ── */
 .lv-sheet {
   position: absolute;
   z-index: 2;
@@ -675,9 +679,65 @@ a.lv-stop:focus-visible {
   text-transform: none;
   letter-spacing: -0.01em;
 }
-.lv-code {
+.lv-steps {
   display: grid;
-  gap: 12px;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lv-step {
+  display: grid;
+  gap: 8px;
+  padding: 10px 10px 12px;
+  border-radius: 16px;
+  transition:
+    background 0.6s,
+    box-shadow 0.6s;
+  animation: lv-step-in 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+/* El pedazo que acaba de aparecer: resaltado hasta que llega el siguiente. */
+.lv-step.is-new {
+  background: color-mix(in oklab, var(--lv-gold) 22%, var(--lv-white));
+  box-shadow: inset 0 0 0 3px var(--lv-gold);
+}
+@keyframes lv-step-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+.lv-step-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 650;
+  font-size: clamp(14px, 0.3vw + 10px, 16px);
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+.lv-step-n {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--lv-shade);
+  color: var(--lv-gold);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 14px;
+}
+.lv-steps-more {
+  margin: 14px 0 0;
+  font-family: var(--font-body);
+  font-weight: 650;
+  font-size: 13px;
+  font-style: italic;
+  color: color-mix(in oklab, var(--lv-shade) 60%, transparent);
 }
 
 /* ── Ventilador del nivel 16: HTML con animación CSS (la mueve el compositor) ── */
@@ -750,12 +810,15 @@ a.lv-stop:focus-visible {
    pisa) y, al ganar, la hoja del código queda debajo de la escena asomando su
    título: el nivel se baja para leerla, sin taparle la escena a la lección. */
 @media (max-width: 1100px) {
-  .lv-sign {
+  .lv-hang {
     position: relative;
     top: auto;
-    left: auto;
+    margin-top: 18px;
+  }
+  .lv-threads,
+  .lv.has-sheet .lv-threads {
+    width: 100%;
     translate: none;
-    margin: 18px auto 0;
   }
   .lv-sign::before,
   .lv-sign::after {
@@ -828,7 +891,9 @@ a.lv-stop:focus-visible {
   .lv-sign,
   .lv-sign.is-solved,
   .lv-choice-bob,
+  .lv .lv-next,
   .lv-sheet,
+  .lv-step,
   .lv-line {
     animation: none;
   }
