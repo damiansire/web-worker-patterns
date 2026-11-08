@@ -14,7 +14,7 @@ import { Router } from '@angular/router';
 import gsap from 'gsap';
 import { ThemeService } from '../../../theming/theme.service';
 import { MAIN_BODY } from './scene/scene.art';
-import { DawnBy, DawnPoint, StoryDawnComponent } from './story-dawn.component';
+import { DawnBy, NightScene, StoryDawnComponent } from './story-dawn.component';
 import { IconPart, levelIcon } from './story.icons';
 import { StoryProgress } from './story-progress.service';
 import { CHAPTERS, currentLevel, Level, LEVELS, levelState, LevelState } from './story.levels';
@@ -504,10 +504,9 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
       </button>
       <p class="sm-sr" aria-live="polite">{{ status() }}</p>
 
-      @if (night() && dawnAt(); as d) {
+      @if (night() && nightScene(); as n) {
         <story-dawn
-          [sun]="d.sun"
-          [sleeper]="d.sleeper"
+          [scene]="n"
           [at]="playAt()"
           [level]="next().title"
           (woke)="onWoke($event)"
@@ -643,8 +642,24 @@ export class StoryMapComponent {
   protected readonly walking = signal(false);
   /** De noche hasta el primer toque: main duerme y solo se ve el play. */
   protected readonly night = signal(StoryDawnComponent.needed());
-  /** Para la noche, en píxeles de la escena: el sol (de ahí amanece) y la cabeza de main. */
-  protected readonly dawnAt = signal<{ sun: DawnPoint; sleeper: DawnPoint } | null>(null);
+  /** Dónde duerme main, en el viewBox: lo fija `placePlay` (main no es un signal). */
+  private readonly sleeperAt = signal<Point | null>(null);
+  /** Lo que la noche necesita del mundo para dibujarse encima, en su mismo viewBox. */
+  protected readonly nightScene = computed<NightScene | null>(() => {
+    const hero = this.sleeperAt();
+    if (!hero) return null;
+    const { view, horizon, s } = this.spec();
+    return {
+      view,
+      horizon,
+      s,
+      skyline: this.far()[0],
+      moon: this.sun(),
+      hero: { ...hero, scale: this.heroScale() },
+      marks: this.marks(),
+      art: this.art(),
+    };
+  });
 
   private calm = false;
   private moving = false;
@@ -938,16 +953,7 @@ export class StoryMapComponent {
     const p = new DOMPoint(this.hp.x, this.hp.y + 44 * this.spec().s).matrixTransform(m);
     const x = clamp(p.x - box.left, half + 8, box.width - half - 8);
     this.playAt.set({ x, y: p.y - box.top });
-    if (!this.night()) return;
-    const at = (sx: number, sy: number) => {
-      const q = new DOMPoint(sx, sy).matrixTransform(m);
-      return { x: q.x - box.left, y: q.y - box.top };
-    };
-    const sc = this.heroScale();
-    this.dawnAt.set({
-      sun: at(this.sun().x, this.sun().y),
-      sleeper: at(this.hp.x - 40 * sc, this.hp.y - 190 * sc),
-    });
+    if (this.night()) this.sleeperAt.set({ x: this.hp.x, y: this.hp.y });
   }
 
   private moveHero(x: number, y: number): void {

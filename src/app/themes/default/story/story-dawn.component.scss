@@ -1,8 +1,7 @@
 /*
- * El mapa de noche. La oscuridad multiplica (no tapa): el mundo se sigue
- * viendo en penumbra azul, con algo más de luz alrededor de main. Al amanecer,
- * un círculo de luz nace en el sol (`--sd-hole`, lo anima GSAP) con borde
- * suave. Los colores vienen de `.sm` (sombra, blanco, dorado).
+ * El mapa de noche, en tres capas con el viewBox del mundo (ver el componente).
+ * La tinta y las sombras nunca son negras: azul noche con tono. El único
+ * dorado intenso es el play; las luces de las ventanas son ámbar suave.
  */
 :host {
   /* Sin z-index propio: si armara su contexto, el multiply no vería el mapa. */
@@ -12,50 +11,47 @@
   user-select: none;
 }
 
-.sd-dark {
-  --sd-hole: -220px;
+.sd-tint,
+.sd-night,
+.sd-glow {
   position: absolute;
-  z-index: 20;
   inset: 0;
-  background: radial-gradient(
-    circle at var(--sd-mx) var(--sd-my),
-    #5a5290 0%,
-    #2e2852 35%,
-    #1a1530 100%
-  );
-  mix-blend-mode: multiply;
-  mask-image: radial-gradient(
-    circle at var(--sd-hx) var(--sd-hy),
-    transparent var(--sd-hole),
-    #000 calc(var(--sd-hole) + 220px)
-  );
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
-
-/* Estrellas que titilan; con el amanecer se apagan. */
-.sd-sky {
-  position: absolute;
+/* La que recibe el toque "en cualquier lado"; las otras lo dejan pasar. */
+.sd-tint {
+  z-index: 20;
+  mix-blend-mode: multiply;
+}
+.sd-night {
   z-index: 21;
-  inset: 0 0 auto;
-  height: min(100%, 100dvh);
   pointer-events: none;
 }
-.sd-sky i {
-  position: absolute;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #fff6d8;
-  box-shadow: 0 0 8px 2px color-mix(in oklab, #fff6d8 55%, transparent);
+.sd-glow {
+  z-index: 21;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+/* ── Cielo ── */
+.sd-twinkle {
+  transform-box: fill-box;
+  transform-origin: center;
+  fill: #fff6dc;
   animation: sd-twinkle 2.6s ease-in-out infinite alternate;
 }
-.sd-sky i:nth-child(3n) {
-  width: 3px;
-  height: 3px;
+.sd-twinkle[data-tone='b'] {
+  fill: #cfe0ff;
+}
+.sd-twinkle[data-tone='c'] {
+  fill: #ffd6ea;
 }
 @keyframes sd-twinkle {
   from {
-    opacity: 0.25;
-    scale: 0.7;
+    opacity: 0.3;
+    scale: 0.6;
   }
   to {
     opacity: 1;
@@ -63,51 +59,256 @@
   }
 }
 
-/* main duerme: tres "z" que suben y se van, una detrás de otra. */
-.sd-zzz {
-  position: absolute;
-  z-index: 21;
-  translate: -100% -100%;
-  pointer-events: none;
-  color: var(--sm-white);
+/* Una fugaz cada `SHOOTING_EVERY` s: cruza en un instante y el resto espera. */
+.sd-shoot {
+  opacity: 0;
+  animation: sd-shoot 9s linear infinite 2.5s;
+}
+@keyframes sd-shoot {
+  0% {
+    opacity: 0;
+    translate: 0 0;
+  }
+  1% {
+    opacity: 1;
+  }
+  8% {
+    opacity: 0;
+    translate: 420px 165px;
+  }
+  100% {
+    opacity: 0;
+    translate: 420px 165px;
+  }
+}
+
+.sd-moon-bob {
+  animation: sd-float 3.2s ease-in-out infinite alternate;
+}
+@keyframes sd-float {
+  to {
+    translate: 0 -6px;
+  }
+}
+.sd-crater {
+  fill: #c9b07a;
+  opacity: 0.35;
+}
+.sd-moon-cheek {
+  fill: #ff9fae;
+  opacity: 0.45;
+}
+.sd-moon-ink {
+  fill: none;
+  stroke: #6b5232;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+}
+.sd-moon-awake {
+  fill: #4a3424;
+}
+.sd-cap {
+  fill: #5b5fc7;
+}
+.sd-cap-stripe {
+  fill: none;
+  stroke: #7d82e0;
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+.sd-cap-band {
+  fill: #e9e6ff;
+}
+.sd-pompom {
+  animation: sd-swing 1.6s ease-in-out infinite alternate;
+}
+@keyframes sd-swing {
+  from {
+    rotate: -10deg;
+  }
+  to {
+    rotate: 12deg;
+  }
+}
+.sd-pom {
+  fill: #f6f3ff;
+}
+.sd-pom-hi {
+  fill: #fff;
+}
+
+.sd-cloud {
+  animation: sd-drift 40s ease-in-out infinite alternate;
+}
+@keyframes sd-drift {
+  from {
+    translate: -70px 0;
+  }
+  to {
+    translate: 70px 0;
+  }
+}
+.sd-cloud-rim {
+  fill: #8d8ad0;
+  opacity: 0.55;
+}
+.sd-cloud-body {
+  fill: #2f2b6a;
+  opacity: 0.85;
+}
+
+/* ── Main ronca ── */
+.sd-bubble {
+  animation: sd-snore 1.3s ease-in-out infinite alternate;
+}
+@keyframes sd-snore {
+  from {
+    scale: 0.4;
+  }
+  to {
+    scale: 1;
+  }
+}
+.sd-bubble-skin {
+  fill: rgb(214 228 255 / 0.42);
+  stroke: rgb(244 248 255 / 0.95);
+  stroke-width: 4;
+}
+.sd-bubble-hi {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.sd-bubble-dot {
+  fill: #fff;
+  opacity: 0.8;
+}
+.sd-drop {
+  fill: #e6efff;
+}
+.sd-pop {
+  fill: #fffdf7;
+  stroke: #2a2160;
+  stroke-width: 10;
+  paint-order: stroke;
   font-family: var(--font-display);
+  font-size: 64px;
   font-weight: 900;
 }
-.sd-zzz i {
-  position: absolute;
-  font-style: normal;
+
+.sd-zzz text {
+  fill: #fffdf7;
+  stroke: #2a2160;
+  stroke-width: 10;
+  paint-order: stroke;
+  font-family: var(--font-display);
+  font-weight: 900;
   opacity: 0;
-  animation: sd-z 2.4s ease-out infinite;
+  animation: sd-z 2.6s ease-out infinite;
 }
-.sd-zzz i:nth-child(1) {
-  font-size: 18px;
+.sd-zzz text:nth-child(1) {
+  font-size: 60px;
 }
-.sd-zzz i:nth-child(2) {
-  font-size: 24px;
-  animation-delay: 0.8s;
+.sd-zzz text:nth-child(2) {
+  font-size: 80px;
+  animation-delay: 0.87s;
 }
-.sd-zzz i:nth-child(3) {
-  font-size: 32px;
-  animation-delay: 1.6s;
+.sd-zzz text:nth-child(3) {
+  font-size: 104px;
+  animation-delay: 1.73s;
 }
 @keyframes sd-z {
   0% {
     opacity: 0;
-    transform: translate(0, 0) rotate(-8deg);
+    translate: 0 0;
+    rotate: -10deg;
   }
   20% {
-    opacity: 0.85;
+    opacity: 1;
   }
   100% {
     opacity: 0;
-    transform: translate(-34px, -60px) rotate(8deg);
+    translate: -110px -190px;
+    rotate: 10deg;
+  }
+}
+
+/* ── Luces ── */
+.sd-lit {
+  fill: #ffd88a;
+}
+.sd-lit-soft {
+  opacity: 0.55;
+}
+.sd-flicker {
+  animation: sd-flicker 5s steps(1) infinite;
+}
+@keyframes sd-flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  62% {
+    opacity: 0.4;
+  }
+  64% {
+    opacity: 1;
+  }
+  66% {
+    opacity: 0.5;
+  }
+  68% {
+    opacity: 1;
+  }
+}
+.sd-beam {
+  animation: sd-sweep 6s ease-in-out infinite alternate;
+}
+@keyframes sd-sweep {
+  from {
+    scale: 1 1;
+    rotate: -8deg;
+  }
+  to {
+    scale: -1 1;
+    rotate: 8deg;
+  }
+}
+.sd-fly {
+  animation: sd-wander 7s ease-in-out infinite alternate;
+}
+@keyframes sd-wander {
+  0% {
+    translate: 0 0;
+  }
+  50% {
+    translate: var(--ax) var(--ay);
+  }
+  100% {
+    translate: var(--bx) var(--by);
+  }
+}
+.sd-fly-glow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: sd-pulse 1.7s ease-in-out infinite alternate;
+}
+@keyframes sd-pulse {
+  from {
+    opacity: 0.15;
+    scale: 0.6;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
   }
 }
 
 /* ── El play: lo único encendido de la noche ── */
 .sd-play {
   position: absolute;
-  z-index: 22;
+  z-index: 23;
   padding: 0;
   border: 0;
   background: none;
@@ -235,6 +436,27 @@
   stroke-linecap: round;
 }
 
+/* Dos destellos que titilan alrededor del play. */
+.sd-play-spark {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  fill: #fff6d8;
+  pointer-events: none;
+  animation: sd-twinkle 1.1s ease-in-out infinite alternate;
+}
+.sd-play-spark:nth-of-type(odd) {
+  top: -14px;
+  right: 6px;
+}
+.sd-play-spark:last-child {
+  bottom: -10px;
+  left: 70px;
+  width: 12px;
+  height: 12px;
+  animation-delay: -0.6s;
+}
+
 @media (max-width: 640px) {
   .sd-play-bob {
     gap: 10px;
@@ -252,19 +474,34 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sd-sky i,
-  .sd-zzz i,
+  .sd-twinkle,
+  .sd-moon-bob,
+  .sd-pompom,
+  .sd-cloud,
+  .sd-bubble,
+  .sd-flicker,
+  .sd-beam,
+  .sd-fly,
+  .sd-fly-glow,
   .sd-play-bob,
-  .sd-play-ring {
+  .sd-play-ring,
+  .sd-play-spark {
     animation: none;
   }
-  .sd-zzz i {
-    opacity: 0.8;
+  .sd-shoot {
+    display: none;
   }
-  .sd-zzz i:nth-child(2) {
-    transform: translate(-14px, -24px);
+  .sd-bubble {
+    scale: 0.7;
   }
-  .sd-zzz i:nth-child(3) {
-    transform: translate(-30px, -52px);
+  .sd-zzz text {
+    opacity: 0.85;
+    animation: none;
+  }
+  .sd-zzz text:nth-child(2) {
+    translate: -28px -50px;
+  }
+  .sd-zzz text:nth-child(3) {
+    translate: -60px -110px;
   }
 }
