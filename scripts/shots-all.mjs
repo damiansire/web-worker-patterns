@@ -3,11 +3,8 @@ import { rm, mkdir } from 'node:fs/promises';
 
 const base = 'http://localhost:4200';
 // Los themes REALES registrados (ver src/app/theming/theme.registry.ts:
-// THEME_PACKS). `rpg` no va acá: es un juego y tiene su propio e2e, que también
-// captura (`WWP_SHOTS=<carpeta> node scripts/test/e2e-rpg.mjs`). Antes esta lista tenía 5 ids
-// que ya no existen ('brutalist', ...), así que capturaba páginas vacías/redirigidas
-// y 'midnight' nunca se capturaba. Mantener en sync con el registry.
-const themes = ['default', 'midnight'];
+// THEME_PACKS). Hoy hay uno solo. Mantener en sync con el registry.
+const themes = ['default'];
 
 // Reemplazo limpio: borrar las capturas viejas y recrear la carpeta desde cero,
 // así no quedan archivos huérfanos si cambian los themes/nombres.

@@ -1,18 +1,16 @@
 # Arquitectura multi-theme · web-worker-patterns
 
-> **Estado actual (tres themes, un idioma).** El repo corre hoy con **tres themes** y **un solo
-> idioma** (`es`): `default` (cálido, claro, la identidad "consultorio/pulso"), `midnight` (su
-> contracara nocturna, oscura) y `rpg` (el mismo recorrido como juego, con presentación propia
-> sobre los mismos workers y servicios). `default` y `midnight` se dibujan solo con el contrato de tokens y cubren la
-> misma superficie de tokens, así que el switch es puramente de paleta y nada cae al valor de
-> `:root`. `midnight` reusa la presentación de `default` (comparten shell, viaje y layouts) y solo
-> cambia el bloque de tokens: por eso su `ThemePack` reusa los loaders del default en vez de
-> duplicar componentes. Este documento describe el **motor** multi-theme, que sigue vigente: es
+> **Estado actual (un theme, un idioma).** El repo corre hoy con **un solo theme**, `default`
+> (cálido, claro, la identidad "consultorio/pulso"), y **un solo idioma** (`es`). El 2026-11-08 se
+> sacaron `midnight` (su contracara nocturna) y `rpg` (el recorrido como juego) para concentrar el
+> trabajo en una sola experiencia: una historia por niveles con main y los workers. Lo que el juego
+> probó y es neutral (misiones con un camino que duele, progreso guardado) sigue en
+> `core/domain/learning`. Este documento describe el **motor** multi-theme, que sigue vigente: es
 > data-driven (el registry es la fuente de verdad de qué themes existen) y soporta N themes/idiomas
-> sin tocar el dominio. Sumar un theme con presentación propia es agregar su `ThemePack` al registry
-> (con sus propios loaders) / su idioma a `availableLangs`. Los themes concretos que se nombran más
-> abajo (`editorial`, `dev-tool`, `narrative`, `brutalist`) se retiraron al consolidar; se
-> conservan como referencia histórica del abanico de pieles que el motor sostiene.
+> sin tocar el dominio. Sumar un theme es agregar su `ThemePack` al registry (con sus propios
+> loaders) / su idioma a `availableLangs`. Los themes concretos que se nombran más abajo
+> (`editorial`, `dev-tool`, `narrative`, `brutalist`, `midnight`, `rpg`) se retiraron; se conservan
+> como referencia histórica del abanico de pieles que el motor sostiene.
 
 Documento de diseño del **motor** que permite mantener diseños radicalmente distintos en paralelo sobre una misma base Angular 22.
 

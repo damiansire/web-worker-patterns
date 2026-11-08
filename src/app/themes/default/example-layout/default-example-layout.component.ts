@@ -1695,7 +1695,7 @@ export class DefaultExampleLayoutComponent {
   /** ThreadVisualizer del theme activo, resuelto por DI (§5). */
   protected readonly visualizer = inject(THREAD_VISUALIZER);
 
-  /** El back-link vuelve al índice del theme activo (default o midnight), no a uno fijo. */
+  /** El back-link vuelve al índice del theme activo. */
   protected readonly activeThemeId = inject(ThemeService).activeId;
 
   // El componente sólo posee las refs al DOM del theme; la lógica la maneja el controller.

@@ -1,23 +1,19 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterOutlet, RouterLink } from '@angular/router';
 import { ThemeService } from '../../../theming/theme.service';
-import { ThemeSelectorComponent } from '../../../theming/theme-selector.component';
 
 /**
- * Shell (cálido/claro con `default`, oscuro con `midnight`): cabecera con el
- * título + el selector de theme + outlet. El logo apunta al theme activo (no a
- * uno fijo), así el shell se reusa tal cual bajo cualquier theme. El selector de
- * idioma sigue omitido mientras haya un solo idioma.
+ * Shell: cabecera con el título + outlet. Hay un solo theme, así que no hay
+ * selector; el selector de idioma sigue omitido mientras haya un solo idioma.
  */
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'default-shell',
-  imports: [RouterOutlet, RouterLink, ThemeSelectorComponent],
+  imports: [RouterOutlet, RouterLink],
   template: `
     <div class="e-shell">
       <header class="e-masthead">
         <a class="e-logo" [routerLink]="['/t', activeId()]">Web Worker Patterns</a>
-        <theme-selector />
       </header>
       <main class="e-main">
         <router-outlet />
@@ -56,6 +52,6 @@ import { ThemeSelectorComponent } from '../../../theming/theme-selector.componen
   ],
 })
 export class DefaultShellComponent {
-  /** El logo vuelve al home del theme activo (default o midnight), no a uno fijo. */
+  /** El logo vuelve al home del theme activo. */
   protected readonly activeId = inject(ThemeService).activeId;
 }

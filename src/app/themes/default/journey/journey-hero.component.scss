@@ -1,7 +1,7 @@
 /*
  * Escena de portada. Sin encapsulación (la escena crea su SVG por código), así
  * que todo cuelga de `.jh`. La paleta sale de los tokens del theme con
- * color-mix, para que `default` y `midnight` la pinten cada uno a su manera.
+ * color-mix, así sigue al theme si cambian sus colores.
  * Los únicos colores fijos son de la escena, no del theme, y casi todos se
  * mezclan con un token: el blanco (ojos, brillos), la sombra tintada (nunca
  * negro puro), el dorado de la corona, la piel de main, la luz cálida de la

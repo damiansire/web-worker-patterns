@@ -17,21 +17,9 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Interactive educational platform about **Web Workers** built with **Angular 22**. It ships **16 progressive examples** with live demos and real thread visualization. The UI is in **Spanish**, and the presentation is a **swappable theme layer**: today a light theme (`default`), its dark counterpart (`midnight`) and a playable one (`rpg`), switchable live, with the engine kept generic so more themes (and languages) can be added without touching the domain.
+Interactive educational platform about **Web Workers** built with **Angular 22**. It ships **16 progressive examples** with live demos and real thread visualization. The UI is in **Spanish**, and the presentation is a **swappable theme layer**: today a single theme (`default`), with the engine kept generic so more themes (and languages) can be added without touching the domain.
 
 **▶ Live demo: [damiansire.github.io/web-worker-patterns](https://damiansire.github.io/web-worker-patterns/)**
-
-## Play it as an RPG
-
-The `rpg` theme is the same 16 patterns, played. You walk through five regions, each neighbor hands you one mission, and every mission runs the real thing: a real worker, a real frozen main thread (the game itself freezes with it).
-
-The mechanic is borrowed from [Wagotabi](https://www.wagotabi.com/), the RPG that teaches Japanese by switching its own text to Japanese one learned word at a time. Here the text starts in plain language and switches to the platform's vocabulary: «ayudante» becomes `worker` everywhere (dialogue, buttons, HUD), from the moment you learn it. Learned terms are collected in the Workerdex and progress is saved locally.
-
-Many missions offer two paths, and the one that hurts can be chosen: block the main thread, flood the worker, send something that cannot be cloned. The consequence is the lesson. Each region ends with a master who poses three situations; picking the piece of the platform that solves each one earns the region's stamp and opens the next region.
-
-Open it from the theme selector, or deep-link to `/t/rpg`. `/t/rpg/example/<id>` drops you next to the neighbor of that pattern.
-
-The design rules are tests, not notes: at most 8 words per dialogue line and 4 per button, no API name written before it has been learned, and no plain word left behind once its term is learned. See `src/app/core/domain/learning/content.spec.ts` and `scripts/test/e2e-rpg.mjs`, which plays all 16 missions in a real browser.
 
 ## Quick Start
 
@@ -100,7 +88,7 @@ The 16 examples are organized into 5 categories by concept. The grouping below m
 
 ## Visual Themes
 
-The domain is skinned by a theme layer. Today there are **three themes**, all drawn from the semantic token contract: `default` (warm, light), `midnight` (its dark counterpart) and `rpg` (the same journey as a game, see [Play it as an RPG](#play-it-as-an-rpg)). `default` and `midnight` cover the exact same token surface, so switching between them only swaps the palette and nothing falls back. Use the theme selector in the header, or deep-link to `/t/default`, `/t/midnight` or `/t/rpg` (the choice persists). The theming engine is generic: a theme provides (or reuses) a shell, home, example layout, UI primitives and a thread visualizer, and is registered as a data-driven `ThemePack`. `midnight` reuses the token-driven presentation of `default` and varies only the palette; `rpg` brings its own presentation (a world, a dialogue box, a Workerdex) over the very same workers and services. Adding a theme is adding entries to the registry, **without the domain ever knowing a theme exists**.
+The domain is skinned by a theme layer. Today there is **one theme**, `default` (warm, light), drawn from the semantic token contract. The `midnight` (dark palette) and `rpg` (the journey as a game) themes were retired on 2026-11-08 to focus on a single experience; what the game proved (missions with a path that hurts, progress saved locally) lives on in the neutral `core/domain/learning` layer. The theming engine is still generic: a theme provides a shell, home, example layout, UI primitives and a thread visualizer, and is registered as a data-driven `ThemePack`. Adding a theme is adding entries to the registry, **without the domain ever knowing a theme exists**.
 
 ## Project Architecture
 
@@ -121,12 +109,8 @@ src/app/
 ├── ui-contracts/               # Interfaces every theme primitive must satisfy
 ├── ui-primitives/              # Theme-agnostic primitives (charts, language switcher)
 ├── themes/                     # Presentation: one folder per theme
-│   ├── default/                # Warm light theme (full token-driven presentation)
-│   │   ├── shell/  home/  example-layout/  primitives/  styles/
-│   ├── midnight/               # Dark counterpart: reuses default's presentation, own palette
-│   │   └── styles/             #   _tokens.scss (dark palette) + _theme.scss
-│   └── rpg/                    # The journey as a game: own presentation, same domain
-│       ├── world/  missions/  game/  shell/  primitives/  styles/
+│   └── default/                # The only theme (full token-driven presentation)
+│       ├── shell/  journey/  example-layout/  primitives/  styles/
 ├── app.routes.ts              # Routes generated from the examples registry
 └── app.ts                     # Root component
 
@@ -151,7 +135,7 @@ Routes, navigation and the home page update automatically from the registry.
 - **SCSS**: Semantic design tokens (`--surface`, `--ink`, `--accent`, `--thread-*`) per theme
 - **@jsverse/transloco**: Runtime i18n (ES; engine ready for more languages)
 - **highlight.js**: Syntax highlighting for code blocks
-- **Vitest**: Unit tests (<!-- METRICS:TESTS -->286<!-- /METRICS:TESTS --> tests across the pure domain logic, the services and the themes)
+- **Vitest**: Unit tests (<!-- METRICS:TESTS -->242<!-- /METRICS:TESTS --> tests across the pure domain logic, the services and the themes)
 - **dependency-cruiser**: Enforces the `core/ ⇏ themes/` boundary
 - **Web Workers API**: Dedicated Workers, SharedWorker, Transferable Objects, SharedArrayBuffer + Atomics, OffscreenCanvas
 

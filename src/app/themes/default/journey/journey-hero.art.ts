@@ -8,7 +8,7 @@
  * pies y capas anidadas: pose (dónde está), lift (arrastre y vuelo, lo escriben
  * los resortes), rig (saltos con GSAP), all (aplastar y girar, resortes), body
  * (respiración, GSAP). Los colores salen de los tokens del theme vía clases
- * (`journey-hero.component.scss`), así sirve igual para `default` y `midnight`.
+ * (`journey-hero.component.scss`), así sigue al theme si cambian sus colores.
  */
 export const MAIN_AT = { x: 470, y: 492 } as const;
 export const WORKER_AT = { x: 800, y: 492 } as const;

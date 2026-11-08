@@ -1,7 +1,7 @@
 // Sirve el build de producción COMO LO SIRVE GITHUB PAGES: bajo un sub-path, sin
 // cabeceras propias y con el index como respuesta 404 de cualquier ruta desconocida
 // (deploy.yml copia index.html a 404.html para que el router resuelva el deep-link).
-// Lo comparten los e2e (`e2e-smoke.mjs`, `e2e-demos.mjs`, `e2e-rpg.mjs`).
+// Lo comparten los e2e (`e2e-smoke.mjs`, `e2e-demos.mjs`).
 
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
