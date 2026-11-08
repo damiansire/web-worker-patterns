@@ -685,15 +685,22 @@
   text-transform: none;
   letter-spacing: normal;
   cursor: pointer;
-  transform: translate(-50%, 0);
+  /* Centrado con `translate`, no con `transform`: la regla global
+     `button:hover { transform: translateY(-1px) }` pisaba el centrado, el
+     botón saltaba medio ancho al pasar el mouse, lo perdía y volvía, y
+     quedaba vibrando sin poder hacerle clic. */
+  translate: -50% 0;
   transition:
     opacity 0.2s,
-    transform 0.3s cubic-bezier(0.34, 1.8, 0.64, 1);
+    scale 0.3s cubic-bezier(0.34, 1.8, 0.64, 1);
+}
+.sm-play:hover:not(:disabled) {
+  transform: none;
 }
 .sm-play.is-away {
   opacity: 0;
   pointer-events: none;
-  transform: translate(-50%, 0) scale(0.6);
+  scale: 0.6;
 }
 .sm-node.is-here .sm-name {
   visibility: hidden;
