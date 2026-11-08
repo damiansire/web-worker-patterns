@@ -10,6 +10,7 @@ import {
   viewChild,
   ViewEncapsulation,
 } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { Router } from '@angular/router';
 import gsap from 'gsap';
 import { ThemeService } from '../../../theming/theme.service';
@@ -18,6 +19,7 @@ import { IconPart, levelIcon } from './story.icons';
 import { StoryProgress } from './story-progress.service';
 import { CHAPTERS, currentLevel, Level, LEVELS, levelState, LevelState } from './story.levels';
 import {
+  chapterRoads,
   cloudPath,
   hash,
   landmarks,
@@ -75,6 +77,7 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   selector: 'default-story-map',
+  imports: [NgTemplateOutlet],
   template: `
     <section class="sm" [attr.data-shape]="shape()">
       <svg
@@ -348,6 +351,14 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
 
         <!-- El camino -->
         <path #roadEl class="sm-road-edge" [attr.d]="road()" [style.stroke-width]="46 * spec().s" />
+        @for (r of chapterRoads(); track r.chapter) {
+          <path
+            class="sm-road-ch"
+            [attr.data-chapter]="r.chapter"
+            [attr.d]="r.d"
+            [style.stroke-width]="52 * spec().s"
+          />
+        }
         <path class="sm-road" [attr.d]="road()" [style.stroke-width]="34 * spec().s" />
         <path class="sm-road-dash" [attr.d]="road()" [style.stroke-width]="4 * spec().s" />
         <path class="sm-road-done" [attr.d]="roadDone()" [style.stroke-width]="9 * spec().s" />
@@ -389,24 +400,10 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
                 <circle r="14" stroke-width="3" />
                 <text y="6" text-anchor="middle">{{ s.level.n }}</text>
               </g>
-              @switch (s.state) {
-                @case ('done') {
-                  <path class="sm-star" [attr.d]="star" transform="translate(32 -32)" />
-                }
-                @case ('locked') {
-                  <g class="sm-badge" transform="translate(33 -31)">
-                    <circle r="15" stroke-width="2.5" />
-                    <path class="sm-lock" d="M-5 -1V-5A5 5 0 0 1 5 -5V-1M-7.5 -1H7.5V8H-7.5Z" />
-                  </g>
-                }
-                @case ('wip') {
-                  <g class="sm-badge" transform="translate(33 -31)">
-                    <circle r="15" stroke-width="2.5" />
-                    <path fill="#f08a3c" d="M-7 6L-2 -9H2L7 6Z" />
-                    <path fill="#fff" d="M-4.6 -1H4.6L5.5 2H-5.5Z" />
-                    <rect class="sm-cone-base" x="-9" y="5.5" width="18" height="3" rx="1.5" />
-                  </g>
-                }
+              @if (s.state !== 'open') {
+                <g class="sm-badge" [attr.data-badge]="s.state" transform="translate(33 -31)">
+                  <ng-container *ngTemplateOutlet="badge; context: { $implicit: s.state }" />
+                </g>
               }
             </g>
             <text class="sm-name" y="76" text-anchor="middle">
@@ -492,16 +489,78 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
       <div class="sm-vignette" aria-hidden="true"></div>
 
       <header class="sm-title">
-        <p class="sm-brand">Web Worker Patterns</p>
-        <h1>La historia de main</h1>
-        <p class="sm-tag">Ayudá a main a no congelarse.</p>
+        <p class="sm-brand" data-ink="Web Worker Patterns">Web Worker Patterns</p>
+        <h1 data-ink="La historia de main">La historia de main</h1>
+        <p class="sm-tag" data-ink="Ayudá a main a no congelarse.">Ayudá a main a no congelarse.</p>
       </header>
 
-      <div class="sm-hud">
-        <p class="sm-status" aria-live="polite">{{ status() || idle() }}</p>
-        <button type="button" class="sm-play" (click)="go(here())">{{ playLabel() }}</button>
+      <div class="sm-side">
+        <div class="sm-hud" [attr.data-chapter]="next().level.chapter">
+          <svg class="sm-next-disc" viewBox="-50 -50 100 100" aria-hidden="true">
+            <circle class="sm-disc" r="44" />
+            <g class="sm-ico" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+              @for (p of next().icon; track $index) {
+                <path
+                  [attr.d]="p.d"
+                  [attr.fill]="p.kind === 'fill' ? 'currentColor' : 'none'"
+                  [attr.stroke]="p.kind === 'line' ? 'currentColor' : null"
+                  [attr.transform]="p.rot ? 'rotate(' + p.rot + ')' : null"
+                />
+              }
+            </g>
+          </svg>
+          <div class="sm-next">
+            @if (!status()) {
+              <p class="sm-next-kick">{{ nextKicker() }}</p>
+              <p class="sm-next-title">{{ next().level.title }}</p>
+            }
+            <p class="sm-status" aria-live="polite">{{ status() }}</p>
+          </div>
+          <button type="button" class="sm-play" (click)="go(here())">{{ playLabel() }}</button>
+        </div>
+        <ul class="sm-legend" aria-label="Qué quiere decir cada marca">
+          @for (k of legend; track k.state) {
+            <li>
+              <svg
+                class="sm-badge"
+                [attr.data-badge]="k.state"
+                viewBox="-18 -18 36 36"
+                aria-hidden="true"
+              >
+                <ng-container *ngTemplateOutlet="badge; context: { $implicit: k.state }" />
+              </svg>
+              {{ k.text }}
+            </li>
+          }
+        </ul>
       </div>
     </section>
+
+    <!-- La insignia de estado de un nivel: la misma en el mapa y en la leyenda. -->
+    <ng-template #badge let-state>
+      @switch (state) {
+        @case ('locked') {
+          <svg:circle class="sm-badge-bg" r="16" />
+          <svg:path class="sm-lock-arc" d="M-5 -2V-6A5 5 0 0 1 5 -6V-2" />
+          <svg:rect class="sm-lock-body" x="-8" y="-2.5" width="16" height="11.5" rx="2.5" />
+          <svg:circle class="sm-badge-bg" cy="2.6" r="1.8" />
+        }
+        @case ('wip') {
+          <svg:circle class="sm-badge-bg" r="16" />
+          <svg:path class="sm-wip-leg" d="M-7 2V10M7 2V10" />
+          <svg:rect class="sm-wip-board" x="-11" y="-8" width="22" height="10" rx="2" />
+          <svg:path
+            class="sm-wip-stripe"
+            d="M-8.5 2L-4.5 -8H-0.5L-4.5 2ZM1.5 2L5.5 -8H9.5L5.5 2Z"
+          />
+          <svg:rect class="sm-wip-edge" x="-11" y="-8" width="22" height="10" rx="2" />
+        }
+        @case ('done') {
+          <svg:circle class="sm-badge-bg" r="16" />
+          <svg:path class="sm-star" [attr.d]="star" />
+        }
+      }
+    </ng-template>
   `,
   styleUrl: './story-map.component.scss',
 })
@@ -557,6 +616,7 @@ export class StoryMapComponent {
 
   protected readonly road = computed(() => roadPath(this.points(), this.spec()));
   protected readonly roadDone = computed(() => roadPath(this.points(), this.spec(), this.here()));
+  protected readonly chapterRoads = computed(() => chapterRoads(this.points(), this.spec()));
   protected readonly marks = computed(() => landmarks(this.points(), this.spec()));
   protected readonly pools = computed(() =>
     this.points().map((p, i) => ({ x: p.x, y: p.y, chapter: LEVELS[i].chapter })),
@@ -620,10 +680,18 @@ export class StoryMapComponent {
   protected readonly heroSays = signal('');
   protected readonly sayDx = signal(0);
   protected readonly status = signal('');
-  protected readonly idle = computed(() => {
-    const lv = LEVELS[this.here()];
-    return lv.n ? `Te toca el nivel ${lv.n}: «${lv.title}».` : `Te toca el prólogo: «${lv.title}».`;
+  /** El nivel que toca jugar, para el cartel de arriba. */
+  protected readonly next = computed(() => this.spots()[this.here()]);
+  protected readonly nextKicker = computed(() => {
+    const { level } = this.next();
+    const ch = this.chapterOf(level.chapter);
+    return ch.n ? `Te toca · Nivel ${level.n} · Cap. ${ch.n} ${ch.title}` : `Te toca · ${ch.title}`;
   });
+  protected readonly legend: readonly { state: LevelState; text: string }[] = [
+    { state: 'locked', text: 'Bloqueado: superá el anterior' },
+    { state: 'wip', text: 'En obra: abre la versión clásica' },
+    { state: 'done', text: 'Superado' },
+  ];
   protected readonly playLabel = computed(() =>
     this.progress.isDone(LEVELS[this.here()].id) ? 'Repetir ▶' : 'Jugar ▶',
   );
@@ -638,6 +706,7 @@ export class StoryMapComponent {
   private walk?: { tween: gsap.core.Tween; finish: () => void };
   private hopLoop?: gsap.core.Tween;
   private sayCall?: gsap.core.Tween;
+  private statusCall?: gsap.core.Tween;
   private blinkCall?: gsap.core.Tween;
   private lookUntil = 0;
   private pokeTimes: number[] = [];
@@ -684,7 +753,14 @@ export class StoryMapComponent {
       destroyRef.onDestroy(() => {
         mq.removeEventListener('change', onMq);
         gsap.ticker.remove(this.tick);
-        for (const t of [this.walk?.tween, this.hopLoop, this.sayCall, this.blinkCall]) t?.kill();
+        for (const t of [
+          this.walk?.tween,
+          this.hopLoop,
+          this.sayCall,
+          this.statusCall,
+          this.blinkCall,
+        ])
+          t?.kill();
         this.gctx?.revert();
       });
     });
@@ -708,13 +784,13 @@ export class StoryMapComponent {
       const prev = LEVELS.slice(0, i)
         .reverse()
         .find((l) => l.scene);
-      this.status.set(`Todavía no: primero superá «${prev?.title ?? 'el nivel anterior'}».`);
+      this.tell(`Todavía no: primero superá «${prev?.title ?? 'el nivel anterior'}».`);
       this.say('¡todavía no!');
       this.wiggle(i);
       this.rot.v += 220;
       return;
     }
-    this.status.set(
+    this.tell(
       spot.state === 'wip'
         ? `«${spot.level.title}» todavía está en obra: se abre la versión clásica.`
         : `Vamos a «${spot.level.title}».`,
@@ -728,6 +804,13 @@ export class StoryMapComponent {
       if (this.calm) enter();
       else this.anim(() => gsap.delayedCall(0.28, enter));
     });
+  }
+
+  /** Un aviso pasajero bajo el cartel (y para el lector de pantalla). */
+  private tell(text: string): void {
+    this.status.set(text);
+    this.statusCall?.kill();
+    this.statusCall = gsap.delayedCall(4, () => this.status.set(''));
   }
 
   /** Main camina por el camino, dando saltitos, hasta el nivel elegido. */

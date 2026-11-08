@@ -404,6 +404,12 @@
 .sm-road {
   stroke: var(--sm-road);
 }
+.sm-road-ch {
+  fill: none;
+  stroke: color-mix(in oklab, var(--ch) 85%, var(--sm-shade));
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 .sm-road-dash {
   stroke: color-mix(in oklab, var(--sm-road-edge) 45%, transparent);
   stroke-dasharray: 10 22;
@@ -448,12 +454,13 @@
 .sm-node:focus-visible .sm-disc {
   stroke-width: 8;
 }
-.sm-node[data-state='locked'] .sm-disc,
-.sm-node[data-state='wip'] .sm-disc {
-  fill: color-mix(in oklab, var(--ch) 22%, var(--sm-stone));
+/* Bloqueado: el disco es de piedra, pero el aro sigue siendo del color de su
+   capítulo para que se vea a qué capítulo pertenece. */
+.sm-node[data-state='locked'] .sm-disc {
+  fill: color-mix(in oklab, var(--ch) 18%, var(--sm-stone));
+  stroke: color-mix(in oklab, var(--ch) 85%, var(--sm-shade));
 }
-.sm-node[data-state='locked'] .sm-disc-side,
-.sm-node[data-state='wip'] .sm-disc-side {
+.sm-node[data-state='locked'] .sm-disc-side {
   fill: var(--sm-stone-shade);
 }
 .sm-node[data-state='locked'] {
@@ -463,7 +470,7 @@
   stroke: var(--sm-gold);
 }
 /* El ícono del caso: blanco con una sombra corrida del color del capítulo;
-   sobre el disco de piedra (en obra, bloqueado), en tinta y sin sombra. */
+   sobre el disco de piedra (bloqueado), en tinta y sin sombra. */
 .sm-node {
   --ch-ink: color-mix(in oklab, var(--ch) 55%, var(--sm-shade));
 }
@@ -471,7 +478,7 @@
   color: #fff;
   filter: drop-shadow(0 3px 0 var(--ch-ink));
 }
-.sm-node:is([data-state='locked'], [data-state='wip']) .sm-ico {
+.sm-node[data-state='locked'] .sm-ico {
   color: var(--ch-ink);
   filter: none;
   opacity: 0.6;
@@ -486,24 +493,42 @@
   font: 900 17px var(--font-display);
   fill: #fff;
 }
-.sm-badge circle {
+/* Insignia de estado (la misma en la leyenda): candado, valla de obra, estrella. */
+.sm-badge-bg {
   fill: var(--sm-white);
-  stroke: var(--sm-stone-shade);
+  stroke: color-mix(in oklab, var(--sm-shade) 35%, transparent);
+  stroke-width: 2;
 }
-.sm-lock {
+.sm-lock-arc {
   fill: none;
   stroke: var(--sm-shade);
-  stroke-width: 2.6;
-  opacity: 0.7;
+  stroke-width: 2.8;
 }
-.sm-cone-base {
+.sm-lock-body {
   fill: var(--sm-shade);
-  opacity: 0.6;
 }
-.sm-star {
+.sm-wip-leg {
+  stroke: var(--sm-shade);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+.sm-wip-board {
+  fill: var(--sm-white);
+}
+.sm-wip-stripe {
+  fill: #f08a3c;
+}
+.sm-wip-edge {
+  fill: none;
+  stroke: var(--sm-shade);
+  stroke-width: 1.6;
+}
+.sm-badge[data-badge='done'] .sm-badge-bg {
   fill: var(--sm-gold);
   stroke: var(--sm-gold-dark);
-  stroke-width: 1.5;
+}
+.sm-star {
+  fill: var(--sm-white);
 }
 .sm-here {
   fill: none;
@@ -532,9 +557,8 @@
   stroke-linejoin: round;
   pointer-events: none;
 }
-.sm-node[data-state='locked'] .sm-name,
-.sm-node[data-state='wip'] .sm-name {
-  fill: color-mix(in oklab, var(--sm-shade) 60%, var(--sm-white));
+.sm-node[data-state='locked'] .sm-name {
+  fill: color-mix(in oklab, var(--sm-shade) 70%, var(--sm-white));
 }
 
 /* ── Main ── */
@@ -642,18 +666,31 @@
   top: clamp(16px, 3.2vw, 44px);
   left: clamp(16px, 3.4vw, 56px);
   pointer-events: none;
+  isolation: isolate;
   /* El cielo es claro y pasan nubes blancas: letra blanca con contorno oscuro,
-     como un cartel, para que se lea sobre cualquier fondo. */
+     como un cartel, para que se lea sobre cualquier fondo. El contorno va en
+     una copia del texto detrás (`data-ink`): `-webkit-text-stroke` pinta
+     centrado sobre el borde y Chrome no respeta `paint-order` en HTML, así que
+     puesto en la misma letra se come la mitad del blanco. */
   color: var(--sm-white);
   font-family: var(--font-display);
-  paint-order: stroke fill;
-  -webkit-text-stroke: 0.16em var(--sm-shade);
-  text-shadow: 0 0.09em 0 var(--sm-shade);
+  --ink: 0.14em;
+}
+.sm-title > * {
+  position: relative;
+}
+.sm-title > [data-ink]::before {
+  content: attr(data-ink) / '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  color: var(--sm-shade);
+  -webkit-text-stroke: var(--ink) var(--sm-shade);
+  text-shadow: 0 0.1em 0 var(--sm-shade);
 }
 .sm-brand,
 .sm-tag {
-  -webkit-text-stroke-width: 0.26em;
-  text-shadow: 0 0.12em 0 var(--sm-shade);
+  --ink: 0.24em;
 }
 .sm-brand {
   margin: 0 0 4px;
@@ -675,22 +712,68 @@
   font-size: clamp(15px, 1.4vw, 22px);
   font-weight: 800;
 }
+/* Qué quiere decir cada insignia: una tarjeta chica bajo el cartel. */
+.sm-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  justify-content: flex-end;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 8px 14px;
+  list-style: none;
+  border-radius: 14px;
+  background: color-mix(in oklab, var(--sm-white) 88%, transparent);
+  box-shadow: 0 6px 20px color-mix(in oklab, var(--sm-shade) 18%, transparent);
+  color: var(--sm-shade);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+}
+.sm-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sm-legend svg {
+  width: 24px;
+  height: 24px;
+  flex: none;
+}
 
-.sm-hud {
+/* A la derecha, sobre el cielo vacío: el cartel del nivel que toca y, debajo,
+   la leyenda. En el celular parado el cartel se pega abajo y la leyenda queda
+   al final del mundo. */
+.sm-side {
   position: absolute;
   top: clamp(16px, 3.2vw, 44px);
   right: clamp(12px, 2.6vw, 40px);
   display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  max-width: min(640px, calc(100% - 24px));
+}
+.sm[data-shape='tall'] .sm-side {
+  position: static;
+  max-width: none;
+  margin: 0 12px;
+  align-items: stretch;
+}
+.sm[data-shape='tall'] .sm-legend {
+  flex-direction: column;
+  align-items: flex-start;
+}
+.sm-hud {
+  display: flex;
   align-items: center;
   gap: 14px;
-  max-width: min(560px, calc(100% - 24px));
   box-sizing: border-box;
-  padding: 10px 10px 10px 20px;
-  border-radius: 999px;
-  background: color-mix(in oklab, var(--sm-white) 90%, transparent);
-  box-shadow:
-    0 4px 0 color-mix(in oklab, var(--sm-shade) 30%, transparent),
-    0 14px 40px color-mix(in oklab, var(--sm-shade) 28%, transparent);
+  padding: 12px;
+  border-radius: 22px;
+  background: var(--sm-white);
+  box-shadow: 0 12px 34px color-mix(in oklab, var(--sm-shade) 26%, transparent);
 }
 .sm[data-shape='tall'] .sm-hud {
   position: fixed;
@@ -699,47 +782,85 @@
   right: 12px;
   bottom: 12px;
   max-width: none;
-  border-radius: 22px;
 }
-.sm-status {
+/* El nivel que toca: su disco (el mismo del mapa), el capítulo y el nombre. */
+.sm-next-disc {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  --ch-ink: color-mix(in oklab, var(--ch) 55%, var(--sm-shade));
+}
+.sm-next-disc .sm-disc {
+  stroke-width: 0;
+}
+.sm-next {
   flex: 1;
+  min-width: 0;
+}
+.sm-next-kick,
+.sm-next-title,
+.sm-status {
   margin: 0;
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1.35;
   color: var(--sm-shade);
+}
+.sm-next-kick {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--ch) 60%, var(--sm-shade));
+}
+.sm-next-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1.15;
 }
 .sm-play {
   flex: none;
-  padding: 13px 24px;
+  align-self: stretch;
+  padding: 0 24px;
   border: 0;
-  border-radius: 999px;
+  border-radius: 14px;
   font-family: var(--font-display);
   font-size: 18px;
   font-weight: 900;
   color: var(--sm-shade);
   background: var(--sm-gold);
-  box-shadow: 0 4px 0 var(--sm-gold-dark);
+  box-shadow: inset 0 -4px 0 var(--sm-gold-dark);
   cursor: pointer;
 }
 .sm-play:hover {
   background: color-mix(in oklab, var(--sm-gold) 85%, #fff);
 }
 .sm-play:active {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 var(--sm-gold-dark);
+  box-shadow: inset 0 -1px 0 var(--sm-gold-dark);
+  transform: translateY(2px);
 }
 .sm-play:focus-visible {
   outline: 3px solid var(--sm-shade);
   outline-offset: 3px;
 }
+/* Aviso pasajero ("todavía no", "vamos a…"): ocupa el lugar del nombre. */
+.sm-status {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.sm-status:empty {
+  display: none;
+}
 
 @media (max-width: 640px) {
-  .sm-status {
-    font-size: 15px;
+  .sm-next-disc {
+    width: 46px;
+    height: 46px;
+  }
+  .sm-next-title {
+    font-size: 17px;
   }
   .sm-play {
-    padding: 12px 18px;
+    padding: 0 16px;
   }
 }
 
