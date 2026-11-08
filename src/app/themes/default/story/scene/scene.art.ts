@@ -13,6 +13,14 @@
 export const MAIN_AT = { x: 470, y: 492 } as const;
 export const WORKER_AT = { x: 800, y: 492 } as const;
 export const DOOR_X = 1075;
+/**
+ * Cuánto sigue la sala fuera del viewBox (pared, zócalo, piso, cables). La
+ * pantalla de nivel encuadra la escena a pantalla completa (`Scene.frame`) y lo
+ * que sobra a los costados, arriba y abajo es esta sala que continúa.
+ */
+export const EXT = 1600;
+/** Lo que siempre tiene que verse: del reloj a la puerta, de la lámpara a los pies. */
+export const CONTENT = { x: 60, y: 30, w: 1090, h: 485 } as const;
 
 const eye = (cls: string, x: number, y: number, r: number) => `
   <g class="jh-eye ${cls}" transform="translate(${x} ${y})">
@@ -33,10 +41,10 @@ const WORKER_BODY =
 export const SCENE_SVG = `
 <svg class="jh-svg" viewBox="0 0 1200 560" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="jh-g-wall" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="jh-g-wall" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="430">
       <stop offset="0" class="jh-s-wall-top"/><stop offset="1" class="jh-s-wall-bot"/>
     </linearGradient>
-    <linearGradient id="jh-g-floor" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="jh-g-floor" gradientUnits="userSpaceOnUse" x1="0" y1="430" x2="0" y2="560">
       <stop offset="0" class="jh-s-floor-top"/><stop offset="1" class="jh-s-floor-bot"/>
     </linearGradient>
     <linearGradient id="jh-g-cone" x1="0" y1="0" x2="0" y2="1">
@@ -61,16 +69,17 @@ export const SCENE_SVG = `
       <stop offset="0" class="jh-s-light"/><stop offset="0.5" class="jh-s-accent"/><stop offset="1" class="jh-s-accent" stop-opacity="0"/>
     </radialGradient>
     <clipPath id="jh-c-screen"><rect x="656" y="86" width="188" height="98" rx="8"/></clipPath>
-    <clipPath id="jh-c-floor"><rect x="0" y="430" width="1200" height="130"/></clipPath>
-    <clipPath id="jh-c-wall"><rect x="0" y="0" width="1200" height="430"/></clipPath>
+    <clipPath id="jh-c-floor"><rect x="${-EXT}" y="430" width="${1200 + EXT * 2}" height="${130 + EXT}"/></clipPath>
+    <clipPath id="jh-c-window"><rect x="-422" y="58" width="238" height="198" rx="4"/></clipPath>
+    <clipPath id="jh-c-wall"><rect x="${-EXT}" y="${-EXT}" width="${1200 + EXT * 2}" height="${430 + EXT}"/></clipPath>
   </defs>
 
   <g class="jh-back">
-    <rect class="jh-wall" width="1200" height="430" fill="url(#jh-g-wall)"/>
+    <rect class="jh-wall" x="${-EXT}" y="${-EXT}" width="${1200 + EXT * 2}" height="${430 + EXT}" fill="url(#jh-g-wall)"/>
     <ellipse cx="470" cy="300" rx="380" ry="250" fill="url(#jh-g-glow)"/>
-    <rect class="jh-wainscot" y="300" width="1200" height="130"/>
+    <rect class="jh-wainscot" x="${-EXT}" y="300" width="${1200 + EXT * 2}" height="130"/>
     <g class="jh-panels"></g>
-    <rect class="jh-trim" y="294" width="1200" height="8" rx="2"/>
+    <rect class="jh-trim" x="${-EXT}" y="294" width="${1200 + EXT * 2}" height="8" rx="2"/>
 
     <g class="jh-clock" transform="translate(175 150)">
       <circle class="jh-trim" r="64"/>
@@ -83,7 +92,7 @@ export const SCENE_SVG = `
     </g>
 
     <g class="jh-monitor">
-      <path class="jh-trim-line" d="M750 40V70"/>
+      <path class="jh-trim-line" d="M750 ${-EXT}V70"/>
       <rect class="jh-bezel" x="640" y="70" width="220" height="130" rx="18"/>
       <rect class="jh-screen" x="656" y="86" width="188" height="98" rx="8"/>
       <g clip-path="url(#jh-c-screen)">
@@ -108,9 +117,55 @@ export const SCENE_SVG = `
       <text class="jh-plaque-text" x="1075" y="167" text-anchor="middle">workers</text>
     </g>
 
-    <path class="jh-floor" d="M0 430H1200V560H0Z" fill="url(#jh-g-floor)"/>
+    <!-- Fuera de CONTENT: se ve en pantallas anchas y se recorta sola en las angostas. -->
+    <g class="jh-side jh-side-l" transform="translate(220 0)">
+      <rect class="jh-trim" x="-436" y="44" width="266" height="226" rx="10"/>
+      <rect class="jh-sky" x="-422" y="58" width="238" height="198" rx="4"/>
+      <g clip-path="url(#jh-c-window)">
+        <circle class="jh-sun" cx="-236" cy="104" r="24"/>
+        <g transform="translate(-470 118)"><g class="jh-cloud">
+          <ellipse cx="0" cy="0" rx="36" ry="13"/><ellipse cx="-16" cy="-9" rx="18" ry="14"/><ellipse cx="12" cy="-12" rx="20" ry="17"/>
+        </g></g>
+        <path class="jh-hill" d="M-422 256C-380 206 -330 200 -280 226C-244 204 -206 208 -184 222V256Z"/>
+      </g>
+      <path class="jh-trim-line" d="M-303 58V256M-422 158H-184"/>
+      <rect class="jh-trim" x="-450" y="262" width="294" height="14" rx="5"/>
+      <path class="jh-leaf" d="M-214 262C-222 232 -216 206 -204 204C-192 206 -188 232 -196 262Z"/>
+      <path class="jh-leaf-light" d="M-212 236C-226 232 -230 220 -226 214C-218 216 -214 226 -210 230Z"/>
+      <path class="jh-pot" d="M-220 262H-188L-192 248H-216Z"/>
+    </g>
+
+    <g class="jh-side jh-side-r" transform="translate(-58 0)">
+      <path class="jh-trim-line" d="M1272 98L1316 64L1360 98"/>
+      <circle class="jh-gold" cx="1316" cy="62" r="5"/>
+      <rect class="jh-bezel" x="1250" y="96" width="132" height="156" rx="10"/>
+      <rect class="jh-white" x="1262" y="108" width="108" height="106" rx="4"/>
+      <g transform="translate(1316 212) scale(0.6)">
+        <path d="${WORKER_BODY}" fill="url(#jh-g-worker)"/>
+        ${eye('', -10, -96, 10)}
+        ${eye('', 22, -97, 12)}
+        <path class="jh-mouth" d="M-2 -76Q8 -66 18 -76"/>
+        <g transform="translate(8 -138)">
+          <path class="jh-hat-dome" d="M-52 4C-52 -30 -28 -48 0 -48C28 -48 52 -30 52 4Z"/>
+          <rect class="jh-hat-brim" x="-62" y="0" width="124" height="12" rx="6"/>
+          <circle class="jh-gold" cx="0" cy="-22" r="9"/>
+        </g>
+      </g>
+      <rect class="jh-plaque" x="1262" y="220" width="108" height="22" rx="6"/>
+      <text class="jh-plaque-text" x="1316" y="235" text-anchor="middle">worker del mes</text>
+    </g>
+    <g class="jh-side jh-side-r" transform="translate(-86 0)">
+      <rect class="jh-trim" x="1424" y="190" width="108" height="10" rx="3"/>
+      <path class="jh-trim-line" d="M1436 200L1446 216M1520 200L1510 216"/>
+      <rect class="jh-book jh-book-a" x="1438" y="128" width="18" height="62" rx="3"/>
+      <rect class="jh-book jh-book-b" x="1458" y="140" width="15" height="50" rx="3"/>
+      <rect class="jh-book jh-book-c" x="1475" y="122" width="21" height="68" rx="3"/>
+      <rect class="jh-book jh-book-a" x="1500" y="146" width="14" height="44" rx="3" transform="rotate(14 1514 190)"/>
+    </g>
+
+    <path class="jh-floor" d="M${-EXT} 430H${1200 + EXT}V${560 + EXT}H${-EXT}Z" fill="url(#jh-g-floor)"/>
     <g class="jh-planks"></g>
-    <rect class="jh-trim" y="424" width="1200" height="10" rx="2"/>
+    <rect class="jh-trim" x="${-EXT}" y="424" width="${1200 + EXT * 2}" height="10" rx="2"/>
     <ellipse class="jh-pool" cx="470" cy="494" rx="230" ry="36" fill="url(#jh-g-pool)"/>
     <g class="jh-fx-wall" clip-path="url(#jh-c-wall)"></g>
     <g class="jh-fx-floor" clip-path="url(#jh-c-floor)"></g>
@@ -118,7 +173,7 @@ export const SCENE_SVG = `
 
   <g class="jh-lamp">
     <path class="jh-cone" d="M436 112L504 112L660 492L280 492Z" fill="url(#jh-g-cone)"/>
-    <path class="jh-cord" d="M470 0V72"/>
+    <path class="jh-cord" d="M470 ${-EXT}V72"/>
     <path class="jh-lampshade" d="M436 112C436 88 450 72 470 72C490 72 504 88 504 112Z"/>
     <ellipse class="jh-bulb" cx="470" cy="112" rx="20" ry="6"/>
   </g>

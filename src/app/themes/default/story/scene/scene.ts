@@ -1,5 +1,5 @@
 import gsap from 'gsap';
-import { DOOR_X, MAIN_AT, SCENE_SVG, WORKER_AT } from './scene.art';
+import { CONTENT, DOOR_X, EXT, MAIN_AT, SCENE_SVG, WORKER_AT } from './scene.art';
 import { clamp, jugglePoint, MAX_STEP, seeded, spring, Spring, stepSprings } from './scene.physics';
 
 /**
@@ -45,10 +45,20 @@ export interface Scene {
    * SVG). Devuelve la función que lo suelta.
    */
   pin(node: HTMLElement, x: number, y: number): () => void;
+  /**
+   * Encuadra la escena a pantalla completa: lo importante (`CONTENT`) entra
+   * entero en el hueco que dejan arriba y abajo los textos y botones (en px), y
+   * la sala sigue hasta los bordes. Se recalcula al cambiar el tamaño.
+   */
+  frame(insets: FrameInsets): void;
   destroy(): void;
 }
 
 export type Who = 'main' | 'worker';
+export interface FrameInsets {
+  top: number;
+  bottom: number;
+}
 /** Las dos líneas del bloque que cae: chica arriba, grande abajo. */
 export type BlockLabel = readonly [string, string];
 
@@ -159,7 +169,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
 
   // ── Detalle por código (con semilla: sale igual en cada carga) ──
   const panels = $('.jh-panels');
-  for (let x = 30; x < 1200; x += 92) {
+  for (let x = 30 - Math.ceil(EXT / 92) * 92; x < 1200 + EXT; x += 92) {
     el(panels, 'rect', {
       class: 'jh-panel',
       x: x + seeded(x) * 6,
@@ -170,10 +180,15 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
     });
   }
   const planks = $('.jh-planks');
-  [452, 478, 512, 552].forEach((y, i) => {
-    el(planks, 'path', { class: 'jh-plank', d: `M0 ${y}H1200`, 'stroke-opacity': 0.5 - i * 0.08 });
-    for (let k = 0; k < 7; k++) {
-      const x = seeded(i * 31 + k) * 1200;
+  // Las tablas se separan más hacia adelante (perspectiva) y siguen fuera del viewBox.
+  [452, 478, 512, 552, 600, 660, 732].forEach((y, i) => {
+    el(planks, 'path', {
+      class: 'jh-plank',
+      d: `M${-EXT} ${y}H${1200 + EXT}`,
+      'stroke-opacity': Math.max(0.5 - i * 0.08, 0.1),
+    });
+    for (let k = 0; k < 15; k++) {
+      const x = -600 + seeded(i * 31 + k) * 2400;
       el(planks, 'path', { class: 'jh-plank', d: `M${x} ${y}V${y + 22 + i * 8}` });
     }
   });
@@ -1419,7 +1434,27 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
       node.style.transform = `translate(${(p.x - box.left).toFixed(1)}px, ${(p.y - box.top).toFixed(1)}px) scale(${ctm.a.toFixed(4)})`;
     }
   };
-  const resize = new ResizeObserver(placePins);
+  let insets: FrameInsets | null = null;
+  const fit = () => {
+    if (!insets) return;
+    const w = host.clientWidth;
+    const h = host.clientHeight;
+    if (!w || !h) return;
+    const room = Math.max(h - insets.top - insets.bottom, h * 0.35);
+    const k = Math.min(w / CONTENT.w, room / CONTENT.h);
+    // Centrado a lo ancho; a lo alto, con los pies justo sobre lo de abajo, así
+    // si sobra lugar queda arriba (pared), no entre main y su diálogo.
+    const left = (w - CONTENT.w * k) / 2;
+    const top = insets.top + room - CONTENT.h * k;
+    svg.setAttribute(
+      'viewBox',
+      [CONTENT.x - left / k, CONTENT.y - top / k, w / k, h / k].map((n) => n.toFixed(2)).join(' '),
+    );
+  };
+  const resize = new ResizeObserver(() => {
+    fit();
+    placePins();
+  });
   resize.observe(host);
   const pin = (node: HTMLElement, x: number, y: number) => {
     node.classList.add('jh-pin');
@@ -1446,6 +1481,11 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
     celebrate,
     toScene,
     pin,
+    frame: (next) => {
+      insets = next;
+      fit();
+      placePins();
+    },
     destroy: () => {
       stop();
       resize.disconnect();

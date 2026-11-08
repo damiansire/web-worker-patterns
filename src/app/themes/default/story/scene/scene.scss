@@ -450,3 +450,37 @@
   transform-origin: 0 0;
   pointer-events: none;
 }
+
+/* ── Lo que hay a los costados (fuera de CONTENT: solo en pantallas anchas) ── */
+.jh-sky {
+  fill: color-mix(in oklab, var(--worker) 22%, #bfe2fb);
+}
+.jh-sun {
+  fill: #fff3c4;
+}
+.jh-hill {
+  fill: color-mix(in oklab, var(--accent) 40%, #cfe6b4);
+}
+.jh-cloud {
+  fill: #fff;
+  animation: jh-drift 46s linear infinite;
+}
+@keyframes jh-drift {
+  to {
+    transform: translateX(340px);
+  }
+}
+.jh-book-a {
+  fill: color-mix(in oklab, var(--accent) 70%, var(--jh-shade));
+}
+.jh-book-b {
+  fill: var(--jh-gold);
+}
+.jh-book-c {
+  fill: color-mix(in oklab, var(--worker) 75%, var(--jh-shade));
+}
+@media (prefers-reduced-motion: reduce) {
+  .jh-cloud {
+    animation: none;
+  }
+}
