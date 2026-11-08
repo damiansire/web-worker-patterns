@@ -57,6 +57,8 @@ const spring = (k: number, d: number): Spring => ({ x: 0, v: 0, t: 0, k, d });
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 const NS = 'http://www.w3.org/2000/svg';
 
+/** Lo que suma el nombre del nivel debajo de la medalla, en píxeles. */
+const CAPTION_H = 10;
 const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
 
 /**
@@ -64,7 +66,7 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
  * cerros, un prado con un hito por capítulo) cruzado por un camino con una
  * baldosa en cada parada. Main vive ahí, parado en el centro de la suya:
  * respira, parpadea, mira lo que tocás y camina hasta el nivel que elegís;
- * recién al llegar se entra. El botón de jugar va bajo sus pies y lo sigue.
+ * recién al llegar se entra. El botón de jugar va arriba de su cabeza y lo sigue.
  * Cada baldosa lleva el ícono de su caso (`story.icons.ts`) y su estado se ve
  * en el dibujo, sin insignias: pintada (se juega), de piedra (bloqueada, tiembla
  * al tocarla), a medio dibujar (en obra: abre la versión clásica) o con
@@ -86,7 +88,14 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
   selector: 'default-story-map',
   imports: [StoryDawnComponent, StoryPlayComponent],
   template: `
-    <section #stage class="sm" [attr.data-shape]="shape()">
+    <section
+      #stage
+      class="sm"
+      [attr.data-shape]="shape()"
+      [class.is-play-cramped]="playCramped()"
+      [class.is-saying]="!!heroSays()"
+      [class.is-night]="night()"
+    >
       <svg
         #world
         class="sm-world"
@@ -356,6 +365,7 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
           <g
             class="sm-node"
             [class.is-here]="i === here() && !walking()"
+            [class.is-main-spot]="i === here()"
             [attr.data-state]="s.state"
             [attr.data-chapter]="s.level.chapter"
             [attr.transform]="'translate(' + s.x + ' ' + s.y + ') scale(' + spec().s + ')'"
@@ -466,7 +476,7 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
             class="sm-say"
             text-anchor="middle"
             [attr.x]="sayDx()"
-            [attr.y]="-262 * heroScale()"
+            [attr.y]="playCramped() ? 70 * spec().s : -262 * heroScale() - sayLift()"
             [attr.font-size]="28 * spec().s"
           >
             {{ heroSays() }}
@@ -484,7 +494,7 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
         <p class="sm-tag" data-ink="Ayudá a main a no congelarse.">Ayudá a main a no congelarse.</p>
       </header>
 
-      <!-- Jugar: al lado de main, lo sigue de parada en parada -->
+      <!-- Jugar: arriba de la cabeza de main, lo sigue de parada en parada -->
       <button
         #play
         type="button"
@@ -495,14 +505,14 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
         [attr.aria-label]="playLabel() + ': ' + next().title"
         (click)="go(here())"
       >
-        <story-play [label]="playLabel()" [caption]="next().title" />
+        <story-play [label]="playLabel()" [caption]="playCramped() ? undefined : next().title" />
       </button>
       <p class="sm-sr" aria-live="polite">{{ status() }}</p>
 
       @if (night() && nightScene(); as n) {
         <story-dawn
           [scene]="n"
-          [at]="playAt()"
+          [at]="nightPlayAt()"
           [level]="next().title"
           (woke)="onWoke($event)"
           (lit)="onLit($event)"
@@ -627,13 +637,27 @@ export class StoryMapComponent {
   protected readonly heroSays = signal('');
   protected readonly sayDx = signal(0);
   protected readonly status = signal('');
-  /** El nivel que toca jugar: el que nombra el botón de al lado de main. */
+  /** El nivel que toca jugar: el que nombra el botón de arriba de main. */
   protected readonly next = computed(() => LEVELS[this.here()]);
   protected readonly playLabel = computed(() =>
     this.progress.isDone(this.next().id) ? 'Repetir' : '¡Jugar!',
   );
-  /** Dónde va el botón, en píxeles de la escena: bajo los pies de main, en lugar del nombre. */
+  /**
+   * Dónde va el botón, en píxeles de la escena: arriba de la cabeza de main
+   * (es el punto donde apoya su borde de abajo), para que se vea bien a qué
+   * nivel entra.
+   */
   protected readonly playAt = signal({ x: 0, y: 0 });
+  /** El cartel de la noche va bajo los pies de main: arriba están las "z" y la burbuja. */
+  protected readonly nightPlayAt = signal({ x: 0, y: 0 });
+  /** Cuánto sube lo que dice main para no quedar detrás del botón, en unidades del viewBox. */
+  protected readonly sayLift = signal(0);
+  /**
+   * Entre el título y la corona no entra la medalla entera (la primera
+   * parada): va sin el nombre del nivel, que vuelve a su lugar bajo main, y
+   * lo que dice main sale ahí abajo en vez de arriba, donde está el título.
+   */
+  protected readonly playCramped = signal(false);
   protected readonly walking = signal(false);
   /** De noche hasta el primer toque: main duerme y solo se ve el play. */
   protected readonly night = signal(StoryDawnComponent.needed());
@@ -937,18 +961,59 @@ export class StoryMapComponent {
     this.placePlay();
   }
 
-  /** Lleva el botón bajo main, sin que se salga de la escena por los costados. */
+  /**
+   * Lleva el botón arriba de la cabeza de main y el cartel de la noche bajo
+   * sus pies, sin que se salgan de la escena por los costados.
+   */
   private placePlay(): void {
     const m = this.worldRef().nativeElement.getScreenCTM();
     if (!m) return;
     const box = this.stageRef().nativeElement.getBoundingClientRect();
-    // De noche manda el play de `story-dawn`, más ancho que el del mapa.
-    const dawnPlay = this.stageRef().nativeElement.querySelector<HTMLElement>('.sd-play');
-    const half = Math.max(this.playRef().nativeElement.offsetWidth, dawnPlay?.offsetWidth ?? 0) / 2;
-    const p = new DOMPoint(this.hp.x, this.hp.y + 44 * this.spec().s).matrixTransform(m);
-    const x = clamp(p.x - box.left, half + 8, box.width - half - 8);
-    this.playAt.set({ x, y: p.y - box.top });
-    if (this.night()) this.sleeperAt.set({ x: this.hp.x, y: this.hp.y });
+    const play = this.playRef().nativeElement;
+    const placed = (y: number, width: number) => {
+      const p = new DOMPoint(this.hp.x, y).matrixTransform(m);
+      const half = width / 2;
+      return { x: clamp(p.x - box.left, half + 8, box.width - half - 8), y: p.y - box.top };
+    };
+    // El borde de abajo del botón queda un poco por encima de la corona. Si
+    // así se metiera debajo del título, primero deja el nombre del nivel y,
+    // si aun así no entra, baja hasta salir de las letras.
+    const crown = placed(this.hp.y - 258 * this.heroScale(), play.offsetWidth);
+    // Las puntas de la cinta pueden asomar bajo una letra: se mide sin ellas.
+    const half = play.offsetWidth / 2 - 14;
+    const top = this.titleBottom(crown.x - half, crown.x + half);
+    // `clientHeight` y no el rectángulo: mientras se esconde, el botón está achicado.
+    const art = play.querySelector('svg')?.clientHeight ?? play.offsetHeight;
+    const cramped = crown.y - top - 4 < art + CAPTION_H;
+    const height = cramped ? art : art + CAPTION_H;
+    const bottom = Math.max(crown.y, top + 4 + height);
+    this.playCramped.set(cramped);
+    this.playAt.set({ x: crown.x, y: bottom });
+    this.sayLift.set((crown.y - bottom + height + 6) / m.d);
+    if (this.night()) {
+      const dawnPlay = this.stageRef().nativeElement.querySelector<HTMLElement>('.sd-play');
+      this.nightPlayAt.set(placed(this.hp.y + 44 * this.spec().s, dawnPlay?.offsetWidth ?? 0));
+      this.sleeperAt.set({ x: this.hp.x, y: this.hp.y });
+    }
+  }
+
+  /**
+   * Dónde terminan las letras del título entre `left` y `right`, en píxeles
+   * de la escena. Mide el texto y no las cajas: el subtítulo es más corto que
+   * el título y su caja ocupa todo el ancho.
+   */
+  private titleBottom(left: number, right: number): number {
+    const box = this.stageRef().nativeElement.getBoundingClientRect();
+    const range = document.createRange();
+    let bottom = -Infinity;
+    for (const line of this.stageRef().nativeElement.querySelectorAll('.sm-title > *')) {
+      range.selectNodeContents(line);
+      const r = range.getBoundingClientRect();
+      if (r.right - box.left > left && r.left - box.left < right) {
+        bottom = Math.max(bottom, r.bottom - box.top);
+      }
+    }
+    return bottom;
   }
 
   private moveHero(x: number, y: number): void {

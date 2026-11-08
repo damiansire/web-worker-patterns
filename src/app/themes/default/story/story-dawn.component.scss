@@ -1,8 +1,8 @@
 /*
  * El mapa de noche, en tres capas con el viewBox del mundo (ver el componente).
  * La tinta y las sombras nunca son negras: azul noche con tono. El único
- * dorado intenso es el play (la medalla de `story-play`); las luces de las
- * ventanas son ámbar suave.
+ * dorado intenso es el play (el farol del cartel de `story-lantern-sign`);
+ * las luces de las ventanas son ámbar suave.
  */
 :host {
   /* Sin z-index propio: si armara su contexto, el multiply no vería el mapa. */
@@ -327,16 +327,16 @@
 .sd-play:focus-visible {
   outline: none;
 }
-/* El foco lo dibuja la medalla: un aro alrededor de la moneda. */
+/* El foco lo dibuja el cartel: un borde liso alrededor de la tabla. */
 .sd-press {
   display: block;
 }
-.sd-play story-play {
-  --sp-w: clamp(170px, 12.5vw, 210px);
+.sd-play story-lantern-sign {
+  --sls-w: clamp(150px, 11vw, 190px);
 }
 @media (max-width: 640px) {
-  .sd-play story-play {
-    --sp-w: 132px;
+  .sd-play story-lantern-sign {
+    --sls-w: 124px;
   }
 }
 

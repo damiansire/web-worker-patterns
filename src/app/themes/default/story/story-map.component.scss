@@ -674,9 +674,10 @@
   font-size: clamp(15px, 1.4vw, 22px);
   font-weight: 800;
 }
-/* ── Jugar: el botón va bajo los pies de main y lo sigue ──
-   La posición la calcula el componente, en píxeles de la escena. Ocupa el
-   lugar del nombre de la parada, que se esconde mientras main está ahí. */
+/* ── Jugar: el botón va arriba de la cabeza de main y lo sigue ──
+   La posición la calcula el componente, en píxeles de la escena: es donde
+   apoya el borde de abajo. La medalla dice el nombre del nivel, así que el
+   nombre de la parada se esconde mientras main está ahí. */
 .sm-play {
   position: absolute;
   z-index: 2;
@@ -691,7 +692,8 @@
      `button:hover { transform: translateY(-1px) }` pisaba el centrado, el
      botón saltaba medio ancho al pasar el mouse, lo perdía y volvía, y
      quedaba vibrando sin poder hacerle clic. */
-  translate: -50% 0;
+  translate: -50% -100%;
+  transform-origin: 50% 100%;
   transition:
     opacity 0.2s,
     scale 0.3s cubic-bezier(0.34, 1.8, 0.64, 1);
@@ -705,6 +707,14 @@
   scale: 0.6;
 }
 .sm-node.is-here .sm-name {
+  visibility: hidden;
+}
+/* Sin lugar para la medalla entera, el nombre vuelve bajo main. Salvo de
+   noche (ahí está el cartel) y mientras main habla: lo que dice sale ahí. */
+.sm.is-play-cramped:not(.is-saying, .is-night) .sm-node.is-here .sm-name {
+  visibility: visible;
+}
+.sm.is-play-cramped.is-saying .sm-node.is-main-spot .sm-name {
   visibility: hidden;
 }
 /* La medalla de `story-play`; el foco lo dibuja ella, alrededor de la moneda. */

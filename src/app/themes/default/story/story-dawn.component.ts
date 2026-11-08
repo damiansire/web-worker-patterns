@@ -13,7 +13,7 @@ import {
 import gsap from 'gsap';
 import { readStored } from '../../../core/utils/safe-storage';
 import { pageWasTouched, playChime, SOUND_KEY } from './story.audio';
-import { StoryPlayComponent } from './story-play.component';
+import { StoryLanternSignComponent } from './story-lantern-sign.component';
 import { cloudPath, hash, Landmark, Point } from './story.map';
 
 /** Cómo se despertó: con el play (y entonces se entra a jugar) o tocando en otro lado. */
@@ -59,7 +59,8 @@ const DROPS = [-150, -110, -70, -30, 10, 50, 120].map((deg, i) => {
  * día está el sol, titilan las estrellas, pasa alguna fugaz, las ventanas de
  * los hitos están encendidas, el faro barre y hay luciérnagas. Main ronca con
  * una burbuja que se infla y se desinfla. Lo único que brilla de verdad es el
- * play bajo sus pies: la medalla de `story-play`, con halo y corcheas.
+ * play bajo sus pies: el cartel de `story-lantern-sign`, con
+ * su farol prendido.
  *
  * Tocarlo da el toque que el navegador pide para dejar sonar (suena un arpegio
  * que lo confirma) y arranca una cadena: la burbuja revienta, main se
@@ -83,7 +84,7 @@ const DROPS = [-150, -110, -70, -30, 10, 50, 120].map((deg, i) => {
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'story-dawn',
-  imports: [StoryPlayComponent],
+  imports: [StoryLanternSignComponent],
   host: {
     class: 'sd',
     '(click)': 'wake($event, "tap")',
@@ -444,7 +445,7 @@ const DROPS = [-150, -110, -70, -30, 10, 50, 120].map((deg, i) => {
     >
       <!-- GSAP hunde esta capa y no el botón: reescribiría el translate que lo centra. -->
       <span #press class="sd-press">
-        <story-play
+        <story-lantern-sign
           label="¡Jugar!"
           [caption]="soundOn ? 'con música' : 'sin sonido'"
           [glow]="true"
