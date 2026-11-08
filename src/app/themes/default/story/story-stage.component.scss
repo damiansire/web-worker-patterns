@@ -2,7 +2,7 @@
  * Pantalla de nivel, a pantalla completa como el mapa: la sala llena la ventana
  * y todo lo demás vive encima, dentro del mundo. Sin encapsulación (comparte el
  * CSS de la escena), así que todo cuelga de `.lv`. Mismo vocabulario que el
- * mapa: letra blanca con contorno tintado, botón dorado de "¡Jugar!", sombras
+ * mapa: letra blanca con contorno tintado, dorado de "¡Jugar!", sombras
  * tintadas y nunca negro puro.
  */
 .lv {
@@ -11,13 +11,22 @@
   --lv-gold: #f2b632;
   --lv-gold-dark: color-mix(in oklab, var(--lv-gold) 70%, var(--lv-shade));
   --lv-main: color-mix(in oklab, var(--thread-main) 45%, #f08a5d);
+  --lv-worker: color-mix(in oklab, var(--worker) 80%, #fff);
+  /* Centro del cartel y del diálogo: el de la pantalla, o el de la escena
+     cuando la hoja del código ocupa la derecha. */
+  --lv-sheet-w: min(44cqw, 780px);
+  --lv-cx: 50cqw;
 
   position: relative;
   height: calc(100dvh - var(--masthead-h, 0px));
   min-height: 480px;
   overflow: hidden;
   isolation: isolate;
+  container-type: size;
   color: var(--lv-shade);
+}
+.lv.has-sheet {
+  --lv-cx: calc((100cqw - var(--lv-sheet-w) - 24px) / 2);
 }
 
 /* ── La sala: llena todo; la escena se encuadra sola (Scene.frame) ── */
@@ -44,13 +53,19 @@
   );
 }
 
-/* ── Arriba: volver, dónde estás y las paradas del capítulo ── */
-.lv-top {
+/* ── Arriba: volver, dónde estás, el paso siguiente y las paradas ── */
+.lv-head {
   position: absolute;
-  z-index: 2;
-  top: clamp(12px, 2.2vw, 28px);
-  left: clamp(12px, 2.4vw, 40px);
-  right: clamp(12px, 2.4vw, 40px);
+  z-index: 3;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: clamp(12px, 2.2vw, 28px) clamp(12px, 2.4vw, 40px) 0;
+  pointer-events: none;
+}
+.lv-top {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: flex-start;
   gap: clamp(12px, 1.6vw, 24px);
@@ -117,7 +132,7 @@
 .lv-heading > * {
   position: relative;
 }
-:is(.lv-heading > [data-ink], .lv-ribbon)::before {
+.lv-heading > [data-ink]::before {
   content: attr(data-ink) / '';
   position: absolute;
   inset: 0;
@@ -137,20 +152,57 @@
 .lv-title {
   --lv-ink: 0.14em;
   margin: 0;
-  font-size: clamp(28px, 3.2vw, 56px);
+  font-size: clamp(26px, 2.6vw, 48px);
   font-weight: 900;
   letter-spacing: -0.02em;
   line-height: 1;
   text-transform: none;
 }
-
-/* Paradas: baldosas redondas como las del mapa. */
-.lv-stops {
+.lv-top-end {
   flex: none;
   display: flex;
   align-items: center;
+  gap: 12px;
+}
+.lv .lv-chip {
+  padding: 8px 16px 9px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--lv-white);
+  color: var(--lv-shade);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 14px;
+  letter-spacing: normal;
+  text-transform: none;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow:
+    inset 0 0 0 3px var(--lv-shade),
+    0 6px 16px color-mix(in oklab, var(--lv-shade) 18%, transparent);
+  transition: scale 0.25s cubic-bezier(0.34, 1.8, 0.64, 1);
+}
+.lv .lv-chip--gold {
+  background: var(--lv-gold);
+  box-shadow:
+    inset 0 -4px 0 var(--lv-gold-dark),
+    0 6px 16px color-mix(in oklab, var(--lv-shade) 18%, transparent);
+}
+.lv .lv-chip:hover {
+  transform: none;
+  scale: 1.06;
+}
+.lv .lv-chip:focus-visible {
+  outline: 3px solid var(--lv-shade);
+  outline-offset: 3px;
+}
+
+/* Paradas: baldosas redondas como las del mapa. */
+.lv-stops {
+  display: flex;
+  align-items: center;
   gap: 10px;
-  margin: 4px 0 0;
+  margin: 0;
   padding: 8px 12px;
   list-style: none;
   border-radius: 999px;
@@ -195,57 +247,276 @@ a.lv-stop:focus-visible {
   outline-offset: 3px;
 }
 
-/* ── Nivel superado: el cartel cae sobre la sala (sin modal ni fondo oscuro) ── */
-.lv-ribbon {
-  --lv-ink: 0.16em;
+/* ── El problema: un cartel colgado del techo, en el centro ──
+   Es lo primero que se lee del nivel. Al ganar, el mismo cartel se vuelve
+   dorado y dice "¡Nivel superado!". */
+.lv-sign {
   position: absolute;
-  z-index: 3;
-  top: clamp(100px, 15vh, 150px);
-  left: 50%;
-  margin: 0;
+  top: 26px;
+  pointer-events: auto;
+  /* Siempre al centro de la pantalla (no se corre con la hoja: chocaba con el
+     título); la hoja del código arranca debajo de él. */
+  left: 50cqw;
+  width: max-content;
+  max-width: min(640px, calc(100cqw - 32px));
+  box-sizing: border-box;
+  padding: 12px 30px 14px;
+  border-radius: 18px;
+  background: var(--lv-white);
+  text-align: center;
   translate: -50% 0;
-  isolation: isolate;
-  color: var(--lv-gold);
+  transform-origin: 50% -26px;
+  box-shadow:
+    inset 0 0 0 4px var(--lv-shade),
+    inset 0 -9px 0 color-mix(in oklab, var(--lv-shade) 14%, transparent),
+    0 16px 34px color-mix(in oklab, var(--lv-shade) 26%, transparent);
+  animation: lv-hang 1.1s cubic-bezier(0.34, 1.5, 0.64, 1) both;
+  transition: background 0.4s;
+}
+/* Los dos hilos que lo cuelgan del techo. */
+.lv-sign::before,
+.lv-sign::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  width: 4px;
+  height: 200px;
+  border-radius: 2px;
+  background: var(--lv-shade);
+}
+.lv-sign::before {
+  left: 18%;
+}
+.lv-sign::after {
+  right: 18%;
+}
+@keyframes lv-hang {
+  0% {
+    opacity: 0;
+    transform: translateY(-140px) rotate(-6deg);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(0) rotate(3deg);
+  }
+  78% {
+    transform: rotate(-1.5deg);
+  }
+}
+.lv-sign.is-solved {
+  background: var(--lv-gold);
+  animation: lv-flip 0.7s cubic-bezier(0.34, 1.6, 0.64, 1);
+  box-shadow:
+    inset 0 0 0 4px var(--lv-shade),
+    inset 0 -9px 0 var(--lv-gold-dark),
+    0 16px 34px color-mix(in oklab, var(--lv-shade) 26%, transparent);
+}
+@keyframes lv-flip {
+  0% {
+    transform: rotateX(0);
+  }
+  45% {
+    transform: rotateX(90deg);
+  }
+  100% {
+    transform: rotateX(0);
+  }
+}
+.lv-sign-kicker {
+  margin: 0;
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: clamp(30px, 4vw, 68px);
-  letter-spacing: -0.02em;
-  line-height: 1;
-  white-space: nowrap;
-  pointer-events: none;
-  animation: lv-drop 0.6s cubic-bezier(0.34, 1.6, 0.64, 1) both;
+  font-size: clamp(11px, 0.8vw, 14px);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--accent) 70%, var(--lv-shade));
 }
-@keyframes lv-drop {
-  from {
-    opacity: 0;
-    transform: translateY(-80px) rotate(-4deg) scale(0.8);
+.lv-sign.is-solved .lv-sign-kicker {
+  color: var(--lv-shade);
+}
+.lv-sign-what {
+  margin: 4px 0 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(20px, 1.7vw, 32px);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.lv-sign-ask {
+  margin: 6px 0 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(18px, 1.45vw, 28px);
+  line-height: 1.1;
+  text-transform: none;
+  letter-spacing: normal;
+  color: color-mix(in oklab, var(--lv-main) 60%, var(--lv-shade));
+}
+.lv-sign.is-solved .lv-sign-ask {
+  color: var(--lv-shade);
+}
+
+/* ── Las opciones, en la escena: etiquetas sobre quien haría el trabajo ──
+   La de main termina en su punto y apunta a main; la de la puerta va
+   centrada sobre la puerta de los workers. */
+.lv .lv-choice {
+  position: absolute;
+  z-index: 2;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  letter-spacing: normal;
+  text-transform: none;
+  cursor: pointer;
+  translate: -50% -50%;
+  transition:
+    opacity 0.25s,
+    scale 0.35s cubic-bezier(0.34, 1.8, 0.64, 1);
+}
+.lv .lv-choice[data-at='main'] {
+  translate: -100% -50%;
+}
+.lv .lv-choice:hover:not(:disabled),
+.lv .lv-choice:active:not(:disabled) {
+  transform: none;
+  scale: 1.08;
+}
+.lv .lv-choice:disabled {
+  opacity: 1;
+}
+.lv .lv-choice.is-away {
+  opacity: 0;
+  scale: 0.6;
+  pointer-events: none;
+}
+.lv-choice-bob {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px 12px;
+  border-radius: 999px;
+  background: var(--lv-white);
+  color: var(--lv-shade);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(16px, 1.05vw, 21px);
+  white-space: nowrap;
+  box-shadow:
+    inset 0 0 0 3px var(--lv-shade),
+    inset 0 -6px 0 color-mix(in oklab, var(--lv-shade) 16%, transparent),
+    0 10px 24px color-mix(in oklab, var(--lv-shade) 26%, transparent);
+  animation: lv-bob 1.3s ease-in-out infinite alternate;
+}
+.lv-choice--gold .lv-choice-bob {
+  background: var(--lv-gold);
+  box-shadow:
+    inset 0 0 0 3px var(--lv-shade),
+    inset 0 -6px 0 var(--lv-gold-dark),
+    0 10px 24px color-mix(in oklab, var(--lv-shade) 26%, transparent);
+  animation-delay: -0.65s;
+}
+/* La colita de la etiqueta de main apunta a main (a la derecha). */
+.lv-choice[data-at='main'] .lv-choice-bob::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -11px;
+  border: 9px solid transparent;
+  border-right: 0;
+  border-left: 13px solid var(--lv-shade);
+  transform: translateY(-50%);
+}
+.lv .lv-choice:focus-visible .lv-choice-bob {
+  outline: 3px solid var(--lv-shade);
+  outline-offset: 4px;
+}
+.lv-choice-check {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--lv-shade);
+  color: var(--lv-gold);
+  font-size: 13px;
+}
+@keyframes lv-bob {
+  to {
+    transform: translateY(-6px);
   }
 }
 
-/* ── Abajo: el diálogo, apoyado en el piso ── */
+/* ── Abajo: el diálogo. Habla un personaje: su nombre y la colita hacia él ── */
 .lv-talk {
   position: absolute;
   z-index: 2;
-  left: 50%;
+  left: var(--lv-cx);
   bottom: clamp(12px, 2.4vh, 28px);
   translate: -50% 0;
-  width: min(1040px, calc(100% - 32px));
-  max-height: calc(100% - 140px);
-  overflow: auto;
+  width: min(980px, calc(100cqw - 32px));
   box-sizing: border-box;
-  padding: clamp(16px, 1.6vw, 24px) clamp(18px, 2vw, 32px) clamp(18px, 1.8vw, 26px);
-  border-radius: 28px;
+  padding: clamp(20px, 1.8vw, 28px) clamp(20px, 2vw, 32px) clamp(18px, 1.7vw, 24px);
+  border-radius: 26px;
   background: var(--lv-white);
   box-shadow:
     inset 0 -6px 0 color-mix(in oklab, var(--lv-shade) 10%, transparent),
     0 18px 44px color-mix(in oklab, var(--lv-shade) 30%, transparent);
-  transition: box-shadow 0.4s;
+  transition:
+    left 0.8s cubic-bezier(0.65, 0, 0.35, 1),
+    width 0.8s cubic-bezier(0.65, 0, 0.35, 1),
+    box-shadow 0.4s;
+}
+.lv.has-sheet .lv-talk {
+  width: min(980px, calc(100cqw - var(--lv-sheet-w) - 72px));
+}
+/* La colita sale del borde de arriba hacia quien habla (sin salirse del cuadro). */
+.lv-talk::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: clamp(44px, calc(var(--lv-tail-x) - var(--lv-cx) + 50%), calc(100% - 44px));
+  border: 13px solid transparent;
+  border-top: 0;
+  border-bottom: 18px solid var(--lv-white);
+  translate: -50% 1px;
+  transition: left 0.35s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+.lv-talk[data-who='lesson']::before {
+  display: none;
 }
 .lv.is-won .lv-talk {
   box-shadow:
     inset 0 -6px 0 color-mix(in oklab, var(--lv-gold) 45%, transparent),
     0 0 0 4px var(--lv-gold),
     0 18px 44px color-mix(in oklab, var(--lv-shade) 30%, transparent);
+}
+.lv-who {
+  position: absolute;
+  top: 0;
+  left: 26px;
+  translate: 0 -50%;
+  padding: 5px 14px 6px;
+  border-radius: 999px;
+  background: var(--lv-main);
+  color: var(--lv-shade);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  box-shadow: inset 0 0 0 3px var(--lv-shade);
+}
+.lv-talk[data-who='worker'] .lv-who {
+  background: var(--lv-worker);
+  color: var(--lv-white);
+}
+.lv-talk[data-who='lesson'] .lv-who {
+  background: var(--lv-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 12px;
 }
 .lv-sr {
   position: absolute;
@@ -257,7 +528,6 @@ a.lv-stop:focus-visible {
 }
 .lv-line {
   margin: 0;
-  min-height: 2.9em;
   font-family: var(--font-body);
   font-weight: 650;
   font-size: clamp(17px, 0.55vw + 11px, 23px);
@@ -271,81 +541,31 @@ a.lv-stop:focus-visible {
     transform: translateY(14px) scale(0.97);
   }
 }
-.lv-task {
-  margin: 12px 0 0;
-  font-size: clamp(14px, 0.35vw + 10px, 17px);
-  font-weight: 650;
-  color: color-mix(in oklab, var(--lv-shade) 72%, transparent);
-  transition: opacity 0.25s;
-}
-.lv-task-tag {
-  margin-right: 6px;
-  font-family: var(--font-display);
-  font-weight: 900;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: color-mix(in oklab, var(--accent) 70%, var(--lv-shade));
-}
-.lv-paths {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  margin-top: 14px;
-  transition: opacity 0.25s;
-}
-.lv .is-quiet {
-  opacity: 0.45;
-}
 
-/* Las opciones: el dorado es el "¡Jugar!" del mapa; el resto, en crema. Le
-   gana a la regla global de `button` (mayúsculas, salto de -1px al pasar). */
+/* El único botón del diálogo: seguir, al final del nivel (el dorado de "¡Jugar!"). */
 .lv .lv-pill {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 20px 10px 8px;
-  border: 0;
+  margin-top: 14px;
+  padding: 8px 22px 10px 8px;
   border-radius: 999px;
-  background: color-mix(in oklab, var(--lv-shade) 7%, var(--lv-white));
+  background: var(--lv-gold);
   color: var(--lv-shade);
   font-family: var(--font-display);
   font-weight: 900;
   font-size: clamp(15px, 0.4vw + 10px, 19px);
-  letter-spacing: normal;
-  text-transform: none;
   text-decoration: none;
-  cursor: pointer;
   box-shadow:
-    inset 0 0 0 3px var(--lv-shade),
-    inset 0 -6px 0 color-mix(in oklab, var(--lv-shade) 22%, transparent);
+    inset 0 -6px 0 var(--lv-gold-dark),
+    0 10px 22px color-mix(in oklab, var(--lv-shade) 26%, transparent);
   transition:
     scale 0.25s cubic-bezier(0.34, 1.8, 0.64, 1),
     background 0.2s;
 }
-.lv .lv-pill:not(:has(.lv-pill-tri)) {
-  padding-left: 20px;
-}
-.lv .lv-pill--gold {
-  background: var(--lv-gold);
-  box-shadow:
-    inset 0 -6px 0 var(--lv-gold-dark),
-    0 10px 22px color-mix(in oklab, var(--lv-shade) 26%, transparent);
-}
-.lv .lv-pill:hover:not(:disabled) {
-  transform: none;
+.lv .lv-pill:hover {
   scale: 1.05;
-}
-.lv .lv-pill--gold:hover:not(:disabled) {
   background: color-mix(in oklab, var(--lv-gold) 85%, #fff);
-}
-.lv .lv-pill:active:not(:disabled) {
-  transform: none;
-  scale: 0.97;
-}
-.lv .lv-pill:disabled {
-  opacity: 1;
-  cursor: progress;
 }
 .lv .lv-pill:focus-visible {
   outline: 3px solid var(--lv-shade);
@@ -365,35 +585,56 @@ a.lv-stop:focus-visible {
   top: 50%;
   left: 55%;
   border: 7px solid transparent;
-  border-left: 11px solid var(--lv-white);
+  border-left: 11px solid var(--lv-gold);
   border-right: 0;
   transform: translate(-50%, -50%);
 }
-.lv-pill--gold .lv-pill-tri::after {
-  border-left-color: var(--lv-gold);
+
+/* ── Al final de cada nivel: la hoja con el código, siempre abierta ── */
+.lv-sheet {
+  position: absolute;
+  z-index: 2;
+  top: 170px;
+  right: 24px;
+  bottom: 24px;
+  width: var(--lv-sheet-w);
+  overflow: auto;
+  overscroll-behavior: contain;
+  box-sizing: border-box;
+  padding: 20px 22px 22px;
+  border-radius: 24px;
+  background: var(--lv-white);
+  box-shadow:
+    inset 0 0 0 4px var(--lv-shade),
+    0 18px 44px color-mix(in oklab, var(--lv-shade) 30%, transparent);
+  animation: lv-sheet-in 0.7s cubic-bezier(0.34, 1.4, 0.64, 1) 0.15s both;
 }
-.lv-pill-check {
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--lv-shade);
-  color: var(--lv-gold);
+@keyframes lv-sheet-in {
+  from {
+    opacity: 0;
+    transform: translateX(60px) rotate(2deg);
+  }
+}
+.lv-sheet-kicker {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 900;
   font-size: 13px;
-}
-.lv .lv-pill--quiet {
-  padding: 8px 6px;
-  background: none;
-  box-shadow: none;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: color-mix(in oklab, var(--accent) 70%, var(--lv-shade));
-  text-decoration: underline;
-  text-underline-offset: 4px;
+}
+.lv-sheet-title {
+  margin: 2px 0 14px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(20px, 1.5vw, 28px);
+  text-transform: none;
+  letter-spacing: -0.01em;
 }
 .lv-code {
   display: grid;
   gap: 12px;
-  margin-top: 16px;
 }
 
 /* ── Ventilador del nivel 16: HTML con animación CSS (la mueve el compositor) ── */
@@ -462,24 +703,89 @@ a.lv-stop:focus-visible {
   }
 }
 
+/* Angosto: el cartel cuelga debajo del encabezado (en el flujo, así nunca lo
+   pisa) y, al ganar, la hoja del código queda debajo de la escena asomando su
+   título: el nivel se baja para leerla, sin taparle la escena a la lección. */
+@media (max-width: 1100px) {
+  .lv-sign {
+    position: relative;
+    top: auto;
+    left: auto;
+    translate: none;
+    margin: 18px auto 0;
+  }
+  .lv-sign::before,
+  .lv-sign::after {
+    height: 18px;
+  }
+  .lv.has-sheet {
+    --lv-cx: 50cqw;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .lv-sheet {
+    top: calc(100cqh - 64px);
+    left: 12px;
+    right: 12px;
+    bottom: auto;
+    width: auto;
+    overflow: visible;
+    margin-bottom: 12px;
+  }
+  /* En un contenedor que se desplaza, `bottom` cuenta desde el borde de la
+     primera pantalla: el diálogo queda justo arriba de la hoja que asoma. */
+  .lv.has-sheet .lv-talk {
+    width: min(980px, calc(100cqw - 24px));
+    bottom: 76px;
+  }
+}
 @media (max-width: 640px) {
+  /* El título va en su propia fila; arriba quedan volver y el paso siguiente. */
   .lv-top {
     flex-wrap: wrap;
+    gap: 10px 12px;
+  }
+  .lv-heading {
+    order: 3;
+    flex-basis: 100%;
+  }
+  .lv-top-end {
+    flex: 1;
+    min-width: 0;
+    justify-content: flex-end;
+  }
+  .lv-top-end > .lv-chip {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .lv-stops {
     display: none;
   }
-  .lv-talk {
-    width: calc(100% - 20px);
-    border-radius: 22px;
+  .lv-sign {
+    padding: 10px 18px 12px;
   }
-  .lv .lv-pill {
-    flex: 1 1 auto;
-    justify-content: center;
+  /* La etiqueta de main termina en main: si no entra a su izquierda, se parte. */
+  .lv .lv-choice[data-at='main'] {
+    max-width: calc(var(--lv-x) - 10px);
+  }
+  .lv-choice[data-at='main'] .lv-choice-bob {
+    white-space: normal;
+    text-align: center;
+    padding: 8px 14px 10px;
+  }
+  .lv-talk {
+    width: calc(100cqw - 20px);
+    border-radius: 22px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .lv-ribbon,
+  .lv-sign,
+  .lv-sign.is-solved,
+  .lv-choice-bob,
+  .lv-sheet,
   .lv-line {
     animation: none;
   }

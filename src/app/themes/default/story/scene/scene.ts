@@ -39,6 +39,10 @@ export interface Scene {
   celebrate(): void;
   /** De coordenadas de pantalla a las de la escena (viewBox). */
   toScene(clientX: number, clientY: number): { x: number; y: number };
+  /** De la escena a píxeles dentro del contenedor (para ubicar HTML sin escalarlo). */
+  toScreen(x: number, y: number): { x: number; y: number };
+  /** Avisa cada vez que cambia el encuadre (tamaño, `frame` o el viaje de la cámara). */
+  onView(listener: () => void): void;
   /**
    * Fija un elemento HTML a un punto de la escena, escalado con ella. Sirve para
    * lo que tiene que moverse aunque main esté congelado (el compositor no anima
@@ -50,7 +54,7 @@ export interface Scene {
    * entero en el hueco que dejan arriba y abajo los textos y botones (en px), y
    * la sala sigue hasta los bordes. Se recalcula al cambiar el tamaño.
    */
-  frame(insets: FrameInsets): void;
+  frame(insets: FrameInsets, pan?: boolean): void;
   destroy(): void;
 }
 
@@ -58,6 +62,8 @@ export type Who = 'main' | 'worker';
 export interface FrameInsets {
   top: number;
   bottom: number;
+  /** Lo que tapa el costado derecho (la hoja del código al final del nivel). */
+  right?: number;
 }
 /** Las dos líneas del bloque que cae: chica arriba, grande abajo. */
 export type BlockLabel = readonly [string, string];
@@ -1435,25 +1441,52 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
     }
   };
   let insets: FrameInsets | null = null;
-  const fit = () => {
+  let camera: gsap.core.Tween | undefined;
+  const viewListeners: (() => void)[] = [];
+  const viewChanged = () => {
+    placePins();
+    for (const l of viewListeners) l();
+  };
+  const toScreen = (x: number, y: number) => {
+    const ctm = svg.getScreenCTM();
+    if (!ctm) return { x: 0, y: 0 };
+    const box = host.getBoundingClientRect();
+    const p = new DOMPoint(x, y).matrixTransform(ctm);
+    return { x: p.x - box.left, y: p.y - box.top };
+  };
+  const fit = (pan = false) => {
     if (!insets) return;
     const w = host.clientWidth;
     const h = host.clientHeight;
     if (!w || !h) return;
-    const room = Math.max(h - insets.top - insets.bottom, h * 0.35);
-    const k = Math.min(w / CONTENT.w, room / CONTENT.h);
-    // Centrado a lo ancho; a lo alto, con los pies justo sobre lo de abajo, así
-    // si sobra lugar queda arriba (pared), no entre main y su diálogo.
-    const left = (w - CONTENT.w * k) / 2;
-    const top = insets.top + room - CONTENT.h * k;
-    svg.setAttribute(
-      'viewBox',
-      [CONTENT.x - left / k, CONTENT.y - top / k, w / k, h / k].map((n) => n.toFixed(2)).join(' '),
-    );
+    const wide = Math.max(w - (insets.right ?? 0), w * 0.4);
+    const room = Math.max(h - insets.top - insets.bottom, h * 0.2);
+    const k = Math.min(wide / CONTENT.w, room / CONTENT.h);
+    // Centrado en el ancho libre; a lo alto, con los pies cerca de lo de abajo:
+    // si sobra lugar (pantallas altas y angostas) casi todo queda arriba, como
+    // pared, y un poco de piso separa a main de su diálogo.
+    const left = (wide - CONTENT.w * k) / 2;
+    const top = insets.top + (room - CONTENT.h * k) * 0.75;
+    const viewBox = [CONTENT.x - left / k, CONTENT.y - top / k, w / k, h / k]
+      .map((n) => n.toFixed(2))
+      .join(' ');
+    camera?.kill();
+    if (!pan || calm) {
+      svg.setAttribute('viewBox', viewBox);
+      viewChanged();
+      return;
+    }
+    // La cámara viaja (no salta): los pins la siguen cuadro a cuadro.
+    camera = gsap.to(svg, {
+      attr: { viewBox },
+      duration: 0.8,
+      ease: 'power2.inOut',
+      onUpdate: viewChanged,
+    });
   };
   const resize = new ResizeObserver(() => {
     fit();
-    placePins();
+    viewChanged();
   });
   resize.observe(host);
   const pin = (node: HTMLElement, x: number, y: number) => {
@@ -1480,15 +1513,19 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
     say,
     celebrate,
     toScene,
+    toScreen,
+    onView: (listener) => viewListeners.push(listener),
     pin,
-    frame: (next) => {
+    frame: (next, pan) => {
       insets = next;
-      fit();
+      fit(pan);
       placePins();
     },
     destroy: () => {
       stop();
       resize.disconnect();
+      camera?.kill();
+      viewListeners.length = 0;
       pins.clear();
       gsap.globalTimeline.resume();
       io.disconnect();

@@ -19,6 +19,15 @@ export const DOOR_X = 1075;
  * que sobra a los costados, arriba y abajo es esta sala que continúa.
  */
 export const EXT = 1600;
+/**
+ * Dónde se eligen los caminos de un nivel (la pantalla pone ahí sus etiquetas):
+ * a la izquierda de main, a la altura del pecho (la etiqueta termina en ese
+ * punto y apunta a main), y en la hoja de arriba de la puerta de los workers.
+ */
+export const CHOICE_AT = {
+  main: { x: 372, y: 340 },
+  door: { x: DOOR_X, y: 262 },
+} as const;
 /** Lo que siempre tiene que verse: del reloj a la puerta, de la lámpara a los pies. */
 export const CONTENT = { x: 60, y: 30, w: 1090, h: 485 } as const;
 
