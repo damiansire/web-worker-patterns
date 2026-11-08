@@ -14,6 +14,28 @@ import { clamp, jugglePoint, MAX_STEP, seeded, spring, Spring, stepSprings } fro
  * congela de verdad porque vive en ese hilo: el monitor marca el plano rojo y el
  * reloj salta, igual que el pulso del theme.
  */
+/**
+ * Lo que pasa en la escena y se puede oír. La escena solo avisa; quien quiera
+ * sonido (la pantalla de nivel) decide qué suena.
+ */
+export type SceneCue =
+  | { kind: 'hit'; force: number }
+  | { kind: 'poke'; who: Who; angry: boolean }
+  | {
+      kind:
+        | 'twinkle'
+        | 'lamp'
+        | 'lift'
+        | 'spill'
+        | 'fall'
+        | 'thaw'
+        | 'door'
+        | 'catch'
+        | 'deliver'
+        | 'fumble'
+        | 'cheer';
+    };
+
 export interface Scene {
   /** El trabajo cae sobre main. Resuelve en el golpe, justo antes de calcular. */
   dropOnMain(label?: BlockLabel): Promise<void>;
@@ -43,6 +65,8 @@ export interface Scene {
   toScreen(x: number, y: number): { x: number; y: number };
   /** Avisa cada vez que cambia el encuadre (tamaño, `frame` o el viaje de la cámara). */
   onView(listener: () => void): void;
+  /** Avisa de cada golpe, toque y momento de la escena (para el sonido). */
+  onCue(listener: (cue: SceneCue) => void): void;
   /**
    * Fija un elemento HTML a un punto de la escena, escalado con ella. Sirve para
    * lo que tiene que moverse aunque main esté congelado (el compositor no anima
@@ -121,6 +145,10 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
   const svg = host.querySelector('svg') as SVGSVGElement;
   const $ = <T extends Element = SVGGElement>(sel: string): T => svg.querySelector(sel) as T;
   const $$ = (sel: string): SVGElement[] => Array.from(svg.querySelectorAll<SVGElement>(sel));
+  const cueListeners: ((cue: SceneCue) => void)[] = [];
+  const cue = (c: SceneCue) => {
+    for (const l of cueListeners) l(c);
+  };
   const dur = (s: number) => (calm ? 0 : s);
 
   const main = {
@@ -489,6 +517,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
     windUntil = performance.now() + 650;
   };
   const impacto = (x: number, y: number, f: number) => {
+    cue({ kind: 'hit', force: f });
     if (calm) return;
     const dx = mainX() - x;
     const d = Math.hypot(dx, FLOOR_Y - 120 - y);
@@ -519,6 +548,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
   const dropBalls = () => {
     if (!juggling) return;
     juggling = false;
+    cue({ kind: 'spill' });
     balls.forEach((b, i) => {
       b.mode = 'fall';
       b.vx = (i - 1) * 140 + (seeded(i + performance.now()) - 0.5) * 120;
@@ -580,6 +610,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
       r.crown.v += side * 320;
       sparks(p.x, p.y, fx, 4);
     }
+    cue({ kind: 'poke', who: 'main', angry: heat >= 4 });
     const words = heat >= 4 ? POKE_ANGRY : ly < -130 ? POKE_HEAD : POKE_BODY;
     pop(p.x, p.y - 30, words[Math.floor(seeded(performance.now()) * words.length)], '', 'main');
     if (heat >= 4 && !faceLocked) {
@@ -601,6 +632,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
   const pokeWorker = (p: DOMPoint) => {
     const lx = p.x - WORKER_AT.x;
     const side = clamp(lx / 80, -1, 1);
+    cue({ kind: 'poke', who: 'worker', angry: false });
     if (!calm) {
       r.wrot.v += side * 170;
       r.wsq.v = Math.min(r.wsq.v + 5, 6.5);
@@ -635,6 +667,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
     }
     if (target.closest('.jh-lamp')) {
       r.lamp.v += (p.x < 470 ? 1 : -1) * 60;
+      cue({ kind: 'lamp' });
       sparks(p.x, p.y, fx, 5);
       return;
     }
@@ -644,6 +677,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
       impacto(p.x, p.y, 0.45);
     } else {
       sparks(p.x, p.y);
+      cue({ kind: 'twinkle' });
       impacto(p.x, p.y, 0.3);
     }
   };
@@ -656,6 +690,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
     const d = Math.hypot(dx, dy);
     if (!drag.active && d > 24) {
       drag.active = true;
+      cue({ kind: 'lift' });
       pop(mainX(), FLOOR_Y - 300, '¡eh, bajame!');
     }
     if (!drag.active) return;
@@ -988,6 +1023,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
             rotation: -4,
             scale: 1,
           })
+          .call(() => cue({ kind: 'fall' }), [], 0)
           .to(main.brows, { y: -6, duration: dur(0.15), ease: 'back.out(2)' }, 0)
           .to(main.mouthO, { attr: { ry: 10 }, duration: dur(0.12) }, 0)
           .to(main.mouth, { opacity: 0, duration: dur(0.08) }, 0)
@@ -1033,6 +1069,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
           })
           .set(main.frost, { opacity: 0.75 })
           .call(() => {
+            cue({ kind: 'thaw' });
             pop(x, FLOOR_Y - 300, '¡brrr!', 'jh-pop-strong');
             dropBalls();
             dizzy = calm ? 0 : 1.8;
@@ -1103,12 +1140,13 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
     if (workerIn) return;
     workerIn = true;
     const doorDx = DOOR_X - WORKER_AT.x;
-    tl.to(door, {
-      scaleX: 0.12,
-      svgOrigin: '1014 194',
-      duration: dur(0.25),
-      ease: 'power2.out',
-    })
+    tl.call(() => cue({ kind: 'door' }))
+      .to(door, {
+        scaleX: 0.12,
+        svgOrigin: '1014 194',
+        duration: dur(0.25),
+        ease: 'power2.out',
+      })
       .set(worker.rig, { x: doorDx, y: -58, scale: 0.78, svgOrigin: '0 0' })
       .to(worker.pose, { autoAlpha: 1, duration: dur(0.15) })
       .call(() => pop(DOOR_X, 170, '¡voy!'));
@@ -1186,6 +1224,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
             r.hat.v += 200;
           }
           impacto(WORKER_AT.x, BLOCK_ON_WORKER, 0.35);
+          cue({ kind: 'catch' });
           pop(WORKER_AT.x - 150, BLOCK_ON_WORKER + 40, '¡lo tengo!'); // hacia el centro: en el celular se ve
           workerLookAt = null;
         })
@@ -1256,6 +1295,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
           .to(orb, { scale: 1, duration: dur(0.22), ease: 'back.out(2.4)' })
           .call(() => {
             // Por debajo del monitor, para no tapar el pulso.
+            cue({ kind: 'deliver' });
             pop(WORKER_AT.x + 30, startY + 16, label, 'jh-pop-strong');
             sparks(WORKER_AT.x, startY, fx, 8);
           })
@@ -1292,6 +1332,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
             },
           })
           .call(armsDown)
+          .call(() => cue({ kind: 'fumble' }))
           .to(block, {
             x: WORKER_AT.x + 120,
             y: FLOOR_Y + 4,
@@ -1408,6 +1449,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
   };
 
   const celebrate = () => {
+    cue({ kind: 'cheer' });
     if (calm) {
       say('main', '¡bien!', true);
       return;
@@ -1515,6 +1557,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
     toScene,
     toScreen,
     onView: (listener) => viewListeners.push(listener),
+    onCue: (listener) => cueListeners.push(listener),
     pin,
     frame: (next, pan) => {
       insets = next;
@@ -1526,6 +1569,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
       resize.disconnect();
       camera?.kill();
       viewListeners.length = 0;
+      cueListeners.length = 0;
       pins.clear();
       gsap.globalTimeline.resume();
       io.disconnect();

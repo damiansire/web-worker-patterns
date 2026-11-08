@@ -3,6 +3,7 @@ import { afterNextPaint, busyBlock } from '../../../core/domain/thread-demo';
 import { countPrimesUpTo } from '../../../core/domain/workers/primes.worker.logic';
 import { ExampleLayoutController } from '../../../core/presentation/example-layout.controller';
 import { Scene, Who } from './scene/scene';
+import { Mood } from './story.music.logic';
 import { SceneId } from './story.levels';
 
 /**
@@ -47,6 +48,8 @@ export interface LevelContext {
   narrate(text: string, who?: Who): void;
   /** Un worker propio del nivel: se termina si se sale a mitad de camino. */
   own<T extends { terminate(): void }>(worker: T): T;
+  /** Cambia la música según lo que pasa (no hace nada en niveles sin sonido). */
+  music(mood: Mood): void;
 }
 
 export interface PathResult {
@@ -62,6 +65,8 @@ export interface LevelScript {
   paths: LevelPath[];
   /** Lo que queda al superar el nivel. */
   lesson: string;
+  /** Si el nivel tiene música y efectos de sonido. */
+  sound?: boolean;
   /** Prepara la escena (tablero, objetos). Devuelve cómo desarmarla. */
   setup?(ctx: LevelContext): (() => void) | void;
   run(pathId: string, ctx: LevelContext): Promise<PathResult>;
@@ -101,8 +106,11 @@ const prologue: LevelScript = {
   ],
   lesson:
     'Todo lo que hace la página pasa por main. Si le das un trabajo largo, se congela entera. Un worker es otro hilo: hace el trabajo pesado y main sigue atendiendo.',
-  async run(pathId, { scene, narrate, own }) {
+  sound: true,
+  async run(pathId, { scene, narrate, own, music }) {
     if (pathId === 'main') {
+      // La música la lleva main: cuando se congela, se corta con él.
+      music('main');
       narrate('Ya tengo las manos ocupadas… ¡y me cae el cálculo encima!');
       await scene.dropOnMain();
       await nextPaint();
@@ -120,6 +128,8 @@ const prologue: LevelScript = {
     const factory = EXAMPLES.find((e) => e.id === PRIMES_EXAMPLE)?.workerFactory;
     if (!factory) return { caption: main('No hay worker para este cálculo.'), completed: false };
     narrate('¡Dejámelo a mí! Me lo llevo a mi propio hilo.', 'worker');
+    // Otro hilo, otra voz: el worker toca a la par y main no pierde el ritmo.
+    music('worker');
     await scene.handToWorker();
     narrate('El worker calcula en otro hilo y yo sigo con mis malabares. Tocame mientras tanto.');
     const t0 = performance.now();

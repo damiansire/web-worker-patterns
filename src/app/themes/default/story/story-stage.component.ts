@@ -14,13 +14,17 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ExampleLayoutController } from '../../../core/presentation/example-layout.controller';
+import { readStored, writeStored } from '../../../core/utils/safe-storage';
 import { ThemeService } from '../../../theming/theme.service';
 import { DefaultCodeBlock } from '../primitives/default-code-block.component';
 import { createScene, Scene, Who } from './scene/scene';
 import { CHOICE_AT, MAIN_AT, WORKER_AT } from './scene/scene.art';
 import { StoryProgress } from './story-progress.service';
+import { createLevelAudio, LevelAudio } from './story.audio';
 import { CHAPTERS, Level, LEVELS, levelState, nextLevel, PROLOGUE_ID } from './story.levels';
 import { LevelContext, Line, PRIMES_EXAMPLE, SCRIPTS } from './story.scripts';
+
+const SOUND_KEY = 'wwp-story-sound';
 
 /** Dónde caen, en píxeles de la pantalla, las cosas de la escena que la pantalla señala. */
 interface Anchors {
@@ -78,6 +82,30 @@ interface Anchors {
             <h1 class="lv-title" [attr.data-ink]="level().title">{{ level().title }}</h1>
           </div>
           <div class="lv-top-end">
+            @if (script().sound) {
+              <button
+                type="button"
+                class="lv-sound"
+                [attr.aria-pressed]="soundOn()"
+                [attr.aria-label]="
+                  soundOn() ? 'Silenciar música y sonidos' : 'Activar música y sonidos'
+                "
+                [title]="soundOn() ? 'Silenciar' : 'Activar sonido'"
+                (click)="toggleSound()"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path class="lv-sound-cone" d="M4 9h4l5-4v14l-5-4H4z" />
+                  @if (soundOn()) {
+                    <path
+                      class="lv-sound-wave"
+                      d="M16 9.5a3.5 3.5 0 0 1 0 5M18.5 7a7 7 0 0 1 0 10"
+                    />
+                  } @else {
+                    <path class="lv-sound-wave" d="M16.5 9.5l5 5M21.5 9.5l-5 5" />
+                  }
+                </svg>
+              </button>
+            }
             @if (won()) {
               <button type="button" class="lv-chip" (click)="setWon(false)">
                 ↺ Jugar otra vez
@@ -206,6 +234,8 @@ export class StoryStageComponent {
   protected readonly caption = signal<Line>({ who: 'main', text: '' });
   protected readonly busy = signal(false);
   protected readonly won = signal(false);
+  /** Música y efectos: preferencia de la persona, recordada entre visitas. */
+  protected readonly soundOn = signal(readStored(SOUND_KEY) !== 'off');
   /** La línea del diálogo, en un arreglo para rearmar el párrafo (y su entrada) en cada cambio. */
   protected readonly shownLine = computed(() => [
     this.won() ? this.script().lesson : this.caption().text,
@@ -259,6 +289,7 @@ export class StoryStageComponent {
 
   private scene?: Scene;
   private ctx?: LevelContext;
+  private audio: LevelAudio | null = null;
   private dead = false;
   private readonly owned = new Set<{ terminate(): void }>();
 
@@ -288,7 +319,12 @@ export class StoryStageComponent {
           this.owned.add(worker);
           return worker;
         },
+        music: (mood) => this.audio?.mood(mood),
       };
+      if (this.script().sound) {
+        this.audio = createLevelAudio(!this.soundOn());
+        scene.onCue((cue) => this.audio?.cue(cue));
+      }
       this.ctx = ctx;
       const teardown = this.script().setup?.(ctx);
       destroyRef.onDestroy(() => teardown?.());
@@ -297,6 +333,7 @@ export class StoryStageComponent {
       this.dead = true;
       for (const w of this.owned) w.terminate();
       this.scene?.destroy();
+      this.audio?.destroy();
     });
   }
 
@@ -354,8 +391,17 @@ export class StoryStageComponent {
     }
   }
 
+  protected toggleSound(): void {
+    const on = !this.soundOn();
+    this.soundOn.set(on);
+    writeStored(SOUND_KEY, on ? 'on' : 'off');
+    this.audio?.setMuted(!on);
+  }
+
   protected setWon(won: boolean): void {
     this.won.set(won);
+    if (won) this.audio?.cue({ kind: 'win' });
+    this.audio?.mood(won ? 'won' : 'main');
     afterNextRender(
       () => {
         if (this.dead) return;
@@ -373,8 +419,10 @@ export class StoryStageComponent {
     const path = this.script().paths.find((p) => p.id === pathId);
     const wasDone = this.progress.isDone(id);
     this.busy.set(true);
+    this.audio?.cue({ kind: 'choose' });
     if (this.won()) this.setWon(false);
     const result = await this.script().run(pathId, ctx);
+    this.audio?.mood('main');
     for (const w of this.owned) w.terminate();
     this.owned.clear();
     if (this.dead) return;
