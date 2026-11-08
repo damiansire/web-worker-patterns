@@ -162,9 +162,8 @@ mostrar(total);`,
       id: 'create',
       file: 'main.ts',
       note: 'new Worker arranca otro hilo, con su propio archivo. Desde acá, main y el worker corren a la vez.',
-      code: `const worker = new Worker(new URL('./primos.worker.ts', import.meta.url), {
-  type: 'module',
-});`,
+      code: `const url = new URL('./primos.worker.ts', import.meta.url);
+const worker = new Worker(url, { type: 'module' });`,
     },
     {
       id: 'receive',
@@ -186,7 +185,7 @@ mostrar(total);`,
       file: 'primos.worker.ts',
       note: 'Del otro lado, el worker escucha el mensaje, hace la cuenta en su hilo y contesta con otro postMessage.',
       code: `addEventListener('message', ({ data }) => {
-  const count = contarPrimos(data.limit); // pesado, pero lejos de main
+  const count = contarPrimos(data.limit); // pesado, en su hilo
   postMessage({ type: 'result', count });
 });`,
     },

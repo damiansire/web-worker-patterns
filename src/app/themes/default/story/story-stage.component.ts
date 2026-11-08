@@ -94,10 +94,9 @@ interface Anchors {
             <span class="lv-back-arrow" aria-hidden="true"></span>
             Mapa
           </a>
-          <div class="lv-heading">
-            <p class="lv-where" [attr.data-ink]="where()">{{ where() }}</p>
-            <h1 class="lv-title" [attr.data-ink]="level().title">{{ level().title }}</h1>
-          </div>
+          <!-- El nombre del nivel ya está en el mapa y en el cartel: en pantalla
+               solo ocupaba lugar. Queda para lectores de pantalla. -->
+          <h1 class="lv-sr">{{ where() }}: {{ level().title }}</h1>
           <div class="lv-top-end">
             @if (script().sound) {
               <button
@@ -127,8 +126,6 @@ interface Anchors {
               <button type="button" class="lv-chip" (click)="setWon(false)">
                 ↺ Jugar otra vez
               </button>
-            } @else if (done()) {
-              <a class="lv-chip lv-chip--gold" [routerLink]="nextLink()">{{ nextLabel() }} →</a>
             }
             @if (dots().length > 1) {
               <ol class="lv-stops" aria-label="Paradas de este capítulo">
@@ -334,7 +331,6 @@ export class StoryStageComponent {
   /** Hacia dónde apunta la colita del diálogo: quien habla. */
   protected readonly tailX = computed(() => this.anchors()?.speaker[this.caption().who] ?? 0);
 
-  protected readonly done = computed(() => this.progress.isDone(this.level().id));
   protected readonly where = computed(() => {
     const lv = this.level();
     const ch = CHAPTERS.find((c) => c.key === lv.chapter)!;
@@ -354,11 +350,6 @@ export class StoryStageComponent {
   protected readonly nextLink = computed(() => {
     const nx = this.next();
     return nx ? ['/t', this.themeId(), 'example', nx.id] : ['/t', this.themeId()];
-  });
-  protected readonly nextLabel = computed(() => {
-    const nx = this.next();
-    if (!nx) return 'Volver al mapa';
-    return `Siguiente: ${nx.title}${nx.scene ? '' : ' (en obra)'}`;
   });
 
   private scene?: Scene;
@@ -487,7 +478,7 @@ export class StoryStageComponent {
     if (sheet && sheet.offsetLeft > w * 0.35) right = w - sheet.offsetLeft + 16;
     else if (sheet) floor = Math.min(floor, sheet.offsetTop);
     this.sceneRight = right;
-    this.scene?.frame({ top: top + 8, bottom: Math.min(h - floor + 24, h * 0.6), right }, pan);
+    this.scene?.frame({ top: top + 8, bottom: Math.min(h - floor + 4, h * 0.6), right }, pan);
   }
 
   private updateThreads(

@@ -117,49 +117,9 @@
   transform: translate(-50%, -50%);
 }
 
-/* Título como el del mapa: blanco con contorno. El contorno va en una copia
-   detrás (`data-ink`): `-webkit-text-stroke` pinta centrado sobre el borde y
-   Chrome no respeta `paint-order` en HTML, así que en la misma letra se come
-   la mitad del blanco. */
-.lv-heading {
-  flex: 1;
-  min-width: 0;
-  isolation: isolate;
-  color: var(--lv-white);
-  font-family: var(--font-display);
-  pointer-events: none;
-}
-.lv-heading > * {
-  position: relative;
-}
-.lv-heading > [data-ink]::before {
-  content: attr(data-ink) / '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  color: var(--lv-shade);
-  -webkit-text-stroke: var(--lv-ink) var(--lv-shade);
-  text-shadow: 0 0.1em 0 var(--lv-shade);
-}
-.lv-where {
-  --lv-ink: 0.26em;
-  margin: 0 0 6px;
-  font-size: clamp(11px, 0.9vw, 14px);
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-.lv-title {
-  --lv-ink: 0.14em;
-  margin: 0;
-  font-size: clamp(26px, 2.6vw, 48px);
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  line-height: 1;
-  text-transform: none;
-}
 .lv-top-end {
   flex: none;
+  margin-left: auto;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -181,12 +141,6 @@
     inset 0 0 0 3px var(--lv-shade),
     0 6px 16px color-mix(in oklab, var(--lv-shade) 18%, transparent);
   transition: scale 0.25s cubic-bezier(0.34, 1.8, 0.64, 1);
-}
-.lv .lv-chip--gold {
-  background: var(--lv-gold);
-  box-shadow:
-    inset 0 -4px 0 var(--lv-gold-dark),
-    0 6px 16px color-mix(in oklab, var(--lv-shade) 18%, transparent);
 }
 .lv .lv-chip:hover {
   transform: none;
@@ -562,6 +516,11 @@ a.lv-stop:focus-visible {
 .lv.has-sheet .lv-talk {
   width: min(980px, calc(100cqw - var(--lv-sheet-w) - 72px));
 }
+/* Con la hoja abierta la escena tiene menos lugar: el diálogo baja un punto
+   para no comerse a los personajes. */
+.lv.has-sheet .lv-line {
+  font-size: clamp(16px, 0.35vw + 11px, 20px);
+}
 /* La colita sale del borde de arriba hacia quien habla (sin salirse del cuadro). */
 .lv-talk::before {
   content: '';
@@ -648,7 +607,7 @@ a.lv-stop:focus-visible {
   overflow: auto;
   overscroll-behavior: contain;
   box-sizing: border-box;
-  padding: 20px 22px 22px;
+  padding: 20px 18px;
   border-radius: 24px;
   background: var(--lv-white);
   box-shadow:
@@ -689,7 +648,7 @@ a.lv-stop:focus-visible {
 .lv-step {
   display: grid;
   gap: 8px;
-  padding: 10px 10px 12px;
+  padding: 10px 8px 12px;
   border-radius: 16px;
   transition:
     background 0.6s,
@@ -717,6 +676,17 @@ a.lv-stop:focus-visible {
   font-size: clamp(14px, 0.3vw + 10px, 16px);
   line-height: 1.4;
   text-wrap: pretty;
+}
+/* En la hoja el código se ajusta al ancho: una barra de scroll horizontal
+   dentro de cada paso se veía rota. La sangría de la línea partida se pierde,
+   pero los snippets están cortados para que casi nunca haga falta. */
+.lv-sheet .e-code pre {
+  padding: 12px 14px;
+}
+.lv-sheet .e-code code {
+  font-size: 12.5px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 .lv-step-n {
   flex: none;
@@ -846,15 +816,6 @@ a.lv-stop:focus-visible {
   }
 }
 @media (max-width: 640px) {
-  /* El título va en su propia fila; arriba quedan volver y el paso siguiente. */
-  .lv-top {
-    flex-wrap: wrap;
-    gap: 10px 12px;
-  }
-  .lv-heading {
-    order: 3;
-    flex-basis: 100%;
-  }
   .lv-top-end {
     flex: 1;
     min-width: 0;
