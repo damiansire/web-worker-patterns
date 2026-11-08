@@ -1,7 +1,7 @@
 /**
  * El ícono de cada nivel del mapa: un dibujo chico (caja de ±20 alrededor de
  * 0,0) que dice de qué trata el caso, no en qué estado está. El estado (en
- * obra, bloqueado, superado) va aparte, en una insignia sobre el disco.
+ * obra, bloqueado, superado) lo dibuja la baldosa donde se pinta el ícono.
  *
  * Cada parte es un trazo (`line`, se dibuja con contorno) o una mancha
  * (`fill`), con un giro opcional alrededor del centro.

@@ -10,7 +10,6 @@ import {
   viewChild,
   ViewEncapsulation,
 } from '@angular/core';
-import { NgTemplateOutlet } from '@angular/common';
 import { Router } from '@angular/router';
 import gsap from 'gsap';
 import { ThemeService } from '../../../theming/theme.service';
@@ -60,12 +59,14 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
 
 /**
  * El mapa de la historia: la portada. Un mundo a pantalla completa (cielo,
- * cerros, un prado con un rincón por capítulo) cruzado por un camino con un
- * nivel en cada parada. Main vive ahí: respira, parpadea, mira lo que tocás y
- * camina por el camino hasta el nivel que elegís; recién al llegar se entra.
- * Cada nivel lleva el ícono de su caso (`story.icons.ts`) y, en insignias, su
- * número y su estado. Los niveles bloqueados tiemblan; los que no tienen escena
- * están "en obra" y se abren en su versión clásica.
+ * cerros, un prado con un hito por capítulo) cruzado por un camino con una
+ * baldosa en cada parada. Main vive ahí, parado en el centro de la suya:
+ * respira, parpadea, mira lo que tocás y camina hasta el nivel que elegís;
+ * recién al llegar se entra. El botón de jugar va bajo sus pies y lo sigue.
+ * Cada baldosa lleva el ícono de su caso (`story.icons.ts`) y su estado se ve
+ * en el dibujo, sin insignias: pintada (se juega), de piedra (bloqueada, tiembla
+ * al tocarla), a medio dibujar (en obra: abre la versión clásica) o con
+ * banderita (superada).
  *
  * Capas de animación: la vida (nubes, molino, humo, faro) es CSS y se apaga con
  * movimiento reducido; los toques son resortes (`gsap.ticker`) sobre el grupo
@@ -77,9 +78,8 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   selector: 'default-story-map',
-  imports: [NgTemplateOutlet],
   template: `
-    <section class="sm" [attr.data-shape]="shape()">
+    <section #stage class="sm" [attr.data-shape]="shape()">
       <svg
         #world
         class="sm-world"
@@ -126,18 +126,6 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
             <stop offset="0" class="sm-s-sun" stop-opacity="0.7" />
             <stop offset="1" class="sm-s-sun" stop-opacity="0" />
           </linearGradient>
-          @for (ch of chapters; track ch.key) {
-            <radialGradient [attr.id]="'sm-g-pool-' + ch.key">
-              <stop offset="0" class="sm-s-pool" [attr.data-chapter]="ch.key" stop-opacity="0.3" />
-              <stop
-                offset="0.6"
-                class="sm-s-pool"
-                [attr.data-chapter]="ch.key"
-                stop-opacity="0.16"
-              />
-              <stop offset="1" class="sm-s-pool" [attr.data-chapter]="ch.key" stop-opacity="0" />
-            </radialGradient>
-          }
         </defs>
 
         <!-- Cielo, sol y nubes -->
@@ -176,14 +164,6 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
         <path class="sm-far2" [attr.d]="far()[1]" />
         <path [attr.d]="far()[2]" fill="url(#sm-g-ground)" />
         <path class="sm-mid" [attr.d]="far()[3]" />
-        @for (p of pools(); track $index) {
-          <circle
-            [attr.cx]="p.x"
-            [attr.cy]="p.y"
-            [attr.r]="190 * spec().s"
-            [attr.fill]="'url(#sm-g-pool-' + p.chapter + ')'"
-          />
-        }
 
         <!-- Matas, flores y árboles, por profundidad -->
         <g aria-hidden="true">
@@ -364,10 +344,11 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
         <path class="sm-road-done" [attr.d]="roadDone()" [style.stroke-width]="9 * spec().s" />
         <path #probe class="sm-probe" d="" />
 
-        <!-- Los niveles -->
+        <!-- Los niveles: una baldosa en el piso por parada, con el ícono pintado arriba -->
         @for (s of spots(); track s.level.id; let i = $index) {
           <g
             class="sm-node"
+            [class.is-here]="i === here() && !walking()"
             [attr.data-state]="s.state"
             [attr.data-chapter]="s.level.chapter"
             [attr.transform]="'translate(' + s.x + ' ' + s.y + ') scale(' + spec().s + ')'"
@@ -379,14 +360,19 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
             (keydown.space)="$event.preventDefault(); go(i)"
           >
             @if (i === here()) {
-              <circle class="sm-here" r="52" />
+              <ellipse class="sm-here" rx="62" ry="38" />
             }
-            <ellipse class="sm-node-shadow" cy="14" rx="48" ry="16" />
             <g class="sm-pop">
-              <circle class="sm-disc-side" cy="7" r="44" />
-              <circle class="sm-disc" r="44" />
-              <path class="sm-disc-hi" d="M-31 -14A34 34 0 0 1 14 -32" />
-              <g class="sm-ico" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+              <ellipse class="sm-pad-side" cy="9" rx="52" ry="32" />
+              <ellipse class="sm-pad" rx="52" ry="32" />
+              <ellipse class="sm-pad-hi" cx="-6" cy="-6" rx="34" ry="17" />
+              <g
+                class="sm-ico"
+                transform="scale(1.1 0.66)"
+                stroke-width="4.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 @for (p of s.icon; track $index) {
                   <path
                     [attr.d]="p.d"
@@ -396,19 +382,16 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
                   />
                 }
               </g>
-              <g class="sm-badge-num" transform="translate(-33 -31)">
-                <circle r="14" stroke-width="3" />
-                <text y="6" text-anchor="middle">{{ s.level.n }}</text>
-              </g>
-              @if (s.state !== 'open') {
-                <g class="sm-badge" [attr.data-badge]="s.state" transform="translate(33 -31)">
-                  <ng-container *ngTemplateOutlet="badge; context: { $implicit: s.state }" />
+              @if (s.state === 'done') {
+                <g class="sm-flag" transform="translate(36 -8)">
+                  <path class="sm-flag-pole" d="M0 0V-50" />
+                  <path class="sm-flag-cloth" d="M1.5 -50L28 -42L1.5 -33Z" />
                 </g>
               }
             </g>
-            <text class="sm-name" y="76" text-anchor="middle">
+            <text class="sm-name" y="64" text-anchor="middle">
               @for (line of s.name; track $index) {
-                <tspan x="0" [attr.dy]="$index ? 25 : 0">{{ line }}</tspan>
+                <tspan x="0" [attr.dy]="$index ? 23 : 0">{{ line }}</tspan>
               }
             </text>
           </g>
@@ -494,73 +477,27 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
         <p class="sm-tag" data-ink="Ayudá a main a no congelarse.">Ayudá a main a no congelarse.</p>
       </header>
 
-      <div class="sm-side">
-        <div class="sm-hud" [attr.data-chapter]="next().level.chapter">
-          <svg class="sm-next-disc" viewBox="-50 -50 100 100" aria-hidden="true">
-            <circle class="sm-disc" r="44" />
-            <g class="sm-ico" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
-              @for (p of next().icon; track $index) {
-                <path
-                  [attr.d]="p.d"
-                  [attr.fill]="p.kind === 'fill' ? 'currentColor' : 'none'"
-                  [attr.stroke]="p.kind === 'line' ? 'currentColor' : null"
-                  [attr.transform]="p.rot ? 'rotate(' + p.rot + ')' : null"
-                />
-              }
-            </g>
-          </svg>
-          <div class="sm-next">
-            @if (!status()) {
-              <p class="sm-next-kick">{{ nextKicker() }}</p>
-              <p class="sm-next-title">{{ next().level.title }}</p>
-            }
-            <p class="sm-status" aria-live="polite">{{ status() }}</p>
-          </div>
-          <button type="button" class="sm-play" (click)="go(here())">{{ playLabel() }}</button>
-        </div>
-        <ul class="sm-legend" aria-label="Qué quiere decir cada marca">
-          @for (k of legend; track k.state) {
-            <li>
-              <svg
-                class="sm-badge"
-                [attr.data-badge]="k.state"
-                viewBox="-18 -18 36 36"
-                aria-hidden="true"
-              >
-                <ng-container *ngTemplateOutlet="badge; context: { $implicit: k.state }" />
-              </svg>
-              {{ k.text }}
-            </li>
-          }
-        </ul>
-      </div>
+      <!-- Jugar: al lado de main, lo sigue de parada en parada -->
+      <button
+        #play
+        type="button"
+        class="sm-play"
+        [class.is-away]="walking()"
+        [style.left.px]="playAt().x"
+        [style.top.px]="playAt().y"
+        [attr.aria-label]="playLabel() + ': ' + next().title"
+        (click)="go(here())"
+      >
+        <span class="sm-play-bob">
+          <span class="sm-play-tri" aria-hidden="true"></span>
+          <span class="sm-play-text">
+            <strong>{{ playLabel() }}</strong>
+            <small>{{ next().title }}</small>
+          </span>
+        </span>
+      </button>
+      <p class="sm-sr" aria-live="polite">{{ status() }}</p>
     </section>
-
-    <!-- La insignia de estado de un nivel: la misma en el mapa y en la leyenda. -->
-    <ng-template #badge let-state>
-      @switch (state) {
-        @case ('locked') {
-          <svg:circle class="sm-badge-bg" r="16" />
-          <svg:path class="sm-lock-arc" d="M-5 -2V-6A5 5 0 0 1 5 -6V-2" />
-          <svg:rect class="sm-lock-body" x="-8" y="-2.5" width="16" height="11.5" rx="2.5" />
-          <svg:circle class="sm-badge-bg" cy="2.6" r="1.8" />
-        }
-        @case ('wip') {
-          <svg:circle class="sm-badge-bg" r="16" />
-          <svg:path class="sm-wip-leg" d="M-7 2V10M7 2V10" />
-          <svg:rect class="sm-wip-board" x="-11" y="-8" width="22" height="10" rx="2" />
-          <svg:path
-            class="sm-wip-stripe"
-            d="M-8.5 2L-4.5 -8H-0.5L-4.5 2ZM1.5 2L5.5 -8H9.5L5.5 2Z"
-          />
-          <svg:rect class="sm-wip-edge" x="-11" y="-8" width="22" height="10" rx="2" />
-        }
-        @case ('done') {
-          <svg:circle class="sm-badge-bg" r="16" />
-          <svg:path class="sm-star" [attr.d]="star" />
-        }
-      }
-    </ng-template>
   `,
   styleUrl: './story-map.component.scss',
 })
@@ -568,6 +505,8 @@ export class StoryMapComponent {
   private readonly router = inject(Router);
   private readonly progress = inject(StoryProgress);
   private readonly themeId = inject(ThemeService).activeId;
+  private readonly stageRef = viewChild.required<ElementRef<HTMLElement>>('stage');
+  private readonly playRef = viewChild.required<ElementRef<HTMLButtonElement>>('play');
   private readonly worldRef = viewChild.required<ElementRef<SVGSVGElement>>('world');
   private readonly heroRef = viewChild.required<ElementRef<SVGGElement>>('hero');
   private readonly hopRef = viewChild.required<ElementRef<SVGGElement>>('hop');
@@ -578,7 +517,6 @@ export class StoryMapComponent {
   private readonly probeRef = viewChild.required<ElementRef<SVGPathElement>>('probe');
   private readonly fxRef = viewChild.required<ElementRef<SVGGElement>>('fx');
 
-  protected readonly chapters = CHAPTERS;
   protected readonly mainBody = MAIN_BODY;
   protected readonly star =
     'M0 -11L3.2 -3.4L11 -3.4L4.6 1.5L6.9 9.8L0 4.9L-6.9 9.8L-4.6 1.5L-11 -3.4L-3.2 -3.4Z';
@@ -591,7 +529,7 @@ export class StoryMapComponent {
   protected readonly spec = computed(() => MAP_SPECS[this.shape()]);
   private readonly points = computed(() => mapSpots(this.spec()));
   protected readonly heroScale = computed(
-    () => this.spec().s * (this.shape() === 'tall' ? 0.36 : 0.42),
+    () => this.spec().s * (this.shape() === 'tall' ? 0.4 : 0.48),
   );
   protected readonly art = computed(() => (this.shape() === 'tall' ? 1.3 : 1.12));
 
@@ -618,9 +556,6 @@ export class StoryMapComponent {
   protected readonly roadDone = computed(() => roadPath(this.points(), this.spec(), this.here()));
   protected readonly chapterRoads = computed(() => chapterRoads(this.points(), this.spec()));
   protected readonly marks = computed(() => landmarks(this.points(), this.spec()));
-  protected readonly pools = computed(() =>
-    this.points().map((p, i) => ({ x: p.x, y: p.y, chapter: LEVELS[i].chapter })),
-  );
 
   protected readonly trees = computed(() => {
     const { s } = this.spec();
@@ -680,21 +615,14 @@ export class StoryMapComponent {
   protected readonly heroSays = signal('');
   protected readonly sayDx = signal(0);
   protected readonly status = signal('');
-  /** El nivel que toca jugar, para el cartel de arriba. */
-  protected readonly next = computed(() => this.spots()[this.here()]);
-  protected readonly nextKicker = computed(() => {
-    const { level } = this.next();
-    const ch = this.chapterOf(level.chapter);
-    return ch.n ? `Te toca · Nivel ${level.n} · Cap. ${ch.n} ${ch.title}` : `Te toca · ${ch.title}`;
-  });
-  protected readonly legend: readonly { state: LevelState; text: string }[] = [
-    { state: 'locked', text: 'Bloqueado: superá el anterior' },
-    { state: 'wip', text: 'En obra: abre la versión clásica' },
-    { state: 'done', text: 'Superado' },
-  ];
+  /** El nivel que toca jugar: el que nombra el botón de al lado de main. */
+  protected readonly next = computed(() => LEVELS[this.here()]);
   protected readonly playLabel = computed(() =>
-    this.progress.isDone(LEVELS[this.here()].id) ? 'Repetir ▶' : 'Jugar ▶',
+    this.progress.isDone(this.next().id) ? 'Repetir' : '¡Jugar!',
   );
+  /** Dónde va el botón, en píxeles de la escena: bajo los pies de main, en lugar del nombre. */
+  protected readonly playAt = signal({ x: 0, y: 0 });
+  protected readonly walking = signal(false);
 
   private calm = false;
   private moving = false;
@@ -724,6 +652,9 @@ export class StoryMapComponent {
       };
       mq.addEventListener('change', onMq);
       onMq();
+      // El botón vive en HTML: se recoloca cuando cambia el tamaño de la escena.
+      const ro = new ResizeObserver(() => this.placePlay());
+      ro.observe(this.stageRef().nativeElement);
 
       this.gctx = gsap.context(() => {
         gsap.set(this.bodyRef().nativeElement, { svgOrigin: '0 0' });
@@ -752,6 +683,7 @@ export class StoryMapComponent {
 
       destroyRef.onDestroy(() => {
         mq.removeEventListener('change', onMq);
+        ro.disconnect();
         gsap.ticker.remove(this.tick);
         for (const t of [
           this.walk?.tween,
@@ -796,9 +728,11 @@ export class StoryMapComponent {
         : `Vamos a «${spot.level.title}».`,
     );
     this.moving = true;
+    this.walking.set(true);
     void this.walkTo(i).then(() => {
       const enter = () => {
         this.moving = false;
+        this.walking.set(false);
         void this.router.navigate(['/t', this.themeId(), 'example', spot.level.id]);
       };
       if (this.calm) enter();
@@ -806,7 +740,7 @@ export class StoryMapComponent {
     });
   }
 
-  /** Un aviso pasajero bajo el cartel (y para el lector de pantalla). */
+  /** Un aviso pasajero para el lector de pantalla; en pantalla lo dice main. */
   private tell(text: string): void {
     this.status.set(text);
     this.statusCall?.kill();
@@ -826,7 +760,6 @@ export class StoryMapComponent {
     const st = { at: cum[from] };
     const dist = Math.abs(cum[target] - cum[from]);
     const s = this.spec().s;
-    const lift = 26 * s;
     const hop = this.hopRef().nativeElement;
     return new Promise((resolve) => {
       this.anim(() => {
@@ -844,7 +777,7 @@ export class StoryMapComponent {
           ease: 'power1.inOut',
           onUpdate: () => {
             const p = road.getPointAtLength(st.at);
-            this.moveHero(p.x, p.y - lift);
+            this.moveHero(p.x, p.y);
             const dx = p.x - lastX;
             lastX = p.x;
             if (Math.abs(dx) > 0.5) this.rot.t = Math.sign(dx) * 7;
@@ -926,7 +859,19 @@ export class StoryMapComponent {
     const p = this.points()[i];
     if (!p) return;
     this.heroAt = i;
-    this.moveHero(p.x, p.y - 26 * this.spec().s);
+    this.moveHero(p.x, p.y);
+    this.placePlay();
+  }
+
+  /** Lleva el botón bajo main, sin que se salga de la escena por los costados. */
+  private placePlay(): void {
+    const m = this.worldRef().nativeElement.getScreenCTM();
+    if (!m) return;
+    const box = this.stageRef().nativeElement.getBoundingClientRect();
+    const half = this.playRef().nativeElement.offsetWidth / 2;
+    const p = new DOMPoint(this.hp.x, this.hp.y + 44 * this.spec().s).matrixTransform(m);
+    const x = clamp(p.x - box.left, half + 8, box.width - half - 8);
+    this.playAt.set({ x, y: p.y - box.top });
   }
 
   private moveHero(x: number, y: number): void {
