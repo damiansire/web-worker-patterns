@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- main, el hilo principal de la portada: cuerpo, corona, ojos y sonrisa. Legible a 16 px. -->
+  <defs>
+    <radialGradient id="b" cx="0.36" cy="0.3" r="0.85">
+      <stop offset="0" stop-color="#f3c3a6"/>
+      <stop offset="0.55" stop-color="#d09472"/>
+      <stop offset="1" stop-color="#9a5f4a"/>
+    </radialGradient>
+  </defs>
+  <path d="M8 60C3 46 4 26 18 20C25 17 39 17 46 20C60 26 61 46 56 60Z" fill="url(#b)"/>
+  <path d="M15 21L12 4L23 13L32 2L41 13L52 4L49 21Z" fill="#f2b632" stroke="#2b1b33" stroke-width="2.5" stroke-linejoin="round"/>
+  <circle cx="32" cy="15" r="3" fill="#e5484d"/>
+  <ellipse cx="22" cy="38" rx="6" ry="7" fill="#fff"/>
+  <ellipse cx="42" cy="37" rx="7.5" ry="8.5" fill="#fff"/>
+  <circle cx="24" cy="39" r="3.6" fill="#2b1b33"/>
+  <circle cx="44" cy="38" r="4.4" fill="#2b1b33"/>
+  <path d="M27 50Q33 56 39 50" fill="none" stroke="#2b1b33" stroke-width="3" stroke-linecap="round"/>
+</svg>
