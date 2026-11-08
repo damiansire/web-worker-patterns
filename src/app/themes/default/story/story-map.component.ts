@@ -14,6 +14,7 @@ import { Router } from '@angular/router';
 import gsap from 'gsap';
 import { ThemeService } from '../../../theming/theme.service';
 import { MAIN_BODY } from './scene/scene.art';
+import { IconPart, levelIcon } from './story.icons';
 import { StoryProgress } from './story-progress.service';
 import { CHAPTERS, currentLevel, Level, LEVELS, levelState, LevelState } from './story.levels';
 import {
@@ -38,6 +39,7 @@ interface Spot {
   y: number;
   state: LevelState;
   name: string[];
+  icon: readonly IconPart[];
 }
 
 interface Spring {
@@ -59,8 +61,9 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
  * cerros, un prado con un rincón por capítulo) cruzado por un camino con un
  * nivel en cada parada. Main vive ahí: respira, parpadea, mira lo que tocás y
  * camina por el camino hasta el nivel que elegís; recién al llegar se entra.
- * Los niveles bloqueados tiemblan; los que no tienen escena están "en obra" y
- * se abren en su versión clásica.
+ * Cada nivel lleva el ícono de su caso (`story.icons.ts`) y, en insignias, su
+ * número y su estado. Los niveles bloqueados tiemblan; los que no tienen escena
+ * están "en obra" y se abren en su versión clásica.
  *
  * Capas de animación: la vida (nubes, molino, humo, faro) es CSS y se apaga con
  * movimiento reducido; los toques son resortes (`gsap.ticker`) sobre el grupo
@@ -372,21 +375,38 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
               <circle class="sm-disc-side" cy="7" r="44" />
               <circle class="sm-disc" r="44" />
               <path class="sm-disc-hi" d="M-31 -14A34 34 0 0 1 14 -32" />
+              <g class="sm-ico" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+                @for (p of s.icon; track $index) {
+                  <path
+                    [attr.d]="p.d"
+                    [attr.fill]="p.kind === 'fill' ? 'currentColor' : 'none'"
+                    [attr.stroke]="p.kind === 'line' ? 'currentColor' : null"
+                    [attr.transform]="p.rot ? 'rotate(' + p.rot + ')' : null"
+                  />
+                }
+              </g>
+              <g class="sm-badge-num" transform="translate(-33 -31)">
+                <circle r="14" stroke-width="3" />
+                <text y="6" text-anchor="middle">{{ s.level.n }}</text>
+              </g>
               @switch (s.state) {
+                @case ('done') {
+                  <path class="sm-star" [attr.d]="star" transform="translate(32 -32)" />
+                }
                 @case ('locked') {
-                  <path class="sm-lock" d="M-10 -2V-9A10 10 0 0 1 10 -9V-2M-14 -2H14V16H-14Z" />
+                  <g class="sm-badge" transform="translate(33 -31)">
+                    <circle r="15" stroke-width="2.5" />
+                    <path class="sm-lock" d="M-5 -1V-5A5 5 0 0 1 5 -5V-1M-7.5 -1H7.5V8H-7.5Z" />
+                  </g>
                 }
                 @case ('wip') {
-                  <path class="sm-cone" d="M-14 14L-4 -16H4L14 14Z" />
-                  <path class="sm-cone-band" d="M-9 0H9L10.5 5H-10.5Z" />
-                  <rect class="sm-cone-base" x="-18" y="13" width="36" height="5" rx="2" />
+                  <g class="sm-badge" transform="translate(33 -31)">
+                    <circle r="15" stroke-width="2.5" />
+                    <path fill="#f08a3c" d="M-7 6L-2 -9H2L7 6Z" />
+                    <path fill="#fff" d="M-4.6 -1H4.6L5.5 2H-5.5Z" />
+                    <rect class="sm-cone-base" x="-9" y="5.5" width="18" height="3" rx="1.5" />
+                  </g>
                 }
-                @default {
-                  <text class="sm-num" y="11" text-anchor="middle">{{ s.level.n }}</text>
-                }
-              }
-              @if (s.state === 'done') {
-                <path class="sm-star" [attr.d]="star" transform="translate(32 -32)" />
               }
             </g>
             <text class="sm-name" y="76" text-anchor="middle">
@@ -525,6 +545,7 @@ export class StoryMapComponent {
       y: at[i].y,
       state: levelState(level, isDone),
       name: wrapWords(level.title, this.spec().chars),
+      icon: levelIcon(level.id),
     }));
   });
 

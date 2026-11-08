@@ -462,28 +462,39 @@
 .sm-node[data-state='done'] .sm-disc {
   stroke: var(--sm-gold);
 }
-.sm-num {
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 32px;
+/* El ícono del caso: blanco con una sombra corrida del color del capítulo;
+   sobre el disco de piedra (en obra, bloqueado), en tinta y sin sombra. */
+.sm-node {
+  --ch-ink: color-mix(in oklab, var(--ch) 55%, var(--sm-shade));
+}
+.sm-ico {
+  color: #fff;
+  filter: drop-shadow(0 3px 0 var(--ch-ink));
+}
+.sm-node:is([data-state='locked'], [data-state='wip']) .sm-ico {
+  color: var(--ch-ink);
+  filter: none;
+  opacity: 0.6;
+}
+
+/* Insignias: el número arriba a la izquierda, el estado arriba a la derecha. */
+.sm-badge-num circle {
+  fill: var(--ch-ink);
+  stroke: var(--sm-white);
+}
+.sm-badge-num text {
+  font: 900 17px var(--font-display);
   fill: #fff;
-  paint-order: stroke;
-  stroke: color-mix(in oklab, var(--ch) 50%, var(--sm-shade));
-  stroke-width: 4;
-  pointer-events: none;
+}
+.sm-badge circle {
+  fill: var(--sm-white);
+  stroke: var(--sm-stone-shade);
 }
 .sm-lock {
   fill: none;
   stroke: var(--sm-shade);
-  stroke-width: 4;
-  stroke-linejoin: round;
-  opacity: 0.55;
-}
-.sm-cone {
-  fill: #f08a3c;
-}
-.sm-cone-band {
-  fill: #fff;
+  stroke-width: 2.6;
+  opacity: 0.7;
 }
 .sm-cone-base {
   fill: var(--sm-shade);
