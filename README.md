@@ -88,9 +88,9 @@ The 16 examples are organized into 5 categories by concept. The grouping below m
 
 ## The story in levels
 
-The home page is a **level map**: a winding path with one node per pattern, grouped by chapter, with `main` standing on the level you are up to. Each level is a full-screen scene (SVG + GSAP) where the work is real (a loop that truly freezes the page, a real worker) and the scene shows the consequence: `main` freezes with everything it was juggling, the worker walks in and takes the job, clicks queue up while `main` is busy. Clearing a level means walking its pattern path; that unlocks the next one, and progress is saved locally.
+The home page is a **level map**: a full-screen illustrated world (sky, hills, one corner and landmark per chapter) crossed by a winding road with one stop per pattern. `main` lives there: it breathes, blinks, looks at what you touch, and walks the road to the level you pick before going in. Each level is a full-screen scene (SVG + GSAP) where the work is real (a loop that truly freezes the page, a real worker) and the scene shows the consequence: `main` freezes with everything it was juggling, the worker walks in and takes the job, clicks queue up while `main` is busy. Clearing a level means walking its pattern path; that unlocks the next one, and progress is saved locally.
 
-Chapter 1 (_Understanding_: 01, 02, 16) plus a prologue already have their scenes. The other levels are still **under construction**: they are always open from the map and play in their classic layout (demo, text and code) until their scene arrives. The level list, unlock rules and map layout live in [`story.levels.ts`](src/app/themes/default/story/story.levels.ts) (pure, unit-tested); what each level runs, in [`story.scripts.ts`](src/app/themes/default/story/story.scripts.ts).
+Chapter 1 (_Understanding_: 01, 02, 16) plus a prologue already have their scenes. The other levels are still **under construction**: they are always open from the map and play in their classic layout (demo, text and code) until their scene arrives. The level list and unlock rules live in [`story.levels.ts`](src/app/themes/default/story/story.levels.ts) and the map layout in [`story.map.ts`](src/app/themes/default/story/story.map.ts) (both pure, unit-tested); what each level runs, in [`story.scripts.ts`](src/app/themes/default/story/story.scripts.ts).
 
 ## Visual Themes
 
@@ -141,7 +141,7 @@ Routes, navigation and the home page update automatically from the registry.
 - **SCSS**: Semantic design tokens (`--surface`, `--ink`, `--accent`, `--thread-*`) per theme
 - **@jsverse/transloco**: Runtime i18n (ES; engine ready for more languages)
 - **highlight.js**: Syntax highlighting for code blocks
-- **Vitest**: Unit tests (<!-- METRICS:TESTS -->249<!-- /METRICS:TESTS --> tests across the pure domain logic, the services and the themes)
+- **Vitest**: Unit tests (<!-- METRICS:TESTS -->261<!-- /METRICS:TESTS --> tests across the pure domain logic, the services and the themes)
 - **dependency-cruiser**: Enforces the `core/ ⇏ themes/` boundary
 - **Web Workers API**: Dedicated Workers, SharedWorker, Transferable Objects, SharedArrayBuffer + Atomics, OffscreenCanvas
 
