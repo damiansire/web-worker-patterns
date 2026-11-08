@@ -3,19 +3,21 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { ThemeService } from '../../../theming/theme.service';
+import { findLevel } from '../story/story.levels';
 
 /**
  * Shell: cabecera con el título + outlet. Hay un solo theme, así que no hay
  * selector; el selector de idioma sigue omitido mientras haya un solo idioma.
- * En el mapa (la portada) no hay cabecera: el título vive dentro del mundo.
+ * En el mapa (la portada) y en los niveles con escena no hay cabecera: el
+ * título vive dentro del mundo.
  */
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'default-shell',
   imports: [RouterOutlet, RouterLink],
   template: `
-    <div class="e-shell" [class.e-shell--bare]="onMap()">
-      @if (!onMap()) {
+    <div class="e-shell" [class.e-shell--bare]="bare()">
+      @if (!bare()) {
         <header class="e-masthead">
           <a class="e-logo" [routerLink]="['/t', activeId()]">Web Worker Patterns</a>
         </header>
@@ -74,4 +76,10 @@ export class DefaultShellComponent {
   );
   /** La portada del theme: `/t/<theme>`, sin ejemplo. */
   protected readonly onMap = computed(() => /^\/t\/[^/?#]+\/?([?#].*)?$/.test(this.url()));
+  /** Un nivel que se juega en su escena (los "en obra" siguen con cabecera). */
+  private readonly onScene = computed(() => {
+    const id = /^\/t\/[^/?#]+\/example\/([^/?#]+)/.exec(this.url())?.[1];
+    return !!(id && findLevel(id)?.scene);
+  });
+  protected readonly bare = computed(() => this.onMap() || this.onScene());
 }

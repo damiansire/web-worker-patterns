@@ -1,243 +1,399 @@
 /*
- * Pantalla de nivel. Sin encapsulación (comparte el CSS de la escena), así que
- * todo cuelga de `.lv`. Ocupa el alto de la ventana menos la cabecera del shell:
- * la escena se lleva lo que sobra y mantiene su proporción.
+ * Pantalla de nivel, a pantalla completa como el mapa: la sala llena la ventana
+ * y todo lo demás vive encima, dentro del mundo. Sin encapsulación (comparte el
+ * CSS de la escena), así que todo cuelga de `.lv`. Mismo vocabulario que el
+ * mapa: letra blanca con contorno tintado, botón dorado de "¡Jugar!", sombras
+ * tintadas y nunca negro puro.
  */
 .lv {
   --lv-shade: color-mix(in oklab, var(--worker) 24%, #120a1c);
+  --lv-white: #fffdf7;
   --lv-gold: #f2b632;
+  --lv-gold-dark: color-mix(in oklab, var(--lv-gold) 70%, var(--lv-shade));
+  --lv-main: color-mix(in oklab, var(--thread-main) 45%, #f08a5d);
 
   position: relative;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 12px;
-  height: calc(100dvh - var(--masthead-h, 56px));
-  min-height: 520px;
-  padding: 14px 24px 18px;
-  box-sizing: border-box;
+  height: calc(100dvh - var(--masthead-h, 0px));
+  min-height: 480px;
+  overflow: hidden;
+  isolation: isolate;
+  color: var(--lv-shade);
 }
 
-/* ── Barra de arriba ── */
-.lv-bar {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  flex-wrap: wrap;
+/* ── La sala: llena todo; la escena se encuadra sola (Scene.frame) ── */
+.lv .lv-scene.jh {
+  position: absolute;
+  inset: 0;
+  margin: 0;
 }
-.lv-back,
-.lv-next {
-  font-family: var(--font-display);
-  font-weight: 700;
-  text-decoration: none;
-  border-radius: var(--radius);
+.lv .lv-scene .jh-stage {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+  max-height: none;
+  aspect-ratio: auto;
+  border: 0;
+  border-radius: 0;
+}
+.lv .jh-vignette {
+  background: radial-gradient(
+    ellipse 75% 85% at 50% 45%,
+    transparent 55%,
+    color-mix(in oklab, var(--lv-shade) 26%, transparent) 100%
+  );
+}
+
+/* ── Arriba: volver, dónde estás y las paradas del capítulo ── */
+.lv-top {
+  position: absolute;
+  z-index: 2;
+  top: clamp(12px, 2.2vw, 28px);
+  left: clamp(12px, 2.4vw, 40px);
+  right: clamp(12px, 2.4vw, 40px);
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(12px, 1.6vw, 24px);
+  pointer-events: none;
+}
+.lv-top > * {
+  pointer-events: auto;
 }
 .lv-back {
-  padding: 8px 14px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 9px 16px 10px 10px;
+  border-radius: 999px;
+  background: var(--lv-shade);
+  color: var(--lv-white);
+  font-family: var(--font-display);
+  font-weight: 800;
   font-size: 15px;
-  color: var(--ink);
-  border: var(--border-width) solid var(--border);
-  background: var(--surface-raised);
+  text-decoration: none;
+  box-shadow: 0 6px 16px color-mix(in oklab, var(--lv-shade) 28%, transparent);
+  transition: scale 0.25s cubic-bezier(0.34, 1.8, 0.64, 1);
 }
 .lv-back:hover,
 .lv-back:focus-visible {
-  border-color: var(--ink);
+  scale: 1.06;
 }
+.lv-back:focus-visible {
+  outline: 3px solid var(--lv-gold);
+  outline-offset: 3px;
+}
+.lv-back-arrow {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--lv-gold);
+}
+.lv-back-arrow::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 45%;
+  border: 5px solid transparent;
+  border-right: 8px solid var(--lv-shade);
+  border-left: 0;
+  transform: translate(-50%, -50%);
+}
+
+/* Título como el del mapa: blanco con contorno. El contorno va en una copia
+   detrás (`data-ink`): `-webkit-text-stroke` pinta centrado sobre el borde y
+   Chrome no respeta `paint-order` en HTML, así que en la misma letra se come
+   la mitad del blanco. */
 .lv-heading {
   flex: 1;
   min-width: 0;
+  isolation: isolate;
+  color: var(--lv-white);
+  font-family: var(--font-display);
+  pointer-events: none;
+}
+.lv-heading > * {
+  position: relative;
+}
+:is(.lv-heading > [data-ink], .lv-ribbon)::before {
+  content: attr(data-ink) / '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  color: var(--lv-shade);
+  -webkit-text-stroke: var(--lv-ink) var(--lv-shade);
+  text-shadow: 0 0.1em 0 var(--lv-shade);
 }
 .lv-where {
-  margin: 0;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 0.08em;
+  --lv-ink: 0.26em;
+  margin: 0 0 6px;
+  font-size: clamp(11px, 0.9vw, 14px);
+  font-weight: 800;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--accent-ink);
 }
 .lv-title {
+  --lv-ink: 0.14em;
   margin: 0;
-  font-family: var(--font-display);
+  font-size: clamp(28px, 3.2vw, 56px);
   font-weight: 900;
-  font-size: clamp(22px, 3.4vw, 34px);
   letter-spacing: -0.02em;
-  line-height: 1.1;
-}
-.lv-dots {
-  display: flex;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.lv-dots li {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 2px solid var(--ink-muted);
-  box-sizing: border-box;
-}
-.lv-dots li[data-state='done'] {
-  background: var(--lv-gold);
-  border-color: var(--lv-shade);
-}
-.lv-dots li.is-here {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  line-height: 1;
+  text-transform: none;
 }
 
-/* ── Escena: llena el espacio y conserva la proporción ── */
-.lv-scene.jh {
-  margin: 0;
-  min-height: 0;
+/* Paradas: baldosas redondas como las del mapa. */
+.lv-stops {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 0;
+  padding: 8px 12px;
+  list-style: none;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--lv-white) 82%, transparent);
+  box-shadow: 0 6px 16px color-mix(in oklab, var(--lv-shade) 18%, transparent);
+}
+.lv-stop {
   display: grid;
   place-items: center;
-  container-type: size;
+  width: 34px;
+  height: 34px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 3px solid var(--lv-shade);
+  background: var(--lv-white);
+  color: var(--lv-shade);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 15px;
+  text-decoration: none;
+  box-shadow: inset 0 -3px 0 color-mix(in oklab, var(--lv-shade) 18%, transparent);
+  transition: scale 0.25s cubic-bezier(0.34, 1.8, 0.64, 1);
 }
-.lv-scene .jh-stage {
-  width: min(100cqw, 100cqh * 1200 / 560);
-  height: auto;
-  max-height: none;
-  aspect-ratio: 1200 / 560;
+a.lv-stop:hover,
+a.lv-stop:focus-visible {
+  scale: 1.12;
 }
-/* En el celular la pantalla crece con su contenido: la escena va a lo ancho. */
-@media (max-width: 640px) {
-  .lv {
-    height: auto;
-    min-height: 0;
-    grid-template-rows: auto auto auto;
-  }
-  .lv-scene.jh {
-    container-type: inline-size;
-  }
-  .lv-scene .jh-stage {
-    width: 100%;
-    aspect-ratio: 4 / 3;
+.lv-stop[data-state='done'] {
+  background: var(--lv-gold);
+  box-shadow: inset 0 -3px 0 var(--lv-gold-dark);
+}
+.lv-stop[data-state='locked'] {
+  opacity: 0.45;
+  border-style: dashed;
+}
+.lv-stop[data-state='wip'] {
+  border-style: dashed;
+  color: color-mix(in oklab, var(--lv-shade) 60%, transparent);
+}
+.lv-stop.is-here {
+  outline: 3px solid var(--lv-main);
+  outline-offset: 3px;
+}
+
+/* ── Nivel superado: el cartel cae sobre la sala (sin modal ni fondo oscuro) ── */
+.lv-ribbon {
+  --lv-ink: 0.16em;
+  position: absolute;
+  z-index: 3;
+  top: clamp(100px, 15vh, 150px);
+  left: 50%;
+  margin: 0;
+  translate: -50% 0;
+  isolation: isolate;
+  color: var(--lv-gold);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(30px, 4vw, 68px);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: lv-drop 0.6s cubic-bezier(0.34, 1.6, 0.64, 1) both;
+}
+@keyframes lv-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-80px) rotate(-4deg) scale(0.8);
   }
 }
 
-/* ── Panel de abajo ── */
-.lv-panel {
-  display: grid;
-  gap: 8px;
-  max-width: 1000px;
-  width: 100%;
-  margin: 0 auto;
+/* ── Abajo: el diálogo, apoyado en el piso ── */
+.lv-talk {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: clamp(12px, 2.4vh, 28px);
+  translate: -50% 0;
+  width: min(1040px, calc(100% - 32px));
+  max-height: calc(100% - 140px);
+  overflow: auto;
+  box-sizing: border-box;
+  padding: clamp(16px, 1.6vw, 24px) clamp(18px, 2vw, 32px) clamp(18px, 1.8vw, 26px);
+  border-radius: 28px;
+  background: var(--lv-white);
+  box-shadow:
+    inset 0 -6px 0 color-mix(in oklab, var(--lv-shade) 10%, transparent),
+    0 18px 44px color-mix(in oklab, var(--lv-shade) 30%, transparent);
+  transition: box-shadow 0.4s;
+}
+.lv.is-won .lv-talk {
+  box-shadow:
+    inset 0 -6px 0 color-mix(in oklab, var(--lv-gold) 45%, transparent),
+    0 0 0 4px var(--lv-gold),
+    0 18px 44px color-mix(in oklab, var(--lv-shade) 30%, transparent);
+}
+.lv-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 .lv-line {
   margin: 0;
-  min-height: 3.2em;
-  font-size: 17px;
-  line-height: 1.55;
-  color: var(--ink);
+  min-height: 2.9em;
+  font-family: var(--font-body);
+  font-weight: 650;
+  font-size: clamp(17px, 0.55vw + 11px, 23px);
+  line-height: 1.45;
+  text-wrap: pretty;
+  animation: lv-say 0.32s cubic-bezier(0.34, 1.7, 0.64, 1) both;
+}
+@keyframes lv-say {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
 }
 .lv-task {
-  margin: 0;
-  font-size: 15px;
-  color: var(--ink-muted);
+  margin: 12px 0 0;
+  font-size: clamp(14px, 0.35vw + 10px, 17px);
+  font-weight: 650;
+  color: color-mix(in oklab, var(--lv-shade) 72%, transparent);
+  transition: opacity 0.25s;
+}
+.lv-task-tag {
+  margin-right: 6px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--accent) 70%, var(--lv-shade));
 }
 .lv-paths {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  margin-top: 14px;
+  transition: opacity 0.25s;
 }
-.lv-check {
-  margin-right: 4px;
-}
-.lv-next {
-  display: inline-block;
-  padding: 11px 20px;
-  font-size: 15px;
-  color: var(--surface-raised);
-  background: var(--accent-ink);
-}
-.lv-next:hover,
-.lv-next:focus-visible {
-  background: var(--ink);
-}
-.lv-next:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-.lv-next--quiet {
-  color: var(--accent-ink);
-  background: transparent;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-.lv-next--quiet:hover,
-.lv-next--quiet:focus-visible {
-  color: var(--ink);
-  background: transparent;
+.lv .is-quiet {
+  opacity: 0.45;
 }
 
-/* ── Cartel de nivel superado ── */
-.lv-win {
+/* Las opciones: el dorado es el "¡Jugar!" del mapa; el resto, en crema. Le
+   gana a la regla global de `button` (mayúsculas, salto de -1px al pasar). */
+.lv .lv-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 20px 10px 8px;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--lv-shade) 7%, var(--lv-white));
+  color: var(--lv-shade);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(15px, 0.4vw + 10px, 19px);
+  letter-spacing: normal;
+  text-transform: none;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow:
+    inset 0 0 0 3px var(--lv-shade),
+    inset 0 -6px 0 color-mix(in oklab, var(--lv-shade) 22%, transparent);
+  transition:
+    scale 0.25s cubic-bezier(0.34, 1.8, 0.64, 1),
+    background 0.2s;
+}
+.lv .lv-pill:not(:has(.lv-pill-tri)) {
+  padding-left: 20px;
+}
+.lv .lv-pill--gold {
+  background: var(--lv-gold);
+  box-shadow:
+    inset 0 -6px 0 var(--lv-gold-dark),
+    0 10px 22px color-mix(in oklab, var(--lv-shade) 26%, transparent);
+}
+.lv .lv-pill:hover:not(:disabled) {
+  transform: none;
+  scale: 1.05;
+}
+.lv .lv-pill--gold:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--lv-gold) 85%, #fff);
+}
+.lv .lv-pill:active:not(:disabled) {
+  transform: none;
+  scale: 0.97;
+}
+.lv .lv-pill:disabled {
+  opacity: 1;
+  cursor: progress;
+}
+.lv .lv-pill:focus-visible {
+  outline: 3px solid var(--lv-shade);
+  outline-offset: 3px;
+}
+.lv-pill-tri {
+  position: relative;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--lv-shade);
+}
+.lv-pill-tri::after {
+  content: '';
   position: absolute;
-  inset: 0;
+  top: 50%;
+  left: 55%;
+  border: 7px solid transparent;
+  border-left: 11px solid var(--lv-white);
+  border-right: 0;
+  transform: translate(-50%, -50%);
+}
+.lv-pill--gold .lv-pill-tri::after {
+  border-left-color: var(--lv-gold);
+}
+.lv-pill-check {
   display: grid;
   place-items: center;
-  padding: 16px;
-  background: color-mix(in oklab, var(--lv-shade) 38%, transparent);
-  animation: lv-fade 0.25s ease-out;
-  overflow: auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--lv-shade);
+  color: var(--lv-gold);
+  font-size: 13px;
 }
-.lv-win-card {
-  width: min(560px, 100%);
-  max-height: 100%;
-  overflow: auto;
-  box-sizing: border-box;
-  padding: 26px 28px;
-  border-radius: calc(var(--radius) + 6px);
-  background: var(--surface-raised);
-  box-shadow:
-    0 6px 0 color-mix(in oklab, var(--lv-shade) 70%, transparent),
-    0 18px 50px color-mix(in oklab, var(--lv-shade) 45%, transparent);
-  animation: lv-pop 0.35s cubic-bezier(0.34, 1.8, 0.64, 1);
-}
-.lv-win-kicker {
-  margin: 0;
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 15px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--accent-ink);
-}
-.lv-win-card h2 {
-  margin: 4px 0 10px;
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 30px;
-  letter-spacing: -0.02em;
-}
-.lv-win-lesson {
-  margin: 0 0 18px;
-  font-size: 17px;
-  line-height: 1.6;
-}
-.lv-win-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
+.lv .lv-pill--quiet {
+  padding: 8px 6px;
+  background: none;
+  box-shadow: none;
+  color: color-mix(in oklab, var(--accent) 70%, var(--lv-shade));
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 .lv-code {
   display: grid;
   gap: 12px;
   margin-top: 16px;
-}
-@keyframes lv-fade {
-  from {
-    opacity: 0;
-  }
-}
-@keyframes lv-pop {
-  from {
-    opacity: 0;
-    transform: translateY(24px) scale(0.92);
-  }
 }
 
 /* ── Ventilador del nivel 16: HTML con animación CSS (la mueve el compositor) ── */
@@ -307,20 +463,24 @@
 }
 
 @media (max-width: 640px) {
-  .lv {
-    padding: 10px 12px 14px;
-    gap: 8px;
+  .lv-top {
+    flex-wrap: wrap;
   }
-  .lv-dots {
+  .lv-stops {
     display: none;
   }
-  .lv-line {
-    font-size: 16px;
+  .lv-talk {
+    width: calc(100% - 20px);
+    border-radius: 22px;
+  }
+  .lv .lv-pill {
+    flex: 1 1 auto;
+    justify-content: center;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .lv-win,
-  .lv-win-card {
+  .lv-ribbon,
+  .lv-line {
     animation: none;
   }
   /* El ventilador es la información del nivel: gira lento, pero gira. */
