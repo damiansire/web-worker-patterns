@@ -4,6 +4,7 @@
  * Las variables --lv-* las hereda de `.lv`.
  */
 :host {
+  --th-comp: color-mix(in oklab, #2fa58a 82%, var(--lv-shade));
   display: block;
   box-sizing: border-box;
   padding: 8px 16px 12px;
@@ -90,6 +91,10 @@
   background: var(--lv-worker);
   color: var(--lv-white);
 }
+.th-name[data-lane='compositor'] {
+  background: var(--th-comp);
+  color: var(--lv-white);
+}
 .th-name--queue {
   font-size: 12px;
   box-shadow: inset 0 0 0 2px color-mix(in oklab, var(--lv-shade) 45%, transparent);
@@ -114,7 +119,8 @@
   background: color-mix(in oklab, var(--lv-shade) 4%, var(--lv-white));
   box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--lv-shade) 14%, transparent);
 }
-.th-track[data-lane='worker'] {
+.th-track[data-lane='worker'],
+.th-track[data-lane='compositor'] {
   height: 26px;
 }
 .th-track.is-off {
@@ -312,6 +318,58 @@
   font-weight: 900;
   font-size: 11px;
   white-space: nowrap;
+}
+
+/* El compositor: un cuadro tras otro, sin parar. Solo el pasado (hasta
+   "ahora"). La tira mide dos cintas y se corre una cinta cada SPAN_MS, a la
+   misma velocidad que la cinta de main; pero la corre una animación de
+   transform, que es justo lo que mueve el compositor: si main se congela, la
+   cinta de main se frena y esta no. */
+.th-comp-past {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  width: calc(var(--th-now) * 100%);
+  overflow: hidden;
+}
+.th-comp {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(200% / var(--th-now));
+  border-radius: 6px;
+  /* Un cuadro cada 100 ms y, cada segundo, una marca oscura: así se ve correr. */
+  background:
+    repeating-linear-gradient(90deg, var(--lv-shade) 0 4px, transparent 4px calc(100% / 16)),
+    repeating-linear-gradient(
+      90deg,
+      var(--th-comp) 0 calc(100% / 160 - 3px),
+      transparent calc(100% / 160 - 3px) calc(100% / 160)
+    );
+  animation: th-comp-roll var(--th-span) linear infinite;
+  will-change: transform;
+}
+@keyframes th-comp-roll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+:host(.is-held) .th-comp {
+  animation-play-state: paused;
+}
+.th-comp-label {
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  translate: 0 -50%;
+  padding: 0 7px 1px;
+  border-radius: 6px;
+  background: var(--lv-white);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 11px;
+  white-space: nowrap;
+  color: var(--th-comp);
 }
 
 @media (max-width: 640px) {

@@ -55,7 +55,8 @@ interface Anchors {
  *  - Colgado en el centro: el problema del nivel, en grande (al ganar, el mismo
  *    cartel dice "¡Nivel superado!").
  *  - Debajo del cartel: "Hilos del navegador", lo que hace cada hilo en una
- *    cinta de tiempo (main, su fila de tareas y el worker).
+ *    cinta de tiempo (main, su fila de tareas, el worker y, si el nivel lo
+ *    usa, el compositor).
  *  - En la escena: las opciones, como etiquetas sobre quien haría el trabajo
  *    (main, o la puerta por donde entra el worker); al ganar, en el mismo lugar,
  *    la etiqueta para seguir. No hay botones en el diálogo.
@@ -177,6 +178,7 @@ interface Anchors {
             class="lv-threads"
             [log]="threadLog()"
             [hasWorker]="hasWorker()"
+            [compositor]="script().compositor ?? null"
             [(pausedAt)]="tapePausedAt"
           />
         </div>

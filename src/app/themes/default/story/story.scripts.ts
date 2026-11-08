@@ -99,6 +99,8 @@ export interface LevelScript {
   sound?: boolean;
   /** El código del nivel, en el orden en que se lee; cada pedazo aparece cuando pasa. */
   code: CodeStep[];
+  /** Lo que mueve el compositor en este nivel: suma su carril al panel de hilos. */
+  compositor?: string;
   /** Prepara la escena (tablero, objetos). Devuelve cómo desarmarla. */
   setup?(ctx: LevelContext): (() => void) | void;
   run(pathId: string, ctx: LevelContext): Promise<PathResult>;
@@ -515,6 +517,7 @@ const fan: LevelScript = {
   ],
   lesson:
     'Una animación CSS de transform u opacity la mueve el compositor, otro hilo del navegador: sigue aunque main esté trabado. Lo que se anima con JavaScript sí se congela. Para que todo siga vivo, el trabajo pesado va a un worker.',
+  compositor: 'gira el ventilador · CSS',
   code: [
     {
       id: 'css',
@@ -554,7 +557,7 @@ worker.postMessage({ command: 'bloquear', ms: 2500 });`,
   async run(pathId, { scene, ctl, narrate, threads, code }) {
     if (pathId === 'main') {
       code('block');
-      narrate('Me trabo 2,5 s. Mirá el ventilador, el reloj y el pulso.');
+      narrate('Me trabo 2,5 s. Mirá el ventilador, el reloj, el pulso y los hilos.');
       await scene.dropOnMain(FREEZE);
       const done = threads.work('main', 'trabajo pesado · 2,5 s');
       ctl.blockMainComp();
@@ -563,7 +566,7 @@ worker.postMessage({ command: 'bloquear', ms: 2500 });`,
       await scene.thaw();
       return {
         caption: main(
-          'Estuve congelado: el reloj y el pulso se frenaron, y la escena también. Pero el ventilador nunca paró: lo gira el compositor, no yo.',
+          'Estuve congelado: el reloj y el pulso se frenaron, y la escena también. Pero el ventilador nunca paró: lo gira el compositor, no yo. Mirá su carril en los hilos: siguió andando.',
         ),
         completed: true,
       };

@@ -41,6 +41,10 @@ const secs = (ms: number) => (ms / 1000).toLocaleString('es', { maximumFractionD
  *    queda en la hora en que llegó y una línea punteada la lleva hasta la hora
  *    en que main la tomó: eso esperó.
  *  - Worker: otro hilo, con su propio carril (o vacío, si el nivel no tiene).
+ *  - Compositor (solo en los niveles que lo usan): el hilo que mueve las
+ *    animaciones CSS de transform. Su carril corre con una animación de
+ *    transform, o sea que lo mueve él mismo: cuando main se congela y su cinta
+ *    se frena, este carril sigue andando.
  *
  * La cinta la mueve main con requestAnimationFrame: si main se congela, la
  * cinta se frena con él. La barra del trabajo largo, en cambio, crece con una
@@ -162,6 +166,17 @@ const secs = (ms: number) => (ms / 1000).toLocaleString('es', { maximumFractionD
           <span class="th-note">en este nivel no hay ningún worker: todo lo hace main</span>
         }
       </div>
+
+      @if (compositor(); as job) {
+        <span class="th-name" data-lane="compositor">Compositor</span>
+        <div class="th-track" data-lane="compositor">
+          <div class="th-comp-past" [style.--th-now]="nowAt">
+            <div class="th-comp" [style.--th-span]="span + 'ms'"></div>
+          </div>
+          <span class="th-comp-label">{{ job }}</span>
+          <span class="th-now" [style.left]="nowLeft"></span>
+        </div>
+      }
     </div>
   `,
   styleUrl: './story-threads.component.scss',
@@ -176,11 +191,14 @@ export class StoryThreadsComponent {
   readonly log = input<ThreadLog>(emptyLog());
   /** Si el nivel tiene worker: si no, su carril queda apagado y lo dice. */
   readonly hasWorker = input(false);
+  /** Lo que mueve el compositor en este nivel, o null si el nivel no lo usa. */
+  readonly compositor = input<string | null>(null);
   /** La hora en que la cinta está quieta, o null si corre en vivo. */
   readonly pausedAt = model<number | null>(null);
 
   protected readonly span = SPAN_MS;
   protected readonly nowLeft = pct(NOW_AT);
+  protected readonly nowAt = NOW_AT;
   /** La hora en que se armó la cinta: todo se ubica respecto de ella. */
   private readonly origin = performance.now();
 
@@ -223,8 +241,9 @@ export class StoryThreadsComponent {
       busy ? `Main thread ocupado: ${busy.label}.` : 'Main thread atendiendo de a una cosa.',
       waited ? `En la fila, un clic esperó ${waited.waited} s.` : 'Fila de tareas vacía.',
       this.hasWorker() ? '' : 'Sin worker en este nivel.',
+      this.compositor() ? `El compositor, otro hilo, sigue: ${this.compositor()}.` : '',
     ];
-    return `Hilos del navegador. ${parts.join(' ')}`.trim();
+    return `Hilos del navegador. ${parts.filter(Boolean).join(' ')}`;
   });
 
   constructor() {
