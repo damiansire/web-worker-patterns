@@ -15,11 +15,6 @@ export interface LevelAudio {
   /** Un efecto de sonido. */
   cue(cue: AudioCue): void;
   setMuted(muted: boolean): void;
-  /**
-   * Suelta el sonido retenido (`held`). Llamarlo dentro del clic de la persona;
-   * resuelve cuando ya suena (los efectos de antes se pierden).
-   */
-  start(): Promise<void>;
   destroy(): void;
 }
 
@@ -67,18 +62,11 @@ export function playChime(): void {
   setTimeout(() => void ctx.close(), 1600);
 }
 
-/**
- * Con `held`, nada suena hasta `start()` (la intro con el botón de jugar): si
- * se llegó con un clic el navegador ya dejaría sonar, pero la música tiene que
- * arrancar con el play, no debajo de la intro.
- */
-export function createLevelAudio(muted: boolean, held = false): LevelAudio | null {
+export function createLevelAudio(muted: boolean): LevelAudio | null {
   const Ctx = globalThis.AudioContext;
   if (!Ctx) return null;
   const ctx = new Ctx();
   let isMuted = muted;
-  let isHeld = held;
-  if (held) void ctx.suspend();
   const master = ctx.createGain();
   master.gain.value = muted ? 0 : 0.7;
   master.connect(ctx.destination);
@@ -92,7 +80,7 @@ export function createLevelAudio(muted: boolean, held = false): LevelAudio | nul
   // El navegador no deja sonar hasta que la persona toca algo. Si se llegó con
   // un clic (desde el mapa) ya se puede; si no, arranca con el primer toque.
   const unlock = () => {
-    if (ctx.state === 'suspended' && !isMuted && !isHeld) void ctx.resume();
+    if (ctx.state === 'suspended' && !isMuted) void ctx.resume();
   };
   addEventListener('pointerdown', unlock, true);
   addEventListener('keydown', unlock, true);
@@ -321,11 +309,7 @@ export function createLevelAudio(muted: boolean, held = false): LevelAudio | nul
       const now = ctx.currentTime;
       master.gain.cancelScheduledValues(now);
       master.gain.setTargetAtTime(m ? 0 : 0.7, now, 0.05);
-      if (!m && !isHeld) void ctx.resume();
-    },
-    async start() {
-      isHeld = false;
-      if (!isMuted && ctx.state === 'suspended') await ctx.resume();
+      if (!m) void ctx.resume();
     },
     destroy() {
       clearTimeout(timer);

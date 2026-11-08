@@ -18,11 +18,10 @@ import { readStored, writeStored } from '../../../core/utils/safe-storage';
 import { ThemeService } from '../../../theming/theme.service';
 import { DefaultCodeBlock } from '../primitives/default-code-block.component';
 import { createScene, Scene, Who } from './scene/scene';
-import { CHOICE_AT, LAMP_AT, MAIN_AT, WORKER_AT } from './scene/scene.art';
+import { CHOICE_AT, MAIN_AT, WORKER_AT } from './scene/scene.art';
 import { StoryProgress } from './story-progress.service';
-import { IntroPoint, StoryIntroComponent } from './story-intro.component';
 import { StoryThreadsComponent } from './story-threads.component';
-import { createLevelAudio, LevelAudio, pageWasTouched, SOUND_KEY } from './story.audio';
+import { createLevelAudio, LevelAudio, SOUND_KEY } from './story.audio';
 import { CHAPTERS, Level, LEVELS, levelState, nextLevel, PROLOGUE_ID } from './story.levels';
 import { LevelContext, Line, PRIMES_EXAMPLE, SCRIPTS } from './story.scripts';
 import {
@@ -45,10 +44,6 @@ interface Anchors {
   width: number;
   choice: Record<'main' | 'door', { x: number; y: number }>;
   speaker: Record<Who, number>;
-  /** Para la intro: el foco de la lámpara, el largo de su cuerda y la cabeza de main. */
-  lamp: IntroPoint;
-  cord: number;
-  sleeper: IntroPoint;
 }
 
 /**
@@ -66,10 +61,6 @@ interface Anchors {
  *  - Abajo, sobre el piso: el diálogo, con quién habla y la colita hacia él.
  *  - A la derecha, a medida que se juega: el código, paso a paso, cada pedazo
  *    con lo que hace; la cámara se corre para dejarle lugar.
- *  - Si el nivel tiene sonido, una intro antes de todo (`story-intro`): la sala
- *    con la luz apagada y la cuerdita de la lámpara. Tirarla enciende la luz y
- *    la música (el navegador no deja sonar sin un toque de la persona). Solo
- *    si se entró sin pasar por el play del mapa (`story-dawn`), que ya lo dio.
  * La escena se encuadra sola (`Scene.frame`) para que nada de esto la tape.
  * Sin encapsulación: la escena crea su SVG por código y su CSS cuelga de `.jh`;
  * el de esta pantalla, de `.lv`.
@@ -78,7 +69,7 @@ interface Anchors {
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   selector: 'default-story-stage',
-  imports: [RouterLink, DefaultCodeBlock, StoryThreadsComponent, StoryIntroComponent],
+  imports: [RouterLink, DefaultCodeBlock, StoryThreadsComponent],
   providers: [ExampleLayoutController],
   template: `
     <article
@@ -97,7 +88,7 @@ interface Anchors {
       </div>
 
       <!-- Arriba, en un bloque: en angosto el cartel cuelga debajo del encabezado. -->
-      <div class="lv-head" [attr.inert]="intro() ? '' : null">
+      <div class="lv-head">
         <header #top class="lv-top">
           <a class="lv-back" [routerLink]="['/t', themeId()]">
             <span class="lv-back-arrow" aria-hidden="true"></span>
@@ -198,7 +189,7 @@ interface Anchors {
           [class.lv-choice--gold]="c.primary"
           [class.is-away]="busy() || won()"
           [attr.data-at]="c.at"
-          [disabled]="busy() || won() || intro()"
+          [disabled]="busy() || won()"
           [style.left.px]="c.x"
           [style.top.px]="c.y"
           [style.--lv-x]="c.x + 'px'"
@@ -257,7 +248,6 @@ interface Anchors {
       <section
         #talk
         class="lv-talk"
-        [attr.inert]="intro() ? '' : null"
         [attr.data-who]="caption().who"
         [attr.aria-label]="'Habla ' + caption().who"
         (transitionend)="onTalkMoved($event)"
@@ -268,17 +258,6 @@ interface Anchors {
           <p class="lv-line" aria-hidden="true">{{ text }}</p>
         }
       </section>
-
-      @if (intro() && anchors(); as a) {
-        <story-intro
-          [lamp]="a.lamp"
-          [cordLength]="a.cord"
-          [sleeper]="a.sleeper"
-          [soundOn]="soundOn()"
-          (pull)="onPull()"
-          (lit)="onLit()"
-        />
-      }
     </article>
   `,
   styleUrls: ['./scene/scene.scss', './story-stage.component.scss'],
@@ -298,7 +277,6 @@ export class StoryStageComponent {
   private readonly hangEl = viewChild.required<ElementRef<HTMLElement>>('hang');
   private readonly talkEl = viewChild.required<ElementRef<HTMLElement>>('talk');
   private readonly sheetEl = viewChild<ElementRef<HTMLElement>>('sheet');
-  private readonly introCmp = viewChild(StoryIntroComponent);
 
   protected readonly script = computed(() => SCRIPTS[this.level().scene!]);
   protected readonly caption = signal<Line>({ who: 'main', text: '' });
@@ -321,23 +299,12 @@ export class StoryStageComponent {
   });
   protected readonly busy = signal(false);
   protected readonly won = signal(false);
-  /** La persona ya encendió la luz de la intro. */
-  private readonly started = signal(false);
-  /**
-   * La intro con la luz apagada: solo en niveles con sonido y si se llegó sin
-   * tocar nada (un enlace directo, recargar). Desde el mapa no hace falta: su
-   * play ya dio el toque que habilita el sonido.
-   */
-  private readonly needsTouch = !pageWasTouched();
-  protected readonly intro = computed(
-    () => this.needsTouch && !!this.script().sound && !this.started(),
-  );
   /** Música y efectos: preferencia de la persona, recordada entre visitas. */
   protected readonly soundOn = signal(readStored(SOUND_KEY) !== 'off');
   /** La línea del diálogo, en un arreglo para rearmar el párrafo (y su entrada) en cada cambio. */
   protected readonly shownLine = computed(() => [this.caption().text]);
 
-  protected readonly anchors = signal<Anchors | null>(null);
+  private readonly anchors = signal<Anchors | null>(null);
   /** Las opciones del nivel, puestas sobre main o sobre la puerta. */
   protected readonly choices = computed(() => {
     const a = this.anchors();
@@ -463,13 +430,8 @@ export class StoryStageComponent {
         this.updateThreads((log, now) => blip(log, 'main', JUGGLED[ball], '', now), false);
       });
       if (this.script().sound) {
-        // Retenido hasta el play de la intro.
-        this.audio = createLevelAudio(!this.soundOn(), this.intro());
+        this.audio = createLevelAudio(!this.soundOn());
         scene.onCue((cue) => this.audio?.cue(cue));
-      }
-      if (this.intro()) {
-        scene.doze(true);
-        afterNextRender(() => this.introCmp()?.focus(), { injector: this.injector });
       }
       this.ctx = ctx;
       const teardown = this.script().setup?.(ctx);
@@ -495,9 +457,6 @@ export class StoryStageComponent {
         door: scene.toScreen(CHOICE_AT.door.x, CHOICE_AT.door.y),
       },
       speaker: { main: head(MAIN_AT.x), worker: head(WORKER_AT.x) },
-      lamp: scene.toScreen(LAMP_AT.x, LAMP_AT.y),
-      cord: scene.toScreen(0, LAMP_AT.y + 36).y - scene.toScreen(0, LAMP_AT.y).y,
-      sleeper: scene.toScreen(MAIN_AT.x - 50, MAIN_AT.y - 185),
     });
   }
 
@@ -576,19 +535,6 @@ export class StoryStageComponent {
     if (event.target === event.currentTarget && event.propertyName === 'width') {
       this.frameScene(true);
     }
-  }
-
-  /** Tiraron de la cuerda: el sonido se suelta en el mismo clic y suena la lámpara. */
-  protected onPull(): void {
-    void this.audio?.start().then(() => this.audio?.cue({ kind: 'lamp' }));
-  }
-
-  /** La luz ya llenó la sala: se quita la intro y main se despierta. */
-  protected onLit(): void {
-    if (this.dead) return;
-    this.started.set(true);
-    this.scene?.doze(false);
-    this.scene?.say('main', '¡Hola!', true);
   }
 
   protected toggleSound(): void {

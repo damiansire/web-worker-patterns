@@ -12,8 +12,6 @@
  */
 export const MAIN_AT = { x: 470, y: 492 } as const;
 export const WORKER_AT = { x: 800, y: 492 } as const;
-/** El foco de la lámpara del techo (de ahí cuelga la cuerdita de la intro). */
-export const LAMP_AT = { x: 470, y: 112 } as const;
 export const DOOR_X = 1075;
 /**
  * Cuánto sigue la sala fuera del viewBox (pared, zócalo, piso, cables). La
@@ -186,7 +184,7 @@ export const SCENE_SVG = `
     <path class="jh-cone" d="M436 112L504 112L660 492L280 492Z" fill="url(#jh-g-cone)"/>
     <path class="jh-cord" d="M470 ${-EXT}V72"/>
     <path class="jh-lampshade" d="M436 112C436 88 450 72 470 72C490 72 504 88 504 112Z"/>
-    <ellipse class="jh-bulb" cx="${LAMP_AT.x}" cy="${LAMP_AT.y}" rx="20" ry="6"/>
+    <ellipse class="jh-bulb" cx="470" cy="112" rx="20" ry="6"/>
   </g>
 
   <g class="jh-worker-pose" transform="translate(${WORKER_AT.x} ${WORKER_AT.y})">
