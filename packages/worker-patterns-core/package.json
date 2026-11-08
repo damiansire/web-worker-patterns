@@ -40,7 +40,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.json",
+    "build": "node scripts/build.mjs",
     "typecheck": "tsc -p tsconfig.test.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

@@ -23,6 +23,7 @@
   "scripts": {
     "ng": "ng",
     "dev": "node scripts/start/start.cjs",
+    "prestart": "npm run build --workspace packages/worker-patterns-core",
     "start": "ng serve",
     "prebuild": "npm run build --workspace packages/worker-patterns-core",
     "build": "ng build",
