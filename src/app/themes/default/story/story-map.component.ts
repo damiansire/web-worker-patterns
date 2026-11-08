@@ -14,6 +14,7 @@ import { Router } from '@angular/router';
 import gsap from 'gsap';
 import { ThemeService } from '../../../theming/theme.service';
 import { MAIN_BODY } from './scene/scene.art';
+import { DawnBy, DawnPoint, StoryDawnComponent } from './story-dawn.component';
 import { IconPart, levelIcon } from './story.icons';
 import { StoryProgress } from './story-progress.service';
 import { CHAPTERS, currentLevel, Level, LEVELS, levelState, LevelState } from './story.levels';
@@ -73,11 +74,16 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
  * `spring` de main; los saltos y el viaje son GSAP sobre otros grupos, para que
  * nadie pise la propiedad de otro. Sin encapsulación: los efectos se crean por
  * código y cuelgan de `.sm`.
+ *
+ * La primera vez se llega de noche (`story-dawn`): main duerme y el play, lo
+ * único encendido, da el toque que el navegador pide para que suene la música
+ * del nivel. Al tocarlo amanece y main entra a jugar.
  */
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   selector: 'default-story-map',
+  imports: [StoryDawnComponent],
   template: `
     <section #stage class="sm" [attr.data-shape]="shape()">
       <svg
@@ -482,7 +488,7 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
         #play
         type="button"
         class="sm-play"
-        [class.is-away]="walking()"
+        [class.is-away]="walking() || night()"
         [style.left.px]="playAt().x"
         [style.top.px]="playAt().y"
         [attr.aria-label]="playLabel() + ': ' + next().title"
@@ -497,6 +503,17 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
         </span>
       </button>
       <p class="sm-sr" aria-live="polite">{{ status() }}</p>
+
+      @if (night() && dawnAt(); as d) {
+        <story-dawn
+          [sun]="d.sun"
+          [sleeper]="d.sleeper"
+          [at]="playAt()"
+          [level]="next().title"
+          (woke)="onWoke($event)"
+          (lit)="onLit($event)"
+        />
+      }
     </section>
   `,
   styleUrl: './story-map.component.scss',
@@ -516,6 +533,7 @@ export class StoryMapComponent {
   private readonly roadRef = viewChild.required<ElementRef<SVGPathElement>>('roadEl');
   private readonly probeRef = viewChild.required<ElementRef<SVGPathElement>>('probe');
   private readonly fxRef = viewChild.required<ElementRef<SVGGElement>>('fx');
+  private readonly dawnCmp = viewChild(StoryDawnComponent);
 
   protected readonly mainBody = MAIN_BODY;
   protected readonly star =
@@ -623,6 +641,10 @@ export class StoryMapComponent {
   /** Dónde va el botón, en píxeles de la escena: bajo los pies de main, en lugar del nombre. */
   protected readonly playAt = signal({ x: 0, y: 0 });
   protected readonly walking = signal(false);
+  /** De noche hasta el primer toque: main duerme y solo se ve el play. */
+  protected readonly night = signal(StoryDawnComponent.needed());
+  /** Para la noche, en píxeles de la escena: el sol (de ahí amanece) y la cabeza de main. */
+  protected readonly dawnAt = signal<{ sun: DawnPoint; sleeper: DawnPoint } | null>(null);
 
   private calm = false;
   private moving = false;
@@ -672,11 +694,18 @@ export class StoryMapComponent {
           });
           this.blink();
         }
+        if (this.night()) this.lids(0.1);
       }, this.worldRef().nativeElement);
       gsap.ticker.add(this.tick);
 
-      const fresh = this.here() === 0 && !this.progress.isDone(LEVELS[0].id);
-      this.say(fresh ? '¡Hola! ¿Me acompañás?' : '¡Seguimos!');
+      if (this.night()) {
+        // En el próximo cuadro la noche ya está pintada y el mundo tiene su
+        // forma: recién ahí se mide su play (más ancho) y se le da el foco.
+        requestAnimationFrame(() => {
+          this.placePlay();
+          this.dawnCmp()?.focus();
+        });
+      } else this.greet();
       if (this.shape() === 'tall' && this.here() > 2) {
         this.heroRef().nativeElement.scrollIntoView({ block: 'center' });
       }
@@ -698,6 +727,41 @@ export class StoryMapComponent {
     });
   }
 
+  private greet(): void {
+    const fresh = this.here() === 0 && !this.progress.isDone(LEVELS[0].id);
+    this.say(fresh ? '¡Hola! ¿Me acompañás?' : '¡Seguimos!');
+  }
+
+  /** Cierra (0.1) o abre (1) los ojos de main. */
+  private lids(scaleY: number): void {
+    const lids = this.worldRef().nativeElement.querySelectorAll('.sm-h-lid');
+    if (this.calm || scaleY < 1) {
+      gsap.set(lids, { scaleY });
+      return;
+    }
+    this.anim(() =>
+      gsap
+        .timeline()
+        .to(lids, { scaleY: 1.3, duration: 0.08, ease: 'power2.out', overwrite: 'auto' })
+        .to(lids, { scaleY: 1, duration: 0.3, ease: 'back.out(2)' }),
+    );
+  }
+
+  /** Tocaron el play de la noche (o en otro lado): main abre los ojos de golpe. */
+  protected onWoke(by: DawnBy): void {
+    this.lids(1);
+    this.sq.v += 3;
+    if (by === 'play') this.say('¡Vamos!');
+    else this.greet();
+  }
+
+  /** Ya amaneció: se quita la noche; con el play, main entra a jugar. */
+  protected onLit(by: DawnBy): void {
+    this.night.set(false);
+    if (by === 'play') this.go(this.here());
+    else this.playRef().nativeElement.focus({ preventScroll: true });
+  }
+
   protected chapterOf(key: Level['chapter']) {
     return CHAPTERS.find((c) => c.key === key)!;
   }
@@ -710,7 +774,7 @@ export class StoryMapComponent {
   }
 
   protected go(i: number): void {
-    if (this.moving) return;
+    if (this.moving || this.night()) return;
     const spot = this.spots()[i];
     if (spot.state === 'locked') {
       const prev = LEVELS.slice(0, i)
@@ -868,10 +932,22 @@ export class StoryMapComponent {
     const m = this.worldRef().nativeElement.getScreenCTM();
     if (!m) return;
     const box = this.stageRef().nativeElement.getBoundingClientRect();
-    const half = this.playRef().nativeElement.offsetWidth / 2;
+    // De noche manda el play de `story-dawn`, más ancho que el del mapa.
+    const dawnPlay = this.stageRef().nativeElement.querySelector<HTMLElement>('.sd-play');
+    const half = Math.max(this.playRef().nativeElement.offsetWidth, dawnPlay?.offsetWidth ?? 0) / 2;
     const p = new DOMPoint(this.hp.x, this.hp.y + 44 * this.spec().s).matrixTransform(m);
     const x = clamp(p.x - box.left, half + 8, box.width - half - 8);
     this.playAt.set({ x, y: p.y - box.top });
+    if (!this.night()) return;
+    const at = (sx: number, sy: number) => {
+      const q = new DOMPoint(sx, sy).matrixTransform(m);
+      return { x: q.x - box.left, y: q.y - box.top };
+    };
+    const sc = this.heroScale();
+    this.dawnAt.set({
+      sun: at(this.sun().x, this.sun().y),
+      sleeper: at(this.hp.x - 40 * sc, this.hp.y - 190 * sc),
+    });
   }
 
   private moveHero(x: number, y: number): void {

@@ -1,0 +1,270 @@
+/*
+ * El mapa de noche. La oscuridad multiplica (no tapa): el mundo se sigue
+ * viendo en penumbra azul, con algo más de luz alrededor de main. Al amanecer,
+ * un círculo de luz nace en el sol (`--sd-hole`, lo anima GSAP) con borde
+ * suave. Los colores vienen de `.sm` (sombra, blanco, dorado).
+ */
+:host {
+  /* Sin z-index propio: si armara su contexto, el multiply no vería el mapa. */
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.sd-dark {
+  --sd-hole: -220px;
+  position: absolute;
+  z-index: 20;
+  inset: 0;
+  background: radial-gradient(
+    circle at var(--sd-mx) var(--sd-my),
+    #5a5290 0%,
+    #2e2852 35%,
+    #1a1530 100%
+  );
+  mix-blend-mode: multiply;
+  mask-image: radial-gradient(
+    circle at var(--sd-hx) var(--sd-hy),
+    transparent var(--sd-hole),
+    #000 calc(var(--sd-hole) + 220px)
+  );
+}
+
+/* Estrellas que titilan; con el amanecer se apagan. */
+.sd-sky {
+  position: absolute;
+  z-index: 21;
+  inset: 0 0 auto;
+  height: min(100%, 100dvh);
+  pointer-events: none;
+}
+.sd-sky i {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #fff6d8;
+  box-shadow: 0 0 8px 2px color-mix(in oklab, #fff6d8 55%, transparent);
+  animation: sd-twinkle 2.6s ease-in-out infinite alternate;
+}
+.sd-sky i:nth-child(3n) {
+  width: 3px;
+  height: 3px;
+}
+@keyframes sd-twinkle {
+  from {
+    opacity: 0.25;
+    scale: 0.7;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+/* main duerme: tres "z" que suben y se van, una detrás de otra. */
+.sd-zzz {
+  position: absolute;
+  z-index: 21;
+  translate: -100% -100%;
+  pointer-events: none;
+  color: var(--sm-white);
+  font-family: var(--font-display);
+  font-weight: 900;
+}
+.sd-zzz i {
+  position: absolute;
+  font-style: normal;
+  opacity: 0;
+  animation: sd-z 2.4s ease-out infinite;
+}
+.sd-zzz i:nth-child(1) {
+  font-size: 18px;
+}
+.sd-zzz i:nth-child(2) {
+  font-size: 24px;
+  animation-delay: 0.8s;
+}
+.sd-zzz i:nth-child(3) {
+  font-size: 32px;
+  animation-delay: 1.6s;
+}
+@keyframes sd-z {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(-8deg);
+  }
+  20% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-34px, -60px) rotate(8deg);
+  }
+}
+
+/* ── El play: lo único encendido de la noche ── */
+.sd-play {
+  position: absolute;
+  z-index: 22;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  letter-spacing: normal;
+  text-transform: none;
+  cursor: pointer;
+  /* Centrado con `translate`: la regla global `button:hover { transform }` no
+     lo pisa. */
+  translate: -50% 0;
+}
+.sd-play:hover {
+  transform: none;
+}
+.sd-play:focus-visible {
+  outline: none;
+}
+.sd-play:focus-visible .sd-play-bob {
+  outline: 4px solid var(--sm-white);
+  outline-offset: 6px;
+}
+.sd-play-bob {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 28px 14px 12px;
+  border-radius: 999px;
+  background: var(--sm-gold);
+  color: var(--sm-shade);
+  box-shadow:
+    inset 0 -6px 0 var(--sm-gold-dark),
+    0 0 0 6px color-mix(in oklab, var(--sm-gold) 30%, transparent),
+    0 0 60px 10px color-mix(in oklab, var(--sm-gold) 45%, transparent);
+  animation: sd-bob 1.3s ease-in-out infinite alternate;
+}
+/* La colita apunta a main, arriba. */
+.sd-play-bob::before {
+  content: '';
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  border: 12px solid transparent;
+  border-top: 0;
+  border-bottom-color: var(--sm-gold);
+  translate: -50% 0;
+}
+@keyframes sd-bob {
+  to {
+    margin-top: -6px;
+  }
+}
+.sd-play-tri {
+  position: relative;
+  flex: none;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--sm-shade);
+}
+.sd-play-tri::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 55%;
+  border: 12px solid transparent;
+  border-left: 19px solid var(--sm-gold);
+  border-right: 0;
+  translate: -50% -50%;
+}
+/* Un pulso que sale del triángulo: "tocame". */
+.sd-play-ring {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  pointer-events: none;
+  box-shadow: 0 0 0 3px var(--sm-white);
+  animation: sd-ring 1.6s ease-out infinite;
+}
+@keyframes sd-ring {
+  from {
+    opacity: 0.9;
+    scale: 1;
+  }
+  to {
+    opacity: 0;
+    scale: 1.7;
+  }
+}
+.sd-play-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+}
+.sd-play-text strong {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 2.2vw, 32px);
+  font-weight: 900;
+  line-height: 1;
+}
+.sd-play-text small {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  font-weight: 800;
+  opacity: 0.8;
+}
+.sd-play-text svg {
+  width: 18px;
+  height: 18px;
+}
+.sd-cone {
+  fill: currentColor;
+}
+.sd-wave {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
+@media (max-width: 640px) {
+  .sd-play-bob {
+    gap: 10px;
+    padding: 8px 20px 10px 8px;
+  }
+  .sd-play-tri,
+  .sd-play-ring {
+    width: 46px;
+    height: 46px;
+  }
+  .sd-play-ring {
+    top: 8px;
+    left: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sd-sky i,
+  .sd-zzz i,
+  .sd-play-bob,
+  .sd-play-ring {
+    animation: none;
+  }
+  .sd-zzz i {
+    opacity: 0.8;
+  }
+  .sd-zzz i:nth-child(2) {
+    transform: translate(-14px, -24px);
+  }
+  .sd-zzz i:nth-child(3) {
+    transform: translate(-30px, -52px);
+  }
+}

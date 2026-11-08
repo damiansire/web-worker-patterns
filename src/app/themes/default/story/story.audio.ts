@@ -29,6 +29,44 @@ export type AudioCue = SceneCue | { kind: 'choose' } | { kind: 'win' };
 const LOOKAHEAD_S = 0.12;
 const TICK_MS = 25;
 
+/** La preferencia de sonido de la persona (`'off'` = silencio), recordada entre visitas. */
+export const SOUND_KEY = 'wwp-story-sound';
+
+/**
+ * Si la persona ya tocó algo en esta página. Desde ese toque el navegador deja
+ * sonar, aunque el audio se cree después (al entrar a un nivel desde el mapa).
+ * Sin la API, se asume que no: mejor pedir el toque de más que quedar mudo.
+ */
+export function pageWasTouched(): boolean {
+  return !!(navigator as { userActivation?: { hasBeenActive: boolean } }).userActivation
+    ?.hasBeenActive;
+}
+
+/**
+ * Un arpegio corto que sube, para el play del mapa: confirma con el oído que
+ * el sonido quedó activado. Va dentro del clic; su contexto se cierra solo.
+ */
+export function playChime(): void {
+  const Ctx = globalThis.AudioContext;
+  if (!Ctx) return;
+  const ctx = new Ctx();
+  const t = ctx.currentTime + 0.02;
+  [72, 79, 84, 88].forEach((m, i) => {
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    const at = t + i * 0.08;
+    o.type = 'sine';
+    o.frequency.value = midiToHz(m);
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.exponentialRampToValueAtTime(0.22, at + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + 0.9);
+    o.connect(g).connect(ctx.destination);
+    o.start(at);
+    o.stop(at + 0.95);
+  });
+  setTimeout(() => void ctx.close(), 1600);
+}
+
 /**
  * Con `held`, nada suena hasta `start()` (la intro con el botón de jugar): si
  * se llegó con un clic el navegador ya dejaría sonar, pero la música tiene que

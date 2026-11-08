@@ -22,7 +22,7 @@ import { CHOICE_AT, LAMP_AT, MAIN_AT, WORKER_AT } from './scene/scene.art';
 import { StoryProgress } from './story-progress.service';
 import { IntroPoint, StoryIntroComponent } from './story-intro.component';
 import { StoryThreadsComponent } from './story-threads.component';
-import { createLevelAudio, LevelAudio } from './story.audio';
+import { createLevelAudio, LevelAudio, pageWasTouched, SOUND_KEY } from './story.audio';
 import { CHAPTERS, Level, LEVELS, levelState, nextLevel, PROLOGUE_ID } from './story.levels';
 import { LevelContext, Line, PRIMES_EXAMPLE, SCRIPTS } from './story.scripts';
 import {
@@ -39,8 +39,6 @@ import {
 
 /** Qué atiende main con cada pelota del malabar. */
 const JUGGLED: readonly TaskKind[] = ['click', 'scroll', 'frame'];
-
-const SOUND_KEY = 'wwp-story-sound';
 
 /** Dónde caen, en píxeles de la pantalla, las cosas de la escena que la pantalla señala. */
 interface Anchors {
@@ -70,7 +68,8 @@ interface Anchors {
  *    con lo que hace; la cámara se corre para dejarle lugar.
  *  - Si el nivel tiene sonido, una intro antes de todo (`story-intro`): la sala
  *    con la luz apagada y la cuerdita de la lámpara. Tirarla enciende la luz y
- *    la música (el navegador no deja sonar sin un toque de la persona).
+ *    la música (el navegador no deja sonar sin un toque de la persona). Solo
+ *    si se entró sin pasar por el play del mapa (`story-dawn`), que ya lo dio.
  * La escena se encuadra sola (`Scene.frame`) para que nada de esto la tape.
  * Sin encapsulación: la escena crea su SVG por código y su CSS cuelga de `.jh`;
  * el de esta pantalla, de `.lv`.
@@ -324,8 +323,15 @@ export class StoryStageComponent {
   protected readonly won = signal(false);
   /** La persona ya encendió la luz de la intro. */
   private readonly started = signal(false);
-  /** La intro con la luz apagada: solo en niveles con sonido, hasta encenderla. */
-  protected readonly intro = computed(() => !!this.script().sound && !this.started());
+  /**
+   * La intro con la luz apagada: solo en niveles con sonido y si se llegó sin
+   * tocar nada (un enlace directo, recargar). Desde el mapa no hace falta: su
+   * play ya dio el toque que habilita el sonido.
+   */
+  private readonly needsTouch = !pageWasTouched();
+  protected readonly intro = computed(
+    () => this.needsTouch && !!this.script().sound && !this.started(),
+  );
   /** Música y efectos: preferencia de la persona, recordada entre visitas. */
   protected readonly soundOn = signal(readStored(SOUND_KEY) !== 'off');
   /** La línea del diálogo, en un arreglo para rearmar el párrafo (y su entrada) en cada cambio. */

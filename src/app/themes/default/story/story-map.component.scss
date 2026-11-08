@@ -623,6 +623,8 @@
 /* ── Título y mando (HTML sobre el mundo) ── */
 .sm-title {
   position: absolute;
+  /* Sobre la noche de `story-dawn`: de noche el título queda encendido. */
+  z-index: 22;
   top: clamp(16px, 3.2vw, 44px);
   left: clamp(16px, 3.4vw, 56px);
   pointer-events: none;
