@@ -33,7 +33,18 @@
 }
 
 /* ── Intro / cierre ── */
-.j-intro,
+.j-intro {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 7vh 24px 0;
+  min-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.j-intro .j-lede {
+  margin-top: 26px;
+}
 .j-end {
   max-width: 760px;
   margin: 0 auto;

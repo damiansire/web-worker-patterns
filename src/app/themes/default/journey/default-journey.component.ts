@@ -12,6 +12,7 @@ import { EXAMPLES } from '../../../core/domain/examples/examples.registry';
 import { WorkerExample } from '../../../core/domain/examples/example.model';
 import { ExampleContentService } from '../../../core/services/example-content.service';
 import { DefaultExampleLayoutComponent } from '../example-layout/default-example-layout.component';
+import { JourneyHeroComponent } from './journey-hero.component';
 
 interface Chapter {
   key: string;
@@ -41,16 +42,17 @@ const CHAPTER_META: { key: string; title: string; blurb: string }[] = [
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'default-journey',
-  imports: [DefaultExampleLayoutComponent],
+  imports: [DefaultExampleLayoutComponent, JourneyHeroComponent],
   template: `
     <div class="j-rail"><i class="j-rail-fill" [style.width.%]="progress()"></i></div>
 
     <div class="j-intro">
       <p class="j-eyebrow">un viaje por la concurrencia en el navegador</p>
       <h1>16 patrones de Web Workers, de a uno, jugando.</h1>
+      <default-journey-hero />
       <p class="j-lede">
-        Empezás arriba, interactuás con cada patrón y el scroll te lleva al siguiente. Cinco
-        capítulos, un mismo hilo de fondo. Bajá.
+        Eso, en una escena. Abajo, cada patrón tiene su demo: el scroll te lleva de una a la
+        siguiente. Cinco capítulos, un mismo hilo de fondo. Bajá.
       </p>
       <p class="j-cue">↓</p>
     </div>

@@ -1,0 +1,451 @@
+/*
+ * Escena de portada. Sin encapsulación (la escena crea su SVG por código), así
+ * que todo cuelga de `.jh`. La paleta sale de los tokens del theme con
+ * color-mix, para que `default` y `midnight` la pinten cada uno a su manera.
+ * Los únicos colores fijos son de la escena, no del theme, y casi todos se
+ * mezclan con un token: el blanco (ojos, brillos), la sombra tintada (nunca
+ * negro puro), el dorado de la corona, la piel de main, la luz cálida de la
+ * lámpara y el hielo del congelamiento.
+ */
+.jh {
+  --jh-shade: color-mix(in oklab, var(--worker) 24%, #120a1c);
+  --jh-white: color-mix(in oklab, var(--surface-raised) 20%, #fff);
+  --jh-gold: #f2b632;
+  --jh-gold-dark: color-mix(in oklab, var(--jh-gold) 70%, var(--jh-shade));
+
+  --jh-wall-top: color-mix(in oklab, var(--surface) 93%, var(--accent));
+  --jh-wall-bot: color-mix(in oklab, var(--surface) 86%, var(--thread-main));
+  --jh-wainscot: color-mix(in oklab, var(--surface) 76%, var(--thread-main));
+  --jh-trim: color-mix(in oklab, var(--surface) 58%, var(--thread-main));
+  --jh-floor-top: color-mix(in oklab, var(--thread-main) 50%, var(--surface));
+  --jh-floor-bot: color-mix(in oklab, var(--thread-main) 62%, var(--jh-shade));
+  --jh-light: color-mix(in oklab, var(--accent) 18%, #fff4cf);
+
+  --jh-main: color-mix(in oklab, var(--thread-main) 45%, #f08a5d);
+  --jh-main-light: color-mix(in oklab, var(--jh-main) 55%, #fff);
+  --jh-main-dark: color-mix(in oklab, var(--jh-main) 68%, var(--jh-shade));
+  --jh-worker-light: color-mix(in oklab, var(--worker) 55%, #fff);
+  --jh-worker-dark: color-mix(in oklab, var(--worker) 65%, var(--jh-shade));
+  --jh-screen: color-mix(in oklab, var(--jh-shade) 90%, var(--accent));
+  --jh-block-top: color-mix(in oklab, var(--thread-main) 70%, var(--jh-shade));
+  --jh-block-bot: color-mix(in oklab, var(--thread-main) 35%, var(--jh-shade));
+  --jh-leaf: color-mix(in oklab, var(--accent) 45%, var(--jh-shade));
+  --jh-leaf-light: color-mix(in oklab, var(--accent) 70%, var(--jh-shade));
+
+  width: 100%;
+  margin: 8px 0 0;
+}
+
+/* ── Escenario ── */
+.jh-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1200 / 560;
+  max-height: 62vh;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: var(--border-width) solid var(--border);
+  background: var(--surface-raised);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (max-width: 640px) {
+  .jh-stage {
+    aspect-ratio: 4 / 3;
+  }
+}
+.jh-scene,
+.jh-svg,
+.jh-vignette {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.jh-svg {
+  display: block;
+  touch-action: pan-y;
+}
+.jh-vignette {
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 46% 46%,
+    transparent 56%,
+    color-mix(in oklab, var(--jh-shade) 30%, transparent) 100%
+  );
+}
+.jh-main-pose,
+.jh-worker-pose,
+.jh-lamp {
+  cursor: pointer;
+}
+.jh-main-pose:active {
+  cursor: grabbing;
+}
+
+/* ── Degradados (stop-color por clase: así leen los tokens) ── */
+.jh-s-wall-top {
+  stop-color: var(--jh-wall-top);
+}
+.jh-s-wall-bot {
+  stop-color: var(--jh-wall-bot);
+}
+.jh-s-floor-top {
+  stop-color: var(--jh-floor-top);
+}
+.jh-s-floor-bot {
+  stop-color: var(--jh-floor-bot);
+}
+.jh-s-light {
+  stop-color: var(--jh-light);
+}
+.jh-s-accent {
+  stop-color: var(--accent);
+}
+.jh-s-main {
+  stop-color: var(--jh-main);
+}
+.jh-s-main-light {
+  stop-color: var(--jh-main-light);
+}
+.jh-s-main-dark {
+  stop-color: var(--jh-main-dark);
+}
+.jh-s-worker {
+  stop-color: var(--worker);
+}
+.jh-s-worker-light {
+  stop-color: var(--jh-worker-light);
+}
+.jh-s-worker-dark {
+  stop-color: var(--jh-worker-dark);
+}
+.jh-s-block-top {
+  stop-color: var(--jh-block-top);
+}
+.jh-s-block-bot {
+  stop-color: var(--jh-block-bot);
+}
+
+/* ── Fondo ── */
+.jh-wainscot {
+  fill: var(--jh-wainscot);
+}
+.jh-panel {
+  fill: none;
+  stroke: var(--jh-trim);
+  stroke-width: 3;
+  opacity: 0.55;
+}
+.jh-trim {
+  fill: var(--jh-trim);
+}
+.jh-trim-line,
+.jh-cord {
+  stroke: var(--jh-trim);
+  stroke-width: 4;
+  fill: none;
+}
+.jh-cord {
+  stroke: var(--jh-shade);
+  stroke-width: 3;
+}
+.jh-plank {
+  stroke: var(--jh-shade);
+  stroke-opacity: 0.18;
+  stroke-width: 2;
+  fill: none;
+}
+.jh-white {
+  fill: var(--jh-white);
+}
+.jh-shade {
+  fill: var(--jh-shade);
+}
+.jh-red {
+  fill: var(--thread-blocked);
+}
+.jh-tick {
+  stroke: var(--jh-shade);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.jh-label,
+.jh-screen-label,
+.jh-plaque-text,
+.jh-badge-text,
+.jh-block-small {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  fill: var(--jh-shade);
+}
+.jh-label {
+  opacity: 0.6;
+}
+.jh-bezel {
+  fill: var(--jh-trim);
+}
+.jh-screen {
+  fill: var(--jh-screen);
+}
+.jh-grid-line {
+  stroke: var(--accent);
+  stroke-opacity: 0.12;
+  stroke-width: 1;
+}
+.jh-ecg-live,
+.jh-ecg-dead {
+  fill: none;
+  stroke-width: 2.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.jh-ecg-live {
+  stroke: var(--thread-worker);
+}
+.jh-ecg-dead {
+  stroke: var(--thread-blocked);
+}
+.jh-screen-label {
+  fill: var(--accent);
+  font-size: 10px;
+  opacity: 0.8;
+}
+.jh-led {
+  fill: var(--thread-worker);
+}
+.jh-led.is-dead {
+  fill: var(--thread-blocked);
+}
+.jh-door-hole {
+  fill: var(--jh-shade);
+}
+.jh-door-panel {
+  fill: color-mix(in oklab, var(--worker) 30%, var(--jh-wainscot));
+}
+.jh-door-inset {
+  fill: none;
+  stroke: var(--jh-shade);
+  stroke-opacity: 0.2;
+  stroke-width: 3;
+}
+.jh-plaque {
+  fill: var(--jh-white);
+  stroke: var(--jh-trim);
+  stroke-width: 2;
+}
+.jh-gold {
+  fill: var(--jh-gold);
+}
+.jh-gold-dark {
+  fill: var(--jh-gold-dark);
+}
+.jh-gem {
+  fill: var(--thread-blocked);
+}
+.jh-lampshade {
+  fill: var(--jh-shade);
+}
+.jh-bulb {
+  fill: var(--jh-light);
+}
+.jh-cone {
+  pointer-events: none;
+}
+
+/* ── Personajes ── */
+.jh-contact {
+  fill: var(--jh-shade);
+  opacity: 0.28;
+}
+.jh-main-dark {
+  fill: var(--jh-main-dark);
+}
+.jh-worker-dark {
+  fill: var(--jh-worker-dark);
+}
+.jh-main-belly {
+  fill: var(--jh-main-light);
+  opacity: 0.55;
+}
+.jh-worker-belly {
+  fill: var(--jh-worker-light);
+  opacity: 0.45;
+}
+.jh-shine {
+  fill: #fff;
+  opacity: 0.22;
+}
+.jh-arm {
+  fill: none;
+  stroke-width: 20;
+  stroke-linecap: round;
+}
+.jh-arm-main {
+  stroke: var(--jh-main);
+}
+.jh-arm-worker {
+  stroke: var(--worker);
+  stroke-width: 15;
+}
+.jh-badge {
+  fill: var(--jh-white);
+  opacity: 0.92;
+}
+.jh-badge-main {
+  font-size: 14px;
+}
+.jh-brow,
+.jh-mouth {
+  fill: none;
+  stroke: var(--jh-shade);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+.jh-mouth-o {
+  fill: var(--jh-shade);
+}
+.jh-cheek {
+  fill: var(--thread-blocked);
+  opacity: 0.28;
+}
+.jh-hat-dome,
+.jh-hat-brim {
+  fill: var(--thread-worker);
+}
+.jh-hat-brim {
+  fill: color-mix(in oklab, var(--thread-worker) 70%, var(--jh-shade));
+}
+.jh-hat-hi {
+  fill: #fff;
+  opacity: 0.3;
+}
+.jh-frost {
+  fill: color-mix(in oklab, var(--worker) 25%, #e8f6ff);
+  stroke: #fff;
+  stroke-width: 4;
+  pointer-events: none;
+}
+.jh-star {
+  fill: var(--jh-gold);
+  stroke: var(--jh-shade);
+  stroke-width: 1.5;
+}
+
+/* ── Lo que cae y lo que vuela ── */
+.jh-block-side {
+  fill: var(--jh-shade);
+}
+.jh-strap {
+  fill: var(--jh-gold);
+  opacity: 0.85;
+}
+.jh-block-small {
+  fill: var(--jh-white);
+  font-size: 13px;
+}
+.jh-block-big {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 26px;
+  fill: var(--jh-white);
+}
+.jh-orb-core {
+  fill: var(--jh-white);
+}
+.jh-ball-fill {
+  stroke: var(--jh-shade);
+  stroke-width: 2.5;
+}
+.jh-ball-0 .jh-ball-fill {
+  fill: var(--accent);
+}
+.jh-ball-1 .jh-ball-fill {
+  fill: var(--jh-worker-light);
+}
+.jh-ball-2 .jh-ball-fill {
+  fill: var(--jh-gold);
+}
+.jh-ball-hi {
+  fill: #fff;
+  opacity: 0.5;
+}
+.jh-ball-glyph {
+  fill: var(--jh-shade);
+}
+.jh-ball-glyph-line {
+  fill: none;
+  stroke: var(--jh-shade);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+.jh-leaf {
+  fill: var(--jh-leaf);
+}
+.jh-leaf-light {
+  fill: var(--jh-leaf-light);
+}
+.jh-pot {
+  fill: var(--jh-main-dark);
+}
+.jh-dust {
+  fill: var(--jh-floor-top);
+  opacity: 0.85;
+}
+.jh-ring {
+  fill: none;
+  stroke: var(--jh-light);
+  stroke-width: 3;
+}
+.jh-incoming {
+  fill: var(--jh-shade);
+  opacity: 0;
+}
+.jh-spark {
+  fill: var(--accent);
+}
+.jh-shard {
+  fill: color-mix(in oklab, var(--worker) 20%, #e8f6ff);
+}
+.jh-pop {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 30px;
+  fill: var(--jh-white);
+  stroke: var(--jh-shade);
+  stroke-width: 7;
+  paint-order: stroke;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+.jh-pop-strong {
+  font-size: 40px;
+  fill: var(--jh-gold);
+}
+
+/* ── Controles (HTML, accesibles) ── */
+.jh-controls {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+.jh-task {
+  margin: 0;
+  font-size: 17px;
+  color: var(--ink);
+}
+.jh-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.jh-caption {
+  margin: 0;
+  min-height: 3.2em;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink-muted);
+  max-width: 64ch;
+}
