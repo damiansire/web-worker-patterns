@@ -52,6 +52,11 @@ describe('EXAMPLES registry', () => {
     }
   });
 
+  it('cada ejemplo trae código: es lo que cierra cada nivel', () => {
+    const sinCodigo = EXAMPLES.filter((ex) => Object.keys(ex.snippets).length === 0);
+    expect(sinCodigo.map((ex) => ex.id)).toEqual([]);
+  });
+
   it('ninguna línea de snippet pasa de 92 caracteres (lo que entra en el code-block a 1280px)', () => {
     // Medido con Playwright: 94 caracteres ya scrollean dentro del <pre> en desktop.
     const MAX = 92;

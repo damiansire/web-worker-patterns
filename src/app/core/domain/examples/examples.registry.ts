@@ -14,6 +14,7 @@ import { DEGRADATION_SNIPPETS } from './snippets/degradation.snippets';
 import { OFFSCREEN_CANVAS_SNIPPETS } from './snippets/offscreen-canvas.snippets';
 import { CLONE_COST_SNIPPETS } from './snippets/clone-cost.snippets';
 import { COMPOSITOR_SNIPPETS } from './snippets/compositor.snippets';
+import { MAIN_THREAD_SNIPPETS } from './snippets/main-thread.snippets';
 
 /**
  * Registry neutral de ejemplos (ARQUITECTURA §3.1).
@@ -42,7 +43,7 @@ export const EXAMPLES: WorkerExample[] = [
     order: 2,
     category: 'understanding',
     i18nKey: 'examples.02-main-thread',
-    snippets: {},
+    snippets: MAIN_THREAD_SNIPPETS,
   },
   {
     id: '03-basic-communication',
