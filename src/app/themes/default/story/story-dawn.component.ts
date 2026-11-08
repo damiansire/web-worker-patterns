@@ -13,6 +13,7 @@ import {
 import gsap from 'gsap';
 import { readStored } from '../../../core/utils/safe-storage';
 import { pageWasTouched, playChime, SOUND_KEY } from './story.audio';
+import { StoryPlayComponent } from './story-play.component';
 import { cloudPath, hash, Landmark, Point } from './story.map';
 
 /** Cómo se despertó: con el play (y entonces se entra a jugar) o tocando en otro lado. */
@@ -58,7 +59,7 @@ const DROPS = [-150, -110, -70, -30, 10, 50, 120].map((deg, i) => {
  * día está el sol, titilan las estrellas, pasa alguna fugaz, las ventanas de
  * los hitos están encendidas, el faro barre y hay luciérnagas. Main ronca con
  * una burbuja que se infla y se desinfla. Lo único que brilla de verdad es el
- * play bajo sus pies.
+ * play bajo sus pies: la medalla de `story-play`, con halo y corcheas.
  *
  * Tocarlo da el toque que el navegador pide para dejar sonar (suena un arpegio
  * que lo confirma) y arranca una cadena: la burbuja revienta, main se
@@ -82,6 +83,7 @@ const DROPS = [-150, -110, -70, -30, 10, 50, 120].map((deg, i) => {
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'story-dawn',
+  imports: [StoryPlayComponent],
   host: {
     class: 'sd',
     '(click)': 'wake($event, "tap")',
@@ -441,29 +443,13 @@ const DROPS = [-150, -110, -70, -30, 10, 50, 120].map((deg, i) => {
       (click)="wake($event, 'play')"
     >
       <!-- GSAP hunde esta capa y no el botón: reescribiría el translate que lo centra. -->
-      <span #press class="sd-play-bob">
-        <span class="sd-play-ring" aria-hidden="true"></span>
-        <span class="sd-play-tri" aria-hidden="true"></span>
-        <span class="sd-play-text" aria-hidden="true">
-          <strong>¡Jugar!</strong>
-          <small>
-            <svg viewBox="0 0 24 24">
-              <path class="sd-cone" d="M4 9h4l5-4v14l-5-4H4z" />
-              @if (soundOn) {
-                <path class="sd-wave" d="M16 9.5a3.5 3.5 0 0 1 0 5M18.5 7a7 7 0 0 1 0 10" />
-              } @else {
-                <path class="sd-wave" d="M16.5 9.5l5 5M21.5 9.5l-5 5" />
-              }
-            </svg>
-            {{ soundOn ? 'con música' : 'sin sonido' }}
-          </small>
-        </span>
-        <svg class="sd-play-spark" viewBox="-12 -12 24 24" aria-hidden="true">
-          <path [attr.d]="sparkle" />
-        </svg>
-        <svg class="sd-play-spark" viewBox="-12 -12 24 24" aria-hidden="true">
-          <path [attr.d]="sparkle" />
-        </svg>
+      <span #press class="sd-press">
+        <story-play
+          label="¡Jugar!"
+          [caption]="soundOn ? 'con música' : 'sin sonido'"
+          [glow]="true"
+          [sound]="soundOn"
+        />
       </span>
     </button>
   `,
@@ -655,10 +641,18 @@ export class StoryDawnComponent {
 
     this.dawn = gsap
       .timeline({ onComplete: () => this.lit.emit(by) })
-      .to(press, { scale: by === 'play' ? 0.86 : 1, duration: 0.08 })
+      // La medalla se aplasta (desde abajo, conservando el volumen) y salta antes de irse.
+      .set(press, { transformOrigin: '50% 100%' })
+      .to(press, {
+        scaleX: by === 'play' ? 1.1 : 1,
+        scaleY: by === 'play' ? 0.84 : 1,
+        duration: 0.08,
+        ease: 'power2.out',
+      })
       .addLabel('pop')
       .call(() => this.woke.emit(by), [], 'pop')
-      .to(press, { scale: 0.6, autoAlpha: 0, duration: 0.3, ease: 'power2.in' }, 'pop')
+      .to(press, { scaleX: 0.9, scaleY: 1.12, y: -14, duration: 0.12, ease: 'power2.out' }, 'pop')
+      .to(press, { scale: 0.5, y: 6, autoAlpha: 0, duration: 0.24, ease: 'power2.in' }, 'pop+=0.12')
       .to(this.bubble().nativeElement, { scale: 1.3, autoAlpha: 0, duration: 0.06 }, 'pop')
       .set(this.pop().nativeElement, { opacity: 1 }, 'pop')
       .fromTo(

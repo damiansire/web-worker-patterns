@@ -15,6 +15,7 @@ import gsap from 'gsap';
 import { ThemeService } from '../../../theming/theme.service';
 import { MAIN_BODY } from './scene/scene.art';
 import { DawnBy, NightScene, StoryDawnComponent } from './story-dawn.component';
+import { StoryPlayComponent } from './story-play.component';
 import { IconPart, levelIcon } from './story.icons';
 import { StoryProgress } from './story-progress.service';
 import { CHAPTERS, currentLevel, Level, LEVELS, levelState, LevelState } from './story.levels';
@@ -83,7 +84,7 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   selector: 'default-story-map',
-  imports: [StoryDawnComponent],
+  imports: [StoryDawnComponent, StoryPlayComponent],
   template: `
     <section #stage class="sm" [attr.data-shape]="shape()">
       <svg
@@ -494,13 +495,7 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
         [attr.aria-label]="playLabel() + ': ' + next().title"
         (click)="go(here())"
       >
-        <span class="sm-play-bob">
-          <span class="sm-play-tri" aria-hidden="true"></span>
-          <span class="sm-play-text">
-            <strong>{{ playLabel() }}</strong>
-            <small>{{ next().title }}</small>
-          </span>
-        </span>
+        <story-play [label]="playLabel()" [caption]="next().title" />
       </button>
       <p class="sm-sr" aria-live="polite">{{ status() }}</p>
 

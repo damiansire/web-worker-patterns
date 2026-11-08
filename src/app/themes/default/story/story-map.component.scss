@@ -707,105 +707,16 @@
 .sm-node.is-here .sm-name {
   visibility: hidden;
 }
-.sm-play-bob {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 22px 12px 10px;
-  border-radius: 999px;
-  background: var(--sm-gold);
-  color: var(--sm-shade);
-  box-shadow:
-    inset 0 -5px 0 var(--sm-gold-dark),
-    0 12px 26px color-mix(in oklab, var(--sm-shade) 30%, transparent);
-  animation: sm-bob 1.3s ease-in-out infinite alternate;
+/* La medalla de `story-play`; el foco lo dibuja ella, alrededor de la moneda. */
+.sm-play story-play {
+  --sp-w: clamp(140px, 10.5vw, 180px);
 }
-/* La colita apunta a main, arriba. */
-.sm-play-bob::before {
-  content: '';
-  position: absolute;
-  top: -9px;
-  left: 50%;
-  border: 10px solid transparent;
-  border-top: 0;
-  border-bottom-color: var(--sm-gold);
-  transform: translateX(-50%);
-}
-@keyframes sm-bob {
-  to {
-    transform: translateY(-6px);
-  }
-}
-.sm-play-tri {
-  position: relative;
-  flex: none;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--sm-shade);
-}
-.sm-play-tri::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 54%;
-  border: 9px solid transparent;
-  border-left: 14px solid var(--sm-gold);
-  border-right: 0;
-  transform: translate(-50%, -50%);
-}
-.sm-play-text {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-}
-.sm-play-text strong {
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 900;
-  line-height: 1.05;
-}
-.sm-play-text small {
-  max-width: 180px;
-  overflow: hidden;
-  font-size: 13px;
-  font-weight: 700;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  opacity: 0.8;
-}
-.sm-play:hover .sm-play-bob {
-  background: color-mix(in oklab, var(--sm-gold) 85%, #fff);
-}
-.sm-play:active .sm-play-bob {
-  box-shadow:
-    inset 0 -2px 0 var(--sm-gold-dark),
-    0 6px 14px color-mix(in oklab, var(--sm-shade) 30%, transparent);
-}
-.sm-play:focus-visible .sm-play-bob {
-  outline: 3px solid var(--sm-shade);
-  outline-offset: 3px;
+.sm-play:focus-visible {
+  outline: none;
 }
 @media (max-width: 640px) {
-  .sm-play-bob {
-    gap: 8px;
-    padding: 6px 14px 8px 6px;
-  }
-  .sm-play-tri {
-    width: 30px;
-    height: 30px;
-  }
-  .sm-play-tri::after {
-    border-width: 6px 0 6px 10px;
-  }
-  .sm-play-text strong {
-    font-size: 16px;
-  }
-  .sm-play-text small {
-    max-width: 120px;
-    font-size: 11px;
+  .sm-play story-play {
+    --sp-w: 112px;
   }
 }
 
@@ -831,8 +742,7 @@
   .lm-blades,
   .lm-smoke,
   .lm-beam,
-  .sm-here,
-  .sm-play-bob {
+  .sm-here {
     animation: none;
   }
   .lm-smoke {
