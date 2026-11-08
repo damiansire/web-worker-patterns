@@ -12,7 +12,7 @@ import {
   viewChild,
   ViewEncapsulation,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ExampleLayoutController } from '../../../core/presentation/example-layout.controller';
 import { readStored, writeStored } from '../../../core/utils/safe-storage';
 import { ThemeService } from '../../../theming/theme.service';
@@ -36,6 +36,16 @@ import {
   ThreadLog,
 } from './story.threads.logic';
 
+/**
+ * Cuándo tocó "Siguiente" el nivel que se fue. El que entra, si nace enseguida,
+ * abre con el iris: la pantalla vieja y la nueva no comparten nada más que esto.
+ */
+let leftForNextAt = -Infinity;
+/** Cuánto dura cerrar el iris, en ms (igual que `lv-iris-close` en el SCSS). */
+const IRIS_CLOSE_MS = 900;
+/** Desde que entra el nivel hasta que el iris quedó abierto (`lv-iris-open` + su espera). */
+const IRIS_OPEN_MS = 1900;
+
 /** Qué atiende main con cada pelota del malabar. */
 const JUGGLED: readonly TaskKind[] = ['click', 'scroll', 'frame'];
 
@@ -44,7 +54,16 @@ interface Anchors {
   width: number;
   choice: Record<'main' | 'door', { x: number; y: number }>;
   speaker: Record<Who, number>;
+  /**
+   * La cara de main, donde se cierra y se abre el iris: el radio que la enmarca
+   * y el que llega justo a la esquina más lejana (con ese arranca a cerrarse,
+   * así se mueve desde el primer cuadro).
+   */
+  face: { x: number; y: number; r: number; far: number };
 }
+
+/** El iris entre niveles: se cierra sobre main al irse y se abre sobre main al llegar. */
+type Iris = 'closing' | 'opening';
 
 /**
  * Pantalla de un nivel con escena, a pantalla completa como el mapa y como un
@@ -209,7 +228,8 @@ interface Anchors {
           [style.left.px]="at.x"
           [style.top.px]="at.y"
           [style.--lv-x]="at.x + 'px'"
-          [routerLink]="nextLink()"
+          [attr.href]="nextHref()"
+          (click)="leave($event)"
         >
           <span class="lv-choice-bob">
             <span class="lv-pill-tri" aria-hidden="true"></span>
@@ -242,6 +262,27 @@ interface Anchors {
         </section>
       }
 
+      @if (iris(); as mode) {
+        <!-- Entre niveles: el iris de los dibujos animados, centrado en main. -->
+        <div
+          class="lv-iris"
+          [attr.data-mode]="mode"
+          [style.--lv-iris-x]="irisAt().x + 'px'"
+          [style.--lv-iris-y]="irisAt().y + 'px'"
+          [style.--lv-iris-r]="irisAt().r + 'px'"
+          [style.--lv-iris-far]="irisAt().far + 'px'"
+          aria-hidden="true"
+        >
+          <div class="lv-iris-hole"></div>
+          @if (mode === 'opening') {
+            <div class="lv-iris-card">
+              <p class="lv-iris-where">{{ where() }}</p>
+              <p class="lv-iris-title">{{ level().title }}</p>
+            </div>
+          }
+        </div>
+      }
+
       <section
         #talk
         class="lv-talk"
@@ -257,7 +298,7 @@ interface Anchors {
       </section>
     </article>
   `,
-  styleUrls: ['./scene/scene.scss', './story-stage.component.scss'],
+  styleUrls: ['./scene/scene.scss', './story-stage.component.scss', './story-stage.iris.scss'],
 })
 export class StoryStageComponent {
   readonly level = input.required<Level>();
@@ -265,6 +306,7 @@ export class StoryStageComponent {
   private readonly ctl = inject(ExampleLayoutController);
   private readonly progress = inject(StoryProgress);
   private readonly injector = inject(Injector);
+  private readonly router = inject(Router);
   protected readonly themeId = inject(ThemeService).activeId;
   private readonly sceneHost = viewChild.required<ElementRef<HTMLElement>>('scene');
   private readonly stageEl = viewChild.required<ElementRef<HTMLElement>>('stage');
@@ -328,6 +370,22 @@ export class StoryStageComponent {
     const door = a.choice.door;
     return { x: Math.min(Math.max(door.x, 125), a.width - 125), y: door.y - 56, at: 'door' };
   });
+  /** Calma: sin iris, se pasa de un nivel a otro directo. */
+  private readonly calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /** Si este nivel llegó desde el "Siguiente" del anterior, entra abriendo el iris. */
+  protected readonly iris = signal<Iris | null>(
+    !this.calm && performance.now() - leftForNextAt < 2000 ? 'opening' : null,
+  );
+  /** Antes de medir la escena, el iris se centra donde suele estar main. */
+  protected readonly irisAt = computed(
+    () =>
+      this.anchors()?.face ?? {
+        x: innerWidth * 0.45,
+        y: innerHeight * 0.62,
+        r: 150,
+        far: Math.hypot(innerWidth, innerHeight),
+      },
+  );
   /** Hacia dónde apunta la colita del diálogo: quien habla. */
   protected readonly tailX = computed(() => this.anchors()?.speaker[this.caption().who] ?? 0);
 
@@ -351,6 +409,9 @@ export class StoryStageComponent {
     const nx = this.next();
     return nx ? ['/t', this.themeId(), 'example', nx.id] : ['/t', this.themeId()];
   });
+  protected readonly nextHref = computed(() =>
+    this.router.serializeUrl(this.router.createUrlTree(this.nextLink())),
+  );
 
   private scene?: Scene;
   private ctx?: LevelContext;
@@ -364,8 +425,7 @@ export class StoryStageComponent {
       const lv = this.level();
       // El prólogo no es un ejemplo del catálogo: su código es el de los primos.
       this.ctl.useExample(lv.id === PROLOGUE_ID ? PRIMES_EXAMPLE : lv.id);
-      const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const scene = createScene(this.sceneHost().nativeElement, calm);
+      const scene = createScene(this.sceneHost().nativeElement, this.calm);
       this.scene = scene;
       scene.onView(() => this.measureAnchors());
       this.caption.set(this.script().intro);
@@ -427,6 +487,10 @@ export class StoryStageComponent {
       this.ctx = ctx;
       const teardown = this.script().setup?.(ctx);
       destroyRef.onDestroy(() => teardown?.());
+      if (this.iris() === 'opening') {
+        const opened = setTimeout(() => this.iris.set(null), IRIS_OPEN_MS);
+        destroyRef.onDestroy(() => clearTimeout(opened));
+      }
     });
     destroyRef.onDestroy(() => {
       this.dead = true;
@@ -440,7 +504,16 @@ export class StoryStageComponent {
     const scene = this.scene;
     if (!scene || this.dead) return;
     const head = (x: number) => scene.toScreen(x, MAIN_AT.y).x;
+    // La cara de main (el cuerpo sube ~250 desde los pies) y un radio que la enmarca.
+    const face = scene.toScreen(MAIN_AT.x + 10, MAIN_AT.y - 125);
+    const rim = scene.toScreen(MAIN_AT.x + 10, MAIN_AT.y - 125 - 175);
+    const room = this.roomEl().nativeElement;
+    const far = Math.hypot(
+      Math.max(face.x, room.clientWidth - face.x),
+      Math.max(face.y, room.clientHeight - face.y),
+    );
     this.anchors.set({
+      face: { ...face, r: Math.max(90, face.y - rim.y), far: Math.ceil(far) + 40 },
       // El ancho que se ve de la escena: sin lo que tapa la hoja del código.
       width: this.roomEl().nativeElement.clientWidth - this.sceneRight,
       choice: {
@@ -558,6 +631,30 @@ export class StoryStageComponent {
       },
       { injector: this.injector },
     );
+  }
+
+  /**
+   * "Siguiente": el iris se cierra sobre main y recién en lo oscuro cambia el
+   * nivel; el que entra lo abre (ver `iris`). Con clic modificado (pestaña
+   * nueva) o sin movimiento, el enlace hace lo de siempre.
+   */
+  protected leave(event: MouseEvent): void {
+    if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+      return;
+    }
+    event.preventDefault();
+    if (this.iris() === 'closing') return;
+    const link = this.nextLink();
+    if (this.calm || !this.next()) {
+      void this.router.navigate(link);
+      return;
+    }
+    this.iris.set('closing');
+    setTimeout(() => {
+      if (this.dead) return;
+      leftForNextAt = performance.now();
+      void this.router.navigate(link);
+    }, IRIS_CLOSE_MS);
   }
 
   protected async run(pathId: string): Promise<void> {
