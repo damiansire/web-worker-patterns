@@ -1,5 +1,5 @@
 /**
- * Física pura de la escena de portada (`journey-hero`). Sin DOM ni GSAP: se
+ * Física pura de la escena de la historia. Sin DOM ni GSAP: se
  * testea sola. Los resortes dan el toque elástico (un toque suma velocidad, no
  * fija una pose); el pseudoazar con semilla hace que el detalle generado salga
  * igual en cada carga; `jugglePoint` es la trayectoria de una pelota del malabar.

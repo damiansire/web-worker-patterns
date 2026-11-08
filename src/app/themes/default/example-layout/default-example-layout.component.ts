@@ -35,10 +35,8 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
   ],
   providers: [DEFAULT_PROVIDERS, ExampleLayoutController],
   template: `
-    <article class="e-ex" [class.e-ex--journey]="journeyMode()">
-      @if (!journeyMode()) {
-        <a class="e-back" [routerLink]="['/t', activeThemeId()]">← índice</a>
-      }
+    <article class="e-ex">
+      <a class="e-back" [routerLink]="['/t', activeThemeId()]">← mapa</a>
 
       @if (example(); as ex) {
         <p class="e-kicker">{{ ex.category }} · nº {{ ex.order.toString().padStart(2, '0') }}</p>
@@ -951,10 +949,7 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
       .e-ex {
         max-width: 760px;
         margin: 0 auto;
-      }
-      /* En el viaje, la parada ya centra y limita el ancho: soltamos el contenedor. */
-      .e-ex--journey {
-        max-width: none;
+        padding: 32px 20px 56px;
       }
       .e-back {
         font-family: var(--font-display);
@@ -1681,13 +1676,8 @@ import { DEFAULT_PROVIDERS } from '../default.providers';
   ],
 })
 export class DefaultExampleLayoutComponent {
-  /**
-   * Ejemplo a mostrar, por input. En la página single queda en `null` y el
-   * controller lo saca de la ruta; en una parada del viaje, el journey lo fija.
-   */
+  /** Ejemplo a mostrar, por input. Si queda en `null`, el controller lo saca de la ruta. */
   readonly exampleId = input<string | null>(null);
-  /** Modo viaje: sin back-link (la navegación es el scroll). */
-  readonly journeyMode = input(false);
 
   /** Toda la orquestación vive en el controller compartido (scoped a este componente). */
   protected readonly ctl = inject(ExampleLayoutController);
@@ -1695,7 +1685,7 @@ export class DefaultExampleLayoutComponent {
   /** ThreadVisualizer del theme activo, resuelto por DI (§5). */
   protected readonly visualizer = inject(THREAD_VISUALIZER);
 
-  /** El back-link vuelve al índice del theme activo. */
+  /** El back-link vuelve al mapa (el home del theme activo). */
   protected readonly activeThemeId = inject(ThemeService).activeId;
 
   // El componente sólo posee las refs al DOM del theme; la lógica la maneja el controller.
@@ -1824,7 +1814,7 @@ export class DefaultExampleLayoutComponent {
   private readonly injector = inject(Injector);
 
   constructor() {
-    // Si el journey fija el ejemplo por input, el controller lo usa en vez de la ruta.
+    // Si se fija el ejemplo por input, el controller lo usa en vez de la ruta.
     effect(() => {
       const id = this.exampleId();
       if (id) {

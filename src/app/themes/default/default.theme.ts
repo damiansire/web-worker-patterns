@@ -9,9 +9,8 @@ export const DEFAULT_THEME: ThemePack = {
   id: 'default',
   label: 'Default',
   shell: () => import('./shell/default-shell.component').then((m) => m.DefaultShellComponent),
-  home: () => import('./journey/default-journey.component').then((m) => m.DefaultJourneyComponent),
-  exampleLayout: () =>
-    import('./example-layout/default-example-layout.component').then(
-      (m) => m.DefaultExampleLayoutComponent,
-    ),
+  // La portada es el mapa de la historia; cada ejemplo, un nivel (los que no
+  // tienen escena todavía se abren en su versión clásica).
+  home: () => import('./story/story-map.component').then((m) => m.StoryMapComponent),
+  exampleLayout: () => import('./story/story-level.component').then((m) => m.StoryLevelComponent),
 };

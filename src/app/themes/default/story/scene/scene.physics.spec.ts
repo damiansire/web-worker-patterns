@@ -1,6 +1,6 @@
-import { jugglePoint, MAX_STEP, seeded, spring, stepSprings } from './journey-hero.physics';
+import { jugglePoint, MAX_STEP, seeded, spring, stepSprings } from './scene.physics';
 
-describe('journey-hero physics', () => {
+describe('scene physics', () => {
   it('un resorte golpeado oscila y vuelve a su objetivo', () => {
     const s = spring(0, 180, 12);
     s.v = 400;

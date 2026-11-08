@@ -98,20 +98,20 @@ await check('04 · el estado CONGELADO se pinta antes de que el main se bloquee'
   return `freeze de ${freeze.duration.toFixed(0)}ms, renderizado ${(freeze.start - probe.renderedAt).toFixed(0)}ms antes`;
 });
 
-await check('01 · salir a mitad de corrida no deja el botón trabado', async (page) => {
+await check('01 · salir a mitad de corrida no deja el nivel trabado', async (page) => {
   await openExample(page, '01-setinterval-counter');
-  const run = page.getByRole('button', { name: 'Ejecutar en worker' });
+  const run = page.getByRole('button', { name: 'Un worker' });
   await run.click();
   await page.waitForTimeout(700); // la corrida dura 2,5s: salimos en el medio
   assert(await run.isDisabled(), 'precondición: el botón debería estar deshabilitado en vuelo');
 
-  await page.getByRole('link', { name: /índice/ }).click();
+  await page.getByRole('link', { name: /mapa/ }).click();
   await page.waitForURL((url) => !url.pathname.includes('/example/'));
   await page.goBack();
   await page.waitForSelector('article h1');
 
-  const again = page.getByRole('button', { name: 'Ejecutar en worker' });
-  assert(await again.isEnabled(), 'al volver, "Ejecutar en worker" sigue deshabilitado');
+  const again = page.getByRole('button', { name: 'Un worker' });
+  assert(await again.isEnabled(), 'al volver, "Un worker" sigue deshabilitado');
 });
 
 await check('07 · transferir mide menos que clonar (ida y vuelta real)', async (page) => {

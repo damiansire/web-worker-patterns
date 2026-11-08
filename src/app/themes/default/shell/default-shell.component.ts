@@ -23,6 +23,8 @@ import { ThemeService } from '../../../theming/theme.service';
   styles: [
     `
       .e-shell {
+        /* La pantalla de nivel ocupa la ventana menos esta cabecera. */
+        --masthead-h: 52px;
         min-height: 100vh;
         background: var(--surface);
         color: var(--ink);
@@ -30,23 +32,22 @@ import { ThemeService } from '../../../theming/theme.service';
       }
       .e-masthead {
         display: flex;
-        align-items: baseline;
         justify-content: space-between;
         flex-wrap: wrap;
+        align-items: center;
         gap: 8px;
-        padding: 28px 40px;
-        border-bottom: var(--border-width) solid var(--ink);
+        height: var(--masthead-h);
+        box-sizing: border-box;
+        padding: 0 24px;
+        border-bottom: var(--border-width) solid var(--border);
       }
       .e-logo {
         font-family: var(--font-display);
         font-weight: 800;
-        font-size: 24px;
+        font-size: 18px;
         letter-spacing: -0.01em;
         color: var(--ink);
         text-decoration: none;
-      }
-      .e-main {
-        padding: 40px;
       }
     `,
   ],

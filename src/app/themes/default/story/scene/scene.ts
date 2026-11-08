@@ -1,17 +1,9 @@
 import gsap from 'gsap';
-import { DOOR_X, MAIN_AT, SCENE_SVG, WORKER_AT } from './journey-hero.art';
-import {
-  clamp,
-  jugglePoint,
-  MAX_STEP,
-  seeded,
-  spring,
-  Spring,
-  stepSprings,
-} from './journey-hero.physics';
+import { DOOR_X, MAIN_AT, SCENE_SVG, WORKER_AT } from './scene.art';
+import { clamp, jugglePoint, MAX_STEP, seeded, spring, Spring, stepSprings } from './scene.physics';
 
 /**
- * Escena de portada: `main` (el hilo principal) hace malabares con lo que
+ * Escena de la historia: `main` (el hilo principal) hace malabares con lo que
  * atiende. Tres capas que no se pisan (ver la skill de animación vectorial):
  *  - vida: respiración, parpadeo, malabar, viento; se pausa fuera de pantalla;
  *  - toque: resortes que suman velocidad (tocar, arrastrar, soltar);
@@ -22,19 +14,43 @@ import {
  * congela de verdad porque vive en ese hilo: el monitor marca el plano rojo y el
  * reloj salta, igual que el pulso del theme.
  */
-export interface HeroScene {
-  /** El cálculo cae sobre main. Resuelve en el golpe, justo antes de calcular. */
-  dropOnMain(): Promise<void>;
+export interface Scene {
+  /** El trabajo cae sobre main. Resuelve en el golpe, justo antes de calcular. */
+  dropOnMain(label?: BlockLabel): Promise<void>;
   /** Después del congelamiento real: main se descongela y suelta todo. Resuelve al terminar. */
   thaw(): Promise<void>;
-  /** El worker entra (si no estaba) y ataja el cálculo. Resuelve cuando lo tiene. */
-  handToWorker(): Promise<void>;
-  /** El worker terminó: el cálculo se vuelve resultado y se lo pasa a main. */
+  /** El worker entra (si no estaba) y ataja el trabajo. Resuelve cuando lo tiene. */
+  handToWorker(label?: BlockLabel): Promise<void>;
+  /** El worker terminó: el trabajo se vuelve resultado y se lo pasa a main. */
   deliver(label: string): Promise<void>;
   /** El worker falló: suelta el bloque. */
   fumble(): Promise<void>;
+  /** El worker entra por la puerta sin nada en las manos. */
+  workerEnter(): Promise<void>;
+  /** Muestra (o esconde, con null) el tablero de la pared con su título. */
+  board(title: string | null, value?: string): void;
+  /** Cambia el valor del tablero; con `from`, el dato sale volando de ese personaje. */
+  boardValue(value: string, from?: Who): Promise<void>;
+  /** Un clic que esperó en la fila: aparece donde se hizo (con su cartel) y vuela hasta main. */
+  queuedClick(x: number, y: number, label: string): Promise<void>;
+  /** Un globo sobre la cabeza del personaje. */
+  say(who: Who, text: string, strong?: boolean): void;
+  /** Festejo: saltan y vuelan chispas. */
+  celebrate(): void;
+  /** De coordenadas de pantalla a las de la escena (viewBox). */
+  toScene(clientX: number, clientY: number): { x: number; y: number };
+  /**
+   * Fija un elemento HTML a un punto de la escena, escalado con ella. Sirve para
+   * lo que tiene que moverse aunque main esté congelado (el compositor no anima
+   * SVG). Devuelve la función que lo suelta.
+   */
+  pin(node: HTMLElement, x: number, y: number): () => void;
   destroy(): void;
 }
+
+export type Who = 'main' | 'worker';
+/** Las dos líneas del bloque que cae: chica arriba, grande abajo. */
+export type BlockLabel = readonly [string, string];
 
 const NS = 'http://www.w3.org/2000/svg';
 const GRAVITY = 2400;
@@ -46,6 +62,8 @@ const JUGGLE_RATE = 0.55; // vueltas por segundo
 const HAND_Y = -60; // altura de las manos de main sobre sus pies
 const BLOCK_ON_MAIN = MAIN_AT.y - 244;
 const BLOCK_ON_WORKER = WORKER_AT.y - 186;
+const BOARD = { x: 330, y: 150 };
+const DEFAULT_BLOCK: BlockLabel = ['contar primos', '5 000 000'];
 
 type Attrs = Record<string, string | number>;
 const el = <K extends keyof SVGElementTagNameMap>(
@@ -82,7 +100,7 @@ const POKE_BODY = ['¡jiji!', '¡boing!', '¡cosquillas!'];
 const POKE_ANGRY = ['¡estoy ocupado!', '¡de a uno!', '¡uff!'];
 const POKE_WORKER = ['¡a la orden!', '¡boing!', '¡ups!'];
 
-export function createHeroScene(host: HTMLElement, calm: boolean): HeroScene {
+export function createScene(host: HTMLElement, calm: boolean): Scene {
   host.innerHTML = SCENE_SVG;
   const svg = host.querySelector('svg') as SVGSVGElement;
   const $ = <T extends Element = SVGGElement>(sel: string): T => svg.querySelector(sel) as T;
@@ -173,6 +191,30 @@ export function createHeroScene(host: HTMLElement, calm: boolean): HeroScene {
     el(grid, 'path', { class: 'jh-grid-line', d: `M${x} 86V184` });
   for (let y = 98; y < 184; y += 24)
     el(grid, 'path', { class: 'jh-grid-line', d: `M656 ${y}H844` });
+
+  // Tablero de la pared (lo usan los niveles que cuentan algo). Entre el reloj y
+  // la lámpara, para que el cono de luz no lo tape.
+  const boardG = el($('.jh-back'), 'g', {
+    class: 'jh-board',
+    transform: `translate(${BOARD.x} ${BOARD.y})`,
+  });
+  el(boardG, 'path', { class: 'jh-trim-line', d: 'M0 -92V-58' });
+  el(boardG, 'rect', { class: 'jh-bezel', x: -70, y: -58, width: 140, height: 104, rx: 14 });
+  el(boardG, 'rect', { class: 'jh-screen', x: -60, y: -48, width: 120, height: 84, rx: 8 });
+  const boardTitle = el(boardG, 'text', {
+    class: 'jh-screen-label',
+    y: -30,
+    'text-anchor': 'middle',
+  });
+  const boardNum = el(boardG, 'text', { class: 'jh-board-value', y: 22, 'text-anchor': 'middle' });
+  gsap.set(boardG, { autoAlpha: 0 });
+
+  const blockSmall = $<SVGTextElement>('.jh-block-small');
+  const blockBig = $<SVGTextElement>('.jh-block-big');
+  const label = (l: BlockLabel = DEFAULT_BLOCK) => {
+    blockSmall.textContent = l[0];
+    blockBig.textContent = l[1];
+  };
 
   // Planta en primer plano: hojas que enmarcan, más densas en los bordes.
   const plantL = el(front, 'g', { class: 'jh-plant' });
@@ -286,6 +328,8 @@ export function createHeroScene(host: HTMLElement, calm: boolean): HeroScene {
   let ledCall: gsap.core.Tween | null = null;
 
   gsap.set(worker.pose, { autoAlpha: 0 });
+  // El origen (los pies del bloque) se fija UNA vez: volver a pasarle svgOrigin a
+  // un elemento ya movido hace que GSAP lo "compense" y lo corra de lugar.
   gsap.set([block, orb], { autoAlpha: 0, svgOrigin: '0 0' });
   gsap.set(main.frost, { opacity: 0 });
   gsap.set(main.stars, { opacity: 0 });
@@ -893,8 +937,9 @@ export function createHeroScene(host: HTMLElement, calm: boolean): HeroScene {
   start();
 
   // ── Reacciones ──
-  const dropOnMain = (): Promise<void> =>
+  const dropOnMain = (l?: BlockLabel): Promise<void> =>
     new Promise((resolve) => {
+      label(l);
       alReposo();
       workerTl?.kill();
       const x = mainX();
@@ -921,7 +966,6 @@ export function createHeroScene(host: HTMLElement, calm: boolean): HeroScene {
             y: calm ? BLOCK_ON_MAIN : -6,
             rotation: -4,
             scale: 1,
-            svgOrigin: '0 0',
           })
           .to(main.brows, { y: -6, duration: dur(0.15), ease: 'back.out(2)' }, 0)
           .to(main.mouthO, { attr: { ry: 10 }, duration: dur(0.12) }, 0)
@@ -1032,58 +1076,66 @@ export function createHeroScene(host: HTMLElement, calm: boolean): HeroScene {
     }
   };
 
-  const handToWorker = (): Promise<void> =>
+  /** La entrada por la puerta, dos saltos hasta su lugar. No-op si ya está. */
+  let entering: gsap.core.Timeline | null = null;
+  const enterDoor = (tl: gsap.core.Timeline) => {
+    if (workerIn) return;
+    workerIn = true;
+    const doorDx = DOOR_X - WORKER_AT.x;
+    tl.to(door, {
+      scaleX: 0.12,
+      svgOrigin: '1014 194',
+      duration: dur(0.25),
+      ease: 'power2.out',
+    })
+      .set(worker.rig, { x: doorDx, y: -58, scale: 0.78, svgOrigin: '0 0' })
+      .to(worker.pose, { autoAlpha: 1, duration: dur(0.15) })
+      .call(() => pop(DOOR_X, 170, '¡voy!'));
+    // Dos saltos hasta su lugar, bajando del umbral al piso.
+    tl.to(worker.rig, { x: doorDx * 0.5, y: -110, duration: dur(0.17), ease: 'power2.out' })
+      .to(worker.rig, {
+        y: -30,
+        scale: 0.9,
+        svgOrigin: '0 0',
+        duration: dur(0.17),
+        ease: 'power2.in',
+      })
+      .call(() => {
+        if (!calm) r.wsq.v += 5;
+      })
+      .to(worker.rig, { x: doorDx * 0.15, y: -80, duration: dur(0.16), ease: 'power2.out' })
+      .to(worker.rig, {
+        x: 0,
+        y: 0,
+        scale: 1,
+        svgOrigin: '0 0',
+        duration: dur(0.17),
+        ease: 'power2.in',
+      })
+      .call(() => {
+        if (!calm) r.wsq.v += 6;
+        dust(WORKER_AT.x, FLOOR_Y, 7, 70);
+        impacto(WORKER_AT.x, FLOOR_Y, 0.4);
+      })
+      .to(
+        door,
+        { scaleX: 1, svgOrigin: '1014 194', duration: dur(0.3), ease: 'back.out(1.6)' },
+        '+=0.05',
+      );
+  };
+
+  const handToWorker = (l?: BlockLabel): Promise<void> =>
     new Promise((resolve) => {
+      label(l);
+      // Si todavía estaba entrando, termina de entrar de una.
+      entering?.progress(1);
       workerTl?.kill();
       reaction?.kill();
       reaction = null;
       workerBusy = true;
       const tl = add(() => gsap.timeline({ onComplete: resolve }));
       workerTl = tl;
-      if (!workerIn) {
-        workerIn = true;
-        const doorDx = DOOR_X - WORKER_AT.x;
-        tl.to(door, {
-          scaleX: 0.12,
-          svgOrigin: '1014 194',
-          duration: dur(0.25),
-          ease: 'power2.out',
-        })
-          .set(worker.rig, { x: doorDx, y: -58, scale: 0.78, svgOrigin: '0 0' })
-          .to(worker.pose, { autoAlpha: 1, duration: dur(0.15) })
-          .call(() => pop(DOOR_X, 170, '¡voy!'));
-        // Dos saltos hasta su lugar, bajando del umbral al piso.
-        tl.to(worker.rig, { x: doorDx * 0.5, y: -110, duration: dur(0.17), ease: 'power2.out' })
-          .to(worker.rig, {
-            y: -30,
-            scale: 0.9,
-            svgOrigin: '0 0',
-            duration: dur(0.17),
-            ease: 'power2.in',
-          })
-          .call(() => {
-            if (!calm) r.wsq.v += 5;
-          })
-          .to(worker.rig, { x: doorDx * 0.15, y: -80, duration: dur(0.16), ease: 'power2.out' })
-          .to(worker.rig, {
-            x: 0,
-            y: 0,
-            scale: 1,
-            svgOrigin: '0 0',
-            duration: dur(0.17),
-            ease: 'power2.in',
-          })
-          .call(() => {
-            if (!calm) r.wsq.v += 6;
-            dust(WORKER_AT.x, FLOOR_Y, 7, 70);
-            impacto(WORKER_AT.x, FLOOR_Y, 0.4);
-          })
-          .to(
-            door,
-            { scaleX: 1, svgOrigin: '1014 194', duration: dur(0.3), ease: 'back.out(1.6)' },
-            '+=0.05',
-          );
-      }
+      enterDoor(tl);
       // Levanta los brazos y ataja el cálculo.
       tl.call(() => {
         r.warmL.t = calm ? 0 : 160;
@@ -1100,7 +1152,6 @@ export function createHeroScene(host: HTMLElement, calm: boolean): HeroScene {
           y: calm ? BLOCK_ON_WORKER : -6,
           rotation: 3,
           scale: 1,
-          svgOrigin: '0 0',
         })
         .to(worker.brows, { y: -5, duration: dur(0.12) })
         .to(
@@ -1237,14 +1288,168 @@ export function createHeroScene(host: HTMLElement, calm: boolean): HeroScene {
       });
     });
 
+  const workerEnter = (): Promise<void> =>
+    new Promise((resolve) => {
+      if (workerIn) return resolve();
+      const tl = add(() =>
+        gsap.timeline({
+          onComplete: () => {
+            entering = null;
+            resolve();
+          },
+        }),
+      );
+      entering = tl;
+      enterDoor(tl);
+    });
+
+  // ── Tablero ──
+  const board = (title: string | null, value = '') => {
+    boardTitle.textContent = title ?? '';
+    boardNum.textContent = value;
+    gsap.to(boardG, { autoAlpha: title === null ? 0 : 1, duration: dur(0.2), overwrite: 'auto' });
+  };
+  const bumpBoard = (value: string) => {
+    boardNum.textContent = value;
+    if (calm) return;
+    gsap.fromTo(
+      boardNum,
+      { scale: 1.5, transformOrigin: '50% 60%' },
+      { scale: 1, duration: 0.3, ease: 'back.out(2.4)', overwrite: 'auto' },
+    );
+    sparks(BOARD.x, BOARD.y, fxWall, 5);
+  };
+  const boardValue = (value: string, from?: Who): Promise<void> =>
+    new Promise((done) => {
+      if (!from || calm) {
+        bumpBoard(value);
+        return done();
+      }
+      // El dato sale de las manos de quien lo produjo y vuela hasta el tablero.
+      const src =
+        from === 'worker'
+          ? { x: WORKER_AT.x - 40, y: FLOOR_Y - 120 }
+          : { x: handsCenter().x, y: handsCenter().y - 40 };
+      if (from === 'worker') r.warmL.v += 420;
+      else r.armL.v += 300;
+      const dot = el(fx, 'circle', { class: 'jh-tic', r: 11 });
+      add(() =>
+        gsap
+          .timeline({
+            onComplete: () => {
+              dot.remove();
+              bumpBoard(value);
+              done();
+            },
+          })
+          .fromTo(dot, { x: src.x, y: src.y }, { x: BOARD.x, duration: 0.42, ease: 'none' })
+          .to(dot, { y: src.y - 200, duration: 0.2, ease: 'power2.out' }, 0)
+          .to(dot, { y: BOARD.y, duration: 0.22, ease: 'power2.in' }, 0.2),
+      );
+    });
+
+  // ── Clics que esperaron en la fila ──
+  const queuedClick = (x: number, y: number, label: string): Promise<void> =>
+    new Promise((done) => {
+      const g = el(fx, 'g', { class: 'jh-queued' });
+      el(g, 'circle', { class: 'jh-queued-fill', r: 17 });
+      el(g, 'path', { class: 'jh-ball-glyph', d: glyphs[0] });
+      pop(x, y - 34, label, '', `late-${Math.round(x)}-${Math.round(y)}`);
+      const hc = handsCenter();
+      add(() =>
+        gsap
+          .timeline({
+            onComplete: () => {
+              g.remove();
+              if (!calm) {
+                r.sq.v += 2.5;
+                r.head.v += (x < hc.x ? 1 : -1) * 90;
+              }
+              sparks(hc.x, hc.y - 30, fx, 4);
+              done();
+            },
+          })
+          .fromTo(
+            g,
+            { x, y, scale: 0.3, transformOrigin: '50% 50%' },
+            { scale: 1, duration: dur(0.22), ease: 'back.out(2.4)' },
+          )
+          .to(g, { x: hc.x, duration: dur(0.5), ease: 'power1.inOut' }, '+=0.25')
+          .to(g, { y: Math.min(y, hc.y) - 120, duration: dur(0.22), ease: 'power2.out' }, '<')
+          .to(g, { y: hc.y - 30, scale: 0.6, duration: dur(0.28), ease: 'power2.in' }, '>'),
+      );
+    });
+
+  const say = (who: Who, text: string, strong = false) => {
+    const x = who === 'main' ? mainX() : WORKER_AT.x;
+    const y = who === 'main' ? FLOOR_Y - 300 - alto : FLOOR_Y - 230;
+    pop(x, y, text, strong ? 'jh-pop-strong' : '', who);
+  };
+
+  const celebrate = () => {
+    if (calm) {
+      say('main', '¡bien!', true);
+      return;
+    }
+    vy = 760;
+    alto = Math.max(alto, 1);
+    r.crown.v += 500;
+    say('main', '¡bien!', true);
+    sparks(mainX(), FLOOR_Y - 260, fx, 10);
+    if (workerIn) {
+      r.wsq.v += 6;
+      r.hat.v += 400;
+      sparks(WORKER_AT.x, FLOOR_Y - 200, fx, 8);
+    }
+  };
+
+  const toScene = (clientX: number, clientY: number) => {
+    const p = new DOMPoint(clientX, clientY).matrixTransform(svg.getScreenCTM()!.inverse());
+    return { x: p.x, y: p.y };
+  };
+
+  // Elementos HTML fijados a un punto de la escena (se recolocan al cambiar el tamaño).
+  const pins = new Map<HTMLElement, { x: number; y: number }>();
+  const placePins = () => {
+    const ctm = svg.getScreenCTM();
+    if (!ctm) return;
+    const box = host.getBoundingClientRect();
+    for (const [node, at] of pins) {
+      const p = new DOMPoint(at.x, at.y).matrixTransform(ctm);
+      node.style.transform = `translate(${(p.x - box.left).toFixed(1)}px, ${(p.y - box.top).toFixed(1)}px) scale(${ctm.a.toFixed(4)})`;
+    }
+  };
+  const resize = new ResizeObserver(placePins);
+  resize.observe(host);
+  const pin = (node: HTMLElement, x: number, y: number) => {
+    node.classList.add('jh-pin');
+    host.appendChild(node);
+    pins.set(node, { x, y });
+    placePins();
+    return () => {
+      pins.delete(node);
+      node.remove();
+    };
+  };
+
   return {
     dropOnMain,
     thaw,
     handToWorker,
     deliver,
     fumble,
+    workerEnter,
+    board,
+    boardValue,
+    queuedClick,
+    say,
+    celebrate,
+    toScene,
+    pin,
     destroy: () => {
       stop();
+      resize.disconnect();
+      pins.clear();
       gsap.globalTimeline.resume();
       io.disconnect();
       document.removeEventListener('visibilitychange', onVisibility);
@@ -1255,7 +1460,7 @@ export function createHeroScene(host: HTMLElement, calm: boolean): HeroScene {
       svg.removeEventListener('pointerleave', onLeave);
       mainPose.removeEventListener('touchstart', noScroll);
       stopWork();
-      for (const t of [blinkCall, ledCall, reaction, workerTl]) t?.kill();
+      for (const t of [blinkCall, ledCall, reaction, workerTl, entering]) t?.kill();
       gsap.killTweensOf(Array.from(svg.querySelectorAll('*')));
       host.innerHTML = '';
     },

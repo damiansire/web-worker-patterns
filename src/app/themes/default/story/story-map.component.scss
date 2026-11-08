@@ -1,0 +1,283 @@
+/*
+ * Mapa de la historia. Los colores salen de los tokens del theme; cada capítulo
+ * tiñe sus nodos con uno. Fijos de la escena (como en `scene/scene.scss`): el
+ * blanco, la sombra tintada, el dorado de la corona y la piel de main.
+ */
+:host {
+  --sm-shade: color-mix(in oklab, var(--worker) 24%, #120a1c);
+  --sm-gold: #f2b632;
+  --sm-main: color-mix(in oklab, var(--thread-main) 45%, #f08a5d);
+
+  display: block;
+  padding: 28px 24px 48px;
+}
+
+.sm {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.sm-head {
+  max-width: 62ch;
+  margin-bottom: 18px;
+}
+.sm-eyebrow {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+}
+h1 {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(30px, 5vw, 48px);
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+.sm-lede {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--ink-muted);
+}
+
+.sm-board {
+  border-radius: var(--radius);
+  border: var(--border-width) solid var(--border);
+  background:
+    radial-gradient(
+      ellipse at 30% 20%,
+      color-mix(in oklab, var(--accent) 10%, transparent),
+      transparent 60%
+    ),
+    linear-gradient(
+      color-mix(in oklab, var(--surface-raised) 85%, var(--worker)),
+      color-mix(in oklab, var(--surface) 80%, var(--thread-main))
+    );
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.sm-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ── Fondo ── */
+.sm-cloud {
+  fill: var(--surface-raised);
+  opacity: 0.8;
+  animation: sm-drift 30s linear infinite alternate;
+}
+@keyframes sm-drift {
+  from {
+    transform: translateX(-30px);
+  }
+  to {
+    transform: translateX(30px);
+  }
+}
+.sm-road,
+.sm-road-done {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.sm-road {
+  stroke: color-mix(in oklab, var(--thread-main) 45%, var(--surface));
+  stroke-width: 22;
+}
+.sm-road-done {
+  stroke: var(--sm-gold);
+  stroke-width: 6;
+  stroke-dasharray: 2 14;
+}
+
+/* ── Nodos ── */
+.sm-node {
+  --ch: var(--thread-main);
+  cursor: pointer;
+  outline: none;
+}
+.sm-node[data-chapter='prologue'] {
+  --ch: var(--sm-main);
+}
+.sm-node[data-chapter='understanding'] {
+  --ch: var(--accent);
+}
+.sm-node[data-chapter='communication'] {
+  --ch: var(--worker);
+}
+.sm-node[data-chapter='optimization'] {
+  --ch: color-mix(in oklab, var(--accent) 50%, var(--worker));
+}
+.sm-node[data-chapter='management'] {
+  --ch: color-mix(in oklab, var(--sm-gold) 70%, var(--sm-shade));
+}
+.sm-node[data-chapter='advanced'] {
+  --ch: var(--thread-blocked);
+}
+.sm-disc-shadow {
+  fill: var(--sm-shade);
+  opacity: 0.25;
+}
+.sm-disc {
+  fill: var(--ch);
+  stroke: var(--surface-raised);
+  stroke-width: 5;
+  transition: transform 0.15s;
+}
+.sm-node:hover .sm-disc,
+.sm-node:focus-visible .sm-disc {
+  transform: scale(1.08);
+}
+.sm-node:focus-visible .sm-disc {
+  stroke: var(--ink);
+}
+.sm-node[data-state='locked'] .sm-disc,
+.sm-node[data-state='wip'] .sm-disc {
+  fill: color-mix(in oklab, var(--ch) 28%, var(--surface));
+}
+.sm-node[data-state='locked'] {
+  cursor: not-allowed;
+}
+.sm-num {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 28px;
+  fill: #fff;
+  pointer-events: none;
+}
+.sm-lock {
+  fill: none;
+  stroke: var(--sm-shade);
+  stroke-width: 4;
+  stroke-linejoin: round;
+  opacity: 0.55;
+}
+.sm-cone {
+  fill: #f08a3c;
+}
+.sm-cone-band {
+  fill: #fff;
+}
+.sm-cone-base {
+  fill: var(--sm-shade);
+  opacity: 0.6;
+}
+.sm-star {
+  fill: var(--sm-gold);
+  stroke: var(--sm-shade);
+  stroke-width: 1.5;
+}
+.sm-here {
+  fill: none;
+  stroke: var(--sm-gold);
+  stroke-width: 4;
+  transform-origin: 0 0;
+  animation: sm-ring 1.6s ease-out infinite;
+}
+@keyframes sm-ring {
+  from {
+    transform: scale(0.9);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+}
+.sm-name,
+.sm-chapter {
+  font-family: var(--font-display);
+  font-weight: 800;
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: var(--surface-raised);
+  stroke-width: 5;
+  stroke-linejoin: round;
+}
+.sm-name {
+  font-size: 15px;
+  fill: var(--ink);
+}
+.sm-node[data-state='locked'] .sm-name,
+.sm-node[data-state='wip'] .sm-name {
+  fill: var(--ink-muted);
+}
+.sm-chapter {
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  fill: var(--accent-ink);
+}
+
+/* ── Main en el mapa ── */
+.sm-hero {
+  pointer-events: none;
+}
+.sm-hero-shadow {
+  fill: var(--sm-shade);
+  opacity: 0.25;
+}
+.sm-hero-body {
+  fill: var(--sm-main);
+  stroke: var(--sm-shade);
+  stroke-width: 2;
+}
+.sm-hero-crown {
+  fill: var(--sm-gold);
+  stroke: var(--sm-shade);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.sm-hero-white {
+  fill: #fff;
+}
+.sm-hero-pupil {
+  fill: var(--sm-shade);
+}
+.sm-hero-mouth {
+  fill: none;
+  stroke: var(--sm-shade);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+.sm-hero-say {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 18px;
+  fill: #fff;
+  stroke: var(--sm-shade);
+  stroke-width: 5;
+  paint-order: stroke;
+  stroke-linejoin: round;
+}
+
+.sm-status {
+  min-height: 1.6em;
+  margin: 12px 0 0;
+  font-size: 16px;
+  color: var(--ink-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sm-cloud,
+  .sm-here {
+    animation: none;
+  }
+}
+@media (max-width: 640px) {
+  :host {
+    padding: 18px 12px 36px;
+  }
+  .sm-name {
+    font-size: 15px;
+  }
+}

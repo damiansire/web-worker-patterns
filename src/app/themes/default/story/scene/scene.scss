@@ -1,5 +1,5 @@
 /*
- * Escena de portada. Sin encapsulación (la escena crea su SVG por código), así
+ * Escena de la historia. Sin encapsulación (la escena crea su SVG por código), así
  * que todo cuelga de `.jh`. La paleta sale de los tokens del theme con
  * color-mix, así sigue al theme si cambian sus colores.
  * Los únicos colores fijos son de la escena, no del theme, y casi todos se
@@ -425,27 +425,28 @@
   fill: var(--jh-gold);
 }
 
-/* ── Controles (HTML, accesibles) ── */
-.jh-controls {
-  display: grid;
-  gap: 10px;
-  margin-top: 18px;
+/* ── Lo que agregan los niveles ── */
+.jh-board-value {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 46px;
+  fill: var(--thread-worker);
 }
-.jh-task {
-  margin: 0;
-  font-size: 17px;
-  color: var(--ink);
+.jh-tic {
+  fill: var(--thread-worker);
+  stroke: var(--jh-shade);
+  stroke-width: 2.5;
 }
-.jh-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+.jh-queued-fill {
+  fill: var(--accent);
+  stroke: var(--jh-shade);
+  stroke-width: 2.5;
 }
-.jh-caption {
-  margin: 0;
-  min-height: 3.2em;
-  font-size: 16px;
-  line-height: 1.6;
-  color: var(--ink-muted);
-  max-width: 64ch;
+/* Elementos HTML fijados a la escena: la escena los ubica con transform. */
+.jh-pin {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  pointer-events: none;
 }
