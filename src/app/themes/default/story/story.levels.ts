@@ -124,21 +124,3 @@ export function currentLevel(
   const playable = levels.filter((l) => l.scene);
   return playable.find((l) => !isDone(l.id)) ?? playable[playable.length - 1];
 }
-
-/**
- * Posiciones del camino del mapa en serpentina: filas de `cols` que van y
- * vuelven, para que el recorrido se lea de corrido sin saltos.
- */
-export function serpentine(
-  count: number,
-  cols: number,
-  cell: { w: number; h: number },
-  origin: { x: number; y: number },
-): { x: number; y: number }[] {
-  return Array.from({ length: count }, (_, i) => {
-    const row = Math.floor(i / cols);
-    const k = i % cols;
-    const col = row % 2 === 0 ? k : cols - 1 - k;
-    return { x: origin.x + col * cell.w, y: origin.y + row * cell.h };
-  });
-}

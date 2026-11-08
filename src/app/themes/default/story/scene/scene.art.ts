@@ -25,7 +25,7 @@ const eye = (cls: string, x: number, y: number, r: number) => `
     </g>
   </g>`;
 
-const MAIN_BODY =
+export const MAIN_BODY =
   'M-82 -6C-108 -66 -104 -168 -44 -198C-12 -214 34 -213 64 -196C112 -168 108 -64 84 -6C60 8 -60 8 -82 -6Z';
 const WORKER_BODY =
   'M-56 -5C-74 -48 -70 -116 -30 -138C-6 -150 30 -149 50 -135C80 -110 76 -44 58 -5C40 5 -38 5 -56 -5Z';

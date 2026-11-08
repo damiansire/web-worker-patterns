@@ -1,12 +1,5 @@
 import { EXAMPLES } from '../../../core/domain/examples/examples.registry';
-import {
-  currentLevel,
-  LEVELS,
-  levelState,
-  nextLevel,
-  PROLOGUE_ID,
-  serpentine,
-} from './story.levels';
+import { currentLevel, LEVELS, levelState, nextLevel, PROLOGUE_ID } from './story.levels';
 
 describe('story levels', () => {
   it('arranca en el prólogo y tiene un nivel por ejemplo del registry', () => {
@@ -48,11 +41,5 @@ describe('story levels', () => {
   it('el siguiente del último no existe', () => {
     expect(nextLevel(PROLOGUE_ID)?.id).toBe('01-setinterval-counter');
     expect(nextLevel(LEVELS[LEVELS.length - 1].id)).toBeNull();
-  });
-
-  it('la serpentina va y vuelve sin saltos', () => {
-    const p = serpentine(7, 3, { w: 100, h: 50 }, { x: 0, y: 0 });
-    expect(p.map((q) => q.x)).toEqual([0, 100, 200, 200, 100, 0, 0]);
-    expect(p.map((q) => q.y)).toEqual([0, 0, 0, 50, 50, 50, 100]);
   });
 });

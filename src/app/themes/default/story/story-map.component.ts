@@ -8,159 +8,479 @@ import {
   inject,
   signal,
   viewChild,
+  ViewEncapsulation,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import gsap from 'gsap';
 import { ThemeService } from '../../../theming/theme.service';
+import { MAIN_BODY } from './scene/scene.art';
 import { StoryProgress } from './story-progress.service';
+import { CHAPTERS, currentLevel, Level, LEVELS, levelState, LevelState } from './story.levels';
 import {
-  CHAPTERS,
-  currentLevel,
-  Level,
-  LEVELS,
-  levelState,
-  LevelState,
-  serpentine,
-} from './story.levels';
+  cloudPath,
+  hash,
+  landmarks,
+  MAP_SPECS,
+  MapShape,
+  mapSpots,
+  Point,
+  ridge,
+  roadPath,
+  scatter,
+  segments,
+  segmentTail,
+  wrapWords,
+} from './story.map';
 
 interface Spot {
   level: Level;
   x: number;
   y: number;
   state: LevelState;
-  /** Cartel de capítulo, solo en el primer nivel de cada uno. */
-  chapter: string | null;
-  /** El nombre, partido en renglones que entran en la celda. */
   name: string[];
 }
 
-/** Dos trazados del camino: ancho en escritorio, angosto (más filas) en el celular. */
-const LAYOUTS = {
-  wide: { cols: 6, cell: { w: 180, h: 186 }, origin: { x: 110, y: 150 }, pad: 120, chars: 20 },
-  narrow: { cols: 3, cell: { w: 150, h: 176 }, origin: { x: 80, y: 140 }, pad: 120, chars: 13 },
-} as const;
-
-const HOP_S = 0.17;
-
-/** Parte un texto en renglones de hasta `max` caracteres, sin cortar palabras. */
-function wrapWords(text: string, max: number): string[] {
-  const lines: string[] = [];
-  for (const word of text.split(' ')) {
-    const last = lines.at(-1);
-    if (last !== undefined && (last + ' ' + word).length <= max)
-      lines[lines.length - 1] += ' ' + word;
-    else lines.push(word);
-  }
-  return lines;
+interface Spring {
+  x: number;
+  v: number;
+  t: number;
+  k: number;
+  d: number;
 }
 
+const spring = (k: number, d: number): Spring => ({ x: 0, v: 0, t: 0, k, d });
+const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+const NS = 'http://www.w3.org/2000/svg';
+
+const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
+
 /**
- * El mapa de la historia: la nueva portada. Un camino en serpentina con un nodo
- * por nivel; main está parado en el que toca jugar. Al elegir un nivel, main va
- * saltando de nodo en nodo hasta ahí y recién entonces se entra. Los niveles
- * bloqueados tiemblan; los que todavía no tienen escena están "en obra" y se
- * abren en su versión clásica.
+ * El mapa de la historia: la portada. Un mundo a pantalla completa (cielo,
+ * cerros, un prado con un rincón por capítulo) cruzado por un camino con un
+ * nivel en cada parada. Main vive ahí: respira, parpadea, mira lo que tocás y
+ * camina por el camino hasta el nivel que elegís; recién al llegar se entra.
+ * Los niveles bloqueados tiemblan; los que no tienen escena están "en obra" y
+ * se abren en su versión clásica.
+ *
+ * Capas de animación: la vida (nubes, molino, humo, faro) es CSS y se apaga con
+ * movimiento reducido; los toques son resortes (`gsap.ticker`) sobre el grupo
+ * `spring` de main; los saltos y el viaje son GSAP sobre otros grupos, para que
+ * nadie pise la propiedad de otro. Sin encapsulación: los efectos se crean por
+ * código y cuelgan de `.sm`.
  */
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
   selector: 'default-story-map',
   template: `
-    <section class="sm">
-      <header class="sm-head">
-        <p class="sm-eyebrow">una historia en niveles</p>
-        <h1>La historia de main</h1>
-        <p class="sm-lede">
-          Main es el hilo principal del navegador y hace todo solo. Cada nivel es un patrón de Web
-          Workers: superalo y se abre el siguiente.
-        </p>
-      </header>
+    <section class="sm" [attr.data-shape]="shape()">
+      <svg
+        #world
+        class="sm-world"
+        [attr.viewBox]="'0 0 ' + spec().view.w + ' ' + spec().view.h"
+        preserveAspectRatio="xMidYMid meet"
+        role="group"
+        aria-label="Mapa de niveles"
+        (pointerdown)="tap($event)"
+        (pointermove)="look($event)"
+      >
+        <defs>
+          <linearGradient
+            id="sm-g-sky"
+            gradientUnits="userSpaceOnUse"
+            x1="0"
+            x2="0"
+            [attr.y1]="spec().horizon - 900"
+            [attr.y2]="spec().horizon"
+          >
+            <stop offset="0" class="sm-s-sky-top" />
+            <stop offset="1" class="sm-s-sky-bot" />
+          </linearGradient>
+          <linearGradient
+            id="sm-g-ground"
+            gradientUnits="userSpaceOnUse"
+            x1="0"
+            x2="0"
+            [attr.y1]="spec().horizon"
+            [attr.y2]="spec().view.h + 200"
+          >
+            <stop offset="0" class="sm-s-ground-top" />
+            <stop offset="1" class="sm-s-ground-bot" />
+          </linearGradient>
+          <radialGradient id="sm-g-sun">
+            <stop offset="0" class="sm-s-sun" stop-opacity="0.75" />
+            <stop offset="1" class="sm-s-sun" stop-opacity="0" />
+          </radialGradient>
+          <radialGradient id="sm-g-main" cx="0.36" cy="0.28" r="0.85">
+            <stop offset="0" class="sm-s-main-light" />
+            <stop offset="0.55" class="sm-s-main" />
+            <stop offset="1" class="sm-s-main-dark" />
+          </radialGradient>
+          <linearGradient id="sm-g-beam" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0" class="sm-s-sun" stop-opacity="0.7" />
+            <stop offset="1" class="sm-s-sun" stop-opacity="0" />
+          </linearGradient>
+          @for (ch of chapters; track ch.key) {
+            <radialGradient [attr.id]="'sm-g-pool-' + ch.key">
+              <stop offset="0" class="sm-s-pool" [attr.data-chapter]="ch.key" stop-opacity="0.3" />
+              <stop
+                offset="0.6"
+                class="sm-s-pool"
+                [attr.data-chapter]="ch.key"
+                stop-opacity="0.16"
+              />
+              <stop offset="1" class="sm-s-pool" [attr.data-chapter]="ch.key" stop-opacity="0" />
+            </radialGradient>
+          }
+        </defs>
 
-      <div class="sm-board">
-        <svg
-          #map
-          class="sm-svg"
-          [attr.viewBox]="'0 0 ' + view().w + ' ' + view().h"
-          role="group"
-          aria-label="Mapa de niveles"
-        >
-          <g class="sm-clouds" aria-hidden="true">
-            @for (c of clouds(); track $index) {
-              <path class="sm-cloud" [attr.d]="c.d" [style.animation-delay.s]="c.delay" />
-            }
-          </g>
-          <path class="sm-road" [attr.d]="road()" aria-hidden="true" />
-          <path class="sm-road-done" [attr.d]="roadDone()" aria-hidden="true" />
+        <!-- Cielo, sol y nubes -->
+        <rect
+          x="-6000"
+          y="-6000"
+          width="14000"
+          [attr.height]="6000 + spec().horizon + 60"
+          fill="url(#sm-g-sky)"
+        />
+        <circle
+          [attr.cx]="sun().x"
+          [attr.cy]="sun().y"
+          [attr.r]="420 * spec().s"
+          fill="url(#sm-g-sun)"
+        />
+        <circle class="sm-sun" [attr.cx]="sun().x" [attr.cy]="sun().y" [attr.r]="58 * spec().s" />
+        <g aria-hidden="true">
+          @for (c of clouds(); track $index) {
+            <path
+              class="sm-cloud"
+              [attr.d]="c.d"
+              [style.animation-duration.s]="c.dur"
+              [style.animation-delay.s]="c.delay"
+            />
+          }
+        </g>
+        <g class="sm-birds" aria-hidden="true" [style.--sm-fly]="spec().view.w + 1400 + 'px'">
+          @for (b of birds(); track $index) {
+            <path class="sm-bird" [attr.d]="b" [style.animation-delay.s]="-$index * 0.17" />
+          }
+        </g>
 
-          @for (s of spots(); track s.level.id; let i = $index) {
+        <!-- Lejos, medio y suelo -->
+        <path class="sm-far" [attr.d]="far()[0]" />
+        <path class="sm-far2" [attr.d]="far()[1]" />
+        <path [attr.d]="far()[2]" fill="url(#sm-g-ground)" />
+        <path class="sm-mid" [attr.d]="far()[3]" />
+        @for (p of pools(); track $index) {
+          <circle
+            [attr.cx]="p.x"
+            [attr.cy]="p.y"
+            [attr.r]="190 * spec().s"
+            [attr.fill]="'url(#sm-g-pool-' + p.chapter + ')'"
+          />
+        }
+
+        <!-- Matas, flores y árboles, por profundidad -->
+        <g aria-hidden="true">
+          @for (t of tufts(); track $index) {
             <g
-              class="sm-node"
-              [attr.data-state]="s.state"
-              [attr.data-chapter]="s.level.chapter"
-              [attr.transform]="'translate(' + s.x + ' ' + s.y + ')'"
-              role="link"
-              tabindex="0"
-              [attr.aria-label]="ariaFor(s)"
-              (click)="go(i)"
-              (keydown.enter)="go(i)"
-              (keydown.space)="$event.preventDefault(); go(i)"
+              [attr.transform]="
+                'translate(' + t.x + ' ' + t.y + ') scale(' + t.size * spec().s + ')'
+              "
             >
-              @if (s.chapter) {
-                <text class="sm-chapter" [attr.y]="68 + s.name.length * 18" text-anchor="middle">
-                  {{ s.chapter }}
+              @if (t.k < 0.35) {
+                <g class="sm-flower" [attr.data-k]="t.k < 0.12 ? 'a' : t.k < 0.24 ? 'b' : 'c'">
+                  <circle cx="-5" cy="-12" r="5" />
+                  <circle cx="5" cy="-12" r="5" />
+                  <circle cx="0" cy="-19" r="5" />
+                  <circle cx="0" cy="-6" r="5" />
+                  <circle class="sm-flower-eye" cy="-12" r="3.4" />
+                </g>
+              } @else {
+                <path class="sm-tuft" d="M-10 0Q-9 -9 -4 -14M0 0Q0 -12 3 -19M9 0Q8 -9 4 -13" />
+              }
+            </g>
+          }
+          @for (t of trees(); track $index) {
+            <g
+              [attr.transform]="
+                'translate(' + t.x + ' ' + t.y + ') scale(' + t.size * spec().s * 0.95 + ')'
+              "
+            >
+              <ellipse class="sm-contact" rx="34" ry="8" />
+              @if (t.k < 0.32) {
+                <path class="sm-trunk" d="M-5 0V-22H5V0Z" />
+                <path class="sm-pine" d="M-30 -18L0 -64L30 -18Z" />
+                <path class="sm-pine" d="M-24 -46L0 -92L24 -46Z" />
+                <path class="sm-pine-hi" d="M0 -92L-24 -46L-12 -46L0 -78Z" />
+              } @else {
+                <path class="sm-trunk" d="M-5 0V-28H5V0Z" />
+                <circle class="sm-leaf" cx="-17" cy="-38" r="19" />
+                <circle class="sm-leaf" cx="17" cy="-40" r="20" />
+                <circle class="sm-leaf" cy="-56" r="25" />
+                <circle class="sm-leaf-hi" cx="-8" cy="-64" r="12" />
+              }
+            </g>
+          }
+        </g>
+
+        <!-- Un hito por capítulo -->
+        @for (m of marks(); track m.chapter) {
+          <g
+            class="sm-lm"
+            [attr.data-chapter]="m.chapter"
+            [attr.transform]="'translate(' + m.x + ' ' + m.y + ') scale(' + art() + ')'"
+            aria-hidden="true"
+          >
+            <ellipse class="sm-contact" rx="66" ry="10" />
+            @switch (m.chapter) {
+              @case ('prologue') {
+                <path class="lm-wall" d="M-48 0V-62H48V0Z" />
+                <path class="lm-wall-shade" d="M22 0V-62H48V0Z" />
+                <path class="lm-roof" d="M-62 -58L0 -110L62 -58Z" />
+                <path class="lm-roof-shade" d="M0 -110L62 -58H34Z" />
+                <rect class="lm-window" x="26" y="-50" width="14" height="14" rx="3" />
+                <g transform="translate(0 -108)">
+                  <path class="lm-gold" d="M-14 2L-17 -16L-7 -7L0 -20L7 -7L17 -16L14 2Z" />
+                </g>
+              }
+              @case ('understanding') {
+                <path class="lm-stone" d="M-28 0L-24 -110H24L28 0Z" />
+                <path class="lm-stone-shade" d="M10 0L11 -110H24L28 0Z" />
+                <path class="lm-roof" d="M-34 -108L0 -144L34 -108Z" />
+                <g transform="translate(0 -82)">
+                  <circle class="lm-face" r="18" />
+                  <rect
+                    class="lm-ink"
+                    x="-1.6"
+                    y="-11"
+                    width="3.2"
+                    height="12"
+                    rx="1.6"
+                    transform="rotate(50)"
+                  />
+                  <g class="lm-tick">
+                    <rect class="lm-red" x="-1" y="-15" width="2" height="17" rx="1" />
+                  </g>
+                  <circle class="lm-ink" r="2.6" />
+                </g>
+              }
+              @case ('communication') {
+                <rect class="lm-post" x="-6" y="-58" width="12" height="58" />
+                <g transform="translate(-4 -92)">
+                  <g class="lm-letter">
+                    <rect class="lm-paper" x="-13" y="-12" width="26" height="17" rx="2" />
+                    <path class="lm-paper-line" d="M-13 -12L0 -3L13 -12" />
+                  </g>
+                </g>
+                <path class="lm-box" d="M-36 -56V-90C-36 -112 36 -112 36 -90V-56Z" />
+                <path class="lm-box-shade" d="M14 -56V-106C28 -102 36 -96 36 -90V-56Z" />
+                <rect class="lm-slot" x="-22" y="-88" width="30" height="5" rx="2.5" />
+                <g transform="translate(36 -64)">
+                  <g class="lm-flag">
+                    <rect class="lm-post" x="-2" y="-34" width="4" height="34" />
+                    <path class="lm-red" d="M2 -34H22V-22H2Z" />
+                  </g>
+                </g>
+              }
+              @case ('optimization') {
+                <path class="lm-stone" d="M-26 0L-15 -98H15L26 0Z" />
+                <path class="lm-stone-shade" d="M7 0L8 -98H15L26 0Z" />
+                <path class="lm-roof" d="M-19 -96Q0 -122 19 -96Z" />
+                <rect class="lm-door" x="-9" y="-26" width="18" height="26" rx="7" />
+                <g transform="translate(0 -100)">
+                  <g class="lm-blades">
+                    <path class="lm-blade" d="M-4 0L-9 -54H9L4 0Z" />
+                    <path class="lm-blade" d="M-4 0L-9 -54H9L4 0Z" transform="rotate(90)" />
+                    <path class="lm-blade" d="M-4 0L-9 -54H9L4 0Z" transform="rotate(180)" />
+                    <path class="lm-blade" d="M-4 0L-9 -54H9L4 0Z" transform="rotate(270)" />
+                    <circle class="lm-hub" r="7" />
+                  </g>
+                </g>
+              }
+              @case ('management') {
+                <rect class="lm-stone" x="26" y="-116" width="18" height="64" />
+                <g transform="translate(35 -120)">
+                  <circle class="lm-smoke" r="10" />
+                  <circle class="lm-smoke" r="10" />
+                  <circle class="lm-smoke" r="10" />
+                </g>
+                <path class="lm-brick" d="M-56 0V-54L-34 -72V-54L-12 -72V-54L10 -72V-54H56V0Z" />
+                <path class="lm-brick-shade" d="M30 0V-54H56V0Z" />
+                <rect class="lm-window" x="-46" y="-44" width="14" height="12" rx="3" />
+                <rect class="lm-window" x="-22" y="-44" width="14" height="12" rx="3" />
+                <rect class="lm-window" x="2" y="-44" width="14" height="12" rx="3" />
+              }
+              @case ('advanced') {
+                <g transform="translate(0 -124)">
+                  <g class="lm-beam">
+                    <path d="M0 -5L190 -34V34L0 5Z" fill="url(#sm-g-beam)" />
+                  </g>
+                </g>
+                <path class="lm-white" d="M-24 0L-14 -110H14L24 0Z" />
+                <path class="lm-red" d="M-21.8 -24L-19.6 -48H19.6L21.8 -24Z" />
+                <path class="lm-red" d="M-17.4 -72L-15.6 -94H15.6L17.4 -72Z" />
+                <rect class="lm-stone" x="-21" y="-116" width="42" height="8" rx="3" />
+                <rect class="lm-lamp" x="-11" y="-134" width="22" height="18" rx="4" />
+                <path class="lm-roof" d="M-16 -134L0 -150L16 -134Z" />
+              }
+            }
+            <g class="lm-ribbon">
+              <path class="lm-ribbon-tail" d="M-62 -30L-78 -20L-62 -8ZM62 -30L78 -20L62 -8Z" />
+              <rect class="lm-ribbon-band" x="-66" y="-40" width="132" height="38" rx="10" />
+              @if (chapterOf(m.chapter).n) {
+                <text class="lm-kick" y="-26" text-anchor="middle">
+                  CAP. {{ chapterOf(m.chapter).n }}
+                </text>
+                <text class="lm-ch" y="-9" text-anchor="middle">
+                  {{ chapterOf(m.chapter).title }}
+                </text>
+              } @else {
+                <text class="lm-ch" y="-15" text-anchor="middle">
+                  {{ chapterOf(m.chapter).title }}
                 </text>
               }
-              @if (i === here()) {
-                <circle class="sm-here" r="40" />
-              }
-              <circle class="sm-disc-shadow" r="34" cy="6" />
-              <circle class="sm-disc" r="34" />
+            </g>
+          </g>
+        }
+
+        <!-- El camino -->
+        <path #roadEl class="sm-road-edge" [attr.d]="road()" [style.stroke-width]="46 * spec().s" />
+        <path class="sm-road" [attr.d]="road()" [style.stroke-width]="34 * spec().s" />
+        <path class="sm-road-dash" [attr.d]="road()" [style.stroke-width]="4 * spec().s" />
+        <path class="sm-road-done" [attr.d]="roadDone()" [style.stroke-width]="9 * spec().s" />
+        <path #probe class="sm-probe" d="" />
+
+        <!-- Los niveles -->
+        @for (s of spots(); track s.level.id; let i = $index) {
+          <g
+            class="sm-node"
+            [attr.data-state]="s.state"
+            [attr.data-chapter]="s.level.chapter"
+            [attr.transform]="'translate(' + s.x + ' ' + s.y + ') scale(' + spec().s + ')'"
+            role="link"
+            tabindex="0"
+            [attr.aria-label]="ariaFor(s)"
+            (click)="go(i)"
+            (keydown.enter)="go(i)"
+            (keydown.space)="$event.preventDefault(); go(i)"
+          >
+            @if (i === here()) {
+              <circle class="sm-here" r="52" />
+            }
+            <ellipse class="sm-node-shadow" cy="14" rx="48" ry="16" />
+            <g class="sm-pop">
+              <circle class="sm-disc-side" cy="7" r="44" />
+              <circle class="sm-disc" r="44" />
+              <path class="sm-disc-hi" d="M-31 -14A34 34 0 0 1 14 -32" />
               @switch (s.state) {
                 @case ('locked') {
-                  <path
-                    class="sm-lock"
-                    d="M-10 -2V-9A10 10 0 0 1 10 -9V-2M-14 -2H14V16H-14Z"
-                    aria-hidden="true"
-                  />
+                  <path class="sm-lock" d="M-10 -2V-9A10 10 0 0 1 10 -9V-2M-14 -2H14V16H-14Z" />
                 }
                 @case ('wip') {
-                  <path class="sm-cone" d="M-14 14L-4 -16H4L14 14Z" aria-hidden="true" />
-                  <path class="sm-cone-band" d="M-9 0H9L10.5 5H-10.5Z" aria-hidden="true" />
+                  <path class="sm-cone" d="M-14 14L-4 -16H4L14 14Z" />
+                  <path class="sm-cone-band" d="M-9 0H9L10.5 5H-10.5Z" />
                   <rect class="sm-cone-base" x="-18" y="13" width="36" height="5" rx="2" />
                 }
                 @default {
-                  <text class="sm-num" y="10" text-anchor="middle">{{ s.level.n }}</text>
+                  <text class="sm-num" y="11" text-anchor="middle">{{ s.level.n }}</text>
                 }
               }
               @if (s.state === 'done') {
-                <path class="sm-star" [attr.d]="star" transform="translate(26 -26)" />
+                <path class="sm-star" [attr.d]="star" transform="translate(32 -32)" />
               }
-              <text class="sm-name" y="62" text-anchor="middle">
-                @for (line of s.name; track $index) {
-                  <tspan x="0" [attr.dy]="$index ? 18 : 0">{{ line }}</tspan>
-                }
-              </text>
             </g>
-          }
-
-          <g #hero class="sm-hero" aria-hidden="true">
-            <g class="sm-hero-bob">
-              <ellipse class="sm-hero-shadow" rx="22" ry="5" />
-              <path class="sm-hero-body" [attr.d]="heroBody" />
-              <path class="sm-hero-crown" d="M-15 -52L-17 -66L-8 -59L0 -70L8 -59L17 -66L15 -52Z" />
-              <g class="sm-hero-eyes">
-                <ellipse class="sm-hero-white" cx="-7" cy="-31" rx="4.6" ry="5.2" />
-                <ellipse class="sm-hero-white" cx="9" cy="-32" rx="5.6" ry="6.2" />
-                <circle class="sm-hero-pupil" cx="-5.6" cy="-30" r="2.6" />
-                <circle class="sm-hero-pupil" cx="10.6" cy="-31" r="3.1" />
-              </g>
-              <path class="sm-hero-mouth" d="M-2 -20Q3 -15 8 -20" />
-            </g>
-            <text class="sm-hero-say" y="-84" text-anchor="middle">{{ heroSays() }}</text>
+            <text class="sm-name" y="76" text-anchor="middle">
+              @for (line of s.name; track $index) {
+                <tspan x="0" [attr.dy]="$index ? 25 : 0">{{ line }}</tspan>
+              }
+            </text>
           </g>
-        </svg>
-      </div>
+        }
 
-      <p class="sm-status" aria-live="polite">{{ status() }}</p>
+        <!-- Main -->
+        <g #hero class="sm-hero" aria-hidden="true" (pointerdown)="poke($event)">
+          <g [attr.transform]="'scale(' + heroScale() + ')'">
+            <ellipse class="sm-contact sm-h-contact" rx="94" ry="13" />
+            <g #hop>
+              <g #spring>
+                <g #body>
+                  <ellipse class="sm-h-dark" cx="-38" cy="-2" rx="28" ry="12" />
+                  <ellipse class="sm-h-dark" cx="44" cy="-2" rx="28" ry="12" />
+                  <path [attr.d]="mainBody" fill="url(#sm-g-main)" />
+                  <path
+                    class="sm-h-shine"
+                    d="M-70 -80C-76 -132 -52 -178 -14 -194C-48 -168 -62 -128 -58 -84Z"
+                  />
+                  <ellipse class="sm-h-belly" cx="10" cy="-58" rx="50" ry="40" />
+                  <rect class="sm-h-badge" x="-22" y="-72" width="64" height="24" rx="12" />
+                  <text class="sm-h-badge-text" x="10" y="-55" text-anchor="middle">main</text>
+                  <g transform="translate(-80 -96)">
+                    <path class="sm-h-arm" d="M0 0C-16 10 -22 22 -14 34" />
+                    <circle class="sm-h-dark" cx="-13" cy="36" r="13" />
+                  </g>
+                  <g transform="translate(84 -96)">
+                    <path class="sm-h-arm" d="M0 0C16 10 22 22 14 34" />
+                    <circle class="sm-h-dark" cx="13" cy="36" r="13" />
+                  </g>
+                  <g transform="translate(14 -140)">
+                    @for (e of eyes; track e.x) {
+                      <g [attr.transform]="'translate(' + e.x + ' ' + e.y + ')'">
+                        <g class="sm-h-lid">
+                          <ellipse class="sm-h-white" [attr.rx]="e.r" [attr.ry]="e.r * 1.12" />
+                          <g class="sm-h-pupil">
+                            <circle class="sm-h-ink" [attr.r]="e.r * 0.52" />
+                            <circle
+                              class="sm-h-white"
+                              [attr.cx]="e.r * 0.2"
+                              [attr.cy]="-e.r * 0.24"
+                              [attr.r]="e.r * 0.18"
+                            />
+                          </g>
+                        </g>
+                      </g>
+                    }
+                    <path class="sm-h-brow" d="M-42 -24Q-30 -32 -16 -26" />
+                    <path class="sm-h-brow" d="M12 -30Q28 -38 44 -30" />
+                    <ellipse class="sm-h-cheek" cx="-40" cy="26" rx="12" ry="6" />
+                    <ellipse class="sm-h-cheek" cx="50" cy="24" rx="13" ry="6" />
+                    <path class="sm-h-mouth" d="M-8 28Q6 42 20 28" />
+                  </g>
+                  <g transform="translate(10 -204)">
+                    <path class="sm-h-gold" d="M-38 4L-44 -34L-20 -14L0 -44L20 -14L44 -34L38 4Z" />
+                    <path class="sm-h-gold-dark" d="M-38 4L38 4L37 -4L-37 -4Z" />
+                    <circle class="sm-h-gem" cy="-8" r="5" />
+                  </g>
+                </g>
+              </g>
+            </g>
+          </g>
+          <text
+            #say
+            class="sm-say"
+            text-anchor="middle"
+            [attr.x]="sayDx()"
+            [attr.y]="-262 * heroScale()"
+            [attr.font-size]="28 * spec().s"
+          >
+            {{ heroSays() }}
+          </text>
+        </g>
+
+        <g #fx class="sm-fx" aria-hidden="true"></g>
+      </svg>
+
+      <div class="sm-vignette" aria-hidden="true"></div>
+
+      <header class="sm-title">
+        <p class="sm-brand">Web Worker Patterns</p>
+        <h1>La historia de main</h1>
+        <p class="sm-tag">Ayudá a main a no congelarse.</p>
+      </header>
+
+      <div class="sm-hud">
+        <p class="sm-status" aria-live="polite">{{ status() || idle() }}</p>
+        <button type="button" class="sm-play" (click)="go(here())">{{ playLabel() }}</button>
+      </div>
     </section>
   `,
   styleUrl: './story-map.component.scss',
@@ -169,111 +489,195 @@ export class StoryMapComponent {
   private readonly router = inject(Router);
   private readonly progress = inject(StoryProgress);
   private readonly themeId = inject(ThemeService).activeId;
+  private readonly worldRef = viewChild.required<ElementRef<SVGSVGElement>>('world');
   private readonly heroRef = viewChild.required<ElementRef<SVGGElement>>('hero');
+  private readonly hopRef = viewChild.required<ElementRef<SVGGElement>>('hop');
+  private readonly springRef = viewChild.required<ElementRef<SVGGElement>>('spring');
+  private readonly bodyRef = viewChild.required<ElementRef<SVGGElement>>('body');
+  private readonly sayRef = viewChild.required<ElementRef<SVGTextElement>>('say');
+  private readonly roadRef = viewChild.required<ElementRef<SVGPathElement>>('roadEl');
+  private readonly probeRef = viewChild.required<ElementRef<SVGPathElement>>('probe');
+  private readonly fxRef = viewChild.required<ElementRef<SVGGElement>>('fx');
 
+  protected readonly chapters = CHAPTERS;
+  protected readonly mainBody = MAIN_BODY;
   protected readonly star =
     'M0 -11L3.2 -3.4L11 -3.4L4.6 1.5L6.9 9.8L0 4.9L-6.9 9.8L-4.6 1.5L-11 -3.4L-3.2 -3.4Z';
-  protected readonly heroBody =
-    'M-22 0C-30 -16 -29 -44 -12 -52C-4 -56 9 -56 17 -52C30 -44 29 -16 22 0C16 3 -16 3 -22 0Z';
+  protected readonly eyes = [
+    { x: -28, y: 2, r: 15 },
+    { x: 28, y: 0, r: 19 },
+  ];
 
-  private readonly narrow = signal(false);
-  private readonly layout = computed(() => (this.narrow() ? LAYOUTS.narrow : LAYOUTS.wide));
-
-  protected readonly view = computed(() => {
-    const l = this.layout();
-    const rows = Math.ceil(LEVELS.length / l.cols);
-    return {
-      w: l.origin.x * 2 + (l.cols - 1) * l.cell.w,
-      h: l.origin.y + (rows - 1) * l.cell.h + l.pad,
-    };
-  });
+  protected readonly shape = signal<MapShape>('wide');
+  protected readonly spec = computed(() => MAP_SPECS[this.shape()]);
+  private readonly points = computed(() => mapSpots(this.spec()));
+  protected readonly heroScale = computed(
+    () => this.spec().s * (this.shape() === 'tall' ? 0.36 : 0.42),
+  );
+  protected readonly art = computed(() => (this.shape() === 'tall' ? 1.3 : 1.12));
 
   protected readonly spots = computed<Spot[]>(() => {
-    const l = this.layout();
     const isDone = (id: string) => this.progress.isDone(id);
-    const at = serpentine(LEVELS.length, l.cols, l.cell, l.origin);
-    return LEVELS.map((level, i) => {
-      const ch = CHAPTERS.find((c) => c.key === level.chapter)!;
-      const first = i === 0 || LEVELS[i - 1].chapter !== level.chapter;
-      return {
-        level,
-        ...at[i],
-        state: levelState(level, isDone),
-        chapter: first ? (ch.n ? `Cap. ${ch.n} · ${ch.title}` : ch.title) : null,
-        name: wrapWords(level.title, l.chars),
-      };
-    });
+    const at = this.points();
+    return LEVELS.map((level, i) => ({
+      level,
+      x: at[i].x,
+      y: at[i].y,
+      state: levelState(level, isDone),
+      name: wrapWords(level.title, this.spec().chars),
+    }));
   });
 
-  /** Índice del nodo donde está main (el nivel que toca jugar). */
+  /** Índice del nivel donde está main (el que toca jugar). */
   protected readonly here = computed(() => {
     const cur = currentLevel((id) => this.progress.isDone(id));
     return LEVELS.findIndex((l) => l.id === cur.id);
   });
 
-  protected readonly road = computed(() => this.roadThrough(this.spots()));
-  protected readonly roadDone = computed(() =>
-    this.roadThrough(this.spots().slice(0, this.here() + 1)),
+  protected readonly road = computed(() => roadPath(this.points(), this.spec()));
+  protected readonly roadDone = computed(() => roadPath(this.points(), this.spec(), this.here()));
+  protected readonly marks = computed(() => landmarks(this.points(), this.spec()));
+  protected readonly pools = computed(() =>
+    this.points().map((p, i) => ({ x: p.x, y: p.y, chapter: LEVELS[i].chapter })),
   );
 
+  protected readonly trees = computed(() => {
+    const { s } = this.spec();
+    return scatter(this.spec(), this.points(), this.shape() === 'tall' ? 46 : 64, 7, {
+      node: 150 * s,
+      road: 62 * s,
+      landmark: 110 * s,
+    });
+  });
+  protected readonly tufts = computed(() => {
+    const { s } = this.spec();
+    return scatter(this.spec(), this.points(), 110, 3, {
+      node: 84 * s,
+      road: 32 * s,
+      landmark: 70 * s,
+    });
+  });
+
+  protected readonly far = computed(() => {
+    const { view, horizon, s } = this.spec();
+    const from = -view.w * 2;
+    const to = view.w * 3;
+    return [
+      ridge(5, horizon - 10, 150 * s, from, to, 210 * s),
+      ridge(9, horizon + 14, 80 * s, from, to, 150 * s),
+      ridge(2, horizon + 46, 26 * s, from, to, 240 * s),
+      ridge(11, horizon + 150 * s, 30 * s, from, to, 300 * s),
+    ];
+  });
+  protected readonly sun = computed(() => {
+    const { view, horizon, s } = this.spec();
+    return { x: view.w * 0.62, y: horizon - 150 * s };
+  });
   protected readonly clouds = computed(() => {
-    const { w } = this.view();
-    return [0.12, 0.48, 0.8].map((f, i) => {
-      const x = w * f;
-      const y = 50 + i * 18;
-      return {
-        d: `M${x - 40} ${y}C${x - 44} ${y - 18} ${x - 20} ${y - 26} ${x - 8} ${y - 16}C${x} ${y - 34} ${x + 30} ${y - 30} ${x + 30} ${y - 12}C${x + 48} ${y - 14} ${x + 50} ${y + 2} ${x + 36} ${y + 4}H${x - 34}C${x - 46} ${y + 4} ${x - 48} ${y - 2} ${x - 40} ${y}Z`,
-        delay: -i * 9,
-      };
+    const { view, horizon, s } = this.spec();
+    return Array.from({ length: 7 }, (_, i) => ({
+      d: cloudPath(
+        -200 + hash(i, 21) * (view.w + 400),
+        70 * s + hash(i, 22) * (horizon - 190 * s),
+        (130 + hash(i, 23) * 150) * s,
+      ),
+      dur: 26 + hash(i, 24) * 30,
+      delay: -hash(i, 25) * 30,
+    }));
+  });
+  protected readonly birds = computed(() => {
+    const { horizon, s } = this.spec();
+    const y = horizon * 0.42;
+    return [0, 1, 2].map((i) => {
+      const x = -300 + i * 46 * s;
+      const by = y + (i % 2) * 22 * s;
+      const w = 12 * s;
+      return `M${x - w} ${by - 4 * s}Q${x - w / 2} ${by - 9 * s} ${x} ${by}Q${x + w / 2} ${by - 9 * s} ${x + w} ${by - 4 * s}`;
     });
   });
 
   protected readonly heroSays = signal('');
+  protected readonly sayDx = signal(0);
   protected readonly status = signal('');
+  protected readonly idle = computed(() => {
+    const lv = LEVELS[this.here()];
+    return lv.n ? `Te toca el nivel ${lv.n}: «${lv.title}».` : `Te toca el prólogo: «${lv.title}».`;
+  });
+  protected readonly playLabel = computed(() =>
+    this.progress.isDone(LEVELS[this.here()].id) ? 'Repetir ▶' : 'Jugar ▶',
+  );
 
   private calm = false;
   private moving = false;
-  /** Dónde está dibujado main ahora (índice de nodo). */
   private heroAt = -1;
-  private bob?: gsap.core.Tween;
-  private hop?: gsap.core.Timeline;
+  private readonly hp: Point = { x: 0, y: 0 };
+  private readonly sq = spring(260, 11);
+  private readonly rot = spring(130, 10);
+  private gctx?: gsap.Context;
+  private walk?: { tween: gsap.core.Tween; finish: () => void };
+  private hopLoop?: gsap.core.Tween;
   private sayCall?: gsap.core.Tween;
+  private blinkCall?: gsap.core.Tween;
+  private lookUntil = 0;
+  private pokeTimes: number[] = [];
 
   constructor() {
     const destroyRef = inject(DestroyRef);
     afterNextRender(() => {
       this.calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const mq = matchMedia('(max-width: 640px)');
+      const mq = matchMedia('(max-aspect-ratio: 1/1)');
       const onMq = () => {
-        this.narrow.set(mq.matches);
-        // Con otro trazado cambian las posiciones: main va derecho a su nodo.
-        queueMicrotask(() => this.placeHero(this.heroAt < 0 ? this.here() : this.heroAt));
+        this.shape.set(mq.matches ? 'tall' : 'wide');
+        // Otro trazado, otras posiciones: si iba caminando, llega de una.
+        this.walk?.finish();
+        this.placeHero(this.heroAt < 0 ? this.here() : this.heroAt);
       };
       mq.addEventListener('change', onMq);
       onMq();
-      this.placeHero(this.here());
-      const hero = this.heroRef().nativeElement.querySelector('.sm-hero-bob');
-      if (!this.calm && hero) {
-        this.bob = gsap.to(hero, {
-          y: -6,
-          duration: 0.55,
-          ease: 'sine.inOut',
-          yoyo: true,
-          repeat: -1,
+
+      this.gctx = gsap.context(() => {
+        gsap.set(this.bodyRef().nativeElement, { svgOrigin: '0 0' });
+        gsap.set(this.worldRef().nativeElement.querySelectorAll('.sm-h-lid'), {
+          transformOrigin: '50% 50%',
         });
+        if (!this.calm) {
+          gsap.to(this.bodyRef().nativeElement, {
+            scaleY: 1.03,
+            scaleX: 0.985,
+            duration: 1.3,
+            ease: 'sine.inOut',
+            yoyo: true,
+            repeat: -1,
+          });
+          this.blink();
+        }
+      }, this.worldRef().nativeElement);
+      gsap.ticker.add(this.tick);
+
+      const fresh = this.here() === 0 && !this.progress.isDone(LEVELS[0].id);
+      this.say(fresh ? '¡Hola! ¿Me acompañás?' : '¡Seguimos!');
+      if (this.shape() === 'tall' && this.here() > 2) {
+        this.heroRef().nativeElement.scrollIntoView({ block: 'center' });
       }
-      this.say(this.here() === 0 ? '¡vamos!' : '¡acá sigo!');
+
       destroyRef.onDestroy(() => {
         mq.removeEventListener('change', onMq);
-        for (const t of [this.bob, this.hop, this.sayCall]) t?.kill();
-        gsap.killTweensOf(this.heroRef().nativeElement);
+        gsap.ticker.remove(this.tick);
+        for (const t of [this.walk?.tween, this.hopLoop, this.sayCall, this.blinkCall]) t?.kill();
+        this.gctx?.revert();
       });
     });
   }
 
+  protected chapterOf(key: Level['chapter']) {
+    return CHAPTERS.find((c) => c.key === key)!;
+  }
+
   protected ariaFor(s: Spot): string {
     const what = { locked: 'bloqueado', open: 'para jugar', done: 'superado', wip: 'en obra' };
-    return `Nivel ${s.level.n}: ${s.level.title}, ${what[s.state]}`;
+    const ch = this.chapterOf(s.level.chapter);
+    const where = ch.n ? `capítulo ${ch.n}, ${ch.title}` : ch.title;
+    return `Nivel ${s.level.n}: ${s.level.title} (${where}), ${what[s.state]}`;
   }
 
   protected go(i: number): void {
@@ -285,7 +689,8 @@ export class StoryMapComponent {
         .find((l) => l.scene);
       this.status.set(`Todavía no: primero superá «${prev?.title ?? 'el nivel anterior'}».`);
       this.say('¡todavía no!');
-      this.shake(i);
+      this.wiggle(i);
+      this.rot.v += 220;
       return;
     }
     this.status.set(
@@ -294,89 +699,374 @@ export class StoryMapComponent {
         : `Vamos a «${spot.level.title}».`,
     );
     this.moving = true;
-    this.walkTo(i).then(() => {
-      this.moving = false;
-      void this.router.navigate(['/t', this.themeId(), 'example', spot.level.id]);
+    void this.walkTo(i).then(() => {
+      const enter = () => {
+        this.moving = false;
+        void this.router.navigate(['/t', this.themeId(), 'example', spot.level.id]);
+      };
+      if (this.calm) enter();
+      else this.anim(() => gsap.delayedCall(0.28, enter));
     });
   }
 
-  /** Main salta de nodo en nodo por el camino hasta el elegido. */
+  /** Main camina por el camino, dando saltitos, hasta el nivel elegido. */
   private walkTo(target: number): Promise<void> {
     const from = this.heroAt;
-    if (this.calm || from === target || from < 0) {
+    if (this.calm || from < 0 || from === target) {
       this.placeHero(target);
+      if (!this.calm) this.arrive(target);
       return Promise.resolve();
     }
-    const spots = this.spots();
-    const dir = target > from ? 1 : -1;
-    const hops = Math.abs(target - from);
-    const d = hops > 6 ? HOP_S * 0.55 : HOP_S;
-    const hero = this.heroRef().nativeElement;
+    const cum = this.lengths();
+    const road = this.roadRef().nativeElement;
+    const st = { at: cum[from] };
+    const dist = Math.abs(cum[target] - cum[from]);
+    const s = this.spec().s;
+    const lift = 26 * s;
+    const hop = this.hopRef().nativeElement;
     return new Promise((resolve) => {
-      const tl = gsap.timeline({ onComplete: resolve });
-      for (let k = 1; k <= hops; k++) {
-        const s = spots[from + dir * k];
-        const p = spots[from + dir * (k - 1)];
-        const topY = Math.min(s.y, p.y) - 34 - 46;
-        tl.to(hero, { x: (s.x + p.x) / 2, y: topY, duration: d, ease: 'power1.out' }).to(hero, {
-          x: s.x,
-          y: s.y - 34,
-          duration: d,
-          ease: 'power1.in',
-          onComplete: () => {
-            this.heroAt = from + dir * k;
-          },
+      this.anim(() => {
+        this.hopLoop = gsap.to(hop, {
+          y: -34,
+          duration: 0.13,
+          ease: 'power1.out',
+          yoyo: true,
+          repeat: -1,
         });
-      }
-      tl.to(hero, { scaleY: 0.85, scaleX: 1.1, duration: 0.07, svgOrigin: '0 0' }).to(hero, {
-        scaleY: 1,
-        scaleX: 1,
-        duration: 0.18,
-        ease: 'back.out(3)',
+        let lastX = this.hp.x;
+        const tween = gsap.to(st, {
+          at: cum[target],
+          duration: clamp(dist / (820 * s), 0.5, 2.4),
+          ease: 'power1.inOut',
+          onUpdate: () => {
+            const p = road.getPointAtLength(st.at);
+            this.moveHero(p.x, p.y - lift);
+            const dx = p.x - lastX;
+            lastX = p.x;
+            if (Math.abs(dx) > 0.5) this.rot.t = Math.sign(dx) * 7;
+            this.lookToward(Math.sign(dx) * 6, 0);
+          },
+          onComplete: () => finish(),
+        });
+        const finish = () => {
+          if (!this.walk) return;
+          this.walk = undefined;
+          tween.kill();
+          this.hopLoop?.kill();
+          gsap.to(hop, { y: 0, duration: 0.08, overwrite: 'auto' });
+          this.rot.t = 0;
+          this.placeHero(target);
+          this.arrive(target);
+          resolve();
+        };
+        this.walk = { tween, finish };
       });
-      this.hop = tl;
     });
   }
 
-  private placeHero(i: number): void {
-    const s = this.spots()[i];
-    if (!s) return;
-    this.heroAt = i;
-    gsap.set(this.heroRef().nativeElement, { x: s.x, y: s.y - 34 });
+  /** Largo del camino desde el primer nivel hasta cada uno. */
+  private lengths(): number[] {
+    const probe = this.probeRef().nativeElement;
+    const pts = this.points();
+    const cum = [0];
+    segments(pts, this.spec()).forEach((g, i) => {
+      probe.setAttribute('d', `M${g.a.x} ${g.a.y}${segmentTail(g)}`);
+      cum.push(cum[i] + probe.getTotalLength());
+    });
+    return cum;
   }
 
-  private say(text: string): void {
-    this.heroSays.set(text);
-    this.sayCall?.kill();
-    this.sayCall = gsap.delayedCall(2.2, () => this.heroSays.set(''));
+  /** Al llegar: se aplasta, levanta polvo y el nivel rebota bajo sus pies. */
+  private arrive(i: number): void {
+    this.sq.v += 3.2;
+    const s = this.spec().s;
+    for (let k = 0; k < 6; k++) {
+      const side = k % 2 ? 1 : -1;
+      this.puff(this.hp.x + side * 18 * s, this.hp.y, side * (30 + k * 9) * s, (10 + k * 3) * s);
+    }
+    const pop = this.nodePop(i);
+    if (pop) {
+      this.anim(() =>
+        gsap.fromTo(
+          pop,
+          { scaleX: 1.14, scaleY: 0.86, svgOrigin: '0 0' },
+          {
+            scaleX: 1,
+            scaleY: 1,
+            duration: 0.45,
+            ease: 'elastic.out(1.1, 0.35)',
+            overwrite: 'auto',
+          },
+        ),
+      );
+    }
   }
 
-  private shake(i: number): void {
-    const node = this.heroRef().nativeElement.ownerSVGElement?.querySelectorAll('.sm-node')[i];
-    if (!node || this.calm) return;
-    const inner = node.querySelector('.sm-disc');
-    gsap.fromTo(
-      inner,
-      { x: -6 },
-      { x: 0, duration: 0.4, ease: 'elastic.out(1.2, 0.25)', overwrite: 'auto' },
+  private wiggle(i: number): void {
+    const pop = this.nodePop(i);
+    if (!pop || this.calm) return;
+    this.anim(() =>
+      gsap.fromTo(
+        pop,
+        { rotation: -12, svgOrigin: '0 0' },
+        { rotation: 0, duration: 0.6, ease: 'elastic.out(1.2, 0.25)', overwrite: 'auto' },
+      ),
     );
   }
 
-  /** Camino suave entre nodos: recto en la fila, una curva en U al cambiar de fila. */
-  private roadThrough(spots: Spot[]): string {
-    if (!spots.length) return '';
-    let d = `M${spots[0].x} ${spots[0].y}`;
-    for (let i = 1; i < spots.length; i++) {
-      const a = spots[i - 1];
-      const b = spots[i];
-      if (a.y === b.y) {
-        d += `L${b.x} ${b.y}`;
-      } else {
-        const side = a.x > this.view().w / 2 ? 1 : -1;
-        const out = 74 * side;
-        d += `C${a.x + out} ${a.y} ${b.x + out} ${b.y} ${b.x} ${b.y}`;
+  private nodePop(i: number): Element | null {
+    return this.worldRef().nativeElement.querySelectorAll('.sm-node .sm-pop')[i] ?? null;
+  }
+
+  private placeHero(i: number): void {
+    const p = this.points()[i];
+    if (!p) return;
+    this.heroAt = i;
+    this.moveHero(p.x, p.y - 26 * this.spec().s);
+  }
+
+  private moveHero(x: number, y: number): void {
+    this.hp.x = x;
+    this.hp.y = y;
+    gsap.set(this.heroRef().nativeElement, { x, y });
+  }
+
+  // ── Vida y toques ──
+
+  /** Los resortes del cuerpo: aplastar (conservando el volumen) y girar desde los pies. */
+  private readonly tick = (_time: number, delta: number) => {
+    const springs = [this.sq, this.rot];
+    if (springs.every((s) => Math.abs(s.v) < 0.001 && Math.abs(s.x - s.t) < 0.001)) return;
+    const h = Math.min(delta / 1000, 0.034) / 2;
+    for (let n = 0; n < 2; n++) {
+      for (const s of springs) {
+        s.v += (-(s.x - s.t) * s.k - s.v * s.d) * h;
+        s.x += s.v * h;
       }
     }
-    return d;
+    const sq = clamp(this.sq.x, -0.3, 0.3);
+    this.springRef().nativeElement.setAttribute(
+      'transform',
+      `rotate(${this.rot.x.toFixed(2)}) scale(${(1 + sq * 0.82).toFixed(3)} ${(1 - sq).toFixed(3)})`,
+    );
+  };
+
+  private blink(): void {
+    this.blinkCall = gsap.delayedCall(2 + Math.random() * 3.5, () => {
+      this.anim(() =>
+        gsap.to(this.worldRef().nativeElement.querySelectorAll('.sm-h-lid'), {
+          scaleY: 0.1,
+          duration: 0.06,
+          ease: 'power1.in',
+          yoyo: true,
+          repeat: 1,
+        }),
+      );
+      this.blink();
+    });
+  }
+
+  /** Tocar a main: suma velocidad a los resortes según dónde cayó el toque. */
+  protected poke(e: PointerEvent): void {
+    e.stopPropagation();
+    const p = this.toWorld(e);
+    const sc = this.heroScale();
+    const lx = (p.x - this.hp.x) / sc;
+    const ly = (this.hp.y - p.y) / sc;
+    const side = clamp(lx / 90, -1, 1);
+    const high = clamp(ly / 220, 0, 1);
+    this.rot.v += side * (140 + high * 160);
+    this.sq.v += 2 + (1 - high) * 2.5;
+    const now = performance.now();
+    this.pokeTimes = [...this.pokeTimes.filter((t) => now - t < 3000), now];
+    if (this.pokeTimes.length >= 6) {
+      this.pokeTimes = [];
+      this.sq.v += 5;
+      this.say('¡basta, que tengo mucho que hacer!');
+    } else {
+      this.word(p, POKES[this.pokeTimes.length % POKES.length]);
+    }
+  }
+
+  /** Tocar el mundo: en la tierra brota una flor; en el cielo, un destello. Main mira ahí. */
+  protected tap(e: PointerEvent): void {
+    const t = e.target as Element;
+    if (t.closest('.sm-node, .sm-hero')) return;
+    const p = this.toWorld(e);
+    this.lookAt(p, 1200);
+    if (p.y < this.spec().horizon) this.sparkle(p);
+    else this.flower(p);
+  }
+
+  protected look(e: PointerEvent): void {
+    if (this.moving || performance.now() < this.lookUntil) return;
+    this.lookAt(this.toWorld(e));
+  }
+
+  private lookAt(p: Point, hold = 0): void {
+    if (hold) this.lookUntil = performance.now() + hold;
+    const head = this.hp.y - 150 * this.heroScale();
+    this.lookToward(
+      clamp((p.x - this.hp.x) / 260, -1, 1) * 6,
+      clamp((p.y - head) / 260, -1, 1) * 5,
+    );
+  }
+
+  private lookToward(x: number, y: number): void {
+    if (this.calm) return;
+    const pupils = this.worldRef().nativeElement.querySelectorAll('.sm-h-pupil');
+    this.anim(() =>
+      gsap.to(pupils, { x, y, duration: 0.25, ease: 'power2.out', overwrite: 'auto' }),
+    );
+  }
+
+  private say(text: string): void {
+    const { view, s } = this.spec();
+    const half = text.length * 0.3 * 28 * s;
+    this.sayDx.set(clamp(this.hp.x, half + 20, view.w - half - 20) - this.hp.x);
+    this.heroSays.set(text);
+    this.sayCall?.kill();
+    this.sayCall = gsap.delayedCall(2.6, () => this.heroSays.set(''));
+    if (!this.calm) {
+      this.anim(() =>
+        gsap.fromTo(
+          this.sayRef().nativeElement,
+          { opacity: 0, y: 20 * s, scale: 0.86, transformOrigin: '50% 100%' },
+          { opacity: 1, y: 0, scale: 1, duration: 0.28, ease: 'back.out(2.2)', overwrite: 'auto' },
+        ),
+      );
+    }
+  }
+
+  // ── Efectos sueltos: se crean, se animan y se van ──
+
+  private fx(tag: string, attrs: Record<string, string | number>): SVGElement {
+    const n = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, String(v));
+    this.fxRef().nativeElement.appendChild(n);
+    return n;
+  }
+
+  private gone(n: Element, tween: gsap.TweenVars): void {
+    if (this.calm) {
+      gsap.delayedCall(1.2, () => n.remove());
+      return;
+    }
+    this.anim(() => gsap.to(n, { ...tween, onComplete: () => n.remove() }));
+  }
+
+  private word(p: Point, text: string): void {
+    const s = this.spec().s;
+    const n = this.fx('text', {
+      class: 'sm-fx-word',
+      x: p.x,
+      y: p.y,
+      'text-anchor': 'middle',
+      'font-size': 30 * s,
+    });
+    n.textContent = text;
+    this.gone(n, { y: -70 * s, opacity: 0, duration: 0.8, ease: 'power2.out' });
+  }
+
+  private puff(x: number, y: number, dx: number, dy: number): void {
+    if (this.calm) return;
+    const s = this.spec().s;
+    const n = this.fx('circle', { class: 'sm-fx-dust', cx: x, cy: y, r: 9 * s });
+    this.gone(n, {
+      x: dx,
+      y: -dy,
+      scale: 1.8,
+      opacity: 0,
+      duration: 0.55,
+      ease: 'power2.out',
+      transformOrigin: '50% 50%',
+    });
+  }
+
+  private flower(p: Point): void {
+    const s = this.spec().s;
+    const near = this.points().reduce(
+      (best, q, i) => {
+        const d = (q.x - p.x) ** 2 + (q.y - p.y) ** 2;
+        return d < best.d ? { i, d } : best;
+      },
+      { i: 0, d: Infinity },
+    );
+    const fx = this.fxRef().nativeElement;
+    while (fx.querySelectorAll('.sm-fx-flower').length > 14)
+      fx.querySelector('.sm-fx-flower')?.remove();
+    const g = this.fx('g', {
+      class: 'sm-fx-flower',
+      'data-chapter': LEVELS[near.i].chapter,
+      transform: `translate(${p.x} ${p.y}) scale(${1.6 * s})`,
+    });
+    const inner = document.createElementNS(NS, 'g');
+    g.appendChild(inner);
+    const petals = [
+      [-6, -14],
+      [6, -14],
+      [0, -22],
+      [0, -7],
+    ];
+    inner.innerHTML =
+      '<path class="sm-fx-stem" d="M0 0Q-2 -6 0 -12"/>' +
+      petals.map(([x, y]) => `<circle class="sm-fx-petal" cx="${x}" cy="${y}" r="6"/>`).join('') +
+      '<circle class="sm-fx-eye" cy="-14" r="4"/>';
+    if (this.calm) {
+      gsap.delayedCall(2.5, () => g.remove());
+      return;
+    }
+    this.anim(() => {
+      gsap
+        .timeline({ onComplete: () => g.remove() })
+        .fromTo(
+          inner,
+          { scale: 0, svgOrigin: '0 0' },
+          { scale: 1, duration: 0.35, ease: 'back.out(2.5)' },
+        )
+        .to(inner, { rotation: 8, duration: 0.5, ease: 'sine.inOut', yoyo: true, repeat: 3 })
+        .to(inner, { scale: 0, duration: 0.3, ease: 'power2.in' }, '+=0.4');
+    });
+    // Si brota al lado de main, se sobresalta.
+    if (Math.hypot(p.x - this.hp.x, p.y - this.hp.y) < 140 * s) {
+      this.sq.v -= 2.5;
+      this.say('¡uy, una flor!');
+    }
+  }
+
+  private sparkle(p: Point): void {
+    const s = this.spec().s;
+    const n = this.fx('path', {
+      class: 'sm-fx-spark',
+      d: this.star,
+      transform: `translate(${p.x} ${p.y}) scale(${2 * s})`,
+    });
+    if (this.calm) {
+      gsap.delayedCall(1, () => n.remove());
+      return;
+    }
+    this.anim(() =>
+      gsap
+        .timeline({ onComplete: () => n.remove() })
+        .fromTo(
+          n,
+          { scale: 0, rotation: -40, transformOrigin: '50% 50%' },
+          { scale: 2 * s, rotation: 0, duration: 0.3, ease: 'back.out(3)' },
+        )
+        .to(n, { scale: 0, opacity: 0, duration: 0.45, ease: 'power2.in' }, '+=0.2'),
+    );
+  }
+
+  private toWorld(e: PointerEvent): Point {
+    const m = this.worldRef().nativeElement.getScreenCTM();
+    if (!m) return { x: 0, y: 0 };
+    const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+    return { x: p.x, y: p.y };
+  }
+
+  /** Toda animación creada después del arranque entra al contexto, para revertirla al salir. */
+  private anim(fn: () => void): void {
+    if (this.gctx) this.gctx.add(fn);
+    else fn();
   }
 }
