@@ -59,6 +59,11 @@ export interface Scene {
   say(who: Who, text: string, strong?: boolean): void;
   /** Festejo: saltan y vuelan chispas. */
   celebrate(): void;
+  /**
+   * main se duerme (ojos cerrados, sin parpadear; el malabar sigue: main no
+   * para nunca) o se despierta abriendo los ojos de golpe.
+   */
+  doze(asleep: boolean): void;
   /** De coordenadas de pantalla a las de la escena (viewBox). */
   toScene(clientX: number, clientY: number): { x: number; y: number };
   /** De la escena a píxeles dentro del contenedor (para ubicar HTML sin escalarlo). */
@@ -1463,6 +1468,18 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
     pop(x, y, text, strong ? 'jh-pop-strong' : '', who);
   };
 
+  const doze = (asleep: boolean) => {
+    faceLocked = asleep ? 1 : 0;
+    if (asleep) {
+      gsap.to(main.lids, { scaleY: 0.08, duration: dur(0.2), overwrite: 'auto' });
+      return;
+    }
+    gsap
+      .timeline()
+      .to(main.lids, { scaleY: 1.3, duration: dur(0.08), ease: 'power2.out', overwrite: 'auto' })
+      .to(main.lids, { scaleY: 1, duration: dur(0.3), ease: 'back.out(2)' });
+  };
+
   const celebrate = () => {
     cue({ kind: 'cheer' });
     if (calm) {
@@ -1569,6 +1586,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
     queuedClick,
     say,
     celebrate,
+    doze,
     toScene,
     toScreen,
     onView: (listener) => viewListeners.push(listener),
