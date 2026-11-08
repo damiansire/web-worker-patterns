@@ -68,6 +68,12 @@ export interface Scene {
   /** Avisa de cada golpe, toque y momento de la escena (para el sonido). */
   onCue(listener: (cue: SceneCue) => void): void;
   /**
+   * Avisa cada vez que main atrapa una pelota del malabar: cada pelota es algo
+   * que main atiende (0 un clic, 1 el scroll, 2 una animación). Congelado, no
+   * atrapa nada.
+   */
+  onJuggle(listener: (ball: JuggleBall) => void): void;
+  /**
    * Fija un elemento HTML a un punto de la escena, escalado con ella. Sirve para
    * lo que tiene que moverse aunque main esté congelado (el compositor no anima
    * SVG). Devuelve la función que lo suelta.
@@ -83,6 +89,8 @@ export interface Scene {
 }
 
 export type Who = 'main' | 'worker';
+/** Las pelotas del malabar, en orden: un clic, el scroll, una animación. */
+export type JuggleBall = 0 | 1 | 2;
 export interface FrameInsets {
   top: number;
   bottom: number;
@@ -149,6 +157,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
   const cue = (c: SceneCue) => {
     for (const l of cueListeners) l(c);
   };
+  const juggleListeners: ((ball: JuggleBall) => void)[] = [];
   const dur = (s: number) => (calm ? 0 : s);
 
   const main = {
@@ -904,9 +913,15 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
     gaze(worker.pupils, { x: WORKER_AT.x + 10, y: FLOOR_Y - 96 }, workerLookAt ?? recent, 5);
 
     // Pelotas.
+    const jtBefore = jt;
     if (juggling && !calm) jt += dt;
-    for (const b of balls) {
+    for (const [i, b] of balls.entries()) {
       if (b.mode === 'juggle') {
+        // La pelota llega a la mano cuando su vuelta pasa por la mitad.
+        const lap = (t: number) => Math.floor(t * JUGGLE_RATE + b.offset - 0.5);
+        if (juggling && lap(jt) > lap(jtBefore)) {
+          for (const l of juggleListeners) l(i as JuggleBall);
+        }
         const p = juggleAt(b);
         b.x = p.x;
         b.y = p.y;
@@ -1558,6 +1573,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
     toScreen,
     onView: (listener) => viewListeners.push(listener),
     onCue: (listener) => cueListeners.push(listener),
+    onJuggle: (listener) => juggleListeners.push(listener),
     pin,
     frame: (next, pan) => {
       insets = next;
@@ -1570,6 +1586,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
       camera?.kill();
       viewListeners.length = 0;
       cueListeners.length = 0;
+      juggleListeners.length = 0;
       pins.clear();
       gsap.globalTimeline.resume();
       io.disconnect();
