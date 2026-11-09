@@ -4,6 +4,8 @@ import {
   arrive,
   clampStep,
   emptyLoop,
+  emptyTrace,
+  formatMs,
   hiddenInQueue,
   INTRO_STEPS,
   isFrozen,
@@ -13,8 +15,61 @@ import {
   prevStep,
   progressOf,
   QUEUE_SHOWN,
+  spanMs,
   TASK_MS,
+  TRACE_NOW_AT,
+  TRACE_SPAN_MS,
+  traceEnd,
+  tracePrune,
+  traceStart,
+  traceStop,
 } from './story.intro.logic';
+
+describe('la línea de main', () => {
+  it('cada cosa es un tramo con su comienzo y su fin', () => {
+    let { trace, id } = traceStart(emptyTrace(), 'click', 'clic', 100);
+    expect(trace.spans).toEqual([{ id, kind: 'click', label: 'clic', start: 100, end: null }]);
+    expect(spanMs(trace.spans[0], 400)).toBe(300);
+    trace = traceEnd(trace, id, 520);
+    expect(trace.spans[0].end).toBe(520);
+    expect(spanMs(trace.spans[0], 9999)).toBe(420);
+    // Terminar dos veces no lo corre.
+    expect(traceEnd(trace, id, 900).spans[0].end).toBe(520);
+  });
+
+  it('main hace de a una: empezar algo corta lo que corría', () => {
+    const a = traceStart(emptyTrace(), 'code', 'línea 1', 0);
+    const b = traceStart(a.trace, 'code', 'línea 2', 650);
+    expect(b.trace.spans.map((s) => [s.label, s.start, s.end])).toEqual([
+      ['línea 1', 0, 650],
+      ['línea 2', 650, null],
+    ]);
+    expect(b.id).not.toBe(a.id);
+  });
+
+  it('parar corta lo que corre y no inventa un fin antes del comienzo', () => {
+    const { trace } = traceStart(emptyTrace(), 'long', 'tarea larga', 500);
+    expect(traceStop(trace, 2000).spans[0].end).toBe(2000);
+    expect(traceStop(trace, 100).spans[0].end).toBe(500);
+    const quiet = traceStop(trace, 2000);
+    expect(traceStop(quiet, 3000)).toBe(quiet);
+  });
+
+  it('lo que salió por la izquierda se va; lo que corre se queda', () => {
+    let { trace, id } = traceStart(emptyTrace(), 'click', 'clic', 0);
+    trace = traceEnd(trace, id, 100);
+    trace = traceStart(trace, 'long', 'tarea larga', 200).trace;
+    const later = 100 + TRACE_SPAN_MS * TRACE_NOW_AT + 1;
+    expect(tracePrune(trace, later).spans.map((s) => s.kind)).toEqual(['long']);
+    expect(tracePrune(trace, 150)).toBe(trace);
+  });
+
+  it('los tiempos se leen de un vistazo', () => {
+    expect(formatMs(420.4)).toBe('420 ms');
+    expect(formatMs(3200)).toBe('3,2 s');
+    expect(formatMs(-5)).toBe('0 ms');
+  });
+});
 
 describe('story.intro.logic', () => {
   it('lo que llega espera en la fila, en orden de llegada', () => {
@@ -63,6 +118,7 @@ describe('story.intro.logic', () => {
     expect(mid.finished).toEqual([]);
     expect(mid.loop.queue.length).toBe(7);
     expect(hiddenInQueue(mid.loop)).toBe(7 - QUEUE_SHOWN);
+    expect(hiddenInQueue(mid.loop, 3)).toBe(4);
     // Al terminar la larga, main atiende los clics que esperaban.
     const after = advance(mid.loop, TASK_MS.long - 1100 + 7 * TASK_MS.click);
     expect(isFrozen(after.loop)).toBe(false);

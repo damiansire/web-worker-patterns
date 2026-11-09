@@ -112,8 +112,8 @@ export function progressOf(loop: MainLoop): number {
 }
 
 /** Lo que espera y no entra en la fila dibujada. */
-export function hiddenInQueue(loop: MainLoop): number {
-  return Math.max(0, loop.queue.length - QUEUE_SHOWN);
+export function hiddenInQueue(loop: MainLoop, shown = QUEUE_SHOWN): number {
+  return Math.max(0, loop.queue.length - shown);
 }
 
 /**
@@ -132,6 +132,87 @@ export const PHASE_MS = 900;
 export function paintPhaseAt(elapsedMs: number, phaseMs = PHASE_MS): PaintPhase | null {
   if (elapsedMs < 0) return null;
   return PAINT_PHASES[Math.floor(elapsedMs / phaseMs)] ?? null;
+}
+
+/**
+ * La línea de main: qué hizo main y cuánto tardó cada cosa, como el carril
+ * "Main" del panel de rendimiento de las DevTools. Cada cosa es un tramo con
+ * su comienzo y su fin (null mientras corre), en ms de `performance.now()`.
+ */
+export type TraceKind = 'hello' | 'code' | IntroTaskKind | PaintPhase;
+
+export interface TraceSpan {
+  id: number;
+  kind: TraceKind;
+  label: string;
+  start: number;
+  end: number | null;
+}
+
+export interface MainTrace {
+  spans: readonly TraceSpan[];
+  nextId: number;
+}
+
+/** Cuánto tiempo entra a lo ancho de la línea. */
+export const TRACE_SPAN_MS = 6000;
+/** Dónde está "ahora", en fracción del ancho: a la izquierda, lo que ya pasó. */
+export const TRACE_NOW_AT = 0.8;
+
+export const emptyTrace = (): MainTrace => ({ spans: [], nextId: 1 });
+
+/**
+ * Main empieza algo. Main hace de a una cosa: si había otra corriendo, termina
+ * ahí (en la línea nunca se pisan dos tramos).
+ */
+export function traceStart(
+  trace: MainTrace,
+  kind: TraceKind,
+  label: string,
+  at: number,
+): { trace: MainTrace; id: number } {
+  const id = trace.nextId;
+  const spans = closeOpen(trace.spans, at);
+  return {
+    trace: { spans: [...spans, { id, kind, label, start: at, end: null }], nextId: id + 1 },
+    id,
+  };
+}
+
+/** Main termina eso (si ya había terminado, no cambia nada). */
+export function traceEnd(trace: MainTrace, id: number, at: number): MainTrace {
+  const spans = trace.spans.map((s) =>
+    s.id === id && s.end === null ? { ...s, end: Math.max(at, s.start) } : s,
+  );
+  return { ...trace, spans };
+}
+
+/** Corta lo que esté corriendo (por ejemplo, al cambiar de paso). */
+export function traceStop(trace: MainTrace, at: number): MainTrace {
+  const spans = closeOpen(trace.spans, at);
+  return spans === trace.spans ? trace : { ...trace, spans };
+}
+
+function closeOpen(spans: readonly TraceSpan[], at: number): readonly TraceSpan[] {
+  if (!spans.some((s) => s.end === null)) return spans;
+  return spans.map((s) => (s.end === null ? { ...s, end: Math.max(at, s.start) } : s));
+}
+
+/** Saca lo que ya salió de la línea por la izquierda. */
+export function tracePrune(trace: MainTrace, now: number, spanMs = TRACE_SPAN_MS): MainTrace {
+  const edge = now - spanMs * TRACE_NOW_AT;
+  const spans = trace.spans.filter((s) => s.end === null || s.end > edge);
+  return spans.length === trace.spans.length ? trace : { ...trace, spans };
+}
+
+/** Cuánto tardó (o lleva, si sigue corriendo). */
+export const spanMs = (s: TraceSpan, now: number): number => (s.end ?? now) - s.start;
+
+/** Un tiempo para leer de un vistazo: "420 ms", "3,2 s". */
+export function formatMs(ms: number): string {
+  const n = Math.max(0, Math.round(ms));
+  if (n < 1000) return `${n} ms`;
+  return `${(n / 1000).toLocaleString('es', { maximumFractionDigits: 1 })} s`;
 }
 
 /** Un paso del nivel: una sola idea, en pocas palabras. */
