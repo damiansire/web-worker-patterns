@@ -105,7 +105,9 @@ await check('01 · salir a mitad de corrida no deja el nivel trabado', async (pa
   await page.waitForTimeout(700); // la corrida dura 2,5s: salimos en el medio
   assert(await run.isDisabled(), 'precondición: el botón debería estar deshabilitado en vuelo');
 
-  await page.getByRole('link', { name: /mapa/ }).click();
+  // La única salida del nivel es el link "Mapa" de arriba (el "Volver al mapa"
+  // del final se fue en 33f307b).
+  await page.getByRole('link', { name: 'Mapa', exact: true }).click();
   await page.waitForURL((url) => !url.pathname.includes('/example/'));
   await page.goBack();
   await page.waitForSelector('article h1');
