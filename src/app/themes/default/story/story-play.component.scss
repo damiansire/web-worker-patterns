@@ -242,9 +242,10 @@ g:last-child > .sp-spark {
   }
 }
 
-/* ── Debajo: el nivel (de día) o si suena (de noche), como los nombres del mapa ── */
+/* ── Debajo: el nivel, en una placa como los nombres del mapa ── */
 .sp-caption {
-  max-width: 100%;
+  /* Puede salir más ancho que la moneda: cortado ("Main y su mal…") no se entiende. */
+  max-width: 180%;
   margin-top: -8px;
   overflow: hidden;
   color: var(--sp-ink);
@@ -254,12 +255,13 @@ g:last-child > .sp-spark {
   line-height: 1.2;
   white-space: nowrap;
   text-overflow: ellipsis;
-  text-shadow:
-    0 0 3px var(--sp-cream),
-    1.5px 1.5px 0 var(--sp-cream),
-    -1.5px 1.5px 0 var(--sp-cream),
-    1.5px -1.5px 0 var(--sp-cream),
-    -1.5px -1.5px 0 var(--sp-cream);
+  /* La misma placa crema que los nombres del mapa. */
+  padding: 2px 10px 3px;
+  border-radius: 999px;
+  background: var(--sp-cream);
+  box-shadow:
+    0 0 0 2px color-mix(in oklab, var(--sp-ink) 22%, transparent),
+    0 4px 0 color-mix(in oklab, var(--sp-ink) 16%, transparent);
 }
 
 /* Liso: en este mapa el borde punteado quiere decir "todavía no". */

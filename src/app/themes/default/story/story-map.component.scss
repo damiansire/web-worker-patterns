@@ -374,13 +374,12 @@
   fill: var(--sm-white);
 }
 .lm-kick {
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 800;
-  letter-spacing: 0.12em;
-  opacity: 0.85;
+  letter-spacing: 0.1em;
 }
 .lm-ch {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 900;
 }
 
@@ -420,9 +419,10 @@
 
 /* ── Niveles: baldosas en el piso ──
    El estado se ve en el dibujo, sin insignias: lo jugable está pintado con el
-   color de su capítulo; lo que todavía no se puede jugar es piedra apagada; lo
-   que está en obra quedó a medio dibujar (trazo de lápiz, sin pintar); lo
-   superado tiene su banderita. */
+   color de su capítulo; lo bloqueado es piedra con un candado; lo que está en
+   obra es la baldosa clarita de su capítulo con un conito al costado; lo
+   superado tiene su banderita. El ícono va derecho (no aplastado en
+   perspectiva): se tiene que reconocer de un vistazo. */
 .sm-node {
   --ch-ink: color-mix(in oklab, var(--ch) 55%, var(--sm-shade));
   cursor: pointer;
@@ -457,22 +457,36 @@
   fill: var(--sm-stone-shade);
 }
 .sm-node[data-state='locked'] .sm-ico {
-  color: var(--sm-stone-shade);
+  color: color-mix(in oklab, var(--sm-stone-shade) 80%, var(--sm-shade));
 }
 
+/* En obra: sólida y clarita, con el borde y el ícono en el color del capítulo
+   (antes era translúcida y punteada, y parecía rota o deshabilitada). */
 .sm-node[data-state='wip'] .sm-pad {
-  fill: color-mix(in oklab, var(--sm-white) 55%, transparent);
+  fill: color-mix(in oklab, var(--ch) 22%, var(--sm-white));
   stroke: var(--ch-ink);
   stroke-width: 3;
-  stroke-dasharray: 10 7;
-  stroke-linecap: round;
 }
-.sm-node[data-state='wip'] :is(.sm-pad-side, .sm-pad-hi) {
-  display: none;
+.sm-node[data-state='wip'] .sm-pad-side {
+  fill: color-mix(in oklab, var(--ch) 45%, var(--sm-stone-shade));
+}
+.sm-node[data-state='wip'] .sm-pad-hi {
+  opacity: 0.5;
 }
 .sm-node[data-state='wip'] .sm-ico {
   color: var(--ch-ink);
-  opacity: 0.7;
+}
+.sm-cone-base {
+  fill: color-mix(in oklab, #e8662e 70%, var(--sm-shade));
+}
+.sm-cone-body {
+  fill: #f07a3a;
+  stroke: color-mix(in oklab, #e8662e 60%, var(--sm-shade));
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.sm-cone-band {
+  fill: var(--sm-white);
 }
 
 .sm-flag-pole {
@@ -506,19 +520,28 @@
     opacity: 0;
   }
 }
+/* El nombre va en una placa crema con letra oscura: se lee igual sobre el
+   pasto, el camino o un árbol, sin el contorno blanco que lo hacía borroso. */
+.sm-label {
+  pointer-events: none;
+}
+.sm-name-plate {
+  fill: var(--sm-white);
+  stroke: color-mix(in oklab, var(--ch) 40%, var(--sm-road-edge));
+  stroke-width: 2;
+}
+.sm-name-shadow {
+  fill: var(--sm-shade);
+  opacity: 0.16;
+}
 .sm-name {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 19px;
+  font-size: 20px;
   fill: var(--sm-shade);
-  paint-order: stroke;
-  stroke: var(--sm-white);
-  stroke-width: 5;
-  stroke-linejoin: round;
-  pointer-events: none;
 }
-.sm-node:is([data-state='locked'], [data-state='wip']) .sm-name {
-  fill: color-mix(in oklab, var(--sm-shade) 72%, var(--sm-white));
+.sm-node[data-state='locked'] .sm-name {
+  fill: color-mix(in oklab, var(--sm-shade) 78%, var(--sm-white));
 }
 
 /* ── Main ── */
@@ -628,51 +651,50 @@
   top: clamp(16px, 3.2vw, 44px);
   left: clamp(16px, 3.4vw, 56px);
   pointer-events: none;
-  isolation: isolate;
-  /* El cielo es claro y pasan nubes blancas: letra blanca con contorno oscuro,
-     como un cartel, para que se lea sobre cualquier fondo. El contorno va en
-     una copia del texto detrás (`data-ink`): `-webkit-text-stroke` pinta
-     centrado sobre el borde y Chrome no respeta `paint-order` en HTML, así que
-     puesto en la misma letra se come la mitad del blanco. */
-  color: var(--sm-white);
-  font-family: var(--font-display);
-  --ink: 0.14em;
-}
-.sm-title > * {
-  position: relative;
-}
-.sm-title > [data-ink]::before {
-  content: attr(data-ink) / '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
+  /* De día el cielo es claro: letra en tinta oscura, limpia, con un halo
+     crema suave que la separa de las nubes. Sin contorno: el contorno grueso
+     empastaba las letras y el subtítulo se volvía ilegible. De noche se
+     invierte (ver `.is-night`). */
   color: var(--sm-shade);
-  -webkit-text-stroke: var(--ink) var(--sm-shade);
-  text-shadow: 0 0.1em 0 var(--sm-shade);
-}
-.sm-brand,
-.sm-tag {
-  --ink: 0.24em;
+  font-family: var(--font-display);
+  text-shadow:
+    0 0 2px rgb(255 253 247 / 0.7),
+    0 0 18px rgb(255 253 247 / 0.75);
 }
 .sm-brand {
-  margin: 0 0 4px;
-  font-size: clamp(12px, 1.1vw, 16px);
+  margin: 0 0 6px;
+  color: color-mix(in oklab, var(--worker) 60%, var(--sm-shade));
+  font-size: clamp(12px, 1.05vw, 15px);
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 .sm-title h1 {
   margin: 0;
-  font-size: clamp(32px, 4.6vw, 84px);
+  font-size: clamp(32px, 4.4vw, 80px);
   font-weight: 900;
-  letter-spacing: -0.02em;
-  line-height: 0.98;
+  letter-spacing: 0;
+  line-height: 1;
   text-transform: none;
 }
 .sm-tag {
-  margin: 8px 0 0;
-  font-size: clamp(15px, 1.4vw, 22px);
-  font-weight: 800;
+  margin: 10px 0 0;
+  color: color-mix(in oklab, var(--sm-shade) 82%, var(--worker));
+  font-size: clamp(16px, 1.45vw, 22px);
+  font-weight: 700;
+}
+/* De noche el cielo es oscuro: crema con una sombra azul noche debajo. */
+.sm.is-night .sm-title {
+  color: var(--sm-white);
+  text-shadow:
+    0 3px 0 rgb(16 13 44 / 0.55),
+    0 0 22px rgb(16 13 44 / 0.6);
+}
+.sm.is-night .sm-brand {
+  color: #ffd98a;
+}
+.sm.is-night .sm-tag {
+  color: color-mix(in oklab, var(--sm-white) 88%, #b9c2ff);
 }
 /* ── Jugar: el botón va arriba de la cabeza de main y lo sigue ──
    La posición la calcula el componente, en píxeles de la escena: es donde
@@ -706,15 +728,15 @@
   pointer-events: none;
   scale: 0.6;
 }
-.sm-node.is-here .sm-name {
+.sm-node.is-here .sm-label {
   visibility: hidden;
 }
 /* Sin lugar para la medalla entera, el nombre vuelve bajo main. Salvo de
    noche (ahí está el cartel) y mientras main habla: lo que dice sale ahí. */
-.sm.is-play-cramped:not(.is-saying, .is-night) .sm-node.is-here .sm-name {
+.sm.is-play-cramped:not(.is-saying, .is-night) .sm-node.is-here .sm-label {
   visibility: visible;
 }
-.sm.is-play-cramped.is-saying .sm-node.is-main-spot .sm-name {
+.sm.is-play-cramped.is-saying .sm-node.is-main-spot .sm-label {
   visibility: hidden;
 }
 /* La medalla de `story-play`; el foco lo dibuja ella, alrededor de la moneda. */

@@ -42,6 +42,8 @@ interface Spot {
   y: number;
   state: LevelState;
   name: string[];
+  /** La placa crema del nombre, en unidades de la baldosa. */
+  plate: { w: number; h: number };
   icon: readonly IconPart[];
 }
 
@@ -57,8 +59,19 @@ const spring = (k: number, d: number): Spring => ({ x: 0, v: 0, t: 0, k, d });
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 const NS = 'http://www.w3.org/2000/svg';
 
+/**
+ * El nombre de cada parada, sobre una placa crema debajo de la baldosa (en
+ * unidades de la baldosa). El ancho sale de los caracteres: en la letra
+ * redondeada del theme, a 800, un carácter mide entre 0,50 y 0,57 de alto.
+ */
+const NAME = { size: 20, lh: 24, top: 46, base: 67, padX: 11, r: 10, em: 0.57 };
+const plateFor = (lines: readonly string[]) => ({
+  w: Math.max(...lines.map((l) => l.length)) * NAME.size * NAME.em + NAME.padX * 2,
+  h: NAME.base - NAME.top + (lines.length - 1) * NAME.lh + 8,
+});
+
 /** Lo que suma el nombre del nivel debajo de la medalla, en píxeles. */
-const CAPTION_H = 10;
+const CAPTION_H = 15;
 const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
 
 /**
@@ -68,9 +81,9 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
  * respira, parpadea, mira lo que tocás y camina hasta el nivel que elegís;
  * recién al llegar se entra. El botón de jugar va arriba de su cabeza y lo sigue.
  * Cada baldosa lleva el ícono de su caso (`story.icons.ts`) y su estado se ve
- * en el dibujo, sin insignias: pintada (se juega), de piedra (bloqueada, tiembla
- * al tocarla), a medio dibujar (en obra: abre la versión clásica) o con
- * banderita (superada).
+ * en el dibujo, sin insignias: pintada (se juega), de piedra con candado
+ * (bloqueada, tiembla al tocarla), clarita con un conito (en obra: abre la
+ * versión clásica) o con banderita (superada). El nombre va en una placa crema.
  *
  * Capas de animación: la vida (nubes, molino, humo, faro) es CSS y se apaga con
  * movimiento reducido; los toques son resortes (`gsap.ticker`) sobre el grupo
@@ -327,17 +340,17 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
               }
             }
             <g class="lm-ribbon">
-              <path class="lm-ribbon-tail" d="M-62 -30L-78 -20L-62 -8ZM62 -30L78 -20L62 -8Z" />
-              <rect class="lm-ribbon-band" x="-66" y="-40" width="132" height="38" rx="10" />
+              <path class="lm-ribbon-tail" d="M-64 -34L-82 -22L-64 -8ZM64 -34L82 -22L64 -8Z" />
+              <rect class="lm-ribbon-band" x="-68" y="-46" width="136" height="44" rx="11" />
               @if (chapterOf(m.chapter).n) {
-                <text class="lm-kick" y="-26" text-anchor="middle">
-                  CAP. {{ chapterOf(m.chapter).n }}
+                <text class="lm-kick" y="-29" text-anchor="middle">
+                  CAPÍTULO {{ chapterOf(m.chapter).n }}
                 </text>
-                <text class="lm-ch" y="-9" text-anchor="middle">
+                <text class="lm-ch" y="-9.5" text-anchor="middle">
                   {{ chapterOf(m.chapter).title }}
                 </text>
               } @else {
-                <text class="lm-ch" y="-15" text-anchor="middle">
+                <text class="lm-ch" y="-17" text-anchor="middle">
                   {{ chapterOf(m.chapter).title }}
                 </text>
               }
@@ -385,12 +398,12 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
               <ellipse class="sm-pad-hi" cx="-6" cy="-6" rx="34" ry="17" />
               <g
                 class="sm-ico"
-                transform="scale(1.1 0.66)"
+                transform="translate(0 -3) scale(0.9)"
                 stroke-width="4.5"
                 stroke-linecap="round"
                 stroke-linejoin="round"
               >
-                @for (p of s.icon; track $index) {
+                @for (p of s.state === 'locked' ? padlock : s.icon; track $index) {
                   <path
                     [attr.d]="p.d"
                     [attr.fill]="p.kind === 'fill' ? 'currentColor' : 'none'"
@@ -404,13 +417,38 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
                   <path class="sm-flag-pole" d="M0 0V-50" />
                   <path class="sm-flag-cloth" d="M1.5 -50L28 -42L1.5 -33Z" />
                 </g>
+              } @else if (s.state === 'wip') {
+                <!-- En obra: un conito al costado -->
+                <g class="sm-cone" transform="translate(44 8)">
+                  <path class="sm-cone-base" d="M-14 0H14V-5H-14Z" />
+                  <path class="sm-cone-body" d="M-10 -5L-3 -34H3L10 -5Z" />
+                  <path class="sm-cone-band" d="M-7.4 -15L-5.6 -23H5.6L7.4 -15Z" />
+                </g>
               }
             </g>
-            <text class="sm-name" y="64" text-anchor="middle">
-              @for (line of s.name; track $index) {
-                <tspan x="0" [attr.dy]="$index ? 23 : 0">{{ line }}</tspan>
-              }
-            </text>
+            <g class="sm-label">
+              <rect
+                class="sm-name-shadow"
+                [attr.x]="-s.plate.w / 2"
+                [attr.y]="NAME.top + 4"
+                [attr.width]="s.plate.w"
+                [attr.height]="s.plate.h"
+                [attr.rx]="NAME.r"
+              />
+              <rect
+                class="sm-name-plate"
+                [attr.x]="-s.plate.w / 2"
+                [attr.y]="NAME.top"
+                [attr.width]="s.plate.w"
+                [attr.height]="s.plate.h"
+                [attr.rx]="NAME.r"
+              />
+              <text class="sm-name" [attr.y]="NAME.base" text-anchor="middle">
+                @for (line of s.name; track $index) {
+                  <tspan x="0" [attr.dy]="$index ? NAME.lh : 0">{{ line }}</tspan>
+                }
+              </text>
+            </g>
           </g>
         }
 
@@ -489,9 +527,9 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
       <div class="sm-vignette" aria-hidden="true"></div>
 
       <header class="sm-title">
-        <p class="sm-brand" data-ink="Web Worker Patterns">Web Worker Patterns</p>
-        <h1 data-ink="La historia de main">La historia de main</h1>
-        <p class="sm-tag" data-ink="Ayudá a main a no congelarse.">Ayudá a main a no congelarse.</p>
+        <p class="sm-brand">Web Worker Patterns</p>
+        <h1>La historia de main</h1>
+        <p class="sm-tag">Ayudá a main a no congelarse.</p>
       </header>
 
       <!-- Jugar: arriba de la cabeza de main, lo sigue de parada en parada -->
@@ -540,6 +578,12 @@ export class StoryMapComponent {
   private readonly dawnCmp = viewChild(StoryDawnComponent);
 
   protected readonly mainBody = MAIN_BODY;
+  protected readonly NAME = NAME;
+  /** Lo que se ve en una baldosa bloqueada, en lugar del ícono de su caso. */
+  protected readonly padlock: readonly IconPart[] = [
+    { kind: 'line', d: 'M-9 -2V-9C-9 -21 9 -21 9 -9V-2' },
+    { kind: 'fill', d: 'M-15 -3H15V18H-15Z' },
+  ];
   protected readonly star =
     'M0 -11L3.2 -3.4L11 -3.4L4.6 1.5L6.9 9.8L0 4.9L-6.9 9.8L-4.6 1.5L-11 -3.4L-3.2 -3.4Z';
   protected readonly eyes = [
@@ -558,14 +602,18 @@ export class StoryMapComponent {
   protected readonly spots = computed<Spot[]>(() => {
     const isDone = (id: string) => this.progress.isDone(id);
     const at = this.points();
-    return LEVELS.map((level, i) => ({
-      level,
-      x: at[i].x,
-      y: at[i].y,
-      state: levelState(level, isDone),
-      name: wrapWords(level.title, this.spec().chars),
-      icon: levelIcon(level.id),
-    }));
+    return LEVELS.map((level, i) => {
+      const name = wrapWords(level.title, this.spec().chars);
+      return {
+        level,
+        x: at[i].x,
+        y: at[i].y,
+        state: levelState(level, isDone),
+        name,
+        plate: plateFor(name),
+        icon: levelIcon(level.id),
+      };
+    });
   });
 
   /** Índice del nivel donde está main (el que toca jugar). */
