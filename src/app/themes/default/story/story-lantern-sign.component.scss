@@ -239,18 +239,19 @@ path.sls-paint-shade {
   }
 }
 
-/* Liso: en este mapa el borde punteado quiere decir "todavía no". */
+/* Liso: en este mapa el borde punteado quiere decir "todavía no". Con
+   `.is-quiet-focus` en el botón (foco puesto por código, sin teclado de por
+   medio) no se dibuja. */
 .sls-focus {
   fill: none;
   stroke: var(--sls-cream);
   stroke-width: 4;
   opacity: 0;
 }
-:host-context(:focus-visible) .sls-focus {
+:host-context(:focus-visible:not(.is-quiet-focus)) .sls-focus {
   opacity: 0.6;
 }
-/* Con el farol prendido el borde es luz tibia, no un marco: la noche le da
-   el foco al cartel apenas carga, y un marco blanco tapaba el dibujo. */
+/* Con el farol prendido el borde es luz tibia, no un marco blanco. */
 :host(.is-glow) .sls-focus {
   stroke: #ffe2a0;
   stroke-width: 3;

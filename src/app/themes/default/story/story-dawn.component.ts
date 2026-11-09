@@ -7,6 +7,7 @@ import {
   inject,
   input,
   output,
+  signal,
   viewChild,
   viewChildren,
 } from '@angular/core';
@@ -88,6 +89,7 @@ const DROPS = [-150, -110, -70, -30, 10, 50, 120].map((deg, i) => {
   host: {
     class: 'sd',
     '(click)': 'wake($event, "tap")',
+    '(window:keydown)': 'keyboard.set(true)',
   },
   template: `
     <svg
@@ -448,6 +450,7 @@ const DROPS = [-150, -110, -70, -30, 10, 50, 120].map((deg, i) => {
       #play
       type="button"
       class="sd-play"
+      [class.is-quiet-focus]="!keyboard()"
       [style.left.px]="at().x"
       [style.top.px]="at().y"
       [attr.aria-label]="'Jugar' + (soundOn ? ' con música' : '') + ': ' + level()"
@@ -481,6 +484,13 @@ export class StoryDawnComponent {
   protected readonly drops = DROPS;
   protected readonly shootingEvery = SHOOTING_EVERY;
   protected readonly soundOn = readStored(SOUND_KEY) !== 'off';
+  /**
+   * El cartel recibe el foco apenas carga (para entrar con Enter), y Chrome
+   * le dibuja el marco de foco aunque nadie use el teclado: se veía como un
+   * rectángulo "seleccionado" alrededor del cartel. El marco sale recién
+   * cuando se toca una tecla.
+   */
+  protected readonly keyboard = signal(false);
 
   protected readonly viewBox = computed(() => {
     const { w, h } = this.scene().view;
