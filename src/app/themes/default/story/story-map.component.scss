@@ -362,11 +362,13 @@
     transform: scaleX(-1);
   }
 }
+/* Una cinta fina y en el color del capítulo, no un bloque: con más cuerpo se
+   sentía pesada al lado de los dibujos. */
 .lm-ribbon-band {
-  fill: color-mix(in oklab, var(--ch) 82%, var(--sm-shade));
+  fill: color-mix(in oklab, var(--ch) 88%, var(--sm-shade));
 }
 .lm-ribbon-tail {
-  fill: color-mix(in oklab, var(--ch) 55%, var(--sm-shade));
+  fill: color-mix(in oklab, var(--ch) 62%, var(--sm-shade));
 }
 .lm-kick,
 .lm-ch {
@@ -374,13 +376,14 @@
   fill: var(--sm-white);
 }
 .lm-kick {
-  font-size: 12.5px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  opacity: 0.92;
 }
 .lm-ch {
-  font-size: 20px;
-  font-weight: 900;
+  font-size: 16.5px;
+  font-weight: 800;
 }
 
 /* ── Camino ── */
@@ -411,6 +414,14 @@
 .sm-road-done {
   stroke: var(--sm-gold);
   stroke-dasharray: 1 20;
+}
+/* Los pasos del final del camino al cartel de jugar. */
+.sm-trail {
+  fill: none;
+  stroke: var(--sm-road-edge);
+  stroke-linecap: round;
+  stroke-dasharray: 0.1 26;
+  opacity: 0.7;
 }
 .sm-probe {
   fill: none;
@@ -527,17 +538,17 @@
 }
 .sm-name-plate {
   fill: var(--sm-white);
-  stroke: color-mix(in oklab, var(--ch) 40%, var(--sm-road-edge));
-  stroke-width: 2;
+  stroke: color-mix(in oklab, var(--ch) 35%, var(--sm-road-edge));
+  stroke-width: 1.5;
 }
 .sm-name-shadow {
   fill: var(--sm-shade);
-  opacity: 0.16;
+  opacity: 0.1;
 }
 .sm-name {
   font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 20px;
+  font-weight: 700;
+  font-size: 18px;
   fill: var(--sm-shade);
 }
 .sm-node[data-state='locked'] .sm-name {
@@ -696,10 +707,10 @@
 .sm.is-night .sm-tag {
   color: color-mix(in oklab, var(--sm-white) 88%, #b9c2ff);
 }
-/* ── Jugar: el botón va arriba de la cabeza de main y lo sigue ──
-   La posición la calcula el componente, en píxeles de la escena: es donde
-   apoya el borde de abajo. La medalla dice el nombre del nivel, así que el
-   nombre de la parada se esconde mientras main está ahí. */
+/* ── Jugar: el cartel donde termina el camino ──
+   En la pantalla ancha, la posición la calcula el componente (los pies del
+   cartel, en píxeles de la escena). En el celular parado el mapa se recorre
+   bajando: el cartel flota abajo a la derecha para tenerlo siempre a mano. */
 .sm-play {
   position: absolute;
   z-index: 2;
@@ -717,39 +728,32 @@
   translate: -50% -100%;
   transform-origin: 50% 100%;
   transition:
-    opacity 0.2s,
-    scale 0.3s cubic-bezier(0.34, 1.8, 0.64, 1);
+    opacity 0.25s,
+    scale 0.45s cubic-bezier(0.34, 1.8, 0.64, 1);
 }
 .sm-play:hover:not(:disabled) {
   transform: none;
 }
+/* De noche no está: al amanecer brota del pasto con un rebote. */
 .sm-play.is-away {
   opacity: 0;
   pointer-events: none;
-  scale: 0.6;
+  scale: 0.4 0.2;
 }
-.sm-node.is-here .sm-label {
-  visibility: hidden;
-}
-/* Sin lugar para la medalla entera, el nombre vuelve bajo main. Salvo de
-   noche (ahí está el cartel) y mientras main habla: lo que dice sale ahí. */
-.sm.is-play-cramped:not(.is-saying, .is-night) .sm-node.is-here .sm-label {
-  visibility: visible;
-}
-.sm.is-play-cramped.is-saying .sm-node.is-main-spot .sm-label {
-  visibility: hidden;
-}
-/* La medalla de `story-play`; el foco lo dibuja ella, alrededor de la moneda. */
-.sm-play story-play {
-  --sp-w: clamp(140px, 10.5vw, 180px);
+.sm-play story-lantern-sign {
+  --sls-w: clamp(170px, 13.5vw, 250px);
 }
 .sm-play:focus-visible {
   outline: none;
 }
-@media (max-width: 640px) {
-  .sm-play story-play {
-    --sp-w: 112px;
-  }
+.sm[data-shape='tall'] .sm-play {
+  position: fixed;
+  right: 8px;
+  bottom: 10px;
+  translate: none;
+}
+.sm[data-shape='tall'] .sm-play story-lantern-sign {
+  --sls-w: 128px;
 }
 
 /* Avisos ("todavía no", "vamos a…") para el lector de pantalla; en pantalla

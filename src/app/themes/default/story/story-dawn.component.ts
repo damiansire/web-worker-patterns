@@ -458,7 +458,12 @@ const DROPS = [-150, -110, -70, -30, 10, 50, 120].map((deg, i) => {
     >
       <!-- GSAP hunde esta capa y no el botón: reescribiría el translate que lo centra. -->
       <span #press class="sd-press">
-        <story-lantern-sign label="¡Jugar!" [glow]="true" [sound]="soundOn" />
+        <story-lantern-sign
+          label="¡Jugar!"
+          [plate]="soundOn ? 'con música' : 'sin sonido'"
+          [glow]="true"
+          [sound]="soundOn"
+        />
       </span>
     </button>
   `,

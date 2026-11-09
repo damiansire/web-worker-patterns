@@ -118,6 +118,69 @@ path.sls-paint-shade {
   font-weight: 800;
   fill: var(--sls-ink);
 }
+
+/* ── De día: el pajarito de la tabla. Salta cuando pasa el mouse ── */
+.sls-bird {
+  transform-origin: 0 0;
+  animation: sls-bird-peck 4.2s ease-in-out infinite;
+}
+@keyframes sls-bird-peck {
+  0%,
+  86%,
+  100% {
+    rotate: 0deg;
+  }
+  90% {
+    rotate: 14deg;
+  }
+  94% {
+    rotate: 0deg;
+  }
+}
+:host(:hover) .sls-bird {
+  animation: sls-bird-hop 0.45s cubic-bezier(0.3, 0.7, 0.4, 1) infinite alternate;
+}
+@keyframes sls-bird-hop {
+  from {
+    translate: 0 0;
+    scale: 1.06 0.9;
+  }
+  to {
+    translate: 0 -9px;
+    scale: 0.95 1.06;
+  }
+}
+.sls-bird-body {
+  fill: #5aa3d6;
+  stroke: var(--sls-ink);
+  stroke-width: 2;
+}
+.sls-bird-tail {
+  fill: #3f86b9;
+  stroke: var(--sls-ink);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.sls-bird-belly {
+  fill: #fdf2d6;
+}
+.sls-bird-wing {
+  fill: #3f86b9;
+}
+.sls-bird-eye {
+  fill: var(--sls-ink);
+}
+.sls-bird-beak {
+  fill: #f2a531;
+  stroke: var(--sls-ink);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.sls-bird-feet {
+  stroke: #f2a531;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
 .sls-note {
   fill: var(--sls-cream);
   stroke: var(--sls-ink);
@@ -280,6 +343,8 @@ path.sls-paint-shade {
   .sls-lamp,
   .sls-moth,
   .sls-note,
+  .sls-bird,
+  :host(:hover) .sls-bird,
   :host(.is-glow) .sls-sign {
     animation: none;
   }

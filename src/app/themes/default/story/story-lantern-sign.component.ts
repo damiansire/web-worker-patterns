@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
 /** Ids propios por cartel, para que sus degradados no choquen con los de otro dibujo. */
 let seq = 0;
@@ -12,9 +12,11 @@ let seq = 0;
  *
  * Con `glow` el farol está prendido, alumbra la tabla y le vuelan dos
  * polillas: es la única luz fuerte del mapa de noche. Debajo cuelga una placa
- * que dice si va a sonar ("con música", y su nota suelta corcheas) o no
- * ("sin sonido", con la nota tachada): es parte del cartel, no un texto
- * suelto que se mezcle con el mapa. Solo dibuja: el botón, su posición y su etiqueta para el
+ * con un texto: de noche, si va a sonar ("con música", y su nota suelta
+ * corcheas) o no ("sin sonido", con la nota tachada); de día, el nivel al que
+ * entra. Es parte del cartel, no un texto suelto que se mezcle con el mapa.
+ * De día (sin `glow`) tiene un pajarito posado en la tabla que salta cuando
+ * pasa el mouse. Solo dibuja: el botón, su posición y su etiqueta para el
  * lector de pantalla son de quien lo usa.
  */
 @Component({
@@ -74,26 +76,55 @@ let seq = 0;
           </text>
           <text class="sls-label sls-paint" x="9" y="4.2" text-anchor="middle">{{ label() }}</text>
 
-          <!-- La placa del sonido cuelga de la tabla: dice si va a sonar -->
-          @if (sound() !== null) {
+          <!-- La placa cuelga de la tabla: el nivel, o si va a sonar -->
+          @if (plate(); as text) {
             <path class="sls-chain" d="M-30 24V35M30 24V35" />
-            <rect class="sls-plate" x="-48" y="34" width="96" height="21" rx="7" />
-            <g transform="translate(-36 44.5)">
-              @if (sound()) {
-                <g class="sls-notes">
-                  <path class="sls-note" [attr.d]="note" />
-                  <path class="sls-note" [attr.d]="note" />
-                  <path class="sls-note" [attr.d]="note" />
-                </g>
-              }
-              <path class="sls-plate-note" [attr.d]="note" transform="scale(0.85)" />
-              @if (!sound()) {
-                <path class="sls-plate-mute" d="M-7 -7L7 7" />
-              }
-            </g>
-            <text class="sls-plate-text" x="7" y="49" text-anchor="middle">
-              {{ sound() ? 'con música' : 'sin sonido' }}
+            <rect
+              class="sls-plate"
+              [attr.x]="-plateW() / 2"
+              y="34"
+              [attr.width]="plateW()"
+              height="21"
+              rx="7"
+            />
+            @if (sound() !== null) {
+              <g [attr.transform]="'translate(' + (12 - plateW() / 2) + ' 44.5)'">
+                @if (sound()) {
+                  <g class="sls-notes">
+                    <path class="sls-note" [attr.d]="note" />
+                    <path class="sls-note" [attr.d]="note" />
+                    <path class="sls-note" [attr.d]="note" />
+                  </g>
+                }
+                <path class="sls-plate-note" [attr.d]="note" transform="scale(0.85)" />
+                @if (!sound()) {
+                  <path class="sls-plate-mute" d="M-7 -7L7 7" />
+                }
+              </g>
+            }
+            <text
+              class="sls-plate-text"
+              [attr.x]="sound() !== null ? 8 : 0"
+              y="49"
+              text-anchor="middle"
+            >
+              {{ text }}
             </text>
+          }
+
+          <!-- De día, un pajarito posado en la tabla -->
+          @if (!glow()) {
+            <g transform="translate(-30 -32)">
+              <g class="sls-bird">
+                <path class="sls-bird-tail" d="M-8 -6L-17 -11L-15 -3Z" />
+                <ellipse class="sls-bird-body" cy="-8" rx="10" ry="8.5" />
+                <ellipse class="sls-bird-belly" cx="2.5" cy="-5.5" rx="6" ry="5" />
+                <path class="sls-bird-wing" d="M-6 -10Q-1 -4 4 -9Q-1 -14 -6 -10Z" />
+                <circle class="sls-bird-eye" cx="5" cy="-11" r="1.8" />
+                <path class="sls-bird-beak" d="M9 -10L15 -8.5L9 -6.5Z" />
+                <path class="sls-bird-feet" d="M-2 0V-1M3 0V-1" />
+              </g>
+            </g>
           }
 
           <!-- El farol cuelga de un brazo clavado en la esquina -->
@@ -125,8 +156,14 @@ export class StoryLanternSignComponent {
   readonly label = input.required<string>();
   /** De noche: el farol prendido alumbra la tabla. */
   readonly glow = input(false);
-  /** La placa del sonido: "con música" (y suelta corcheas), "sin sonido" (nota tachada) o ninguna. */
+  /** Lo que dice la placa que cuelga abajo: el nivel, o si va a sonar. Sin texto, no hay placa. */
+  readonly plate = input<string>();
+  /** La nota de la placa: con corcheas (va a sonar), tachada (no), o ninguna. */
   readonly sound = input<boolean | null>(null);
+  /** El ancho de la placa, según lo que dice (la letra mide ~0,56 de alto por carácter). */
+  protected readonly plateW = computed(() =>
+    Math.max(96, (this.plate()?.length ?? 0) * 7.3 + (this.sound() !== null ? 40 : 24)),
+  );
 
   protected readonly id = `sls${++seq}-`;
   /** La tabla, con las esquinas apenas redondeadas. */

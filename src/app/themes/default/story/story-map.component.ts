@@ -15,7 +15,7 @@ import gsap from 'gsap';
 import { ThemeService } from '../../../theming/theme.service';
 import { MAIN_BODY } from './scene/scene.art';
 import { NightScene, StoryDawnComponent } from './story-dawn.component';
-import { StoryPlayComponent } from './story-play.component';
+import { StoryLanternSignComponent } from './story-lantern-sign.component';
 import { IconPart, levelIcon } from './story.icons';
 import { StoryProgress } from './story-progress.service';
 import { CHAPTERS, currentLevel, Level, LEVELS, levelState, LevelState } from './story.levels';
@@ -64,14 +64,12 @@ const NS = 'http://www.w3.org/2000/svg';
  * unidades de la baldosa). El ancho sale de los caracteres: en la letra
  * redondeada del theme, a 800, un carácter mide entre 0,50 y 0,57 de alto.
  */
-const NAME = { size: 20, lh: 24, top: 46, base: 67, padX: 11, r: 10, em: 0.57 };
+const NAME = { size: 18, lh: 22, top: 46, base: 65, padX: 12, r: 13, em: 0.56 };
 const plateFor = (lines: readonly string[]) => ({
   w: Math.max(...lines.map((l) => l.length)) * NAME.size * NAME.em + NAME.padX * 2,
   h: NAME.base - NAME.top + (lines.length - 1) * NAME.lh + 8,
 });
 
-/** Lo que suma el nombre del nivel debajo de la medalla, en píxeles. */
-const CAPTION_H = 15;
 const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
 
 /**
@@ -79,7 +77,8 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
  * cerros, un prado con un hito por capítulo) cruzado por un camino con una
  * baldosa en cada parada. Main vive ahí, parado en el centro de la suya:
  * respira, parpadea, mira lo que tocás y camina hasta el nivel que elegís;
- * recién al llegar se entra. El botón de jugar va arriba de su cabeza y lo sigue.
+ * recién al llegar se entra. El camino termina en un cartel de jugar (el mismo
+ * de la noche, de día y con un pajarito) cuya placa dice el nivel de main.
  * Cada baldosa lleva el ícono de su caso (`story.icons.ts`) y su estado se ve
  * en el dibujo, sin insignias: pintada (se juega), de piedra con candado
  * (bloqueada, tiembla al tocarla), clarita con un conito (en obra: abre la
@@ -99,16 +98,9 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   selector: 'default-story-map',
-  imports: [StoryDawnComponent, StoryPlayComponent],
+  imports: [StoryDawnComponent, StoryLanternSignComponent],
   template: `
-    <section
-      #stage
-      class="sm"
-      [attr.data-shape]="shape()"
-      [class.is-play-cramped]="playCramped()"
-      [class.is-saying]="!!heroSays()"
-      [class.is-night]="night()"
-    >
+    <section #stage class="sm" [attr.data-shape]="shape()" [class.is-night]="night()">
       <svg
         #world
         class="sm-world"
@@ -340,17 +332,17 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
               }
             }
             <g class="lm-ribbon">
-              <path class="lm-ribbon-tail" d="M-64 -34L-82 -22L-64 -8ZM64 -34L82 -22L64 -8Z" />
-              <rect class="lm-ribbon-band" x="-68" y="-46" width="136" height="44" rx="11" />
+              <path class="lm-ribbon-tail" d="M-60 -30L-72 -22L-60 -14ZM60 -30L72 -22L60 -14Z" />
+              <rect class="lm-ribbon-band" x="-64" y="-40" width="128" height="36" rx="10" />
               @if (chapterOf(m.chapter).n) {
-                <text class="lm-kick" y="-29" text-anchor="middle">
+                <text class="lm-kick" y="-26.5" text-anchor="middle">
                   CAPÍTULO {{ chapterOf(m.chapter).n }}
                 </text>
-                <text class="lm-ch" y="-9.5" text-anchor="middle">
+                <text class="lm-ch" y="-10" text-anchor="middle">
                   {{ chapterOf(m.chapter).title }}
                 </text>
               } @else {
-                <text class="lm-ch" y="-17" text-anchor="middle">
+                <text class="lm-ch" y="-16" text-anchor="middle">
                   {{ chapterOf(m.chapter).title }}
                 </text>
               }
@@ -372,6 +364,29 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
         <path class="sm-road-dash" [attr.d]="road()" [style.stroke-width]="4 * spec().s" />
         <path class="sm-road-done" [attr.d]="roadDone()" [style.stroke-width]="9 * spec().s" />
         <path #probe class="sm-probe" d="" />
+
+        <!-- Del final del camino al cartel de jugar: una huella de pasos y flores a sus pies -->
+        @if (shape() === 'wide') {
+          <path class="sm-trail" [attr.d]="trail()" [style.stroke-width]="9 * spec().s" />
+          <g
+            aria-hidden="true"
+            [attr.transform]="
+              'translate(' + signSpot().x + ' ' + (signSpot().y + 70 * spec().s) + ')'
+            "
+          >
+            @for (f of signFlowers; track $index) {
+              <g [attr.transform]="'translate(' + f.x + ' ' + f.y + ') scale(' + f.s + ')'">
+                <g class="sm-flower" [attr.data-k]="f.k">
+                  <circle cx="-5" cy="-12" r="5" />
+                  <circle cx="5" cy="-12" r="5" />
+                  <circle cx="0" cy="-19" r="5" />
+                  <circle cx="0" cy="-6" r="5" />
+                  <circle class="sm-flower-eye" cy="-12" r="3.4" />
+                </g>
+              </g>
+            }
+          </g>
+        }
 
         <!-- Los niveles: una baldosa en el piso por parada, con el ícono pintado arriba -->
         @for (s of spots(); track s.level.id; let i = $index) {
@@ -430,7 +445,7 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
               <rect
                 class="sm-name-shadow"
                 [attr.x]="-s.plate.w / 2"
-                [attr.y]="NAME.top + 4"
+                [attr.y]="NAME.top + 3"
                 [attr.width]="s.plate.w"
                 [attr.height]="s.plate.h"
                 [attr.rx]="NAME.r"
@@ -514,7 +529,7 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
             class="sm-say"
             text-anchor="middle"
             [attr.x]="sayDx()"
-            [attr.y]="playCramped() ? 70 * spec().s : -262 * heroScale() - sayLift()"
+            [attr.y]="-262 * heroScale()"
             [attr.font-size]="28 * spec().s"
           >
             {{ heroSays() }}
@@ -532,18 +547,18 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
         <p class="sm-tag">Ayudá a main a no congelarse.</p>
       </header>
 
-      <!-- Jugar: arriba de la cabeza de main, lo sigue de parada en parada -->
+      <!-- Jugar: un cartel clavado donde termina el camino (en el celular, flota abajo) -->
       <button
         #play
         type="button"
         class="sm-play"
-        [class.is-away]="walking() || night()"
-        [style.left.px]="playAt().x"
-        [style.top.px]="playAt().y"
+        [class.is-away]="night()"
+        [style.left.px]="shape() === 'wide' ? playAt().x : null"
+        [style.top.px]="shape() === 'wide' ? playAt().y : null"
         [attr.aria-label]="playLabel() + ': ' + next().title"
         (click)="go(here())"
       >
-        <story-play [label]="playLabel()" [caption]="playCramped() ? undefined : next().title" />
+        <story-lantern-sign [label]="playLabel()" [plate]="next().title" />
       </button>
       <p class="sm-sr" aria-live="polite">{{ status() }}</p>
 
@@ -622,6 +637,12 @@ export class StoryMapComponent {
     return LEVELS.findIndex((l) => l.id === cur.id);
   });
 
+  /** Las paradas y el lugar del cartel: donde no crecen árboles ni matas. */
+  private readonly cleared = computed(() => [
+    ...this.points(),
+    { ...this.signSpot(), row: this.points().at(-1)!.row },
+  ]);
+
   protected readonly road = computed(() => roadPath(this.points(), this.spec()));
   protected readonly roadDone = computed(() => roadPath(this.points(), this.spec(), this.here()));
   protected readonly chapterRoads = computed(() => chapterRoads(this.points(), this.spec()));
@@ -629,7 +650,7 @@ export class StoryMapComponent {
 
   protected readonly trees = computed(() => {
     const { s } = this.spec();
-    return scatter(this.spec(), this.points(), this.shape() === 'tall' ? 46 : 64, 7, {
+    return scatter(this.spec(), this.cleared(), this.shape() === 'tall' ? 46 : 64, 7, {
       node: 150 * s,
       road: 62 * s,
       landmark: 110 * s,
@@ -637,7 +658,7 @@ export class StoryMapComponent {
   });
   protected readonly tufts = computed(() => {
     const { s } = this.spec();
-    return scatter(this.spec(), this.points(), 110, 3, {
+    return scatter(this.spec(), this.cleared(), 110, 3, {
       node: 84 * s,
       road: 32 * s,
       landmark: 70 * s,
@@ -685,27 +706,42 @@ export class StoryMapComponent {
   protected readonly heroSays = signal('');
   protected readonly sayDx = signal(0);
   protected readonly status = signal('');
-  /** El nivel que toca jugar: el que nombra el botón de arriba de main. */
+  /** El nivel que toca jugar: el que nombra la placa del cartel. */
   protected readonly next = computed(() => LEVELS[this.here()]);
   protected readonly playLabel = computed(() =>
     this.progress.isDone(this.next().id) ? 'Repetir' : '¡Jugar!',
   );
   /**
-   * Dónde va el botón, en píxeles de la escena: arriba de la cabeza de main
-   * (es el punto donde apoya su borde de abajo), para que se vea bien a qué
-   * nivel entra.
+   * Dónde se clava el cartel de jugar, en el viewBox: pasando la última
+   * parada, hacia donde iba el camino. Ahí termina y hay pasto libre (abajo a
+   * la derecha en la pantalla ancha).
    */
+  protected readonly signSpot = computed<Point>(() => {
+    const spec = this.spec();
+    const last = this.points().at(-1)!;
+    const dir = last.row % 2 === 0 ? 1 : -1;
+    return { x: last.x + dir * spec.colStep * 0.68, y: last.y };
+  });
+  /** La huella de pasos que sigue del final del camino hasta los pies del cartel. */
+  protected readonly trail = computed(() => {
+    const { s } = this.spec();
+    const a = this.points().at(-1)!;
+    const b = this.signSpot();
+    const by = b.y + 62 * s;
+    return `M${a.x + 50 * s} ${a.y + 18 * s}Q${(a.x + b.x) / 2} ${by + 26 * s} ${b.x - 40 * s} ${by}`;
+  });
+  /** Un cantero de flores alrededor de los postes. */
+  protected readonly signFlowers = [
+    { x: -96, y: 4, s: 1.1, k: 'a' },
+    { x: -70, y: 16, s: 0.85, k: 'b' },
+    { x: 78, y: 8, s: 1, k: 'c' },
+    { x: 102, y: -4, s: 0.8, k: 'a' },
+    { x: 58, y: 20, s: 0.75, k: 'b' },
+  ];
+  /** Los pies del cartel, en píxeles de la escena. */
   protected readonly playAt = signal({ x: 0, y: 0 });
   /** El cartel de la noche va en el medio de lo que se ve: es lo único para hacer. */
   protected readonly nightPlayAt = signal({ x: 0, y: 0 });
-  /** Cuánto sube lo que dice main para no quedar detrás del botón, en unidades del viewBox. */
-  protected readonly sayLift = signal(0);
-  /**
-   * Entre el título y la corona no entra la medalla entera (la primera
-   * parada): va sin el nombre del nivel, que vuelve a su lugar bajo main, y
-   * lo que dice main sale ahí abajo en vez de arriba, donde está el título.
-   */
-  protected readonly playCramped = signal(false);
   protected readonly walking = signal(false);
   /** De noche hasta el primer toque: main duerme y solo se ve el play. */
   protected readonly night = signal(StoryDawnComponent.needed());
@@ -1011,34 +1047,16 @@ export class StoryMapComponent {
   }
 
   /**
-   * Lleva el botón arriba de la cabeza de main y el cartel de la noche al
-   * medio de lo que se ve, sin que el botón se salga por los costados.
+   * Clava el cartel de día en su lugar del mapa (sus pies, en píxeles de la
+   * escena) y lleva el de la noche al medio de lo que se ve.
    */
   private placePlay(): void {
     const m = this.worldRef().nativeElement.getScreenCTM();
     if (!m) return;
     const box = this.stageRef().nativeElement.getBoundingClientRect();
-    const play = this.playRef().nativeElement;
-    const placed = (y: number, width: number) => {
-      const p = new DOMPoint(this.hp.x, y).matrixTransform(m);
-      const half = width / 2;
-      return { x: clamp(p.x - box.left, half + 8, box.width - half - 8), y: p.y - box.top };
-    };
-    // El borde de abajo del botón queda un poco por encima de la corona. Si
-    // así se metiera debajo del título, primero deja el nombre del nivel y,
-    // si aun así no entra, baja hasta salir de las letras.
-    const crown = placed(this.hp.y - 258 * this.heroScale(), play.offsetWidth);
-    // Las puntas de la cinta pueden asomar bajo una letra: se mide sin ellas.
-    const half = play.offsetWidth / 2 - 14;
-    const top = this.titleBottom(crown.x - half, crown.x + half);
-    // `clientHeight` y no el rectángulo: mientras se esconde, el botón está achicado.
-    const art = play.querySelector('svg')?.clientHeight ?? play.offsetHeight;
-    const cramped = crown.y - top - 4 < art + CAPTION_H;
-    const height = cramped ? art : art + CAPTION_H;
-    const bottom = Math.max(crown.y, top + 4 + height);
-    this.playCramped.set(cramped);
-    this.playAt.set({ x: crown.x, y: bottom });
-    this.sayLift.set((crown.y - bottom + height + 6) / m.d);
+    const spot = this.signSpot();
+    const feet = new DOMPoint(spot.x, spot.y + 70 * this.spec().s).matrixTransform(m);
+    this.playAt.set({ x: feet.x - box.left, y: feet.y - box.top });
     if (this.night()) {
       // El cartel de la noche va en el medio de lo que se ve de la escena: es
       // lo único que hay para hacer, no tiene que buscarse junto a main.
@@ -1052,25 +1070,6 @@ export class StoryMapComponent {
       });
       this.sleeperAt.set({ x: this.hp.x, y: this.hp.y });
     }
-  }
-
-  /**
-   * Dónde terminan las letras del título entre `left` y `right`, en píxeles
-   * de la escena. Mide el texto y no las cajas: el subtítulo es más corto que
-   * el título y su caja ocupa todo el ancho.
-   */
-  private titleBottom(left: number, right: number): number {
-    const box = this.stageRef().nativeElement.getBoundingClientRect();
-    const range = document.createRange();
-    let bottom = -Infinity;
-    for (const line of this.stageRef().nativeElement.querySelectorAll('.sm-title > *')) {
-      range.selectNodeContents(line);
-      const r = range.getBoundingClientRect();
-      if (r.right - box.left > left && r.left - box.left < right) {
-        bottom = Math.max(bottom, r.bottom - box.top);
-      }
-    }
-    return bottom;
   }
 
   private moveHero(x: number, y: number): void {
