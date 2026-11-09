@@ -16,7 +16,7 @@ import { pageWasTouched, playChime, SOUND_KEY } from './story.audio';
 import { StoryLanternSignComponent } from './story-lantern-sign.component';
 import { cloudPath, hash, Landmark, Point } from './story.map';
 
-/** Cómo se despertó: con el play (y entonces se entra a jugar) o tocando en otro lado. */
+/** Cómo se despertó: con el play o tocando en otro lado (cambia cómo se hunde el cartel). */
 export type DawnBy = 'play' | 'tap';
 
 /**

@@ -14,7 +14,7 @@ import { Router } from '@angular/router';
 import gsap from 'gsap';
 import { ThemeService } from '../../../theming/theme.service';
 import { MAIN_BODY } from './scene/scene.art';
-import { DawnBy, NightScene, StoryDawnComponent } from './story-dawn.component';
+import { NightScene, StoryDawnComponent } from './story-dawn.component';
 import { StoryPlayComponent } from './story-play.component';
 import { IconPart, levelIcon } from './story.icons';
 import { StoryProgress } from './story-progress.service';
@@ -80,7 +80,7 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
  *
  * La primera vez se llega de noche (`story-dawn`): main duerme y el play, lo
  * único encendido, da el toque que el navegador pide para que suene la música
- * del nivel. Al tocarlo amanece y main entra a jugar.
+ * del nivel. Al tocarlo amanece y queda el mapa: el nivel lo elige el alumno.
  */
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -514,8 +514,8 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
           [scene]="n"
           [at]="nightPlayAt()"
           [level]="next().title"
-          (woke)="onWoke($event)"
-          (lit)="onLit($event)"
+          (woke)="onWoke()"
+          (lit)="onLit()"
         />
       }
     </section>
@@ -782,18 +782,19 @@ export class StoryMapComponent {
   }
 
   /** Tocaron el play de la noche (o en otro lado): main abre los ojos de golpe. */
-  protected onWoke(by: DawnBy): void {
+  protected onWoke(): void {
     this.lids(1);
     this.sq.v += 3;
-    if (by === 'play') this.say('¡Vamos!');
-    else this.greet();
+    this.greet();
   }
 
-  /** Ya amaneció: se quita la noche; con el play, main entra a jugar. */
-  protected onLit(by: DawnBy): void {
+  /**
+   * Ya amaneció: se quita la noche y queda el mapa. Ni con el play se entra
+   * solo a un nivel: el alumno elige desde el mapa (el foco va al jugar de main).
+   */
+  protected onLit(): void {
     this.night.set(false);
-    if (by === 'play') this.go(this.here());
-    else this.playRef().nativeElement.focus({ preventScroll: true });
+    this.playRef().nativeElement.focus({ preventScroll: true });
   }
 
   protected chapterOf(key: Level['chapter']) {
