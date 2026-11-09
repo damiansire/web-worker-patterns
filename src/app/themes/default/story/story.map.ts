@@ -41,7 +41,7 @@ export const MAP_SPECS: Record<MapShape, MapSpec> = {
     rowStep: 250,
     wobble: 20,
     s: 1,
-    chars: 20,
+    chars: 22,
     turn: 150,
   },
   tall: {
@@ -265,14 +265,26 @@ export function cloudPath(x: number, y: number, w: number): string {
   );
 }
 
-/** Parte un texto en renglones de hasta `max` caracteres, sin cortar palabras. */
+/**
+ * Parte un texto en renglones de hasta `max` caracteres, sin cortar palabras.
+ * Si entra en dos, los empareja: "Pintar desde / otro hilo" y no "Pintar desde
+ * otro / hilo", con una palabra sola colgando abajo.
+ */
 export function wrapWords(text: string, max: number): string[] {
   const lines: string[] = [];
-  for (const word of text.split(' ')) {
+  const words = text.split(' ');
+  for (const word of words) {
     const last = lines.at(-1);
     if (last !== undefined && (last + ' ' + word).length <= max)
       lines[lines.length - 1] += ' ' + word;
     else lines.push(word);
   }
-  return lines;
+  if (lines.length !== 2) return lines;
+  let best = lines;
+  const longest = (ls: string[]) => Math.max(...ls.map((l) => l.length));
+  for (let i = 1; i < words.length; i++) {
+    const pair = [words.slice(0, i).join(' '), words.slice(i).join(' ')];
+    if (longest(pair) <= max && longest(pair) < longest(best)) best = pair;
+  }
+  return best;
 }

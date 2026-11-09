@@ -87,4 +87,9 @@ describe('story map', () => {
     expect(wrapWords('Lo que cuesta copiar', 13)).toEqual(['Lo que cuesta', 'copiar']);
     expect(wrapWords('Plan B', 13)).toEqual(['Plan B']);
   });
+
+  it('wrapWords empareja los dos renglones: ninguna palabra queda sola abajo', () => {
+    expect(wrapWords('Pintar desde otro hilo', 20)).toEqual(['Pintar desde', 'otro hilo']);
+    expect(wrapWords('Pintar desde otro hilo', 22)).toEqual(['Pintar desde otro hilo']);
+  });
 });
