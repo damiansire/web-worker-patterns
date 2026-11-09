@@ -5,15 +5,16 @@ let seq = 0;
 
 /**
  * El play de la noche (`story-dawn`): una tabla de madera clavada en el
- * pasto con "¡Jugar!" tallado y un farolito colgado de la esquina que se
+ * pasto con "¡Jugar!" pintado en crema y un farolito colgado de la esquina que se
  * hamaca. Es un objeto del mundo, no un botón de formulario: al pasar el
  * mouse se inclina y el farol se hamaca más; al apretar se aplasta contra el
  * piso.
  *
  * Con `glow` el farol está prendido, alumbra la tabla y le vuelan dos
- * polillas: es la única luz fuerte del mapa de noche. Si va a sonar, una chapita con
- * una nota clavada en la otra esquina suelta corcheas (o está tachada si no
- * va a sonar). Solo dibuja: el botón, su posición y su etiqueta para el
+ * polillas: es la única luz fuerte del mapa de noche. Debajo cuelga una placa
+ * que dice si va a sonar ("con música", y su nota suelta corcheas) o no
+ * ("sin sonido", con la nota tachada): es parte del cartel, no un texto
+ * suelto que se mezcle con el mapa. Solo dibuja: el botón, su posición y su etiqueta para el
  * lector de pantalla son de quien lo usa.
  */
 @Component({
@@ -25,7 +26,7 @@ let seq = 0;
     'aria-hidden': 'true',
   },
   template: `
-    <svg class="sls-art" viewBox="-80 -66 160 124">
+    <svg class="sls-art" viewBox="-80 -66 160 136">
       <defs>
         <linearGradient [attr.id]="id + 'wood'" x1="0" x2="0" y1="0" y2="1">
           <stop offset="0" stop-color="#dba066" />
@@ -49,13 +50,13 @@ let seq = 0;
         </radialGradient>
       </defs>
 
-      <ellipse class="sls-contact" cy="51" rx="58" ry="5" />
+      <ellipse class="sls-contact" cy="61" rx="58" ry="5" />
 
       <g class="sls-sign">
-        <!-- El foco del teclado: un borde liso alrededor de la tabla -->
-        <rect class="sls-focus" x="-71" y="-41" width="142" height="74" rx="14" />
+        <!-- El foco del teclado: un borde liso alrededor de la tabla y su placa -->
+        <rect class="sls-focus" x="-71" y="-41" width="142" height="101" rx="14" />
         <g class="sls-tilt">
-          <path class="sls-post" d="M-38 12V51M38 12V51" />
+          <path class="sls-post" d="M-38 12V61M38 12V61" />
           <path class="sls-board" [attr.d]="board" [attr.fill]="url('wood')" />
           @if (glow()) {
             <path [attr.d]="board" [attr.fill]="url('lit')" />
@@ -65,16 +66,19 @@ let seq = 0;
           <circle class="sls-nail" cx="-54" cy="16" r="2.5" />
           <circle class="sls-nail" cx="54" cy="16" r="2.5" />
           <circle class="sls-nail" cx="54" cy="-24" r="2.5" />
-          <!-- Tallado: el surco claro abajo, la letra oscura encima -->
-          <path class="sls-carve-hi" d="M-50 -13.5L-34 -3.5L-50 6.5Z" />
-          <path class="sls-carve" d="M-50 -15L-34 -5L-50 5Z" />
-          <text class="sls-label sls-carve-hi" x="9" y="5.5" text-anchor="middle">
+          <!-- Pintado: la letra crema con su sombra de madera oscura debajo -->
+          <path class="sls-paint-shade" d="M-50 -13L-34 -3L-50 7Z" />
+          <path class="sls-paint" d="M-50 -15L-34 -5L-50 5Z" />
+          <text class="sls-label sls-paint-shade" x="9" y="6.2" text-anchor="middle">
             {{ label() }}
           </text>
-          <text class="sls-label sls-carve" x="9" y="4" text-anchor="middle">{{ label() }}</text>
+          <text class="sls-label sls-paint" x="9" y="4.2" text-anchor="middle">{{ label() }}</text>
 
+          <!-- La placa del sonido cuelga de la tabla: dice si va a sonar -->
           @if (sound() !== null) {
-            <g transform="translate(-56 -30)">
+            <path class="sls-chain" d="M-30 24V35M30 24V35" />
+            <rect class="sls-plate" x="-48" y="34" width="96" height="21" rx="7" />
+            <g transform="translate(-36 44.5)">
               @if (sound()) {
                 <g class="sls-notes">
                   <path class="sls-note" [attr.d]="note" />
@@ -82,12 +86,14 @@ let seq = 0;
                   <path class="sls-note" [attr.d]="note" />
                 </g>
               }
-              <circle class="sls-badge" r="11" />
-              <path class="sls-badge-note" [attr.d]="note" transform="scale(0.75)" />
+              <path class="sls-plate-note" [attr.d]="note" transform="scale(0.85)" />
               @if (!sound()) {
-                <path class="sls-badge-mute" d="M-7 -7L7 7" />
+                <path class="sls-plate-mute" d="M-7 -7L7 7" />
               }
             </g>
+            <text class="sls-plate-text" x="7" y="49" text-anchor="middle">
+              {{ sound() ? 'con música' : 'sin sonido' }}
+            </text>
           }
 
           <!-- El farol cuelga de un brazo clavado en la esquina -->
@@ -111,20 +117,15 @@ let seq = 0;
         </g>
       </g>
     </svg>
-    @if (caption()) {
-      <span class="sls-caption">{{ caption() }}</span>
-    }
   `,
   styleUrl: './story-lantern-sign.component.scss',
 })
 export class StoryLanternSignComponent {
   /** Lo que dice la tabla: "¡Jugar!" o "Repetir". */
   readonly label = input.required<string>();
-  /** Debajo, en chico: el nivel, o si va a sonar. */
-  readonly caption = input<string>();
   /** De noche: el farol prendido alumbra la tabla. */
   readonly glow = input(false);
-  /** La chapita del sonido: con nota (y corcheas que salen), tachada, o ninguna. */
+  /** La placa del sonido: "con música" (y suelta corcheas), "sin sonido" (nota tachada) o ninguna. */
   readonly sound = input<boolean | null>(null);
 
   protected readonly id = `sls${++seq}-`;

@@ -434,6 +434,16 @@ const DROPS = [-150, -110, -70, -30, 10, 50, 120].map((deg, i) => {
       <circle #ring [attr.cx]="sc().moon.x" [attr.cy]="sc().moon.y" r="0" fill="url(#sd-g-ring)" />
     </svg>
 
+    <!-- Alrededor del cartel el mapa se apaga: que nada compita con él
+         (el molino, el camino y los nombres quedaban justo detrás). -->
+    <div
+      #hush
+      class="sd-hush"
+      [style.--sd-x]="at().x + 'px'"
+      [style.--sd-y]="at().y + 'px'"
+      aria-hidden="true"
+    ></div>
+
     <button
       #play
       type="button"
@@ -445,12 +455,7 @@ const DROPS = [-150, -110, -70, -30, 10, 50, 120].map((deg, i) => {
     >
       <!-- GSAP hunde esta capa y no el botón: reescribiría el translate que lo centra. -->
       <span #press class="sd-press">
-        <story-lantern-sign
-          label="¡Jugar!"
-          [caption]="soundOn ? 'con música' : 'sin sonido'"
-          [glow]="true"
-          [sound]="soundOn"
-        />
+        <story-lantern-sign label="¡Jugar!" [glow]="true" [sound]="soundOn" />
       </span>
     </button>
   `,
@@ -577,6 +582,7 @@ export class StoryDawnComponent {
   private readonly zzz = viewChild.required<ElementRef<SVGGElement>>('zzz');
   private readonly play = viewChild.required<ElementRef<HTMLElement>>('play');
   private readonly press = viewChild.required<ElementRef<HTMLElement>>('press');
+  private readonly hush = viewChild.required<ElementRef<HTMLElement>>('hush');
   private readonly flyEls = viewChildren<ElementRef<SVGGElement>>('fly');
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private woken = false;
@@ -676,6 +682,7 @@ export class StoryDawnComponent {
       )
       .to(this.popWord().nativeElement, { autoAlpha: 0, y: -40, duration: 0.3 }, 'pop+=0.4')
       .to(this.zzz().nativeElement, { autoAlpha: 0, duration: 0.15 }, 'pop')
+      .to(this.hush().nativeElement, { autoAlpha: 0, duration: 0.45 }, 'pop')
       .addLabel('moon', 'pop+=0.2')
       .set(this.moonSleep().nativeElement, { autoAlpha: 0 }, 'moon')
       .fromTo(

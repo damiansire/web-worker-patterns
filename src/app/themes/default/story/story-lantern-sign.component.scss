@@ -32,7 +32,7 @@
 /* ── La tabla: se inclina desde los pies de los postes ── */
 .sls-sign,
 .sls-tilt {
-  transform-origin: 0 51px;
+  transform-origin: 0 61px;
 }
 .sls-tilt {
   transition:
@@ -66,42 +66,57 @@
 .sls-nail {
   fill: #5a3520;
 }
-.sls-carve {
+/* Pintado en crema sobre la madera, con la sombra en madera oscura: se lee de
+   noche y de día mucho mejor que una letra tallada oscura sobre marrón. */
+.sls-paint {
+  fill: #fff4d6;
+}
+.sls-paint-shade {
   fill: var(--sls-wood-ink);
 }
-.sls-carve-hi {
-  fill: #f3c993;
-}
-path.sls-carve,
-path.sls-carve-hi {
+path.sls-paint,
+path.sls-paint-shade {
   stroke-width: 4;
   stroke-linejoin: round;
 }
-path.sls-carve {
-  stroke: var(--sls-wood-ink);
+path.sls-paint {
+  stroke: #fff4d6;
 }
-path.sls-carve-hi {
-  stroke: #f3c993;
+path.sls-paint-shade {
+  stroke: var(--sls-wood-ink);
 }
 .sls-label {
   font-family: var(--font-display);
-  font-size: 23px;
+  font-size: 24px;
   font-weight: 900;
+  letter-spacing: 0.01em;
 }
 
-/* ── La chapita del sonido y las corcheas que suelta ── */
-.sls-badge {
+/* ── La placa del sonido, colgada de la tabla, y las corcheas que suelta ── */
+.sls-chain {
+  fill: none;
+  stroke: var(--sls-ink);
+  stroke-width: 2;
+  stroke-dasharray: 3 2.5;
+}
+.sls-plate {
   fill: var(--sls-cream);
   stroke: var(--sls-ink);
   stroke-width: 2.5;
 }
-.sls-badge-note {
+.sls-plate-note {
   fill: var(--sls-ink);
 }
-.sls-badge-mute {
+.sls-plate-mute {
   stroke: #d94a5c;
   stroke-width: 3;
   stroke-linecap: round;
+}
+.sls-plate-text {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 800;
+  fill: var(--sls-ink);
 }
 .sls-note {
   fill: var(--sls-cream);
@@ -131,7 +146,8 @@ path.sls-carve-hi {
   }
   100% {
     opacity: 0;
-    translate: calc(-16px + var(--sls-dx, 0px)) -44px;
+    /* Salen hacia la izquierda, por afuera de la tabla: no tapan el "¡Jugar!". */
+    translate: calc(-30px + var(--sls-dx, 0px)) -16px;
     rotate: -14deg;
     scale: 1;
   }
@@ -221,26 +237,6 @@ path.sls-carve-hi {
   to {
     scale: 1.04 1.06;
   }
-}
-
-/* ── Debajo: el nivel (de día) o si suena (de noche), como los nombres del mapa ── */
-.sls-caption {
-  max-width: 100%;
-  margin-top: -4px;
-  overflow: hidden;
-  color: var(--sls-ink);
-  font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 800;
-  line-height: 1.2;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  text-shadow:
-    0 0 3px var(--sls-cream),
-    1.5px 1.5px 0 var(--sls-cream),
-    -1.5px 1.5px 0 var(--sls-cream),
-    1.5px -1.5px 0 var(--sls-cream),
-    -1.5px -1.5px 0 var(--sls-cream);
 }
 
 /* Liso: en este mapa el borde punteado quiere decir "todavía no". */
