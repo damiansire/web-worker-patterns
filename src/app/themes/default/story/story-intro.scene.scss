@@ -1,0 +1,517 @@
+/*
+ * El dibujo del nivel de entrada (el SVG): la sala, main, la ventanita, la
+ * fila y los gags. Va aparte de `story-intro.component.scss` (la pantalla, la
+ * línea de main y la tarjeta) para que ninguna de las dos hojas pase el
+ * presupuesto de estilos por componente. Los tokens (`--in-*`) se definen en
+ * `.in`, en la otra hoja.
+ */
+/* ── La escena: llena su lugar; la sala sigue por fuera del dibujo ── */
+.in-stage {
+  position: relative;
+  grid-column: 1;
+  grid-row: 2;
+  min-height: 0;
+}
+.in-world {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  touch-action: manipulation;
+}
+.in-wall {
+  fill: var(--in-wall);
+}
+.in-trim {
+  fill: var(--in-trim);
+}
+.in-wainscot {
+  fill: var(--in-wall-low);
+}
+.in-glow {
+  fill: color-mix(in oklab, var(--in-light) 45%, transparent);
+  opacity: 0.6;
+}
+.in-floor {
+  fill: var(--in-floor);
+}
+.in-s-light {
+  stop-color: var(--in-light);
+}
+.in-s-main-light {
+  stop-color: var(--in-main-light);
+}
+.in-s-main {
+  stop-color: var(--in-main);
+}
+.in-s-main-dark {
+  stop-color: var(--in-main-dark);
+}
+.in-s-block-top {
+  stop-color: color-mix(in oklab, var(--thread-main) 70%, var(--in-shade));
+}
+.in-s-block-bot {
+  stop-color: color-mix(in oklab, var(--thread-main) 35%, var(--in-shade));
+}
+
+/* Main, dibujado como en el mapa. */
+.in-hero {
+  cursor: pointer;
+}
+.in-contact {
+  fill: color-mix(in oklab, var(--in-shade) 22%, transparent);
+}
+.in-h-dark {
+  fill: var(--in-main-dark);
+}
+.in-h-shine {
+  fill: var(--in-main-light);
+  opacity: 0.55;
+}
+.in-h-belly {
+  fill: color-mix(in oklab, var(--in-main-light) 60%, #fff);
+  opacity: 0.6;
+}
+.in-h-badge {
+  fill: var(--in-white);
+}
+.in-h-badge-text {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 15px;
+  fill: var(--in-shade);
+}
+.in-h-arm {
+  fill: none;
+  stroke: var(--in-main-dark);
+  stroke-width: 14;
+  stroke-linecap: round;
+}
+.in-h-white {
+  fill: color-mix(in oklab, var(--surface-raised) 20%, #fff);
+}
+.in-h-ink {
+  fill: var(--in-shade);
+}
+.in-h-brow,
+.in-h-mouth {
+  fill: none;
+  stroke: var(--in-shade);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+.in-h-cheek {
+  fill: color-mix(in oklab, #ff7a8a 60%, var(--in-main));
+  opacity: 0.55;
+}
+.in-h-gold {
+  fill: var(--in-gold);
+}
+.in-h-gold-dark {
+  fill: var(--in-gold-dark);
+}
+.in-h-gem {
+  fill: color-mix(in oklab, var(--accent) 50%, #e2405a);
+}
+/* El hielo de la tarea larga: aparece y se va con una transición. */
+.in-h-frost {
+  fill: var(--in-ice);
+  stroke: color-mix(in oklab, var(--in-ice) 50%, var(--in-white));
+  stroke-width: 4;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s;
+}
+.in.is-frozen .in-h-frost {
+  opacity: 0.55;
+}
+/* Lo que solo se mira no ataja toques: una chispa o un globo no tapan el
+   corazón ni a main cuando se toca rápido varias veces. */
+.in-pool,
+.in-glow,
+.in-fx,
+.in-say,
+.in-held,
+.in-block,
+.in-queue-label,
+.in-plate {
+  pointer-events: none;
+}
+
+/* Texto dentro del dibujo: liviano, oscuro sobre crema. */
+.in-plate,
+.in-tag,
+.in-say-bubble {
+  fill: var(--in-cream);
+  stroke: color-mix(in oklab, var(--in-shade) 70%, transparent);
+  stroke-width: 3;
+}
+.in-plate-text,
+.in-tag-text,
+.in-say-text {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+  fill: var(--in-shade);
+}
+.in-say-text {
+  font-size: 24px;
+}
+.in-say {
+  animation: in-pop 0.3s cubic-bezier(0.34, 1.8, 0.64, 1) both;
+}
+.in-pop {
+  animation: in-pop 0.32s cubic-bezier(0.34, 1.8, 0.64, 1) both;
+}
+@keyframes in-pop {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.85);
+  }
+}
+
+/* Paso 1: el ovillo. */
+.in-thread {
+  fill: none;
+  stroke: var(--in-coral);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+.in-yarn {
+  cursor: pointer;
+}
+.in-yarn-ball {
+  fill: var(--in-coral);
+  stroke: color-mix(in oklab, var(--in-coral) 60%, var(--in-shade));
+  stroke-width: 3;
+}
+.in-yarn-line {
+  fill: none;
+  stroke: color-mix(in oklab, var(--in-coral) 55%, var(--in-white));
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+/* Paso 2: la hoja del código. */
+.in-code {
+  cursor: grab;
+  touch-action: none;
+}
+.in-code.is-running {
+  cursor: default;
+}
+.in-paper {
+  fill: var(--in-white);
+  stroke: color-mix(in oklab, var(--in-shade) 70%, transparent);
+  stroke-width: 3;
+}
+.in-paper-shadow,
+.in-win-shadow {
+  fill: color-mix(in oklab, var(--in-shade) 18%, transparent);
+}
+.in-paper-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  fill: var(--in-ink-soft);
+}
+.in-code-line {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 19px;
+  fill: var(--in-shade);
+  white-space: pre;
+  transition: opacity 0.2s;
+}
+.in-code-line.is-read {
+  opacity: 0.5;
+}
+/* Colores del código: cada clase de pedazo con su tono, oscurecido con la
+   tinta para que se lea sobre la hoja blanca. */
+.in-tok-kw {
+  fill: color-mix(in oklab, #9b4fd0 80%, var(--in-shade));
+  font-weight: 700;
+}
+.in-tok-var {
+  fill: color-mix(in oklab, var(--in-sky) 45%, var(--in-shade));
+}
+.in-tok-num {
+  fill: color-mix(in oklab, var(--in-coral) 80%, var(--in-shade));
+  font-weight: 700;
+}
+.in-tok-obj {
+  fill: color-mix(in oklab, var(--in-gold) 45%, var(--in-shade));
+}
+.in-tok-prop,
+.in-tok-fn {
+  fill: color-mix(in oklab, var(--in-sky) 75%, var(--in-shade));
+}
+.in-tok-str {
+  fill: color-mix(in oklab, var(--in-leaf) 65%, var(--in-shade));
+}
+.in-tok-op,
+.in-tok-punct {
+  fill: var(--in-ink-soft);
+}
+.in-code-mark {
+  fill: color-mix(in oklab, var(--in-gold) 55%, var(--in-white));
+}
+.in-check {
+  fill: var(--in-leaf);
+}
+.in-check-mark {
+  fill: none;
+  stroke: var(--in-white);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* La ventanita del navegador. */
+.in-win {
+  fill: var(--in-white);
+  stroke: color-mix(in oklab, var(--in-shade) 70%, transparent);
+  stroke-width: 3;
+}
+.in-win-bar {
+  fill: color-mix(in oklab, var(--in-cream) 70%, var(--in-trim));
+}
+.in-win-dot {
+  fill: color-mix(in oklab, var(--in-shade) 25%, var(--in-cream));
+}
+.in-win-title,
+.in-win-note {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 16px;
+  fill: var(--in-ink-soft);
+}
+.in-box,
+.in-fill {
+  stroke: color-mix(in oklab, var(--in-shade) 40%, transparent);
+  stroke-width: 2;
+}
+.in-box {
+  transition: opacity 0.2s;
+}
+.in-outline {
+  fill: none;
+  stroke: var(--in-shade);
+  stroke-width: 3;
+  stroke-dasharray: 10 8;
+  animation: in-march 0.6s linear infinite;
+}
+@keyframes in-march {
+  to {
+    stroke-dashoffset: -18;
+  }
+}
+.in-fill {
+  animation: in-sweep 0.7s ease-out both;
+}
+@keyframes in-sweep {
+  from {
+    transform: scaleX(0);
+  }
+}
+.in-phase rect {
+  fill: var(--in-cream);
+  stroke: color-mix(in oklab, var(--in-shade) 35%, transparent);
+  stroke-width: 3;
+  transition:
+    fill 0.2s,
+    stroke 0.2s;
+}
+.in-phase text {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 19px;
+  fill: var(--in-ink-soft);
+}
+.in-phase.is-past rect {
+  fill: color-mix(in oklab, var(--in-gold) 30%, var(--in-cream));
+}
+.in-phase.is-on rect {
+  fill: var(--in-gold);
+  stroke: var(--in-shade);
+}
+.in-phase.is-on text {
+  fill: var(--in-shade);
+}
+.in-phase.is-on {
+  animation: in-pop 0.3s cubic-bezier(0.34, 1.8, 0.64, 1);
+}
+
+/* El corazón, lo escrito y la animación de la página. */
+.in-heart-btn {
+  cursor: pointer;
+}
+.in-btn {
+  fill: color-mix(in oklab, var(--in-coral) 14%, var(--in-white));
+  stroke: color-mix(in oklab, var(--in-shade) 50%, transparent);
+  stroke-width: 3;
+}
+.in-heart {
+  fill: color-mix(in oklab, #ff5a77 80%, var(--in-main));
+}
+.in-count {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 34px;
+  fill: var(--in-shade);
+}
+.in-field {
+  fill: var(--in-white);
+  stroke: color-mix(in oklab, var(--in-shade) 40%, transparent);
+  stroke-width: 3;
+}
+.in-typed {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 24px;
+  fill: var(--in-shade);
+}
+.in-typed.is-empty {
+  fill: color-mix(in oklab, var(--in-shade) 40%, var(--in-white));
+}
+.in-spin-dot {
+  fill: var(--in-sky);
+}
+
+/* La fila, lo que main tiene entre manos y el ciclo. */
+.in-queue-floor {
+  stroke: color-mix(in oklab, var(--in-shade) 25%, transparent);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 2 12;
+}
+.in-queue-label,
+.in-done {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  fill: var(--in-ink-soft);
+}
+.in-done-n,
+.in-more {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 24px;
+  fill: var(--in-shade);
+}
+.in-slot {
+  transition: transform 0.35s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+.in-arrive {
+  animation: in-arrive 0.42s cubic-bezier(0.34, 1.5, 0.64, 1) both;
+}
+@keyframes in-arrive {
+  from {
+    opacity: 0;
+    transform: translate(220px, -40px) rotate(18deg);
+  }
+}
+.in-task rect {
+  fill: var(--in-cream);
+  stroke: var(--in-shade);
+  stroke-width: 3;
+}
+.in-task[data-kind='timer'] rect {
+  fill: color-mix(in oklab, var(--in-sky) 30%, var(--in-cream));
+}
+.in-task[data-kind='message'] rect {
+  fill: color-mix(in oklab, var(--in-leaf) 30%, var(--in-cream));
+}
+.in-task[data-kind='key'] rect {
+  fill: color-mix(in oklab, var(--in-gold) 35%, var(--in-cream));
+}
+.in-task-icon {
+  font-size: 24px;
+}
+.in-task-label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  fill: var(--in-shade);
+}
+.in-take {
+  animation: in-take 0.35s cubic-bezier(0.34, 1.3, 0.64, 1) both;
+}
+@keyframes in-take {
+  from {
+    transform: translate(var(--in-from-x), var(--in-from-y)) scale(0.85);
+  }
+}
+.in-ring-back {
+  fill: color-mix(in oklab, var(--in-white) 55%, transparent);
+  stroke: color-mix(in oklab, var(--in-shade) 15%, transparent);
+  stroke-width: 10;
+}
+.in-ring {
+  fill: none;
+  stroke: var(--in-gold);
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  transform: rotate(-90deg);
+}
+.in-loop-arrow path {
+  fill: none;
+  stroke: color-mix(in oklab, var(--in-shade) 55%, transparent);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+.in-loop-arrow .in-loop-head {
+  fill: color-mix(in oklab, var(--in-shade) 55%, transparent);
+  stroke: none;
+}
+
+/* La tarea larga. */
+.in-block-side {
+  fill: color-mix(in oklab, var(--thread-main) 30%, var(--in-shade));
+}
+.in-block-small,
+.in-block-big {
+  font-family: var(--font-display);
+  fill: var(--in-white);
+}
+.in-block-small {
+  font-weight: 600;
+  font-size: 18px;
+}
+.in-block-big {
+  font-weight: 800;
+  font-size: 24px;
+}
+.in-block-track {
+  fill: color-mix(in oklab, var(--in-shade) 60%, transparent);
+}
+.in-block-fill {
+  fill: var(--in-gold);
+}
+
+/* El paso final. */
+.in-job {
+  animation: in-job 0.5s cubic-bezier(0.34, 1.8, 0.64, 1) both;
+}
+@keyframes in-job {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+}
+.in-job-disc {
+  fill: var(--in-cream);
+  stroke: var(--in-shade);
+  stroke-width: 3;
+}
+.in-job-icon {
+  font-size: 34px;
+}
+.in-job-label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 17px;
+  fill: var(--in-shade);
+}

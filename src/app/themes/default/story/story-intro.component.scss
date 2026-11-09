@@ -1,0 +1,544 @@
+/*
+ * El nivel de entrada, "Conocé a main". Mismo vocabulario que el mapa y la
+ * pantalla de nivel: la paleta sale de los tokens del theme con color-mix,
+ * sombras tintadas y nunca negro puro. Los únicos colores fijos son los de la
+ * escena (el blanco de los ojos, el dorado de la corona, la piel de main y los
+ * colores de las cajas que se pintan), y casi todos se mezclan con un token.
+ * La sala llena la pantalla; en ancho la tarjeta del paso va a la derecha, en
+ * angosto abajo.
+ */
+:host {
+  display: block;
+}
+
+.in {
+  --in-shade: color-mix(in oklab, var(--worker) 24%, #120a1c);
+  --in-white: #fffdf7;
+  --in-cream: color-mix(in oklab, var(--surface-raised) 70%, #fff4dc);
+  --in-gold: #f2b632;
+  --in-gold-dark: color-mix(in oklab, var(--in-gold) 70%, var(--in-shade));
+  --in-main: color-mix(in oklab, var(--thread-main) 45%, #f08a5d);
+  --in-main-light: color-mix(in oklab, var(--in-main) 55%, #fff);
+  --in-main-dark: color-mix(in oklab, var(--in-main) 68%, var(--in-shade));
+  --in-wall: color-mix(in oklab, var(--surface) 90%, var(--accent));
+  --in-wall-low: color-mix(in oklab, var(--surface) 84%, var(--thread-main));
+  --in-trim: color-mix(in oklab, var(--surface) 58%, var(--thread-main));
+  --in-floor: color-mix(in oklab, var(--thread-main) 46%, var(--surface));
+  --in-light: color-mix(in oklab, var(--accent) 18%, #fff4cf);
+  --in-ice: color-mix(in oklab, var(--worker) 30%, #d9f1ff);
+  --in-dust: color-mix(in oklab, var(--in-floor) 60%, var(--in-white));
+  --in-coral: color-mix(in oklab, var(--thread-main) 40%, #f07a5a);
+  --in-sky: color-mix(in oklab, var(--worker) 55%, #8fd0ff);
+  --in-leaf: color-mix(in oklab, var(--accent) 60%, #6cc48a);
+  --in-ink-soft: color-mix(in oklab, var(--in-shade) 72%, var(--surface));
+
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) min(430px, 38%);
+  grid-template-rows: auto minmax(0, 1fr);
+  height: calc(100dvh - var(--masthead-h, 0px));
+  min-height: 520px;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--in-wall);
+  color: var(--in-shade);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.in-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ── Arriba: volver al mapa y los pasos ── */
+.in-top {
+  grid-column: 1 / -1;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: clamp(12px, 2vw, 24px) clamp(12px, 2.4vw, 36px) 4px;
+}
+.in-back {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px 10px 10px;
+  border-radius: 999px;
+  background: var(--in-shade);
+  color: var(--in-white);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 15px;
+  text-decoration: none;
+  box-shadow: 0 6px 16px color-mix(in oklab, var(--in-shade) 28%, transparent);
+  transition: scale 0.25s cubic-bezier(0.34, 1.8, 0.64, 1);
+}
+.in-back:hover,
+.in-back:focus-visible {
+  scale: 1.06;
+}
+.in-back-arrow {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--in-gold);
+}
+.in-back-arrow::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 45%;
+  border: 5px solid transparent;
+  border-right: 8px solid var(--in-shade);
+  border-left: 0;
+  transform: translate(-50%, -50%);
+}
+.in-dots {
+  display: flex;
+  gap: 6px;
+  margin: 0 0 0 auto;
+  padding: 0;
+  list-style: none;
+}
+.in-dot {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--in-cream);
+  color: var(--in-ink-soft);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 2px color-mix(in oklab, var(--in-shade) 30%, transparent);
+  transition:
+    scale 0.25s cubic-bezier(0.34, 1.8, 0.64, 1),
+    background 0.2s;
+}
+.in-dot.is-seen {
+  background: color-mix(in oklab, var(--in-gold) 45%, var(--in-cream));
+  color: var(--in-shade);
+}
+.in-dot.is-here {
+  background: var(--in-gold);
+  color: var(--in-shade);
+  scale: 1.12;
+  box-shadow: inset 0 0 0 3px var(--in-shade);
+}
+.in-dot:hover {
+  scale: 1.1;
+}
+
+/* ── La línea de main: cada cosa que hace es un tramo tan largo como lo que
+   tardó. Corre con `--lane-now` (ms desde que se armó), que el componente
+   pone en cada cuadro: los tramos no se vuelven a dibujar. 6000 ms entran a
+   lo ancho (TRACE_SPAN_MS) y "ahora" está al 80 % (TRACE_NOW_AT). ── */
+.in-lane {
+  --lane-span: 6000;
+  --lane-at: 80%;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 920px;
+  margin: 0 auto;
+}
+.in-lane-name {
+  flex: none;
+  display: grid;
+  justify-items: end;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 15px;
+  line-height: 1.1;
+  color: var(--in-shade);
+}
+.in-lane-name small {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--in-ink-soft);
+  white-space: nowrap;
+}
+.in-lane-track {
+  position: relative;
+  flex: 1;
+  height: 50px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--in-white);
+  box-shadow:
+    inset 0 0 0 2px color-mix(in oklab, var(--in-shade) 22%, transparent),
+    0 6px 16px color-mix(in oklab, var(--in-shade) 14%, transparent);
+  container-type: inline-size;
+}
+/* Una raya por segundo, que corre con la línea. */
+.in-lane-grid {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+    to right,
+    color-mix(in oklab, var(--in-shade) 14%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: calc(100cqw * 1000 / var(--lane-span)) 100%;
+  background-position-x: calc(100cqw * (0.8 - var(--lane-now, 0) / var(--lane-span)));
+}
+.in-lane-tape {
+  position: absolute;
+  inset: 0;
+  transform: translateX(calc(var(--lane-now, 0) / var(--lane-span) * -100%));
+}
+.in-span {
+  --w: calc((var(--e, var(--lane-now, 0)) - var(--s)) / var(--lane-span) * 100%);
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: calc(var(--s) / var(--lane-span) * 100% + var(--lane-at));
+  width: max(3px, var(--w));
+  display: grid;
+  align-content: center;
+  padding: 0 6px;
+  overflow: hidden;
+  border-radius: 7px;
+  background: var(--span-fill, var(--in-gold));
+  color: var(--in-shade);
+  box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--in-shade) 30%, transparent);
+  white-space: nowrap;
+  line-height: 1.1;
+  container-type: inline-size;
+}
+/* Tramo angosto: el nombre no entra; queda el tiempo, que es lo que importa. */
+@container (max-width: 52px) {
+  .in-span b {
+    display: none;
+  }
+}
+.in-span b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+}
+.in-span i {
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-weight: 700;
+  font-size: 11px;
+  color: color-mix(in oklab, var(--in-shade) 75%, transparent);
+}
+.in-span[data-kind='hello'],
+.in-span[data-kind='timer'] {
+  --span-fill: color-mix(in oklab, var(--in-gold) 70%, var(--in-white));
+}
+.in-span[data-kind='code'] {
+  --span-fill: color-mix(in oklab, #b88ae0 60%, var(--in-white));
+}
+.in-span[data-kind='click'] {
+  --span-fill: color-mix(in oklab, var(--in-coral) 60%, var(--in-white));
+}
+.in-span[data-kind='key'] {
+  --span-fill: color-mix(in oklab, var(--in-sky) 65%, var(--in-white));
+}
+.in-span[data-kind='message'] {
+  --span-fill: color-mix(in oklab, var(--in-leaf) 60%, var(--in-white));
+}
+.in-span[data-kind='style'] {
+  --span-fill: color-mix(in oklab, var(--in-leaf) 35%, var(--in-white));
+}
+.in-span[data-kind='layout'] {
+  --span-fill: color-mix(in oklab, var(--in-leaf) 55%, var(--in-white));
+}
+.in-span[data-kind='paint'] {
+  --span-fill: color-mix(in oklab, var(--in-leaf) 80%, var(--in-white));
+}
+/* La tarea larga: rayada, como las "Long task" de las DevTools. */
+.in-span[data-kind='long'] {
+  --span-fill: repeating-linear-gradient(
+    -45deg,
+    color-mix(in oklab, var(--in-coral) 85%, var(--in-white)) 0 8px,
+    color-mix(in oklab, var(--in-coral) 60%, var(--in-white)) 8px 16px
+  );
+}
+.in-span.is-running {
+  box-shadow:
+    inset 0 0 0 1.5px color-mix(in oklab, var(--in-shade) 30%, transparent),
+    inset -3px 0 0 var(--in-shade);
+}
+.in-lane-now {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--lane-at);
+  width: 2px;
+  background: var(--in-shade);
+}
+.in-lane-now b {
+  position: absolute;
+  top: 2px;
+  left: 5px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 10px;
+  color: var(--in-ink-soft);
+}
+.in-lane-idle {
+  position: absolute;
+  top: 50%;
+  right: calc(100% - var(--lane-at) + 10px);
+  translate: 0 -50%;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--in-ink-soft);
+  white-space: nowrap;
+}
+
+/* Los botones del theme van en mayúsculas espaciadas: acá no, son frases. */
+:is(.in-dot, .in-act, .in-prev, .in-next) {
+  text-transform: none;
+  letter-spacing: normal;
+}
+:is(.in-back, .in-dot, .in-act, .in-prev, .in-next):focus-visible {
+  outline: 3px solid var(--in-gold);
+  outline-offset: 3px;
+}
+
+/* ── La tarjeta del paso ── */
+.in-card {
+  position: relative;
+  z-index: 2;
+  grid-column: 2;
+  grid-row: 2;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: calc(100% - 24px);
+  margin: 0 clamp(12px, 2.4vw, 36px) 12px 0;
+  padding: clamp(20px, 2vw, 30px);
+  overflow: auto;
+  border-radius: 26px;
+  background: var(--in-white);
+  box-shadow:
+    inset 0 -6px 0 color-mix(in oklab, var(--in-shade) 10%, transparent),
+    0 18px 44px color-mix(in oklab, var(--in-shade) 26%, transparent);
+  user-select: text;
+  -webkit-user-select: text;
+}
+.in-kicker {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--accent) 70%, var(--in-shade));
+}
+.in-text {
+  animation: in-pop 0.32s cubic-bezier(0.34, 1.6, 0.64, 1) both;
+}
+.in-step-title {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(24px, 1.2vw + 14px, 32px);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--in-shade);
+  text-wrap: balance;
+}
+.in-line {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 550;
+  font-size: clamp(17px, 0.4vw + 13px, 21px);
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+.in-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.in-act {
+  padding: 10px 16px 11px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--in-cream);
+  color: var(--in-shade);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow:
+    inset 0 0 0 3px var(--in-shade),
+    inset 0 -5px 0 color-mix(in oklab, var(--in-shade) 14%, transparent);
+  transition: scale 0.2s cubic-bezier(0.34, 1.8, 0.64, 1);
+}
+.in-act:hover:not(:disabled) {
+  scale: 1.05;
+}
+.in-act:active:not(:disabled) {
+  scale: 0.96;
+}
+.in-act:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.in-act--heavy {
+  background: color-mix(in oklab, var(--thread-main) 30%, var(--in-cream));
+}
+.in-hint {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 15px;
+  color: var(--in-ink-soft);
+}
+.in-hint::before {
+  content: '👆 ';
+}
+.in-note {
+  min-height: 1.4em;
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 15px;
+  color: color-mix(in oklab, var(--thread-main) 55%, var(--in-shade));
+}
+.in-note:empty {
+  display: none;
+}
+.in-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 4px;
+}
+.in-prev {
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--in-ink-soft);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+}
+.in-prev:disabled {
+  visibility: hidden;
+}
+.in-next {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  padding: 12px 22px 13px;
+  white-space: nowrap;
+  border: 0;
+  border-radius: 999px;
+  background: var(--in-gold);
+  color: var(--in-shade);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 17px;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow:
+    inset 0 0 0 3px var(--in-shade),
+    inset 0 -6px 0 var(--in-gold-dark),
+    0 10px 24px color-mix(in oklab, var(--in-shade) 22%, transparent);
+  transition: scale 0.25s cubic-bezier(0.34, 1.8, 0.64, 1);
+}
+.in-next:hover {
+  scale: 1.05;
+}
+.in-next-tri {
+  border: 7px solid transparent;
+  border-left: 11px solid var(--in-shade);
+  border-right: 0;
+}
+
+/* ── Angosto o parado: la escena arriba, la tarjeta abajo ── */
+@media (max-width: 760px), (max-aspect-ratio: 1/1) {
+  .in {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+  .in-top {
+    flex-wrap: wrap;
+    row-gap: 8px;
+    padding-bottom: 0;
+  }
+  /* En angosto la línea de main va en su propio renglón, a lo ancho. */
+  .in-lane {
+    order: 3;
+    flex-basis: 100%;
+  }
+  .in-lane-track {
+    height: 44px;
+  }
+  .in-dots {
+    gap: 4px;
+  }
+  .in-dot {
+    width: 30px;
+    height: 30px;
+    font-size: 13px;
+  }
+  .in-card {
+    grid-column: 1;
+    grid-row: 3;
+    align-self: end;
+    max-height: 52dvh;
+    margin: 0 10px 10px;
+    padding: 18px 18px 14px;
+    gap: 9px;
+    border-radius: 22px;
+  }
+  .in-step-title {
+    margin-bottom: 4px;
+  }
+  /* Con poco alto, lo que acaba de pasar reemplaza a la ayuda: la escena no se achica. */
+  .in-card:has(.in-note:not(:empty)) .in-hint {
+    display: none;
+  }
+}
+@media (max-width: 420px) {
+  .in-back {
+    padding: 8px 12px 9px 8px;
+    font-size: 14px;
+  }
+  .in-dot {
+    width: 27px;
+    height: 27px;
+  }
+}
+
+/* ── Calma: la información queda, sin viajes ── */
+@media (prefers-reduced-motion: reduce) {
+  .in *,
+  .in *::before {
+    animation: none !important;
+    transition: none !important;
+  }
+}

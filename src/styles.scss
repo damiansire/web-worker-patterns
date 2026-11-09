@@ -90,6 +90,17 @@
   box-sizing: border-box;
 }
 
+// El texto de un botón no se selecciona: un toque largo o un doble clic tiene
+// que apretar el botón, no abrir el menú de copiar/traducir del navegador.
+// Regla directa sobre el elemento: le gana al `user-select: text` que un
+// contenedor (p. ej. la tarjeta de texto del intro) deja para heredar.
+button,
+[role='button'] {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
 html {
   height: 100%;
 }
