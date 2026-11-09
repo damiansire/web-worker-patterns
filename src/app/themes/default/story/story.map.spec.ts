@@ -50,8 +50,8 @@ describe('story map', () => {
         const count = roads.reduce((n, r) => n + r.d.split('M').length - 1, 0);
         expect(count).toBe(inner);
         expect(count).toBeLessThan(segments(spots, spec).length);
-        // El prólogo tiene un solo nivel: no tiene tramo.
-        expect(roads.map((r) => r.chapter)).not.toContain('prologue');
+        // Todos los capítulos tienen más de un nivel: cada uno pinta su tramo.
+        expect(roads.map((r) => r.chapter)).toEqual(CHAPTERS.map((c) => c.key));
         const first = LEVELS.findIndex((l) => l.chapter === 'understanding');
         const own = roads.find((r) => r.chapter === 'understanding')!;
         expect(own.d.startsWith(`M${spots[first].x} ${spots[first].y}`)).toBe(true);

@@ -4,7 +4,7 @@ import { countPrimesUpTo } from '../../../core/domain/workers/primes.worker.logi
 import { ExampleLayoutController } from '../../../core/presentation/example-layout.controller';
 import { Scene, Who } from './scene/scene';
 import { Mood } from './story.music.logic';
-import { SceneId } from './story.levels';
+import { ScriptedScene } from './story.levels';
 import { Lane, TaskKind } from './story.threads.logic';
 
 /**
@@ -588,4 +588,4 @@ worker.postMessage({ command: 'bloquear', ms: 2500 });`,
   },
 };
 
-export const SCRIPTS: Record<SceneId, LevelScript> = { prologue, counter, queue, fan };
+export const SCRIPTS: Record<ScriptedScene, LevelScript> = { prologue, counter, queue, fan };

@@ -10,7 +10,9 @@ import { Category } from '../../../core/domain/examples/example.model';
  * el anterior con escena. Los que todavía no tienen escena están "en obra": se
  * pueden abrir siempre, en su versión clásica, hasta que les llegue la suya.
  */
-export type SceneId = 'prologue' | 'counter' | 'queue' | 'fan';
+export type SceneId = 'intro' | 'prologue' | 'counter' | 'queue' | 'fan';
+/** Las escenas que se juegan con un guion (`SCRIPTS`); el intro tiene su propia pantalla. */
+export type ScriptedScene = Exclude<SceneId, 'intro'>;
 
 export interface Chapter {
   key: Category | 'prologue';
@@ -19,9 +21,9 @@ export interface Chapter {
 }
 
 export interface Level {
-  /** Id de ruta: el del ejemplo del registry, o `prologo`. */
+  /** Id de ruta: el del ejemplo del registry, `conoce-a-main` o `prologo`. */
   id: string;
-  /** Número que se muestra (0 = prólogo). */
+  /** Número que se muestra (0 = el de entrada). */
   n: number;
   chapter: Chapter['key'];
   /** Nombre corto, de historia, no de API. */
@@ -32,6 +34,12 @@ export interface Level {
 export type LevelState = 'locked' | 'open' | 'done' | 'wip';
 
 export const PROLOGUE_ID = 'prologo';
+/**
+ * El nivel de entrada: qué es main y de qué se encarga. Va primero, en el
+ * capítulo del prólogo (comparte su hito, la casa de main). Es informativo: no
+ * traba al prólogo, que se puede jugar aunque no se haya visto.
+ */
+export const INTRO_ID = 'conoce-a-main';
 
 export const CHAPTERS: readonly Chapter[] = [
   { key: 'prologue', n: 0, title: 'Prólogo' },
@@ -63,6 +71,7 @@ const TITLES: Record<string, string> = {
 
 /** Niveles que ya tienen escena propia (el resto está en obra). */
 const SCENES: Record<string, SceneId> = {
+  [INTRO_ID]: 'intro',
   [PROLOGUE_ID]: 'prologue',
   '01-setinterval-counter': 'counter',
   '02-main-thread': 'queue',
@@ -71,7 +80,8 @@ const SCENES: Record<string, SceneId> = {
 
 export function buildLevels(): Level[] {
   const levels: Level[] = [
-    { id: PROLOGUE_ID, n: 0, chapter: 'prologue', title: 'Main y su malabar', scene: 'prologue' },
+    { id: INTRO_ID, n: 0, chapter: 'prologue', title: 'Conocé a main', scene: 'intro' },
+    { id: PROLOGUE_ID, n: 1, chapter: 'prologue', title: 'Main y su malabar', scene: 'prologue' },
   ];
   for (const chapter of CHAPTERS) {
     if (chapter.key === 'prologue') continue;
@@ -97,7 +107,10 @@ export function findLevel(id: string): Level | undefined {
   return LEVELS.find((l) => l.id === id);
 }
 
-/** Estado de un nivel según cuáles están superados. */
+/**
+ * Estado de un nivel según cuáles están superados. Lo destraba el anterior con
+ * escena; el de entrada no traba a nadie (no hay nada que superar en él).
+ */
 export function levelState(
   level: Level,
   isDone: (id: string) => boolean,
@@ -107,7 +120,9 @@ export function levelState(
   if (isDone(level.id)) return 'done';
   const playable = levels.filter((l) => l.scene);
   const i = playable.findIndex((l) => l.id === level.id);
-  return i <= 0 || isDone(playable[i - 1].id) ? 'open' : 'locked';
+  if (i <= 0) return 'open';
+  const prev = playable[i - 1];
+  return prev.id === INTRO_ID || isDone(prev.id) ? 'open' : 'locked';
 }
 
 /** El nivel que sigue en la historia (con escena o en obra), o null al final. */
@@ -116,11 +131,19 @@ export function nextLevel(id: string, levels: readonly Level[] = LEVELS): Level 
   return i >= 0 && i + 1 < levels.length ? levels[i + 1] : null;
 }
 
-/** Dónde está main en el mapa: el primer nivel jugable sin superar (o el último). */
+/**
+ * Dónde está main en el mapa: el nivel jugable que sigue al último superado
+ * (el primero, si no hay ninguno; el último, si están todos). Así, si se jugó
+ * el prólogo sin pasar por el de entrada, main no vuelve atrás.
+ */
 export function currentLevel(
   isDone: (id: string) => boolean,
   levels: readonly Level[] = LEVELS,
 ): Level {
   const playable = levels.filter((l) => l.scene);
-  return playable.find((l) => !isDone(l.id)) ?? playable[playable.length - 1];
+  let last = -1;
+  playable.forEach((l, i) => {
+    if (isDone(l.id)) last = i;
+  });
+  return playable[Math.min(last + 1, playable.length - 1)];
 }

@@ -1,10 +1,11 @@
 import { EXAMPLES } from '../../../core/domain/examples/examples.registry';
-import { currentLevel, LEVELS, levelState, nextLevel, PROLOGUE_ID } from './story.levels';
+import { currentLevel, INTRO_ID, LEVELS, levelState, nextLevel, PROLOGUE_ID } from './story.levels';
 
 describe('story levels', () => {
-  it('arranca en el prólogo y tiene un nivel por ejemplo del registry', () => {
-    expect(LEVELS[0].id).toBe(PROLOGUE_ID);
-    expect(LEVELS.length).toBe(EXAMPLES.length + 1);
+  it('arranca con el de entrada y el prólogo, y tiene un nivel por ejemplo del registry', () => {
+    expect(LEVELS.slice(0, 2).map((l) => l.id)).toEqual([INTRO_ID, PROLOGUE_ID]);
+    expect(LEVELS.slice(0, 2).every((l) => l.chapter === 'prologue')).toBe(true);
+    expect(LEVELS.length).toBe(EXAMPLES.length + 2);
     expect(new Set(LEVELS.map((l) => l.id)).size).toBe(LEVELS.length);
     LEVELS.forEach((l, i) => expect(l.n).toBe(i));
   });
@@ -19,6 +20,7 @@ describe('story levels', () => {
     const done = new Set<string>();
     const isDone = (id: string) => done.has(id);
     const byId = (id: string) => LEVELS.find((l) => l.id === id)!;
+    expect(levelState(byId(INTRO_ID), isDone)).toBe('open');
     expect(levelState(byId(PROLOGUE_ID), isDone)).toBe('open');
     expect(levelState(byId('01-setinterval-counter'), isDone)).toBe('locked');
     done.add(PROLOGUE_ID);
@@ -27,18 +29,27 @@ describe('story levels', () => {
     expect(levelState(byId('02-main-thread'), isDone)).toBe('locked');
   });
 
+  it('el de entrada no traba al prólogo, pero se marca al verlo', () => {
+    const byId = (id: string) => LEVELS.find((l) => l.id === id)!;
+    expect(levelState(byId(PROLOGUE_ID), () => false)).toBe('open');
+    expect(levelState(byId(INTRO_ID), (id) => id === INTRO_ID)).toBe('done');
+    expect(levelState(byId('01-setinterval-counter'), (id) => id === INTRO_ID)).toBe('locked');
+  });
+
   it('los niveles sin escena están en obra y se pueden abrir siempre', () => {
     const wip = LEVELS.find((l) => !l.scene)!;
     expect(levelState(wip, () => false)).toBe('wip');
   });
 
   it('main se para en el primer nivel jugable sin superar', () => {
-    expect(currentLevel(() => false).id).toBe(PROLOGUE_ID);
+    expect(currentLevel(() => false).id).toBe(INTRO_ID);
+    expect(currentLevel((id) => id === INTRO_ID).id).toBe(PROLOGUE_ID);
     expect(currentLevel((id) => id === PROLOGUE_ID).id).toBe('01-setinterval-counter');
     expect(currentLevel(() => true).id).toBe('16-compositor-vs-main');
   });
 
   it('el siguiente del último no existe', () => {
+    expect(nextLevel(INTRO_ID)?.id).toBe(PROLOGUE_ID);
     expect(nextLevel(PROLOGUE_ID)?.id).toBe('01-setinterval-counter');
     expect(nextLevel(LEVELS[LEVELS.length - 1].id)).toBeNull();
   });

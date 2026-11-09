@@ -22,6 +22,8 @@ const fill = (d: string, rot?: number): IconPart => ({ kind: 'fill', d, rot });
 const BLADE = 'M0 -3C-7 -9 -7 -19 1 -19C9 -19 9 -9 3 -3Z';
 
 export const LEVEL_ICONS: Record<string, readonly IconPart[]> = {
+  // Conocé a main: su corona.
+  'conoce-a-main': [fill('M-17 9L-19 -11L-8 -2L0 -16L8 -2L19 -11L17 9Z'), line('M-17 15H17')],
   // Main y su malabar: tres pelotas en el aire sobre dos manos.
   prologo: [
     fill(dot(-12, 2, 5.5)),

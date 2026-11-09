@@ -22,7 +22,15 @@ import { CHOICE_AT, MAIN_AT, WORKER_AT } from './scene/scene.art';
 import { StoryProgress } from './story-progress.service';
 import { StoryThreadsComponent } from './story-threads.component';
 import { createLevelAudio, LevelAudio, SOUND_KEY } from './story.audio';
-import { CHAPTERS, Level, LEVELS, levelState, nextLevel, PROLOGUE_ID } from './story.levels';
+import {
+  CHAPTERS,
+  Level,
+  LEVELS,
+  levelState,
+  nextLevel,
+  PROLOGUE_ID,
+  ScriptedScene,
+} from './story.levels';
 import { LevelContext, Line, PRIMES_EXAMPLE, SCRIPTS } from './story.scripts';
 import {
   blip,
@@ -317,7 +325,7 @@ export class StoryStageComponent {
   private readonly talkEl = viewChild.required<ElementRef<HTMLElement>>('talk');
   private readonly sheetEl = viewChild<ElementRef<HTMLElement>>('sheet');
 
-  protected readonly script = computed(() => SCRIPTS[this.level().scene!]);
+  protected readonly script = computed(() => SCRIPTS[this.level().scene as ScriptedScene]);
   protected readonly caption = signal<Line>({ who: 'main', text: '' });
   /** Lo que hizo cada hilo (panel "Hilos del navegador"). */
   protected readonly threadLog = signal<ThreadLog>(emptyLog());
