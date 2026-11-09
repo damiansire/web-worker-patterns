@@ -376,34 +376,36 @@ const DROPS = [-150, -110, -70, -30, 10, 50, 120].map((deg, i) => {
           <g [attr.transform]="'translate(' + m.x + ' ' + m.y + ') scale(' + sc().art + ')'">
             @switch (m.chapter) {
               @case ('prologue') {
-                <circle cx="33" cy="-43" r="46" fill="url(#sd-g-warm)" />
-                <rect class="sd-lit" x="26" y="-50" width="14" height="14" rx="3" />
+                <ellipse cy="-62" rx="62" ry="40" fill="url(#sd-g-warm)" />
+                <rect class="sd-lit" x="-35" y="-61" width="15" height="14" rx="2.5" />
+                <rect class="sd-lit sd-flicker" x="20" y="-61" width="15" height="14" rx="2.5" />
+                <circle class="sd-lit" cy="-88" r="7.5" />
               }
               @case ('understanding') {
-                <circle cy="-82" r="60" fill="url(#sd-g-warm)" />
-                <circle class="sd-lit sd-lit-soft" cy="-82" r="18" />
+                <circle cy="-69" r="56" fill="url(#sd-g-warm)" />
+                <circle class="sd-lit sd-lit-soft" cy="-69" r="15" />
               }
               @case ('communication') {
                 <circle cx="-4" cy="-96" r="40" fill="url(#sd-g-warm)" opacity="0.6" />
               }
               @case ('optimization') {
-                <circle cy="-14" r="48" fill="url(#sd-g-warm)" />
-                <rect class="sd-lit" x="-9" y="-26" width="18" height="26" rx="7" />
+                <circle cy="-53" r="40" fill="url(#sd-g-warm)" />
+                <path class="sd-lit" d="M-5 -45V-55Q-5 -61 0 -61Q5 -61 5 -55V-45Z" />
               }
               @case ('management') {
-                <ellipse cx="-16" cy="-38" rx="80" ry="44" fill="url(#sd-g-warm)" />
-                <rect class="sd-lit" x="-46" y="-44" width="14" height="12" rx="3" />
-                <rect class="sd-lit sd-flicker" x="-22" y="-44" width="14" height="12" rx="3" />
-                <rect class="sd-lit" x="2" y="-44" width="14" height="12" rx="3" />
+                <ellipse cx="-22" cy="-49" rx="70" ry="38" fill="url(#sd-g-warm)" />
+                <rect class="sd-lit" x="-46" y="-54" width="12" height="10" rx="2" />
+                <rect class="sd-lit sd-flicker" x="-28" y="-54" width="12" height="10" rx="2" />
+                <rect class="sd-lit" x="-10" y="-54" width="12" height="10" rx="2" />
               }
               @case ('advanced') {
-                <g transform="translate(0 -124)">
+                <g transform="translate(0 -109)">
                   <g class="sd-beam">
                     <path d="M0 -5L380 -70V70L0 5Z" fill="url(#sd-g-beam-night)" />
                   </g>
                 </g>
-                <circle cy="-125" r="64" fill="url(#sd-g-warm)" />
-                <rect class="sd-lit" x="-11" y="-134" width="22" height="18" rx="4" />
+                <circle cy="-109" r="60" fill="url(#sd-g-warm)" />
+                <rect class="sd-lit" x="-9" y="-118" width="18" height="18" rx="3" />
               }
             }
           </g>

@@ -45,7 +45,8 @@ export const MAP_SPECS: Record<MapShape, MapSpec> = {
     turn: 150,
   },
   tall: {
-    view: { w: 1080, h: 2470 },
+    // Abajo sobra pasto: ahí flota el cartel de jugar sin tapar la última parada.
+    view: { w: 1080, h: 2820 },
     horizon: 470,
     cols: 3,
     x0: 230,

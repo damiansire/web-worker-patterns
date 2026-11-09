@@ -209,25 +209,61 @@
 }
 
 /* ── Hitos ── */
-.lm-wall {
-  fill: color-mix(in oklab, var(--sm-main) 30%, var(--sm-white));
+/* Cada hito lleva un contorno de tinta suave (la sombra del mapa con un poco
+   del color de su capítulo), una cara en sombra (`lm-sh`) y algún brillo:
+   así se leen como dibujos con volumen y no como íconos planos. */
+.sm-lm {
+  --lm-ink: color-mix(in oklab, var(--sm-shade) 80%, var(--ch));
 }
-.lm-wall-shade,
-.lm-stone-shade,
-.lm-box-shade,
-.lm-brick-shade,
-.lm-roof-shade {
+.lm-o {
+  stroke: var(--lm-ink);
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+}
+.lm-sh {
   fill: var(--sm-shade);
-  opacity: 0.18;
+  opacity: 0.16;
+}
+.lm-line {
+  fill: none;
+  stroke: var(--lm-ink);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  opacity: 0.4;
+}
+.lm-line-strong {
+  opacity: 0.75;
+}
+.lm-shine {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 4;
+  stroke-linecap: round;
+  opacity: 0.45;
+}
+.lm-wall {
+  fill: color-mix(in oklab, var(--sm-main) 28%, var(--sm-white));
 }
 .lm-roof {
-  fill: color-mix(in oklab, var(--ch) 75%, var(--sm-shade));
+  fill: color-mix(in oklab, var(--ch) 78%, var(--sm-shade));
 }
 .lm-window,
 .lm-lamp {
   fill: var(--sm-sun);
-  stroke: color-mix(in oklab, var(--sm-shade) 40%, transparent);
-  stroke-width: 2;
+}
+.lm-glass {
+  fill: color-mix(in oklab, var(--sm-sky-top) 70%, #fff);
+  opacity: 0.85;
+}
+.lm-planter {
+  fill: var(--sm-trunk);
+  stroke-width: 1.6;
+}
+.lm-bloom {
+  fill: #f28aa5;
+}
+.lm-bloom-b {
+  fill: #ffd25e;
 }
 .lm-gold {
   fill: var(--sm-gold);
@@ -238,13 +274,8 @@
 .lm-stone {
   fill: var(--sm-stone);
 }
-.lm-door {
-  fill: var(--sm-stone-shade);
-}
 .lm-face {
   fill: var(--sm-white);
-  stroke: var(--sm-stone-shade);
-  stroke-width: 3;
 }
 .lm-ink {
   fill: var(--sm-shade);
@@ -272,13 +303,14 @@
 }
 .lm-paper {
   fill: var(--sm-white);
-  stroke: color-mix(in oklab, var(--sm-shade) 35%, transparent);
-  stroke-width: 1.5;
+  stroke: var(--lm-ink);
+  stroke-width: 1.6;
 }
 .lm-paper-line {
   fill: none;
-  stroke: color-mix(in oklab, var(--sm-shade) 45%, transparent);
-  stroke-width: 1.5;
+  stroke: var(--lm-ink);
+  stroke-width: 1.4;
+  opacity: 0.6;
 }
 .lm-letter {
   animation: sm-letter 3.6s ease-in-out infinite;
@@ -310,8 +342,6 @@
 }
 .lm-blade {
   fill: var(--sm-white);
-  stroke: color-mix(in oklab, var(--ch) 60%, var(--sm-shade));
-  stroke-width: 2;
 }
 .lm-hub {
   fill: var(--sm-shade);
@@ -326,6 +356,9 @@
 }
 .lm-brick {
   fill: color-mix(in oklab, var(--ch) 55%, var(--sm-stone));
+}
+.lm-gear {
+  animation: sm-spin 9s linear infinite reverse;
 }
 .lm-smoke {
   fill: var(--sm-white);
@@ -345,11 +378,18 @@
   }
   to {
     opacity: 0;
-    transform: translate(18px, -70px) scale(2);
+    transform: translate(14px, -46px) scale(1.8);
   }
 }
 .lm-white {
   fill: var(--sm-white);
+}
+/* El contorno del faro va arriba de sus bandas, para que no lo corten. */
+.lm-white-line {
+  fill: none;
+  stroke: var(--lm-ink);
+  stroke-width: 2.4;
+  stroke-linejoin: round;
 }
 .lm-beam {
   animation: sm-sweep 4.5s ease-in-out infinite alternate;
@@ -776,6 +816,7 @@
   .lm-letter,
   .lm-flag,
   .lm-blades,
+  .lm-gear,
   .lm-smoke,
   .lm-beam,
   .sm-here {

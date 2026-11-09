@@ -239,96 +239,190 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
             aria-hidden="true"
           >
             <ellipse class="sm-contact" rx="66" ry="10" />
+            <!--
+              Todo cabe debajo de la fila de nombres de arriba (hasta y≈-118;
+              solo una punta finita sube más), y lo que tiene que verse
+              (ventanas, reloj, puertas) queda por encima de la cinta (y<-42).
+            -->
             @switch (m.chapter) {
               @case ('prologue') {
-                <path class="lm-wall" d="M-48 0V-62H48V0Z" />
-                <path class="lm-wall-shade" d="M22 0V-62H48V0Z" />
-                <path class="lm-roof" d="M-62 -58L0 -110L62 -58Z" />
-                <path class="lm-roof-shade" d="M0 -110L62 -58H34Z" />
-                <rect class="lm-window" x="26" y="-50" width="14" height="14" rx="3" />
-                <g transform="translate(0 -108)">
+                <!-- La casa de main: paredes rosadas, techo de tejas, chimenea que humea -->
+                <rect class="lm-brick lm-o" x="22" y="-114" width="13" height="28" rx="1.5" />
+                <g transform="translate(28.5 -118)">
+                  <circle class="lm-smoke" r="8" />
+                  <circle class="lm-smoke" r="8" />
+                  <circle class="lm-smoke" r="8" />
+                </g>
+                <path class="lm-wall lm-o" d="M-44 -4V-66H44V-4Z" />
+                <path class="lm-sh" d="M18 -4V-66H44V-4Z" />
+                @for (wx of [-35, 20]; track wx) {
+                  <rect
+                    class="lm-window lm-o"
+                    [attr.x]="wx"
+                    y="-61"
+                    width="15"
+                    height="14"
+                    rx="2.5"
+                  />
+                  <path
+                    class="lm-line"
+                    [attr.d]="'M' + (wx + 7.5) + ' -61V-47M' + wx + ' -54H' + (wx + 15)"
+                  />
+                  <rect
+                    class="lm-planter lm-o"
+                    [attr.x]="wx - 2"
+                    y="-47"
+                    width="19"
+                    height="5"
+                    rx="2"
+                  />
+                  <circle class="lm-bloom" [attr.cx]="wx + 2" cy="-48.5" r="2.6" />
+                  <circle class="lm-bloom lm-bloom-b" [attr.cx]="wx + 7.5" cy="-49.5" r="2.6" />
+                  <circle class="lm-bloom" [attr.cx]="wx + 13" cy="-48.5" r="2.6" />
+                }
+                <path
+                  class="lm-roof lm-o"
+                  d="M-58 -72L0 -118L58 -72Q60 -66 54 -66H-54Q-60 -66 -58 -72Z"
+                />
+                <path class="lm-sh" d="M0 -118L58 -72Q60 -66 54 -66H22Z" />
+                <path
+                  class="lm-line"
+                  d="M-42 -78q6 5 12 0q6 5 12 0q6 5 12 0q6 5 12 0q6 5 12 0q6 5 12 0q6 5 12 0M-12 -100q6 5 12 0q6 5 12 0"
+                />
+                <circle class="lm-window lm-o" cy="-88" r="7.5" />
+                <path class="lm-line" d="M-7.5 -88H7.5M0 -95.5V-80.5" />
+                <g transform="translate(0 -116)">
                   <path class="lm-gold" d="M-14 2L-17 -16L-7 -7L0 -20L7 -7L17 -16L14 2Z" />
                 </g>
               }
               @case ('understanding') {
-                <path class="lm-stone" d="M-28 0L-24 -110H24L28 0Z" />
-                <path class="lm-stone-shade" d="M10 0L11 -110H24L28 0Z" />
-                <path class="lm-roof" d="M-34 -108L0 -144L34 -108Z" />
-                <g transform="translate(0 -82)">
-                  <circle class="lm-face" r="18" />
+                <!-- La torre del reloj: piedra, reloj que hace tic y techo en punta -->
+                <path class="lm-stone lm-o" d="M-24 -4L-21 -98H21L24 -4Z" />
+                <path class="lm-sh" d="M8 -4L8 -98H21L24 -4Z" />
+                <path class="lm-line" d="M-21.6 -48H22.4M-21.3 -90H21.3" />
+                <g transform="translate(0 -69)">
+                  <circle class="lm-face lm-o" r="15" />
+                  <path class="lm-line lm-line-strong" d="M0 -12V-9M12 0H9M0 12V9M-12 0H-9" />
                   <rect
                     class="lm-ink"
-                    x="-1.6"
-                    y="-11"
-                    width="3.2"
-                    height="12"
-                    rx="1.6"
+                    x="-1.4"
+                    y="-9"
+                    width="2.8"
+                    height="10"
+                    rx="1.4"
                     transform="rotate(50)"
                   />
                   <g class="lm-tick">
-                    <rect class="lm-red" x="-1" y="-15" width="2" height="17" rx="1" />
+                    <rect class="lm-red" x="-0.9" y="-12.5" width="1.8" height="14" rx="0.9" />
                   </g>
-                  <circle class="lm-ink" r="2.6" />
+                  <circle class="lm-ink" r="2.2" />
                 </g>
+                <rect class="lm-stone lm-o" x="-27" y="-104" width="54" height="7" rx="2.5" />
+                <path class="lm-roof lm-o" d="M-28 -104L0 -138L28 -104Z" />
+                <path class="lm-sh" d="M0 -138L28 -104H9Z" />
+                <circle class="lm-gold" cy="-141" r="3.5" />
               }
               @case ('communication') {
-                <rect class="lm-post" x="-6" y="-58" width="12" height="58" />
-                <g transform="translate(-4 -92)">
+                <!-- El buzón: sale una carta, la banderita sube y baja -->
+                <rect class="lm-post lm-o" x="-5" y="-58" width="10" height="56" />
+                <g transform="translate(-6 -96)">
                   <g class="lm-letter">
                     <rect class="lm-paper" x="-13" y="-12" width="26" height="17" rx="2" />
                     <path class="lm-paper-line" d="M-13 -12L0 -3L13 -12" />
+                    <circle class="lm-red" cx="7" cy="0" r="2.6" />
                   </g>
                 </g>
-                <path class="lm-box" d="M-36 -56V-90C-36 -112 36 -112 36 -90V-56Z" />
-                <path class="lm-box-shade" d="M14 -56V-106C28 -102 36 -96 36 -90V-56Z" />
-                <rect class="lm-slot" x="-22" y="-88" width="30" height="5" rx="2.5" />
-                <g transform="translate(36 -64)">
+                <path
+                  class="lm-box lm-o"
+                  d="M-36 -56V-86Q-36 -104 -18 -104H18Q36 -104 36 -86V-56Z"
+                />
+                <path class="lm-sh" d="M14 -56V-103Q36 -100 36 -86V-56Z" />
+                <path class="lm-shine" d="M-28 -64V-86Q-28 -96 -18 -96" />
+                <path class="lm-line" d="M-36 -63H36" />
+                <rect class="lm-slot" x="-20" y="-90" width="26" height="5" rx="2.5" />
+                <g transform="translate(36 -68)">
                   <g class="lm-flag">
-                    <rect class="lm-post" x="-2" y="-34" width="4" height="34" />
-                    <path class="lm-red" d="M2 -34H22V-22H2Z" />
+                    <rect class="lm-post lm-o" x="-2" y="-30" width="4" height="30" />
+                    <path class="lm-red lm-o" d="M2 -30H20V-19H2Z" />
                   </g>
                 </g>
               }
               @case ('optimization') {
-                <path class="lm-stone" d="M-26 0L-15 -98H15L26 0Z" />
-                <path class="lm-stone-shade" d="M7 0L8 -98H15L26 0Z" />
-                <path class="lm-roof" d="M-19 -96Q0 -122 19 -96Z" />
-                <rect class="lm-door" x="-9" y="-26" width="18" height="26" rx="7" />
-                <g transform="translate(0 -100)">
+                <!-- El molino: chico, para no meterse bajo los nombres de arriba -->
+                <path class="lm-stone lm-o" d="M-22 -4L-15 -76H15L22 -4Z" />
+                <path class="lm-sh" d="M6 -4L6 -76H15L22 -4Z" />
+                <path class="lm-window lm-o" d="M-5 -45V-55Q-5 -61 0 -61Q5 -61 5 -55V-45Z" />
+                <path class="lm-roof lm-o" d="M-19 -74Q0 -98 19 -74Z" />
+                <g transform="translate(0 -80)">
                   <g class="lm-blades">
-                    <path class="lm-blade" d="M-4 0L-9 -54H9L4 0Z" />
-                    <path class="lm-blade" d="M-4 0L-9 -54H9L4 0Z" transform="rotate(90)" />
-                    <path class="lm-blade" d="M-4 0L-9 -54H9L4 0Z" transform="rotate(180)" />
-                    <path class="lm-blade" d="M-4 0L-9 -54H9L4 0Z" transform="rotate(270)" />
-                    <circle class="lm-hub" r="7" />
+                    @for (a of [0, 90, 180, 270]; track a) {
+                      <g [attr.transform]="'rotate(' + a + ')'">
+                        <path class="lm-blade lm-o" d="M-2.5 -5L-8 -32H8L2.5 -5Z" />
+                        <path class="lm-line" d="M0 -9V-30M-4.5 -18H4.5M-6.5 -26H6.5" />
+                      </g>
+                    }
+                    <circle class="lm-hub lm-o" r="5.5" />
                   </g>
                 </g>
               }
               @case ('management') {
-                <rect class="lm-stone" x="26" y="-116" width="18" height="64" />
-                <g transform="translate(35 -120)">
-                  <circle class="lm-smoke" r="10" />
-                  <circle class="lm-smoke" r="10" />
-                  <circle class="lm-smoke" r="10" />
+                <!-- El taller: techo de serrucho, engranaje que gira, chimenea que humea -->
+                <rect class="lm-brick lm-o" x="22" y="-106" width="13" height="52" rx="1.5" />
+                <path class="lm-red" d="M23.2 -98H33.8V-93H23.2Z" />
+                <g transform="translate(28.5 -110)">
+                  <circle class="lm-smoke" r="9" />
+                  <circle class="lm-smoke" r="9" />
+                  <circle class="lm-smoke" r="9" />
                 </g>
-                <path class="lm-brick" d="M-56 0V-54L-34 -72V-54L-12 -72V-54L10 -72V-54H56V0Z" />
-                <path class="lm-brick-shade" d="M30 0V-54H56V0Z" />
-                <rect class="lm-window" x="-46" y="-44" width="14" height="12" rx="3" />
-                <rect class="lm-window" x="-22" y="-44" width="14" height="12" rx="3" />
-                <rect class="lm-window" x="2" y="-44" width="14" height="12" rx="3" />
+                <path
+                  class="lm-brick lm-o"
+                  d="M-54 -4V-58L-36 -74V-58L-18 -74V-58L0 -74V-58H50V-4Z"
+                />
+                <path class="lm-sh" d="M30 -4V-58H50V-4Z" />
+                <path
+                  class="lm-glass"
+                  d="M-36 -73V-59L-48 -59ZM-18 -73V-59L-30 -59ZM0 -73V-59L-12 -59Z"
+                />
+                @for (wx of [-46, -28, -10]; track wx) {
+                  <rect
+                    class="lm-window lm-o"
+                    [attr.x]="wx"
+                    y="-54"
+                    width="12"
+                    height="10"
+                    rx="2"
+                  />
+                }
+                <g transform="translate(37 -66)">
+                  <g class="lm-gear">
+                    <path
+                      class="lm-gold lm-o"
+                      d="M-2.3 -7.7L-2.1 -10.8L2.1 -10.8L2.3 -7.7L3.8 -7.1L6.2 -9.1L9.1 -6.2L7.1 -3.8L7.7 -2.3L10.8 -2.1L10.8 2.1L7.7 2.3L7.1 3.8L9.1 6.2L6.2 9.1L3.8 7.1L2.3 7.7L2.1 10.8L-2.1 10.8L-2.3 7.7L-3.8 7.1L-6.2 9.1L-9.1 6.2L-7.1 3.8L-7.7 2.3L-10.8 2.1L-10.8 -2.1L-7.7 -2.3L-7.1 -3.8L-9.1 -6.2L-6.2 -9.1L-3.8 -7.1Z"
+                    />
+                    <circle class="lm-hub lm-o" r="3.4" />
+                  </g>
+                </g>
               }
               @case ('advanced') {
-                <g transform="translate(0 -124)">
+                <!-- El faro: bandas rojas, balcón, farol que barre -->
+                <g transform="translate(0 -109)">
                   <g class="lm-beam">
                     <path d="M0 -5L190 -34V34L0 5Z" fill="url(#sm-g-beam)" />
                   </g>
                 </g>
-                <path class="lm-white" d="M-24 0L-14 -110H14L24 0Z" />
-                <path class="lm-red" d="M-21.8 -24L-19.6 -48H19.6L21.8 -24Z" />
-                <path class="lm-red" d="M-17.4 -72L-15.6 -94H15.6L17.4 -72Z" />
-                <rect class="lm-stone" x="-21" y="-116" width="42" height="8" rx="3" />
-                <rect class="lm-lamp" x="-11" y="-134" width="22" height="18" rx="4" />
-                <path class="lm-roof" d="M-16 -134L0 -150L16 -134Z" />
+                <path class="lm-white lm-o" d="M-20 -4L-12 -94H12L20 -4Z" />
+                <path class="lm-red" d="M-17.3 -34L-16.1 -48H16.1L17.3 -34Z" />
+                <path class="lm-red" d="M-14.7 -64L-13.4 -78H13.4L14.7 -64Z" />
+                <path class="lm-sh" d="M5 -4L4 -94H12L20 -4Z" />
+                <path class="lm-white-line" d="M-20 -4L-12 -94H12L20 -4Z" />
+                <path
+                  class="lm-line lm-line-strong"
+                  d="M-15 -100V-106M-9 -100V-106M-3 -100V-106M3 -100V-106M9 -100V-106M15 -100V-106M-17 -106H17"
+                />
+                <rect class="lm-stone lm-o" x="-19" y="-100" width="38" height="7" rx="2.5" />
+                <rect class="lm-lamp lm-o" x="-9" y="-118" width="18" height="18" rx="3" />
+                <path class="lm-red lm-o" d="M-13 -117Q0 -133 13 -117Z" />
+                <circle class="lm-gold" cy="-134" r="3" />
               }
             }
             <g class="lm-ribbon">
