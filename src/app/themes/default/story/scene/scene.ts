@@ -140,7 +140,12 @@ interface Ball {
   fromX: number;
   fromY: number;
   p: number;
-  delay: number;
+  /**
+   * Cuánto falta para que vuelva a las manos (segundos; negativo: nadie la
+   * llamó). Mientras tanto sigue cayendo o quieta en el piso: si pasara a
+   * `return` al instante, quedaría colgada en el aire sin caer.
+   */
+  pick: number;
 }
 
 const POKE_HEAD = ['¡ey!', '¡mi corona!', '¡boing!'];
@@ -319,7 +324,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
       fromX: 0,
       fromY: 0,
       p: 0,
-      delay: 0,
+      pick: -1,
     };
   });
 
@@ -355,6 +360,8 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
   let alto = 0;
   let vy = 0;
   let juggling = true;
+  /** Main salta de festejo: al caer no suelta las pelotas (acaba de no soltar nada). */
+  let cheering = false;
   let jt = 0;
   let dizzy = 0;
   let workerIn = false;
@@ -395,6 +402,12 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
   gsap.set([...main.brows, ...worker.brows], { transformOrigin: '50% 50%' });
 
   const mainX = () => MAIN_AT.x + r.x.x;
+  /**
+   * Desde dónde cae el bloque: arriba de lo que se ve. En una pantalla alta y
+   * angosta la sala sigue mucho hacia arriba; desde un punto fijo, el bloque
+   * aparecía de la nada en medio de la pared.
+   */
+  const skyY = () => Math.min(-6, svg.viewBox.baseVal.y - 120);
   const handsCenter = () => ({ x: mainX() + 2, y: FLOOR_Y + HAND_Y - alto });
 
   // ── Vida ──
@@ -551,7 +564,8 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
   // ── Malabar ──
   const juggleAt = (ball: Ball) => {
     const c = handsCenter();
-    const p = jugglePoint(jt * JUGGLE_RATE + ball.offset, 95, 190);
+    // Sin movimiento las pelotas quedan en su lugar del arco (el reloj sigue).
+    const p = jugglePoint((calm ? 0 : jt) * JUGGLE_RATE + ball.offset, 95, 190);
     return { x: c.x + p.x, y: c.y + p.y };
   };
   const dropBalls = () => {
@@ -570,14 +584,11 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
       }
     });
   };
+  /** Llama a las pelotas de vuelta: cada una sale del piso cuando se cumple su espera. */
   const pickUp = (delay = 0) => {
     balls.forEach((b, i) => {
-      if (b.mode === 'juggle') return;
-      b.mode = 'return';
-      b.fromX = b.x;
-      b.fromY = b.y;
-      b.p = 0;
-      b.delay = delay + i * 0.22;
+      if (b.mode === 'juggle' || b.mode === 'return') return;
+      b.pick = calm ? 0 : delay + i * 0.22;
     });
   };
 
@@ -594,11 +605,17 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
     lookAt = null;
     add(() => {
       gsap.to(main.rig, { x: 0, y: 0, duration: dur(0.2), overwrite: 'auto' });
-      gsap.to(main.lids, { scaleY: 1, duration: dur(0.12), overwrite: 'auto' });
-      gsap.to(main.brows, { rotation: 0, y: 0, duration: dur(0.2), overwrite: 'auto' });
       gsap.to(main.frost, { opacity: 0, duration: dur(0.2), overwrite: 'auto' });
       gsap.to(main.stars, { opacity: 0, duration: dur(0.2), overwrite: 'auto' });
-      mouthNormal();
+      // La cara, de golpe: la reacción que viene anima cejas y boca desde su
+      // primer cuadro, y un tween "a reposo" todavía vivo escribía después del
+      // suyo (la cara de sorpresa se deshacía antes del congelamiento).
+      const face = [...main.lids, ...main.brows, main.mouth, main.mouthO];
+      gsap.killTweensOf(face);
+      gsap.set(main.lids, { scaleY: 1 });
+      gsap.set(main.brows, { rotation: 0, y: 0 });
+      gsap.set(main.mouth, { opacity: 1 });
+      gsap.set(main.mouthO, { attr: { ry: 0.1 } });
     });
   };
 
@@ -612,11 +629,16 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
     heat += 1;
     const side = clamp(lx / 110, -1, 1);
     if (!calm) {
-      r.rot.v += side * 170 + (seeded(performance.now()) - 0.5) * 60;
-      r.skew.v += side * -70;
+      // Con tope: los toques hechos durante un congelamiento llegan todos juntos
+      // al soltarse main, y sin tope lo daban vuelta.
+      const push = (s: Spring, v: number, max: number) => {
+        s.v = clamp(s.v + v, -max, max);
+      };
+      push(r.rot, side * 170 + (seeded(performance.now()) - 0.5) * 60, 420);
+      push(r.skew, side * -70, 180);
       r.sq.v = Math.min(r.sq.v + (ly < -130 ? 5.5 : 4), 5.5);
-      r.head.v += side * 260;
-      r.crown.v += side * 320;
+      push(r.head, side * 260, 620);
+      push(r.crown, side * 320, 760);
       sparks(p.x, p.y, fx, 4);
     }
     cue({ kind: 'poke', who: 'main', angry: heat >= 4 });
@@ -664,7 +686,9 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
     const target = e.target as Element;
     if (target.closest('.jh-main-pose')) {
       pokeMain(p);
-      if (!calm) {
+      // Solo el botón principal arrastra: el derecho abre el menú del navegador
+      // y se traga el `pointerup`.
+      if (!calm && e.button === 0) {
         drag = { id: e.pointerId, x0: p.x, y0: p.y, active: false };
         svg.setPointerCapture(e.pointerId);
       }
@@ -694,6 +718,11 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
     const p = toSvg(e);
     pointer = { x: p.x, y: p.y, at: performance.now() };
     if (!drag || drag.id !== e.pointerId) return;
+    // Se soltó el botón fuera de la ventana y el `pointerup` no llegó.
+    if (e.pointerType === 'mouse' && e.buttons === 0) {
+      onUp(e);
+      return;
+    }
     const dx = p.x - drag.x0;
     const dy = p.y - drag.y0;
     const d = Math.hypot(dx, dy);
@@ -732,6 +761,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
   svg.addEventListener('pointermove', onMove);
   svg.addEventListener('pointerup', onUp);
   svg.addEventListener('pointercancel', onUp);
+  svg.addEventListener('lostpointercapture', onUp);
   svg.addEventListener('pointerleave', onLeave);
 
   // ── Monitor y reloj (información: corren también sin movimiento) ──
@@ -863,7 +893,9 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
             impacto(mainX(), FLOOR_Y, 0.8);
             dust(mainX(), FLOOR_Y, 9, 90);
           }
-          if (hit > 700 && juggling) {
+          const cheer = cheering;
+          cheering = false;
+          if (hit > 700 && juggling && !cheer) {
             dropBalls();
             pop(mainX(), FLOOR_Y - 290, '¡mis tareas!', 'jh-pop-strong');
             pickUp(1.2);
@@ -913,9 +945,21 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
     gaze(worker.pupils, { x: WORKER_AT.x + 10, y: FLOOR_Y - 96 }, workerLookAt ?? recent, 5);
 
     // Pelotas.
+    // El reloj del malabar corre también sin movimiento: cada vuelta es algo
+    // que main atiende y el panel de hilos lo anota (las pelotas no se mueven).
     const jtBefore = jt;
-    if (juggling && !calm) jt += dt;
+    if (juggling) jt += dt;
     for (const [i, b] of balls.entries()) {
+      if (b.pick >= 0 && (b.mode === 'fall' || b.mode === 'rest')) {
+        b.pick -= dt;
+        if (b.pick <= 0) {
+          b.pick = -1;
+          b.mode = 'return';
+          b.fromX = b.x;
+          b.fromY = b.y;
+          b.p = 0;
+        }
+      }
       if (b.mode === 'juggle') {
         // La pelota llega a la mano cuando su vuelta pasa por la mitad.
         const lap = (t: number) => Math.floor(t * JUGGLE_RATE + b.offset - 0.5);
@@ -942,17 +986,14 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
         }
         b.x = clamp(b.x, 300, 900);
       } else if (b.mode === 'return') {
-        b.delay -= dt;
-        if (b.delay <= 0 || calm) {
-          b.p = calm ? 1 : Math.min(1, b.p + dt / 0.45);
-          const target = juggleAt(b);
-          const e = 1 - (1 - b.p) * (1 - b.p);
-          b.x = b.fromX + (target.x - b.fromX) * e;
-          b.y = b.fromY + (target.y - b.fromY) * e - Math.sin(b.p * Math.PI) * 90;
-          if (b.p >= 1) {
-            b.mode = 'juggle';
-            b.angle = 0;
-          }
+        b.p = calm ? 1 : Math.min(1, b.p + dt / 0.45);
+        const target = juggleAt(b);
+        const e = 1 - (1 - b.p) * (1 - b.p);
+        b.x = b.fromX + (target.x - b.fromX) * e;
+        b.y = b.fromY + (target.y - b.fromY) * e - Math.sin(b.p * Math.PI) * 90;
+        if (b.p >= 1) {
+          b.mode = 'juggle';
+          b.angle = 0;
         }
       }
       b.g.setAttribute(
@@ -979,8 +1020,9 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
   // Primer cuadro ya ubicado, después el ticker. Fuera de pantalla, la vida se pausa.
   tick();
   let running = false;
+  let destroyed = false;
   const start = () => {
-    if (running) return;
+    if (running || destroyed) return;
     running = true;
     lastNow = performance.now();
     gsap.ticker.add(tick);
@@ -1013,6 +1055,14 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
       label(l);
       alReposo();
       workerTl?.kill();
+      // Si lo acababan de soltar, main todavía volvía a su lugar: el bloque
+      // caía al costado. Se lo para en su sitio antes de apuntarle.
+      drag = null;
+      r.x.x = r.x.v = r.x.t = 0;
+      r.rot.t = 0;
+      r.sq.t = 0;
+      alto = 0;
+      vy = 0;
       const x = mainX();
       faceLocked = 1;
       lookAt = { x, y: 0 };
@@ -1034,7 +1084,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
           .set(block, {
             autoAlpha: 1,
             x,
-            y: calm ? BLOCK_ON_MAIN : -6,
+            y: calm ? BLOCK_ON_MAIN : skyY(),
             rotation: -4,
             scale: 1,
           })
@@ -1223,7 +1273,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
         .set(block, {
           autoAlpha: 1,
           x: WORKER_AT.x,
-          y: calm ? BLOCK_ON_WORKER : -6,
+          y: calm ? BLOCK_ON_WORKER : skyY(),
           rotation: 3,
           scale: 1,
         })
@@ -1471,6 +1521,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
     }
     vy = 760;
     alto = Math.max(alto, 1);
+    cheering = true;
     r.crown.v += 500;
     say('main', '¡bien!', true);
     sparks(mainX(), FLOOR_Y - 260, fx, 10);
@@ -1582,6 +1633,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
     },
     destroy: () => {
       stop();
+      destroyed = true;
       resize.disconnect();
       camera?.kill();
       viewListeners.length = 0;
@@ -1595,6 +1647,7 @@ export function createScene(host: HTMLElement, calm: boolean): Scene {
       svg.removeEventListener('pointermove', onMove);
       svg.removeEventListener('pointerup', onUp);
       svg.removeEventListener('pointercancel', onUp);
+      svg.removeEventListener('lostpointercapture', onUp);
       svg.removeEventListener('pointerleave', onLeave);
       mainPose.removeEventListener('touchstart', noScroll);
       stopWork();
