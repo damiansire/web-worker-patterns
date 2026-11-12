@@ -237,9 +237,15 @@ export class StoryThreadsComponent {
   protected readonly summary = computed(() => {
     const busy = this.log().tasks.find((t) => t.lane === 'main' && t.end === null);
     const waited = this.waiting().find((q) => q.oldest);
+    // Lo que todavía espera manda: el carril se ve lleno, el resumen no dice "vacía".
+    const pending = this.log().queue.filter((q) => q.taken === null).length;
     const parts = [
       busy ? `Main thread ocupado: ${busy.label}.` : 'Main thread atendiendo de a una cosa.',
-      waited ? `En la fila, un clic esperó ${waited.waited} s.` : 'Fila de tareas vacía.',
+      pending
+        ? `${pending} ${pending === 1 ? 'clic espera' : 'clics esperan'} en la fila.`
+        : waited
+          ? `En la fila, un clic esperó ${waited.waited} s.`
+          : 'Fila de tareas vacía.',
       this.hasWorker() ? '' : 'Sin worker en este nivel.',
       this.compositor() ? `El compositor, otro hilo, sigue: ${this.compositor()}.` : '',
     ];

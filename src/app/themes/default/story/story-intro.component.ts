@@ -36,6 +36,7 @@ import {
   PAINT_PHASES,
   PaintPhase,
   paintPhaseAt,
+  TASK_MS,
   prevStep,
   progressOf,
   TraceKind,
@@ -672,7 +673,7 @@ const NS = 'http://www.w3.org/2000/svg';
                   height="16"
                   rx="8"
                 />
-                <text class="in-block-big" y="-22" text-anchor="middle">3 segundos</text>
+                <text class="in-block-big" y="-22" text-anchor="middle">{{ longLabel }}</text>
               </g>
             </g>
           }
@@ -714,14 +715,17 @@ const NS = 'http://www.w3.org/2000/svg';
 
       <section class="in-card" aria-labelledby="in-step-title">
         <p class="in-kicker">Paso {{ stepIndex() + 1 }} de {{ steps.length }}</p>
-        @for (s of [step()]; track s.id) {
-          <div class="in-text" aria-live="polite">
-            <h2 id="in-step-title" class="in-step-title">{{ s.title }}</h2>
-            @for (l of s.lines; track $index) {
-              <p class="in-line">{{ l }}</p>
-            }
-          </div>
-        }
+        <!-- La región que anuncia el paso no se recrea: lo que cambia es lo de adentro. -->
+        <div aria-live="polite">
+          @for (s of [step()]; track s.id) {
+            <div class="in-text">
+              <h2 id="in-step-title" class="in-step-title">{{ s.title }}</h2>
+              @for (l of s.lines; track $index) {
+                <p class="in-line">{{ l }}</p>
+              }
+            </div>
+          }
+        </div>
 
         @if (step().id !== 'recap') {
           <div class="in-actions">
@@ -753,6 +757,7 @@ const NS = 'http://www.w3.org/2000/svg';
                 <button type="button" class="in-act" (click)="send('click')">
                   ♥ Tocar el corazón
                 </button>
+                <button type="button" class="in-act" (click)="typeKey()">⌨ Una tecla</button>
               }
               @case ('freeze') {
                 <button
@@ -766,6 +771,7 @@ const NS = 'http://www.w3.org/2000/svg';
                 <button type="button" class="in-act" (click)="send('click')">
                   ♥ Tocar el corazón
                 </button>
+                <button type="button" class="in-act" (click)="typeKey()">⌨ Una tecla</button>
               }
             }
           </div>
@@ -778,7 +784,11 @@ const NS = 'http://www.w3.org/2000/svg';
             <span aria-hidden="true">←</span> Atrás
           </button>
           @if (isLast()) {
-            <a class="in-next" [routerLink]="nextLink()">
+            <a
+              class="in-next"
+              [routerLink]="nextLink()"
+              [style.pointer-events]="nextArmed() ? null : 'none'"
+            >
               Seguir: {{ nextTitle }}
               <span class="in-next-tri" aria-hidden="true"></span>
             </a>
@@ -797,6 +807,7 @@ const NS = 'http://www.w3.org/2000/svg';
 export class StoryIntroComponent {
   private readonly progressSvc = inject(StoryProgress);
   private readonly injector = inject(Injector);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   protected readonly themeId = inject(ThemeService).activeId;
   private readonly stageEl = viewChild.required<ElementRef<HTMLElement>>('stage');
   private readonly world = viewChild.required<ElementRef<SVGSVGElement>>('world');
@@ -849,6 +860,18 @@ export class StoryIntroComponent {
   protected readonly step = computed(() => INTRO_STEPS[this.stepIndex()]);
   protected readonly isFirst = computed(() => prevStep(this.stepIndex()) === null);
   protected readonly isLast = computed(() => nextStep(this.stepIndex()) === null);
+  /**
+   * "Seguir" aparece donde estaba "Siguiente": recién se puede tocar un
+   * instante después, para que el segundo clic de un doble clic no salte el
+   * resumen y se vaya al nivel que sigue.
+   */
+  protected readonly nextArmed = signal(true);
+  /** Lo que dice el bloque de la tarea larga: lo que dura de verdad. */
+  protected readonly longLabel = `${(TASK_MS.long / 1000).toLocaleString('es', {
+    maximumFractionDigits: 1,
+  })} segundos`;
+  /** Las letras que escribe la tecla de la tarjeta (para quien no tiene teclado). */
+  private typedKeys = 0;
   private readonly after = nextLevel(INTRO_ID);
   protected readonly nextTitle = this.after?.title ?? 'el mapa';
   protected readonly nextLink = computed(() =>
@@ -925,6 +948,8 @@ export class StoryIntroComponent {
   private raf = 0;
   private dead = false;
   private readonly timers = new Set<ReturnType<typeof setTimeout>>();
+  /** La vuelta de la hoja del código a su lugar, agendada al terminar de leerla. */
+  private codeHome?: ReturnType<typeof setTimeout>;
   private gctx?: gsap.Context;
   private sayCall?: gsap.core.Tween;
   private blinkCall?: gsap.core.Tween;
@@ -995,6 +1020,15 @@ export class StoryIntroComponent {
   // ── Navegación entre pasos ──
   protected go(i: number): void {
     this.stepIndex.set(clampStep(i));
+    // El botón que tenía el foco puede haber cambiado por otro ("Siguiente" por
+    // "Seguir", "Atrás" apagado en el primer paso): el foco no se pierde.
+    afterNextRender(
+      () => {
+        if (this.dead || document.activeElement !== document.body) return;
+        this.host.querySelector<HTMLElement>('.in-next')?.focus({ preventScroll: true });
+      },
+      { injector: this.injector },
+    );
   }
   protected forward(): void {
     const n = nextStep(this.stepIndex());
@@ -1024,10 +1058,12 @@ export class StoryIntroComponent {
     const id = this.step().id;
     this.say(HELLO[id]);
     this.look(id === 'recap' ? { x: 0, y: -0.6 } : { x: 1, y: id === 'hello' ? 0.3 : -0.4 });
+    this.nextArmed.set(id !== 'recap');
     if (id === 'recap') {
       // Verlo entero cuenta como recorrido: el mapa lo marca y main festeja.
       this.progressSvc.completePath(INTRO_ID, 'seen');
       this.cheer();
+      this.later(() => this.nextArmed.set(true), 450);
     }
   }
 
@@ -1052,7 +1088,9 @@ export class StoryIntroComponent {
     const pending = this.pending();
     if (pending) {
       const ph = paintPhaseAt(now - this.paintFrom);
-      if (ph !== this.phase()) {
+      // `ph === null` es "ya pasaron las tres": se cierra aunque un cuadro
+      // tardío se las haya salteado (si no, el botón quedaba apagado).
+      if (ph !== this.phase() || ph === null) {
         this.phase.set(ph);
         if (ph) {
           this.mark(ph, PHASE_LABEL[ph]);
@@ -1156,10 +1194,22 @@ export class StoryIntroComponent {
   protected onKey(event: KeyboardEvent): void {
     const id = this.step().id;
     if (id !== 'input' && id !== 'freeze') return;
+    // Una tecla mantenida se repite decenas de veces por segundo: llenaba la
+    // fila y dejaba a main ocupado medio minuto.
+    if (event.repeat) return;
     if (event.ctrlKey || event.metaKey || event.altKey || !/^[\p{L}\p{N}]$/u.test(event.key)) {
       return;
     }
-    this.loop.update((l) => arrive(l, 'key', event.key));
+    this.key(event.key);
+  }
+
+  /** La tecla de la tarjeta: escribe "hola" de a una letra (en el celular no hay teclado). */
+  protected typeKey(): void {
+    this.key('hola'[this.typedKeys++ % 4]);
+  }
+
+  private key(letter: string): void {
+    this.loop.update((l) => arrive(l, 'key', letter));
     if (this.hasLong()) this.note.set('Main está ocupado: tu tecla espera en la fila.');
   }
 
@@ -1194,8 +1244,13 @@ export class StoryIntroComponent {
       this.tilt.v -= side * (40 + high * 80);
     }
     // Atender el toque también es una tarea de main (estirada para que se vea).
-    const hello = this.mark('hello', 'saludo');
-    this.later(() => this.unmark(hello), HELLO_MS);
+    // Si está en medio de otra, no se anota: abrir un tramo cierra el que
+    // corría, y la línea mostraría a main haciendo dos cosas a la vez.
+    const busy = !!this.loop().current || !!this.pending() || this.codeLine() >= 0;
+    if (!busy) {
+      const hello = this.mark('hello', 'saludo');
+      this.later(() => this.unmark(hello), HELLO_MS);
+    }
     this.say(POKES[this.pokes++ % POKES.length]);
     if (event) this.spark(event, '✦');
     const yarn = this.yarnEl()?.nativeElement;
@@ -1223,6 +1278,7 @@ export class StoryIntroComponent {
     if (this.codeLine() >= 0) return;
     const code = this.codeEl()?.nativeElement;
     if (!code) return;
+    this.holdCode(code);
     const start = this.toWorld(event);
     const from = { x: Number(gsap.getProperty(code, 'x')), y: Number(gsap.getProperty(code, 'y')) };
     let far = 0;
@@ -1258,6 +1314,7 @@ export class StoryIntroComponent {
     if (this.codeLine() >= 0) return;
     const code = this.codeEl()?.nativeElement;
     const { run } = this.L().code;
+    if (code) this.holdCode(code);
     this.codeDone.set(false);
     this.codeLine.set(0);
     this.say('Leo línea por línea…');
@@ -1281,7 +1338,8 @@ export class StoryIntroComponent {
         this.trace.update((t) => traceStop(t, performance.now()));
         this.codeDone.set(true);
         this.say('¡Listo! Una por vez.');
-        this.later(() => {
+        this.codeHome = this.later(() => {
+          this.codeHome = undefined;
           this.codeDone.set(false);
           const now = this.codeEl()?.nativeElement;
           if (now) {
@@ -1546,11 +1604,26 @@ export class StoryIntroComponent {
     else fn();
   }
 
-  private later(fn: () => void, ms: number): void {
+  private later(fn: () => void, ms: number): ReturnType<typeof setTimeout> {
     const t = setTimeout(() => {
       this.timers.delete(t);
       if (!this.dead) fn();
     }, ms);
     this.timers.add(t);
+    return t;
+  }
+
+  /**
+   * La hoja del código queda en manos de quien la agarró: se cancela la vuelta
+   * a su lugar que quedó agendada al terminar la lectura anterior (si no, se
+   * iba sola a mitad de la segunda lectura o peleaba con el arrastre).
+   */
+  private holdCode(code: Element): void {
+    if (this.codeHome !== undefined) {
+      clearTimeout(this.codeHome);
+      this.timers.delete(this.codeHome);
+      this.codeHome = undefined;
+    }
+    gsap.killTweensOf(code);
   }
 }
