@@ -48,6 +48,13 @@ La consecuencia práctica más linda: como el estado vive en signals a nivel roo
 
 ## 2. Estructura de carpetas
 
+> **Este árbol es el diseño original**, con cuatro themes de ejemplo. Varios nombres cambiaron al
+> implementarlo: el estado de los hilos vive en `core/domain/thread-lane.ts` y en un servicio por
+> demo (`core/services/*-demo.service.ts`), no en un `thread-monitor.service.ts`; los contratos
+> que existen son los de `ui-contracts/` (botón, card, code-block, thread-visualizer); y los
+> tokens son SCSS (`theming/styles/_tokens-contract.scss`), no un `design-tokens.ts`. El árbol
+> real de hoy está en el README y, para el juego, en la §12.
+
 ```
 src/app/
 ├── core/                          # capa neutral: cero CSS de theme
@@ -455,6 +462,56 @@ export const routes: Routes = [
 - **Duplicar lógica sin querer** → si te encontrás copiando algo de un theme a otro que no es CSS, probablemente pertenece a `core/` o a un primitivo compartido por tokens.
 - **FOUC al cambiar theme** → precargar las fuentes self-hosted y aplicar `data-theme` antes de montar el shell.
 - **Escala a futuro (4→N themes o builds separados)** → migrar a Nx con `libs/core` compartido y `apps/<theme>`. La frontera dominio/presentación que ya tenés hace que ese salto sea mecánico.
+
+---
+
+## 12. La historia (el juego)
+
+El theme `default` presenta los ejemplos como un juego por niveles. Es **presentación**: vive entero
+en `themes/default/story/` y consume el dominio neutral (workers reales, `ExampleLayoutController`,
+progreso de `core/domain/learning`). Adentro repite, en chico, la misma regla del repo: **la regla
+se escribe como lógica pura y la pantalla solo la dibuja**.
+
+```
+themes/default/story/
+├── story.levels.ts          # qué niveles hay, en qué orden, cuál destraba a cuál
+├── story.stars.ts           # las tres estrellas por nivel y el reto de cada uno
+├── story.save.ts            # el guardado propio del juego (lee sin confiar, nunca tira)
+├── story.map.ts             # trazado del mapa: paradas, camino, hitos, cartel de jugar
+├── story.threads.logic.ts   # la cinta "Hilos del navegador"
+├── story.intro.logic.ts     # el nivel de entrada: la fila de main, pintar, pasos
+├── story.music.logic.ts     # la música como partitura
+│      └─ todo lo de arriba: sin Angular ni DOM, con su `*.spec.ts` sin TestBed
+├── story.scripts.ts         # el guion de cada nivel: qué corre dónde (trabajo real)
+├── story-progress.service.ts# signals + localStorage sobre levels/stars/save
+├── scene/                   # el motor de la escena (SVG + GSAP + resortes): solo actúa
+└── story-*.component.ts     # mapa, nivel, intro, noche, cinta: solo dibujan
+```
+
+Cómo se reparten las responsabilidades en un nivel:
+
+| Pieza | Sabe | No sabe |
+|---|---|---|
+| `scene/scene.ts` | actuar: caer, congelarse, atajar, festejar; avisa lo que pasa (`onCue`, `onJuggle`) | qué nivel es, qué se calcula, si se ganó |
+| `story.scripts.ts` | qué trabajo real corre en cada camino y qué muestra la escena; mide el reto | cómo se dibuja ni dónde se guarda |
+| `story-stage.component.ts` | cablear guion ↔ escena ↔ cinta ↔ código ↔ progreso | reglas (las pide a la lógica pura) |
+| `story-progress.service.ts` | guardar y exponer como signals | las reglas de estrellas y destrabe (son de `story.stars.ts` / `story.levels.ts`) |
+
+Reglas del juego que son tests, no prosa:
+
+- Un nivel se supera recorriendo su camino `pattern`; eso destraba el siguiente con escena
+  (`story.levels.spec.ts`).
+- Cada nivel con guion da tres estrellas: superarlo, ver todos sus caminos y cumplir su reto. Los
+  caminos que `story.stars.ts` declara tienen que ser los del guion (`story.stars.spec.ts` lo
+  vigila: si se desfasan, falla).
+- El guardado se lee sin confiar: uno roto, viejo o editado a mano arranca de cero y lo que no se
+  reconoce se descarta (`story.save.spec.ts`), igual que el progreso neutral.
+- El cartel de jugar mide en unidades del mapa, entra entero y no pisa la última parada
+  (`story.map.spec.ts`).
+
+Sumar un nivel con escena: su guion en `story.scripts.ts`, su entrada en `SCENES`
+(`story.levels.ts`) y sus metas en `GOALS` (`story.stars.ts`). El mapa, el progreso y las
+estrellas lo toman solos.
 
 ---
 

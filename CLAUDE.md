@@ -54,6 +54,7 @@ archivo):
   (`scripts/update-metrics.mjs`), nunca tipeados a mano.
 - **Referencias entre docs no rotas** (drift que este mismo archivo corrige):
   si un doc apunta a otro (`AGENTS.md` → `CLAUDE.md`, `CLAUDE.md` →
-  `AI-PROCESS.md`), ese archivo tiene que existir. `doc-coherence.mjs` audita
-  el README; las referencias cruzadas entre otros docs del repo no tienen gate
-  automático todavía: mientras tanto, revisarlas a mano al tocar cualquiera.
+  `AI-PROCESS.md`), ese archivo tiene que existir. Los links del README los
+  audita lychee en CI (`.github/workflows/links.yml`); las referencias
+  cruzadas entre otros docs del repo no tienen gate automático todavía:
+  mientras tanto, revisarlas a mano al tocar cualquiera.
