@@ -5,6 +5,8 @@ import {
   MAP_SPECS,
   MapShape,
   mapSpots,
+  PLAY_SIGN,
+  playSign,
   roadPath,
   scatter,
   segments,
@@ -82,6 +84,27 @@ describe('story map', () => {
       });
     });
   }
+
+  it('el cartel de jugar entra entero en el mapa ancho y no pisa la última parada', () => {
+    const spec = MAP_SPECS.wide;
+    const spots = mapSpots(spec);
+    const last = spots[spots.length - 1];
+    const sign = playSign(spots, spec);
+    expect(sign.y).toBe(last.y);
+    // Entero adentro del dibujo, con su aire contra el borde.
+    expect(sign.x + sign.width / 2).toBeLessThanOrEqual(spec.view.w - PLAY_SIGN.margin);
+    expect(sign.x - sign.width / 2).toBeGreaterThanOrEqual(PLAY_SIGN.margin);
+    // Y sin taparle a la última parada su baldosa (radio 52) ni su conito.
+    expect(Math.abs(sign.x - last.x) - sign.width / 2).toBeGreaterThanOrEqual(70);
+  });
+
+  it('el cartel de jugar sigue al camino: va del lado hacia donde iba la última fila', () => {
+    const spec = MAP_SPECS.wide;
+    const even = mapSpots(spec, spec.cols); // una fila: va hacia la derecha
+    const odd = mapSpots(spec, spec.cols * 2); // dos filas: la segunda vuelve
+    expect(playSign(even, spec).x).toBeGreaterThan(even[even.length - 1].x);
+    expect(playSign(odd, spec).x).toBeLessThan(odd[odd.length - 1].x);
+  });
 
   it('wrapWords no corta palabras', () => {
     expect(wrapWords('Lo que cuesta copiar', 13)).toEqual(['Lo que cuesta', 'copiar']);

@@ -5,6 +5,7 @@ import { ExampleLayoutController } from '../../../core/presentation/example-layo
 import { Scene, Who } from './scene/scene';
 import { Mood } from './story.music.logic';
 import { ScriptedScene } from './story.levels';
+import { QUEUE_CLICKS, TICK_TOUCHES } from './story.stars';
 import { Lane, TaskKind } from './story.threads.logic';
 
 /**
@@ -80,12 +81,20 @@ export interface LevelContext {
   threads: LevelThreads;
   /** Muestra un pedazo del código (por su id), en su lugar dentro del orden del guion. */
   code(stepId: string): void;
+  /**
+   * Empieza a contar lo que la persona le hace a main desde ahora: tocarlo
+   * (`poke`) o levantarlo (`lift`). Devuelve cómo leer la cuenta. Con eso se
+   * miden los retos: si main responde mientras el worker trabaja, está vivo.
+   */
+  touches(kind?: 'poke' | 'lift'): () => number;
 }
 
 export interface PathResult {
   caption: Line;
   /** Si el camino cuenta como recorrido (un intento vacío no cuenta). */
   completed: boolean;
+  /** Si en este intento se cumplió el reto del nivel (`GOALS` en `story.stars.ts`). */
+  challenge?: boolean;
 }
 
 export interface LevelScript {
@@ -190,7 +199,7 @@ const worker = new Worker(url, { type: 'module' });`,
 });`,
     },
   ],
-  async run(pathId, { scene, narrate, own, music, threads, code }) {
+  async run(pathId, { scene, narrate, own, music, threads, code, touches }) {
     if (pathId === 'main') {
       // La música la lleva main: cuando se congela, se corta con él.
       music('main');
@@ -221,6 +230,7 @@ const worker = new Worker(url, { type: 'module' });`,
     narrate('El worker calcula en otro hilo y yo sigo con mis malabares. Tocame mientras tanto.');
     code('send');
     code('work');
+    const touched = touches();
     const t0 = performance.now();
     const primes = own(factory());
     const done = threads.work('worker', 'contar primos');
@@ -236,6 +246,8 @@ const worker = new Worker(url, { type: 'module' });`,
     });
     primes.terminate();
     done();
+    // El reto: main contestó un toque mientras el worker calculaba.
+    const challenge = touched() > 0;
     if ('error' in result) {
       await scene.fumble();
       return { caption: worker(`Uy, fallé: ${result.error}.`), completed: false };
@@ -249,6 +261,7 @@ const worker = new Worker(url, { type: 'module' });`,
         `¡Listo! ${fmt(result.count)} primos en ${fmt(ms)} ms, y main no soltó nada. Eso es un Web Worker.`,
       ),
       completed: true,
+      challenge,
     };
   },
 };
@@ -309,7 +322,7 @@ worker.postMessage({ command: 'start', intervalMs: 500 });`,
     scene.board('tics', '0');
     return () => scene.board(null);
   },
-  async run(pathId, { scene, ctl, narrate, threads, code }) {
+  async run(pathId, { scene, ctl, narrate, threads, code, touches }) {
     if (pathId === 'main') {
       scene.board('tics de main', '0');
       code('interval');
@@ -336,6 +349,8 @@ worker.postMessage({ command: 'start', intervalMs: 500 });`,
     await scene.workerEnter();
     code('tick');
     code('listen');
+    narrate('Mi reloj corre en mi hilo. Tocá a main mientras tanto: sigue libre.', 'worker');
+    const touched = touches();
     ctl.runWorker();
     let shown = 0;
     await until(() => {
@@ -349,6 +364,8 @@ worker.postMessage({ command: 'start', intervalMs: 500 });`,
       }
       return ctl.phase() === 'idle';
     });
+    // El reto: un toque a main por tic, mientras el reloj corría en el worker.
+    const challenge = shown >= 5 && touched() >= TICK_TOUCHES;
     await wait(700);
     scene.say('worker', `¡${shown} de 5!`);
     return {
@@ -356,6 +373,7 @@ worker.postMessage({ command: 'start', intervalMs: 500 });`,
         'Un tic cada 500 ms, puntual, y main nunca soltó sus malabares: mi setInterval corría en mi hilo y le avisaba con postMessage.',
       ),
       completed: shown >= 5,
+      challenge,
     };
   },
 };
@@ -500,6 +518,7 @@ bloquearMain(2500);`,
           (worst >= LATE_MIN_MS ? `, el más viejo con ${secs(worst)} s de atraso.` : '.'),
       ),
       completed: true,
+      challenge: queued.length >= QUEUE_CLICKS,
     };
   },
 };
@@ -553,7 +572,7 @@ worker.postMessage({ command: 'bloquear', ms: 2500 });`,
     code('css');
     return scene.pin(node, 330, 150);
   },
-  async run(pathId, { scene, ctl, narrate, threads, code }) {
+  async run(pathId, { scene, ctl, narrate, threads, code, touches }) {
     if (pathId === 'main') {
       code('block');
       narrate('Me trabo 2,5 s. Mirá el ventilador, el reloj, el pulso y los hilos.');
@@ -574,9 +593,13 @@ worker.postMessage({ command: 'bloquear', ms: 2500 });`,
     code('create');
     await scene.handToWorker(['mismo trabajo', '4 000 000']);
     const done = threads.work('worker', 'trabajo pesado');
+    narrate('El trabajo está en el hilo del worker y yo sigo libre: tocame o levantame.');
+    const lifted = touches('lift');
     ctl.blockWorkerComp();
     await until(() => ctl.compMode() === 'idle');
     done();
+    // El reto: main se dejó levantar mientras el worker hacía el trabajo.
+    const challenge = lifted() > 0;
     threads.blip('main', 'message');
     await scene.deliver('¡listo!');
     return {
@@ -584,6 +607,7 @@ worker.postMessage({ command: 'bloquear', ms: 2500 });`,
         'Mismo trabajo, y nada se frenó: ni el ventilador (lo mueve el compositor) ni main con sus malabares (el trabajo estaba en mi hilo).',
       ),
       completed: true,
+      challenge,
     };
   },
 };

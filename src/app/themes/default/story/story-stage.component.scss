@@ -374,6 +374,94 @@ a.lv-stop:focus-visible {
   color: var(--lv-shade);
 }
 
+/* Las tres estrellas del nivel y, al lado, qué hacer ahora. Las que faltan son
+   un hueco con borde; las ganadas, doradas. La que se acaba de ganar entra con
+   un salto, una después de la otra. */
+.lv-goal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  min-height: 28px;
+  margin-top: 8px;
+}
+.lv-stars {
+  display: flex;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lv-star {
+  width: 24px;
+  height: 24px;
+}
+.lv-star svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.lv-star path {
+  fill: color-mix(in oklab, var(--lv-shade) 9%, transparent);
+  stroke: color-mix(in oklab, var(--lv-shade) 45%, transparent);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  transition:
+    fill 0.3s,
+    stroke 0.3s;
+}
+.lv-star.is-earned path {
+  fill: var(--lv-gold);
+  stroke: var(--lv-shade);
+}
+/* Sobre el cartel dorado, la estrella ganada es crema: si no, se pierde. */
+.lv-sign.is-solved .lv-star.is-earned path {
+  fill: var(--lv-white);
+}
+.lv-sign.is-solved .lv-star {
+  width: 30px;
+  height: 30px;
+}
+.lv-star.is-new {
+  animation: lv-star-pop 0.7s cubic-bezier(0.34, 1.7, 0.64, 1) both;
+  animation-delay: calc(0.75s + var(--lv-star-i, 0) * 0.16s);
+}
+@keyframes lv-star-pop {
+  0% {
+    opacity: 0;
+    scale: 0.2;
+    rotate: -70deg;
+  }
+  60% {
+    opacity: 1;
+    scale: 1.45;
+    rotate: 12deg;
+  }
+  100% {
+    scale: 1;
+    rotate: 0deg;
+  }
+}
+.lv-goal-text {
+  margin: 0;
+  font-weight: 800;
+  font-size: clamp(13px, 0.95vw, 16px);
+  line-height: 1.2;
+  color: color-mix(in oklab, var(--lv-shade) 78%, transparent);
+  animation: lv-goal-in 0.4s cubic-bezier(0.34, 1.5, 0.64, 1) both;
+}
+.lv-sign.is-solved .lv-goal-text {
+  color: var(--lv-shade);
+}
+@keyframes lv-goal-in {
+  0% {
+    opacity: 0;
+    translate: 0 6px;
+  }
+}
+
 /* ── Las opciones, en la escena: etiquetas sobre quien haría el trabajo ──
    La de main termina en su punto y apunta a main; la de la puerta va
    centrada sobre la puerta de los workers. */
@@ -851,6 +939,8 @@ a.lv-stop:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   .lv-sign,
   .lv-sign.is-solved,
+  .lv-star.is-new,
+  .lv-goal-text,
   .lv-choice-bob,
   .lv .lv-next,
   .lv-sheet,

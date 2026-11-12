@@ -17,7 +17,7 @@ import { ExampleLayoutController } from '../../../core/presentation/example-layo
 import { readStored, writeStored } from '../../../core/utils/safe-storage';
 import { ThemeService } from '../../../theming/theme.service';
 import { DefaultCodeBlock } from '../primitives/default-code-block.component';
-import { createScene, Scene, Who } from './scene/scene';
+import { createScene, Scene, SceneCue, Who } from './scene/scene';
 import { CHOICE_AT, MAIN_AT, WORKER_AT } from './scene/scene.art';
 import { StoryProgress } from './story-progress.service';
 import { StoryThreadsComponent } from './story-threads.component';
@@ -32,6 +32,7 @@ import {
   ScriptedScene,
 } from './story.levels';
 import { LevelContext, Line, PRIMES_EXAMPLE, SCRIPTS } from './story.scripts';
+import { countStars, nextStar, StarId } from './story.stars';
 import {
   blip,
   emptyLog,
@@ -73,12 +74,23 @@ interface Anchors {
 /** El iris entre niveles: se cierra sobre main al irse y se abre sobre main al llegar. */
 type Iris = 'closing' | 'opening';
 
+/** La estrella de cinco puntas del cartel, en un viewBox de -12 a 12. */
+const STAR_PATH =
+  'M0 -10.5L3.1 -3.6L10.6 -2.9L4.9 2.1L6.6 9.5L0 5.6L-6.6 9.5L-4.9 2.1L-10.6 -2.9L-3.1 -3.6Z';
+
+/** Una cuenta de toques a main que un guion dejó corriendo (ver `LevelContext.touches`). */
+interface TouchCount {
+  kind: 'poke' | 'lift';
+  n: number;
+}
+
 /**
  * Pantalla de un nivel con escena, a pantalla completa como el mapa y como un
  * juego: la sala llena la ventana y todo vive en el mundo.
  *  - Arriba: el título del nivel, la vuelta al mapa y las paradas del capítulo.
  *  - Colgado en el centro: el problema del nivel, en grande (al ganar, el mismo
- *    cartel dice "¡Nivel superado!").
+ *    cartel dice "¡Nivel superado!"), con las tres estrellas del nivel y una
+ *    línea que dice qué hacer ahora: elegir, el reto, o la estrella que falta.
  *  - Debajo del cartel: "Hilos del navegador", lo que hace cada hilo en una
  *    cinta de tiempo (main, su fila de tareas, el worker y, si el nivel lo
  *    usa, el compositor).
@@ -195,6 +207,27 @@ type Iris = 'closing' | 'opening';
             <h2 id="lv-sign-ask" class="lv-sign-ask">
               {{ won() ? '¡Nivel superado!' : script().problem.ask }}
             </h2>
+            <div class="lv-goal">
+              <ul class="lv-stars" role="img" [attr.aria-label]="starCount() + ' de 3 estrellas'">
+                @for (s of stars(); track s.id) {
+                  <li
+                    class="lv-star"
+                    [class.is-earned]="s.earned"
+                    [class.is-new]="freshStars().has(s.id)"
+                    [style.--lv-star-i]="$index"
+                    [title]="s.text"
+                  >
+                    <svg viewBox="-12 -12 24 24" aria-hidden="true">
+                      <path [attr.d]="starPath" />
+                    </svg>
+                  </li>
+                }
+              </ul>
+              <!-- Qué hacer ahora, en una línea: se rearma (y entra animada) al cambiar. -->
+              @for (text of goalLine(); track text) {
+                <p class="lv-goal-text" aria-live="polite">{{ text }}</p>
+              }
+            </div>
           </section>
           <story-threads
             class="lv-threads"
@@ -213,6 +246,7 @@ type Iris = 'closing' | 'opening';
           [class.lv-choice--gold]="c.primary"
           [class.is-away]="busy() || won()"
           [attr.data-at]="c.at"
+          [attr.aria-label]="c.label + (c.done ? ', ya probado' : '')"
           [disabled]="busy() || won()"
           [style.left.px]="c.x"
           [style.top.px]="c.y"
@@ -222,7 +256,7 @@ type Iris = 'closing' | 'opening';
           <span class="lv-choice-bob">
             ✦ {{ c.label }} ✦
             @if (c.done) {
-              <span class="lv-choice-check" aria-label="ya probado">✓</span>
+              <span class="lv-choice-check" aria-hidden="true">✓</span>
             }
           </span>
         </button>
@@ -351,6 +385,28 @@ export class StoryStageComponent {
   /** La línea del diálogo, en un arreglo para rearmar el párrafo (y su entrada) en cada cambio. */
   protected readonly shownLine = computed(() => [this.caption().text]);
 
+  protected readonly starPath = STAR_PATH;
+  /** Las tres estrellas del nivel, ganadas o no. */
+  protected readonly stars = computed(() => this.progress.starsOf(this.level()) ?? []);
+  protected readonly starCount = computed(() => countStars(this.stars()));
+  /** Las que se ganaron en el último intento: entran con un salto. */
+  protected readonly freshStars = signal<ReadonlySet<StarId>>(new Set());
+  /** Si en esta visita ya se eligió algún camino (antes de eso, el cartel invita a elegir). */
+  private readonly tried = signal(false);
+  /**
+   * Qué hacer ahora, en una línea debajo de las estrellas: primero elegir;
+   * después, el reto del nivel; al ganar, la estrella que falta. En un arreglo
+   * para rearmar el párrafo (y su entrada) cuando cambia.
+   */
+  protected readonly goalLine = computed(() => {
+    const stars = this.stars();
+    const missing = nextStar(stars);
+    if (this.won()) return [missing ? `Te falta: ${missing.text}` : '¡Las tres estrellas!'];
+    if (!this.tried()) return ['👆 Elegí una opción en la escena'];
+    const challenge = stars.find((s) => s.id === 'challenge');
+    return challenge && !challenge.earned ? [`Reto: ${challenge.text}`] : [];
+  });
+
   private readonly anchors = signal<Anchors | null>(null);
   /** Las opciones del nivel, puestas sobre main o sobre la puerta. */
   protected readonly choices = computed(() => {
@@ -426,6 +482,8 @@ export class StoryStageComponent {
   private audio: LevelAudio | null = null;
   private dead = false;
   private readonly owned = new Set<{ terminate(): void }>();
+  /** Las cuentas de toques que el guion dejó corriendo en este intento. */
+  private readonly touchCounts = new Set<TouchCount>();
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -482,16 +540,22 @@ export class StoryStageComponent {
           },
         },
         code: (stepId) => this.showStep(stepId),
+        touches: (kind = 'poke') => {
+          const count: TouchCount = { kind, n: 0 };
+          this.touchCounts.add(count);
+          return () => count.n;
+        },
       };
       // Con la cinta en pausa no se anota el malabar: quedaría en el futuro.
       scene.onJuggle((ball) => {
         if (this.tapePausedAt() !== null) return;
         this.updateThreads((log, now) => blip(log, 'main', JUGGLED[ball], '', now), false);
       });
-      if (this.script().sound) {
-        this.audio = createLevelAudio(!this.soundOn());
-        scene.onCue((cue) => this.audio?.cue(cue));
-      }
+      if (this.script().sound) this.audio = createLevelAudio(!this.soundOn());
+      scene.onCue((cue) => {
+        this.audio?.cue(cue);
+        this.countTouch(cue);
+      });
       this.ctx = ctx;
       const teardown = this.script().setup?.(ctx);
       destroyRef.onDestroy(() => teardown?.());
@@ -562,6 +626,19 @@ export class StoryStageComponent {
     this.scene?.frame({ top: top + 8, bottom: Math.min(h - floor + 4, h * 0.6), right }, pan);
   }
 
+  /**
+   * Suma un toque a main a las cuentas que el guion dejó corriendo. Sin
+   * movimiento la escena no deja arrastrar a main: ahí un toque vale por
+   * levantarlo, para que ningún reto quede imposible.
+   */
+  private countTouch(cue: SceneCue): void {
+    const poke = cue.kind === 'poke' && cue.who === 'main';
+    if (!poke && cue.kind !== 'lift') return;
+    for (const count of this.touchCounts) {
+      if (cue.kind === count.kind || (poke && this.calm)) count.n++;
+    }
+  }
+
   private updateThreads(
     change: (log: ThreadLog, now: number) => ThreadLog,
     fromScript = true,
@@ -569,7 +646,9 @@ export class StoryStageComponent {
     if (this.dead) return;
     const now = performance.now();
     if (fromScript) this.lastThreadEvent = now;
-    this.threadLog.update((log) => prune(change(log, now), now));
+    // Con la cinta en pausa se poda respecto de la hora en que quedó quieta:
+    // si no, lo que se está mirando se borraba a los pocos segundos.
+    this.threadLog.update((log) => prune(change(log, now), this.tapePausedAt() ?? now));
   }
 
   /**
@@ -619,6 +698,8 @@ export class StoryStageComponent {
   /** Gana (o vuelve a jugar): cambian el cartel y la hoja, main dice la lección y la cámara se acomoda. */
   protected setWon(won: boolean): void {
     this.won.set(won);
+    // Al volver a jugar, las estrellas ya ganadas quedan quietas.
+    if (!won) this.freshStars.set(new Set());
     if (won) {
       // Lo que faltaba del código aparece entero, en orden; main dice la lección.
       this.revealed.set(new Set(this.script().code.map((s) => s.id)));
@@ -671,11 +752,14 @@ export class StoryStageComponent {
     const id = this.level().id;
     const path = this.script().paths.find((p) => p.id === pathId);
     const wasDone = this.progress.isDone(id);
+    const starsBefore = this.earnedStars();
+    this.tried.set(true);
     this.busy.set(true);
     this.tapePausedAt.set(null);
     this.audio?.cue({ kind: 'choose' });
     if (this.won()) this.setWon(false);
     const result = await this.script().run(pathId, ctx);
+    this.touchCounts.clear();
     // La cinta se rebobina y queda quieta en lo que pasó, para leerlo.
     if (this.lastThreadEvent) {
       this.tapePausedAt.set(Math.min(performance.now(), this.lastThreadEvent + 1200));
@@ -686,13 +770,27 @@ export class StoryStageComponent {
     if (this.dead) return;
     this.caption.set(result.caption);
     if (result.completed) this.progress.completePath(id, pathId);
+    if (result.challenge) this.progress.completeChallenge(id);
+    const fresh = new Set([...this.earnedStars()].filter((star) => !starsBefore.has(star)));
     this.busy.set(false);
-    if (path?.primary && this.progress.isDone(id)) {
-      if (!wasDone) ctx.scene.celebrate();
+    // El cartel de "superado" vuelve con el camino del patrón o con una estrella
+    // nueva (la del otro camino se gana después de haber superado el nivel).
+    if (this.progress.isDone(id) && (path?.primary || fresh.size)) {
+      if (!wasDone || fresh.size) ctx.scene.celebrate();
       // Un respiro para ver el festejo antes del cartel.
       setTimeout(() => {
-        if (!this.dead) this.setWon(true);
+        if (this.dead) return;
+        this.freshStars.set(fresh);
+        this.setWon(true);
       }, 900);
     }
+  }
+
+  private earnedStars(): ReadonlySet<StarId> {
+    return new Set(
+      this.stars()
+        .filter((s) => s.earned)
+        .map((s) => s.id),
+    );
   }
 }

@@ -27,6 +27,7 @@ import {
   MAP_SPECS,
   MapShape,
   mapSpots,
+  playSign,
   Point,
   ridge,
   roadPath,
@@ -45,6 +46,8 @@ interface Spot {
   /** La placa crema del nombre, en unidades de la baldosa. */
   plate: { w: number; h: number };
   icon: readonly IconPart[];
+  /** Las tres estrellas del nivel (ganada o no), o null si no da estrellas o está bloqueado. */
+  stars: readonly boolean[] | null;
 }
 
 interface Spring {
@@ -65,9 +68,14 @@ const NS = 'http://www.w3.org/2000/svg';
  * redondeada del theme, a 800, un carácter mide entre 0,50 y 0,57 de alto.
  */
 const NAME = { size: 18, lh: 22, top: 46, base: 65, padX: 12, r: 13, em: 0.56 };
-const plateFor = (lines: readonly string[]) => ({
-  w: Math.max(...lines.map((l) => l.length)) * NAME.size * NAME.em + NAME.padX * 2,
-  h: NAME.base - NAME.top + (lines.length - 1) * NAME.lh + 8,
+/** Las estrellas del nivel van en la misma placa, en un renglón debajo del nombre. */
+const STARS = { row: 21, step: 22, scale: 0.78, minW: 92 };
+const plateFor = (lines: readonly string[], stars: boolean) => ({
+  w: Math.max(
+    Math.max(...lines.map((l) => l.length)) * NAME.size * NAME.em + NAME.padX * 2,
+    stars ? STARS.minW : 0,
+  ),
+  h: NAME.base - NAME.top + (lines.length - 1) * NAME.lh + 8 + (stars ? STARS.row : 0),
 });
 
 const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
@@ -82,7 +90,9 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
  * Cada baldosa lleva el ícono de su caso (`story.icons.ts`) y su estado se ve
  * en el dibujo, sin insignias: pintada (se juega), de piedra con candado
  * (bloqueada, tiembla al tocarla), clarita con un conito (en obra: abre la
- * versión clásica) o con banderita (superada). El nombre va en una placa crema.
+ * versión clásica) o con banderita (superada). El nombre va en una placa crema
+ * y, en los niveles que dan estrellas, debajo del nombre van las tres (doradas
+ * las ganadas). Bajo el título, el total de estrellas y cómo empezar de cero.
  *
  * Capas de animación: la vida (nubes, molino, humo, faro) es CSS y se apaga con
  * movimiento reducido; los toques son resortes (`gsap.ticker`) sobre el grupo
@@ -557,6 +567,25 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
                   <tspan x="0" [attr.dy]="$index ? NAME.lh : 0">{{ line }}</tspan>
                 }
               </text>
+              @if (s.stars; as earned) {
+                <g
+                  aria-hidden="true"
+                  [attr.transform]="
+                    'translate(0 ' + (NAME.top + s.plate.h - STARS.row / 2 - 3) + ')'
+                  "
+                >
+                  @for (on of earned; track $index) {
+                    <path
+                      class="sm-star"
+                      [class.is-earned]="on"
+                      [attr.d]="star"
+                      [attr.transform]="
+                        'translate(' + ($index - 1) * STARS.step + ' 0) scale(' + STARS.scale + ')'
+                      "
+                    />
+                  }
+                </g>
+              }
             </g>
           </g>
         }
@@ -639,6 +668,21 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
         <p class="sm-brand">Web Worker Patterns</p>
         <h1>La historia de main</h1>
         <p class="sm-tag">Ayudá a main a no congelarse.</p>
+        <div class="sm-score">
+          <p
+            class="sm-score-stars"
+            [class.is-full]="progress.stars() === progress.maxStars"
+            [attr.aria-label]="progress.stars() + ' de ' + progress.maxStars + ' estrellas'"
+          >
+            <svg viewBox="-12 -12 24 24" aria-hidden="true"><path [attr.d]="star" /></svg>
+            <span aria-hidden="true">{{ progress.stars() }} / {{ progress.maxStars }}</span>
+          </p>
+          @if (progress.started() && !night()) {
+            <button type="button" class="sm-reset" (click)="reset()">
+              {{ resetArmed() ? '¿Borrar lo jugado? Tocá de nuevo' : '↺ Empezar de cero' }}
+            </button>
+          }
+        </div>
       </header>
 
       <!-- Jugar: un cartel clavado donde termina el camino (en el celular, flota abajo) -->
@@ -652,7 +696,11 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
         [attr.aria-label]="playLabel() + ': ' + next().title"
         (click)="go(here())"
       >
-        <story-lantern-sign [label]="playLabel()" [plate]="next().title" />
+        <story-lantern-sign
+          [label]="playLabel()"
+          [plate]="next().title"
+          [style.--sls-w]="shape() === 'wide' && playW() ? playW() + 'px' : null"
+        />
       </button>
       <p class="sm-sr" aria-live="polite">{{ status() }}</p>
 
@@ -671,7 +719,7 @@ const POKES = ['¡ey!', '¡jiji!', '¡boing!', '¡cosquillas!'];
 })
 export class StoryMapComponent {
   private readonly router = inject(Router);
-  private readonly progress = inject(StoryProgress);
+  protected readonly progress = inject(StoryProgress);
   private readonly themeId = inject(ThemeService).activeId;
   private readonly stageRef = viewChild.required<ElementRef<HTMLElement>>('stage');
   private readonly playRef = viewChild.required<ElementRef<HTMLButtonElement>>('play');
@@ -688,6 +736,7 @@ export class StoryMapComponent {
 
   protected readonly mainBody = MAIN_BODY;
   protected readonly NAME = NAME;
+  protected readonly STARS = STARS;
   /** Lo que se ve en una baldosa bloqueada, en lugar del ícono de su caso. */
   protected readonly padlock: readonly IconPart[] = [
     { kind: 'line', d: 'M-9 -2V-9C-9 -21 9 -21 9 -9V-2' },
@@ -713,14 +762,19 @@ export class StoryMapComponent {
     const at = this.points();
     return LEVELS.map((level, i) => {
       const name = wrapWords(level.title, this.spec().chars);
+      const state = levelState(level, isDone);
+      // Un nivel bloqueado no muestra sus estrellas: primero hay que llegar.
+      const stars =
+        state === 'locked' ? null : (this.progress.starsOf(level)?.map((s) => s.earned) ?? null);
       return {
         level,
         x: at[i].x,
         y: at[i].y,
-        state: levelState(level, isDone),
+        state,
         name,
-        plate: plateFor(name),
+        plate: plateFor(name, !!stars),
         icon: levelIcon(level.id),
+        stars,
       };
     });
   });
@@ -810,12 +864,7 @@ export class StoryMapComponent {
    * parada, hacia donde iba el camino. Ahí termina y hay pasto libre (abajo a
    * la derecha en la pantalla ancha).
    */
-  protected readonly signSpot = computed<Point>(() => {
-    const spec = this.spec();
-    const last = this.points().at(-1)!;
-    const dir = last.row % 2 === 0 ? 1 : -1;
-    return { x: last.x + dir * spec.colStep * 0.68, y: last.y };
-  });
+  protected readonly signSpot = computed(() => playSign(this.points(), this.spec()));
   /** La huella de pasos que sigue del final del camino hasta los pies del cartel. */
   protected readonly trail = computed(() => {
     const { s } = this.spec();
@@ -834,9 +883,13 @@ export class StoryMapComponent {
   ];
   /** Los pies del cartel, en píxeles de la escena. */
   protected readonly playAt = signal({ x: 0, y: 0 });
+  /** El ancho del cartel en píxeles: el que tiene en el dibujo, a la escala de la pantalla. */
+  protected readonly playW = signal(0);
   /** El cartel de la noche va en el medio de lo que se ve: es lo único para hacer. */
   protected readonly nightPlayAt = signal({ x: 0, y: 0 });
   protected readonly walking = signal(false);
+  /** "Empezar de cero" pide un segundo toque: el primero solo lo arma. */
+  protected readonly resetArmed = signal(false);
   /** De noche hasta el primer toque: main duerme y solo se ve el play. */
   protected readonly night = signal(StoryDawnComponent.needed());
   /** Dónde duerme main, en el viewBox: lo fija `placePlay` (main no es un signal). */
@@ -869,6 +922,7 @@ export class StoryMapComponent {
   private hopLoop?: gsap.core.Tween;
   private sayCall?: gsap.core.Tween;
   private statusCall?: gsap.core.Tween;
+  private resetCall?: gsap.core.Tween;
   private blinkCall?: gsap.core.Tween;
   private lookUntil = 0;
   private pokeTimes: number[] = [];
@@ -931,6 +985,7 @@ export class StoryMapComponent {
           this.hopLoop,
           this.sayCall,
           this.statusCall,
+          this.resetCall,
           this.blinkCall,
         ])
           t?.kill();
@@ -983,7 +1038,30 @@ export class StoryMapComponent {
     const what = { locked: 'bloqueado', open: 'para jugar', done: 'superado', wip: 'en obra' };
     const ch = this.chapterOf(s.level.chapter);
     const where = ch.n ? `capítulo ${ch.n}, ${ch.title}` : ch.title;
-    return `Nivel ${s.level.n}: ${s.level.title} (${where}), ${what[s.state]}`;
+    const stars = s.stars ? `, ${s.stars.filter(Boolean).length} de 3 estrellas` : '';
+    return `Nivel ${s.level.n}: ${s.level.title} (${where}), ${what[s.state]}${stars}`;
+  }
+
+  /**
+   * Empezar de cero. Borra lo jugado, así que pide dos toques: el primero arma
+   * el botón (cambia el texto y se desarma solo a los 4 s), el segundo borra y
+   * main vuelve a la primera parada.
+   */
+  protected reset(): void {
+    this.resetCall?.kill();
+    if (!this.resetArmed()) {
+      this.resetArmed.set(true);
+      this.resetCall = gsap.delayedCall(4, () => this.resetArmed.set(false));
+      return;
+    }
+    this.resetArmed.set(false);
+    if (this.moving) return;
+    this.progress.reset();
+    this.walk?.finish();
+    this.placeHero(this.here());
+    this.tell('Listo: el mapa volvió a empezar.');
+    this.say('¡De nuevo!');
+    this.sq.v += 3;
   }
 
   protected go(i: number): void {
@@ -1151,6 +1229,9 @@ export class StoryMapComponent {
     const spot = this.signSpot();
     const feet = new DOMPoint(spot.x, spot.y + 70 * this.spec().s).matrixTransform(m);
     this.playAt.set({ x: feet.x - box.left, y: feet.y - box.top });
+    // `m.a` es cuántos píxeles mide una unidad del dibujo: el cartel crece y se
+    // achica con el mapa, así nunca se sale por el borde.
+    this.playW.set(clamp(Math.round(spot.width * m.a), 120, 260));
     if (this.night()) {
       // El cartel de la noche va en el medio de lo que se ve de la escena: es
       // lo único que hay para hacer, no tiene que buscarse junto a main.

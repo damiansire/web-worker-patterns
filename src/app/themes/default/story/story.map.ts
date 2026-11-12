@@ -35,8 +35,10 @@ export const MAP_SPECS: Record<MapShape, MapSpec> = {
     view: { w: 1920, h: 1110 },
     horizon: 330,
     cols: 6,
-    x0: 260,
-    colStep: 280,
+    // Corrido a la izquierda: pasando la última parada tiene que entrar el
+    // cartel de jugar entero (ver `playSign`).
+    x0: 200,
+    colStep: 270,
     row0: 470,
     rowStep: 250,
     wobble: 20,
@@ -105,6 +107,27 @@ export function mapSpots(spec: MapSpec, count = LEVELS.length): MapSpot[] {
       row,
     };
   });
+}
+
+/**
+ * El cartel de jugar, clavado pasando la última parada, hacia donde iba el
+ * camino. Medidas en unidades de la baldosa (se multiplican por `s`): `gap`
+ * es lo que deja libre desde el centro de la parada (la baldosa y su conito),
+ * `width` el ancho de la tabla y `margin` el aire contra el borde del dibujo.
+ */
+export const PLAY_SIGN = { gap: 76, width: 260, margin: 14 };
+
+/**
+ * Dónde va el cartel de jugar (su centro, a la altura de la última parada) y
+ * cuánto mide de ancho, en unidades del viewBox. Como todo sale del dibujo, el
+ * cartel se achica y se agranda con el mapa y nunca se sale de la pantalla
+ * (antes medía en `vw` y en 16:9 quedaba cortado contra el borde).
+ */
+export function playSign(spots: readonly MapSpot[], spec: MapSpec): Point & { width: number } {
+  const last = spots[spots.length - 1];
+  const dir = last.row % 2 === 0 ? 1 : -1;
+  const width = PLAY_SIGN.width * spec.s;
+  return { x: last.x + dir * (PLAY_SIGN.gap * spec.s + width / 2), y: last.y, width };
 }
 
 /** En la fila, una S suave; al cambiar de fila, una U que sale por el costado. */
