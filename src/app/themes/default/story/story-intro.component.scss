@@ -310,11 +310,11 @@
 }
 
 /* Los botones del theme van en mayúsculas espaciadas: acá no, son frases. */
-:is(.in-dot, .in-act, .in-prev, .in-next) {
+:is(.in-dot, .in-act, .in-next) {
   text-transform: none;
   letter-spacing: normal;
 }
-:is(.in-back, .in-dot, .in-act, .in-prev, .in-next):focus-visible {
+:is(.in-back, .in-dot, .in-act, .in-next):focus-visible {
   outline: 3px solid var(--in-gold);
   outline-offset: 3px;
 }
@@ -426,32 +426,13 @@
 .in-note:empty {
   display: none;
 }
-.in-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-  margin-top: 4px;
-}
-.in-prev {
-  padding: 10px 14px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--in-ink-soft);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 16px;
-  cursor: pointer;
-}
-.in-prev:disabled {
-  visibility: hidden;
-}
+/* La salida del nivel: solo en el último paso. */
 .in-next {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  margin-left: auto;
+  align-self: flex-end;
+  margin-top: 4px;
   padding: 12px 22px 13px;
   white-space: nowrap;
   border: 0;

@@ -12,7 +12,6 @@ import {
   nextStep,
   paintPhaseAt,
   PHASE_MS,
-  prevStep,
   progressOf,
   QUEUE_SHOWN,
   spanMs,
@@ -162,11 +161,9 @@ describe('story.intro.logic', () => {
     }
   });
 
-  it('se avanza y se vuelve de a un paso, sin salirse', () => {
+  it('hay un paso siguiente hasta el último, y el índice no se sale', () => {
     expect(nextStep(0)).toBe(1);
     expect(nextStep(INTRO_STEPS.length - 1)).toBeNull();
-    expect(prevStep(0)).toBeNull();
-    expect(prevStep(3)).toBe(2);
     expect(clampStep(-4)).toBe(0);
     expect(clampStep(99)).toBe(INTRO_STEPS.length - 1);
     expect(clampStep(Number.NaN)).toBe(0);

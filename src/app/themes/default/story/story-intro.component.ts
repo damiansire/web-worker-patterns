@@ -7,7 +7,6 @@ import {
   effect,
   ElementRef,
   inject,
-  Injector,
   signal,
   untracked,
   viewChild,
@@ -37,7 +36,6 @@ import {
   PaintPhase,
   paintPhaseAt,
   TASK_MS,
-  prevStep,
   progressOf,
   TraceKind,
   traceEnd,
@@ -779,26 +777,13 @@ const NS = 'http://www.w3.org/2000/svg';
         <p class="in-hint">{{ step().hint }}</p>
         <p class="in-note" aria-live="polite">{{ note() }}</p>
 
-        <nav class="in-nav" aria-label="Pasos">
-          <button type="button" class="in-prev" [disabled]="isFirst()" (click)="back()">
-            <span aria-hidden="true">←</span> Atrás
-          </button>
-          @if (isLast()) {
-            <a
-              class="in-next"
-              [routerLink]="nextLink()"
-              [style.pointer-events]="nextArmed() ? null : 'none'"
-            >
-              Seguir: {{ nextTitle }}
-              <span class="in-next-tri" aria-hidden="true"></span>
-            </a>
-          } @else {
-            <button type="button" class="in-next" (click)="forward()">
-              Siguiente
-              <span class="in-next-tri" aria-hidden="true"></span>
-            </button>
-          }
-        </nav>
+        <!-- Entre pasos se va con los números de arriba; acá solo la salida del nivel. -->
+        @if (isLast()) {
+          <a class="in-next" [routerLink]="nextLink()">
+            Seguir: {{ nextTitle }}
+            <span class="in-next-tri" aria-hidden="true"></span>
+          </a>
+        }
       </section>
     </article>
   `,
@@ -806,8 +791,6 @@ const NS = 'http://www.w3.org/2000/svg';
 })
 export class StoryIntroComponent {
   private readonly progressSvc = inject(StoryProgress);
-  private readonly injector = inject(Injector);
-  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   protected readonly themeId = inject(ThemeService).activeId;
   private readonly stageEl = viewChild.required<ElementRef<HTMLElement>>('stage');
   private readonly world = viewChild.required<ElementRef<SVGSVGElement>>('world');
@@ -858,14 +841,7 @@ export class StoryIntroComponent {
 
   protected readonly stepIndex = signal(0);
   protected readonly step = computed(() => INTRO_STEPS[this.stepIndex()]);
-  protected readonly isFirst = computed(() => prevStep(this.stepIndex()) === null);
   protected readonly isLast = computed(() => nextStep(this.stepIndex()) === null);
-  /**
-   * "Seguir" aparece donde estaba "Siguiente": recién se puede tocar un
-   * instante después, para que el segundo clic de un doble clic no salte el
-   * resumen y se vaya al nivel que sigue.
-   */
-  protected readonly nextArmed = signal(true);
   /** Lo que dice el bloque de la tarea larga: lo que dura de verdad. */
   protected readonly longLabel = `${(TASK_MS.long / 1000).toLocaleString('es', {
     maximumFractionDigits: 1,
@@ -1020,23 +996,6 @@ export class StoryIntroComponent {
   // ── Navegación entre pasos ──
   protected go(i: number): void {
     this.stepIndex.set(clampStep(i));
-    // El botón que tenía el foco puede haber cambiado por otro ("Siguiente" por
-    // "Seguir", "Atrás" apagado en el primer paso): el foco no se pierde.
-    afterNextRender(
-      () => {
-        if (this.dead || document.activeElement !== document.body) return;
-        this.host.querySelector<HTMLElement>('.in-next')?.focus({ preventScroll: true });
-      },
-      { injector: this.injector },
-    );
-  }
-  protected forward(): void {
-    const n = nextStep(this.stepIndex());
-    if (n !== null) this.go(n);
-  }
-  protected back(): void {
-    const p = prevStep(this.stepIndex());
-    if (p !== null) this.go(p);
   }
 
   /** Pone el paso en su estado inicial y main dice algo. */
@@ -1058,12 +1017,10 @@ export class StoryIntroComponent {
     const id = this.step().id;
     this.say(HELLO[id]);
     this.look(id === 'recap' ? { x: 0, y: -0.6 } : { x: 1, y: id === 'hello' ? 0.3 : -0.4 });
-    this.nextArmed.set(id !== 'recap');
     if (id === 'recap') {
       // Verlo entero cuenta como recorrido: el mapa lo marca y main festeja.
       this.progressSvc.completePath(INTRO_ID, 'seen');
       this.cheer();
-      this.later(() => this.nextArmed.set(true), 450);
     }
   }
 

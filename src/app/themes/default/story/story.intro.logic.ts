@@ -285,11 +285,6 @@ export function nextStep(i: number, steps: readonly IntroStep[] = INTRO_STEPS): 
   return i + 1 < steps.length ? i + 1 : null;
 }
 
-/** El paso anterior (o null en el primero). */
-export function prevStep(i: number): number | null {
-  return i > 0 ? i - 1 : null;
-}
-
 /** Un índice de paso válido, venga de donde venga (teclado, URL vieja). */
 export function clampStep(i: number, steps: readonly IntroStep[] = INTRO_STEPS): number {
   return Math.min(Math.max(Math.round(i) || 0, 0), steps.length - 1);
