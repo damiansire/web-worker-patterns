@@ -8,6 +8,7 @@ import {
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 import {
+  countedPath,
   firstPageReferrer,
   pageViewHitUrl,
   REFERRER_HANDOFF_KEY,
@@ -27,7 +28,6 @@ export function providePageViewAnalytics(): EnvironmentProviders {
         !window?.navigator.sendBeacon ||
         !shouldCountPageView({
           hostname: window.location.hostname,
-          automated: window.navigator.webdriver,
           prerender: (document.visibilityState as string) === 'prerender',
         })
       ) {
@@ -60,7 +60,10 @@ export function providePageViewAnalytics(): EnvironmentProviders {
         .events.pipe(filter((e) => e instanceof NavigationEnd))
         .subscribe(() => {
           const url = pageViewHitUrl({
-            path: window.location.pathname + window.location.search,
+            path: countedPath(
+              window.location.pathname + window.location.search,
+              window.navigator.webdriver,
+            ),
             title: document.title,
             referrer,
             screenWidth: window.screen.width,

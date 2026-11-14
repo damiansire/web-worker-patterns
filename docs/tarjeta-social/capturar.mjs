@@ -23,7 +23,7 @@ try {
     deviceScaleFactor: 1,
     serviceWorkers: 'block',
   });
-  // Que la captura no cuente como una visita (igual no cuenta: navigator.webdriver).
+  // Que la captura no cuente como una visita.
   await page.route(/goatcounter/, (route) => route.abort());
   await page.goto(url);
 

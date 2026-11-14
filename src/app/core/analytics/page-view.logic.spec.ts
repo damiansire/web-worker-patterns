@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
+  AUTOMATED_PATH_PREFIX,
+  countedPath,
   firstPageReferrer,
   GOATCOUNTER_ENDPOINT,
   PRODUCTION_HOST,
@@ -8,21 +10,33 @@ import {
 } from './page-view.logic';
 
 describe('shouldCountPageView', () => {
-  const human = { hostname: PRODUCTION_HOST, automated: false, prerender: false };
+  const published = { hostname: PRODUCTION_HOST, prerender: false };
 
-  it('cuenta a una persona en el sitio publicado', () => {
-    expect(shouldCountPageView(human)).toBe(true);
+  it('cuenta las visitas al sitio publicado', () => {
+    expect(shouldCountPageView(published)).toBe(true);
   });
 
   it('no cuenta en local ni en otros hosts', () => {
-    expect(shouldCountPageView({ ...human, hostname: 'localhost' })).toBe(false);
-    expect(shouldCountPageView({ ...human, hostname: '127.0.0.1' })).toBe(false);
-    expect(shouldCountPageView({ ...human, hostname: 'mi-self-host.example' })).toBe(false);
+    expect(shouldCountPageView({ ...published, hostname: 'localhost' })).toBe(false);
+    expect(shouldCountPageView({ ...published, hostname: '127.0.0.1' })).toBe(false);
+    expect(shouldCountPageView({ ...published, hostname: 'mi-self-host.example' })).toBe(false);
   });
 
-  it('no cuenta navegadores automatizados ni pestañas en prerender', () => {
-    expect(shouldCountPageView({ ...human, automated: true })).toBe(false);
-    expect(shouldCountPageView({ ...human, prerender: true })).toBe(false);
+  it('no cuenta pestañas en prerender', () => {
+    expect(shouldCountPageView({ ...published, prerender: true })).toBe(false);
+  });
+});
+
+describe('countedPath', () => {
+  const path = '/web-worker-patterns/t/default?x=1';
+
+  it('deja el path de una persona tal cual', () => {
+    expect(countedPath(path, false)).toBe(path);
+  });
+
+  it('pone las visitas automatizadas bajo /bot, aparte de las de personas', () => {
+    expect(AUTOMATED_PATH_PREFIX).toBe('/bot');
+    expect(countedPath(path, true)).toBe('/bot/web-worker-patterns/t/default?x=1');
   });
 });
 

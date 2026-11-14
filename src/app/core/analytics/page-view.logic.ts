@@ -12,8 +12,11 @@ export const GOATCOUNTER_ENDPOINT = 'https://web-worker-patterns.goatcounter.com
 /** Único host donde se cuenta: el deploy de GitHub Pages. Local, e2e y self-host no suman. */
 export const PRODUCTION_HOST = 'damiansire.github.io';
 
+/** Prefijo del path de las visitas de navegadores automatizados (`navigator.webdriver`). */
+export const AUTOMATED_PATH_PREFIX = '/bot';
+
 export interface PageView {
-  /** `pathname + search` de la pantalla, sin el hash. */
+  /** Path con el que se cuenta la pantalla (ver `countedPath`). */
   path: string;
   title: string;
   /** Solo en la primera pantalla de la sesión; en las navegaciones internas va vacío. */
@@ -23,15 +26,22 @@ export interface PageView {
 
 export interface CountEnvironment {
   hostname: string;
-  /** `navigator.webdriver`: Playwright, Selenium y otros navegadores automatizados. */
-  automated: boolean;
   /** `document.visibilityState === 'prerender'`: la pestaña todavía no la vio nadie. */
   prerender: boolean;
 }
 
-/** Si esta visita se cuenta: solo personas reales en el sitio publicado. */
+/** Si esta visita se cuenta: las del sitio publicado que alguien llegó a ver. */
 export function shouldCountPageView(env: CountEnvironment): boolean {
-  return env.hostname === PRODUCTION_HOST && !env.automated && !env.prerender;
+  return env.hostname === PRODUCTION_HOST && !env.prerender;
+}
+
+/**
+ * Path con el que se cuenta una pantalla: `pathname + search`, sin el hash. Las
+ * de un navegador automatizado van bajo `AUTOMATED_PATH_PREFIX`, así en el panel
+ * se filtran aparte.
+ */
+export function countedPath(path: string, automated: boolean): string {
+  return automated ? `${AUTOMATED_PATH_PREFIX}${path}` : path;
 }
 
 /**
