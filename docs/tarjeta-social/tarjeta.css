@@ -1,0 +1,15 @@
+/* Solo para la captura de la tarjeta social (ver capturar.mjs). En una miniatura
+   de 500 px el marcador de estrellas es ruido y el título a su tamaño de pantalla
+   se lee justo: va más grande. */
+.sm-score {
+  display: none !important;
+}
+.sm-brand {
+  font-size: 16px !important;
+}
+.sm-title h1 {
+  font-size: 60px !important;
+}
+.sm-tag {
+  font-size: 24px !important;
+}

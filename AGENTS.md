@@ -45,6 +45,12 @@ Estos gates se aplican **igual sin importar tu IDE/IA**: hay un git pre-commit (
 se activa con `npm run setup`) y CI (`.github/workflows/ci.yml`) que los corren. No dependen
 de que tu editor tenga hooks. Si trabajás en otro harness, esa es la red que te cubre.
 
+## Tarjeta social
+
+`public/tarjeta-social.jpg` es la `og:image` de `src/index.html`: el mapa del juego de día,
+capturado del dev server con `docs/tarjeta-social/capturar.mjs`. Si cambia el mapa o el
+título, hay que regenerarla.
+
 ## Atajos opcionales por herramienta (feedback temprano, no reemplazan los gates)
 
 - **Claude Code**: hooks en `scripts/hooks/`; registro en `.claude/settings.hooks.sample.json`.
