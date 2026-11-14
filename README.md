@@ -217,6 +217,10 @@ The application UI is in **Spanish**, served via [Transloco](https://jsverse.git
 
 The i18n engine is kept generic: adding a language is adding its JSON in `public/i18n/`, its entry in `LanguageService`, and its code to `availableLangs` in `app.config.ts`. The neutral `LanguageSwitcherComponent` is ready to re-mount once there is more than one.
 
+## Privacy
+
+The published demo sends one page view per screen to [GoatCounter](https://www.goatcounter.com/): the path, the page title, the referrer and the screen width. No cookies and no third-party script: it is a `sendBeacon` to the count endpoint, the only external host the CSP allows. It only runs on the GitHub Pages deploy; local, e2e and self-hosted builds send nothing. See [`page-view.logic.ts`](src/app/core/analytics/page-view.logic.ts).
+
 ## Documentation
 
 - [Docker Guide](DOCKER.md): Run the project with Docker
